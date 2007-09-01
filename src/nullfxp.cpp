@@ -1,0 +1,476 @@
+/***************************************************************************
+ *   Copyright (C) 2007 by liuguangzhao   *
+ *   gzl@localhost   *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
+
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <errno.h>
+#include <signal.h>
+#include <wait.h>
+
+#include <QtNetwork>
+
+#include <QCoreApplication>
+
+#include "nullfxp.h"
+#include "buffer.h"
+#include "sftp.h"
+#include "log.h"
+#include "xmalloc.h"
+#include "defines.h"
+#include "misc.h"
+
+
+#include "glob.h"
+
+#include "sftp-operation.h"
+
+#include "localview.h"
+#include "remoteview.h"
+#include "progressdialog.h"
+
+
+
+//////////////////////////
+
+NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
+		: QMainWindow ( parent ,  flags )
+{
+	this->mUIMain.setupUi ( this );
+
+    central_widget  = new QSplitter ( Qt::Vertical );
+
+	//
+	mdiArea = new QMdiArea;
+    QObject::connect(this->mUIMain.actionTransfer_queue,SIGNAL(triggered(bool)),
+                     this,SLOT(slot_show_transfer_queue(bool)));
+    QObject::connect(this->mUIMain.actionShow_log,SIGNAL(triggered(bool)),
+                     this,SLOT(slot_show_fxp_command_log(bool)));
+    
+    QObject::connect(this->mUIMain.actionCascade_window,SIGNAL(triggered()),this,SLOT(slot_cascade_sub_windows()));
+    QObject::connect(this->mUIMain.actionTile_window,SIGNAL(triggered()),this,SLOT(slot_tile_sub_windows()));
+    
+    transfer_queue_list_view = new QListView();
+
+    central_widget->addWidget ( mdiArea );
+    central_widget->addWidget ( transfer_queue_list_view );
+
+    setCentralWidget ( central_widget );
+
+	windowMapper = new QSignalMapper ( this );
+
+	///////////////////////
+	//QObject::connect(this->mUIMain.pushButton,SIGNAL(clicked()),this,SLOT(test()));
+	//QObject::connect(this->mUIMain.pushButton_do_init,SIGNAL(clicked()),this,SLOT(do_init()));
+	//QObject::connect(this->mUIMain.pushButton_do_ls,SIGNAL(clicked()),this,SLOT(do_ls()));
+	QObject::connect ( this->mUIMain.actionInit_dir_view, SIGNAL ( triggered() ) ,
+	                   this, SLOT ( local_init_dir_view() ) );
+	QObject::connect ( this->mUIMain.actionConnect, SIGNAL ( triggered() ) ,
+	                   this, SLOT ( connect_to_remote_host() ) );
+    QObject::connect( this->mUIMain.actionDisconnect,SIGNAL(triggered()),
+                      this,SLOT( slot_disconnect_from_remote_host()) );
+    
+	QObject::connect ( this->mUIMain.actionInit_remote_dir_view,SIGNAL ( triggered() ),
+	                   this,SLOT ( remote_init_dir_view () ) );
+
+	localView = new LocalView();
+
+	mdiArea->addSubWindow ( localView );
+
+	remoteView = new RemoteView();
+
+	mdiArea->addSubWindow ( remoteView );
+
+	QObject::connect ( localView,SIGNAL ( new_upload_requested ( QString ,QString) ),
+	                   this,SLOT ( slot_new_upload_requested ( QString ,QString) ) );
+
+    QObject::connect ( remoteView,SIGNAL ( new_transfer_requested ( QString ,QString  ) ),
+                       this,SLOT ( slot_new_download_requested ( QString ,QString  ) ) );
+    
+    QObject::connect( remoteView, SIGNAL( new_transfer_requested(QString,QString,QString,QString)),
+                      this,SLOT(slot_new_upload_requested(QString,QString,QString,QString)) );
+    
+
+    //////////////
+    about_nullfxp_dialog = new AboutNullFXP(this);
+    QObject::connect(this->mUIMain.actionAbout_NullFXP,SIGNAL(triggered()),
+                     this,SLOT(slot_about_nullfxp()));
+    QObject::connect( this->mUIMain.actionAbout_Qt,SIGNAL(triggered()),
+                      qApp,SLOT(aboutQt()));
+}
+
+
+NullFXP::~NullFXP()
+{}
+void NullFXP::slot_about_nullfxp()
+{
+    this->about_nullfxp_dialog->setVisible(true);
+}
+
+/*
+-oForwardX11 no
+-oForwardAgent no
+-oPermitLocalCommand no
+-oClearAllForwardings yes
+-v
+-v
+-lroot
+-oProtocol 2
+-s
+localhost
+sftp
+
+*/
+
+// void NullFXP::test()
+// {
+// 	qDebug() <<"jhsdhfdsfsdf";
+// 	int in , out ;
+// 	char * sargs [60] = {
+// 	                        "/home/gzl/openssh-4.6p1/ssh",
+// 	                        "-oForwardX11 no",
+// 	                        "-oForwardAgent no",
+// 	                        "-oPermitLocalCommand no",
+// 	                        "-oClearAllForwardings yes",
+// 	                        "-v",
+// 	                        "-v",
+// 	                        "-lroot",
+// 	                        "-oProtocol 2",
+// 	                        "-y",
+// 	                        "",
+// 	                        "-s",
+// 	                        "localhost",
+// 	                        "sftp",
+// 
+// 	                        NULL
+// 	                    };
+// 
+// 	//int exec_ret = execvp(sargs[0], sargs);
+// 
+// 	connect_to_server ( sargs[0],sargs,&in,&out );
+// 	qDebug() <<"Exec ret :" << in << " out: " << out  ;
+// 
+// 	theconn.fd_in = in;
+// 	theconn.fd_out = out ;
+// 	theconn.transfer_buflen = 32768;
+// 	theconn.num_requests = 0 ;
+// 	theconn.version = 0;
+// 	theconn.msg_id = 0 ;
+// 
+// 
+// }
+
+// void NullFXP::do_init()
+// {
+// 	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+// 	int fd_in,  fd_out;
+// 	u_int transfer_buflen=128, num_requests;
+// 	fd_in = this->theconn.fd_in;
+// 	fd_out = this->theconn.fd_out ;
+// 
+// 	u_int type;
+// 	int version;
+// 	Buffer msg;
+// 	struct sftp_conn *ret = & this->theconn;
+// 
+// 	buffer_init ( &msg );
+// 	buffer_put_char ( &msg, SSH2_FXP_INIT );
+// 	buffer_put_int ( &msg, SSH2_FILEXFER_VERSION );
+// 	send_msg ( fd_out, &msg );
+// 
+// 	buffer_clear ( &msg );
+// 
+// 	///////
+// 	get_msg ( fd_in, &msg );
+// 
+// 	/* Expecting a VERSION reply */
+// 	if ( ( type = buffer_get_char ( &msg ) ) != SSH2_FXP_VERSION )
+// 	{
+// 		error ( "Invalid packet back from SSH2_FXP_INIT (type %u)",
+// 		        type );
+// 		buffer_free ( &msg );
+// 		//return(NULL);
+// 		return ;
+// 	}
+// 	version = buffer_get_int ( &msg );
+// 
+// 	debug2 ( "Remote version: %d", version );
+// 
+// 	debug2 ( "buffer_len: %d\n",buffer_len ( &msg ) );
+// 	/* Check for extensions */
+// 	while ( buffer_len ( &msg ) > 0 )
+// 	{
+// 		char *name = ( char* ) buffer_get_string ( &msg, NULL );
+// 		char *value = ( char* ) buffer_get_string ( &msg, NULL );
+// 
+// 		debug2 ( "Init extension: \"%s\"", name );
+// 		xfree ( name );
+// 		xfree ( value );
+// 	}
+// 
+// 	buffer_free ( &msg );
+// 
+// 	//ret = xmalloc(sizeof(*ret));
+// 	ret->fd_in = fd_in;
+// 	ret->fd_out = fd_out;
+// 	ret->transfer_buflen = transfer_buflen;
+// 	ret->num_requests = num_requests;
+// 	ret->version = version;
+// 	ret->msg_id = 1;
+// 
+// 	/* Some filexfer v.0 servers don't support large packets */
+// 	if ( version == 0 )
+// 		ret->transfer_buflen = MIN ( ret->transfer_buflen, 20480 );
+// }
+
+// void NullFXP::do_ls()
+// {
+// 	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+// 
+// 	do_globbed_ls ( &this->theconn, "/home", "/", 0 );
+// 
+// }
+
+void NullFXP::local_init_dir_view()
+{
+	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+
+}
+
+void NullFXP::connect_to_remote_host()
+{
+	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+
+	QString username ;
+	QString password ;
+	QString remoteaddr ;
+	//QString program = "/home/gzl/openssh-4.6p1/ssh";
+
+	//int in , out ;
+
+    /*
+	arglist args ;
+
+	memset ( &args, '\0', sizeof ( args ) );
+	args.list = NULL;
+
+	addargs ( &args, "%s", program.toAscii().data() );
+	addargs ( &args, "-oForwardX11 no" );
+	addargs ( &args, "-oForwardAgent no" );
+	addargs ( &args, "-oPermitLocalCommand no" );
+	addargs ( &args, "-oClearAllForwardings yes" );
+	addargs ( &args, "-v" );
+	addargs ( &args, "-v" );
+	addargs ( &args, "-l%s",username.toAscii().data() );
+	addargs ( &args, "-oProtocol %d",2 );
+	addargs ( &args, "-y" );
+	addargs ( &args, "%s",password.toAscii().data() );
+	addargs ( &args, "-s" );
+	addargs ( &args, "%s",remoteaddr.toAscii().data() );
+	addargs ( &args, "sftp" );
+
+	connect_to_server ( program .toAscii().data(),args.list,&in,&out );
+	qDebug() <<"Exec ret :" << in << " out: " << out  ;
+
+	theconn.fd_in = in;
+	theconn.fd_out = out ;
+	//theconn.transfer_buflen = 32768;
+    theconn.transfer_buflen = 1024;
+	theconn.num_requests = 0 ;
+	theconn.version = 0;
+	theconn.msg_id = 0 ;
+
+	this->do_init();
+    
+    */
+    
+    //提示输入远程主机信息
+    this->quick_connect_info_dailog = new RemoteHostQuickConnectInfoDialog(this);
+    if( this->quick_connect_info_dailog->exec() == QDialog::Accepted )
+    {
+        username = this->quick_connect_info_dailog->get_user_name();
+        password = this->quick_connect_info_dailog->get_password();
+        remoteaddr = this->quick_connect_info_dailog->get_host_name();
+        
+        delete this->quick_connect_info_dailog;this->quick_connect_info_dailog=0;
+        
+	   //this->localView->set_sftp_connection ( &theconn );
+        remote_conn_thread = new RemoteHostConnectThread(
+                username,  password,remoteaddr ) ;
+        QObject::connect( this->remote_conn_thread , SIGNAL(connect_finished(int,struct sftp_conn*)),
+                          this, SLOT( slot_connect_remote_host_finished(int,struct sftp_conn*)) );
+    
+        this->connect_status_dailog = new RemoteHostConnectingStatusDialog(username,remoteaddr,this, Qt::Dialog );
+        this->connect_status_dailog->exec();    
+    }
+    else
+    {
+        qDebug()<<"user canceled ...";
+    }        
+    
+}
+
+void NullFXP::slot_disconnect_from_remote_host()
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    this->remoteView->slot_disconnect_from_remote_host();
+    this->remote_conn_thread->diconnect_ssh_connection();
+    delete this->remote_conn_thread ; this->remote_conn_thread = 0 ;
+    
+    delete this->connect_status_dailog ; this->connect_status_dailog = 0 ;
+    
+    free(this->sftp_connection); this->sftp_connection = 0 ;
+}
+
+void NullFXP::slot_connect_remote_host_finished(int status , struct sftp_conn * conn )
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    if(status == 0 )
+    {
+        assert(conn != 0 );
+        this->sftp_connection = conn ;
+        this->localView->set_sftp_connection ( this->sftp_connection );
+    }
+    else
+    {
+        assert(1==2);
+    }
+    this->connect_status_dailog->accept();
+    delete this->connect_status_dailog ;
+    this->connect_status_dailog = 0 ;
+}
+
+void NullFXP::remote_init_dir_view()
+{
+	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+
+	//do_globbed_ls(&this->theconn, "/root/", "/root/", 0 );
+    this->remoteView->i_init_dir_view ( this->sftp_connection );
+
+}
+
+void NullFXP::slot_new_upload_requested ( QString local_file_name ,QString local_file_type )
+{
+	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+	QString remote_file_name , remote_file_type  ;
+
+	remote_file_name = this->remoteView->get_selected_directory();
+    remote_file_type = "";
+
+	if ( remote_file_name.length() == 0 )
+	{
+        qDebug()<<" selected a remote file directory  please";
+	}
+	else
+	{
+		ProgressDialog * pdlg = new ProgressDialog ( this );
+		pdlg->set_remote_connection ( this->sftp_connection );
+        pdlg->set_transfer_info ( TransferThread::TRANSFER_PUT,local_file_name,local_file_type , remote_file_name , remote_file_type ) ;
+        QObject::connect(pdlg,SIGNAL(transfer_finished(int)),
+                         this,SLOT(slot_transfer_finished(int)) );
+		pdlg->exec();
+	}
+}
+
+void NullFXP::slot_new_upload_requested(QString local_file_name,QString local_file_type,
+                                        QString remote_file_name,QString remote_file_type)
+{
+    ProgressDialog * pdlg = new ProgressDialog ( this );
+    pdlg->set_remote_connection ( this->sftp_connection );
+    pdlg->set_transfer_info ( TransferThread::TRANSFER_PUT,local_file_name,local_file_type , remote_file_name , remote_file_type ) ;
+    QObject::connect(pdlg,SIGNAL(transfer_finished(int)),
+                     this,SLOT(slot_transfer_finished(int)) );
+    pdlg->exec();
+}
+
+void NullFXP::slot_new_download_requested(QString remote_file_name , QString remote_file_type )
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    QString local_file_path , local_file_type ;
+    
+    local_file_path = this->localView->get_selected_directory();
+    
+    if( local_file_path.length() == 0 )
+    {
+        qDebug()<<" selected a local file directory  please"; 
+    }
+    else
+    {
+        ProgressDialog *pdlg = new ProgressDialog(this);
+        pdlg->set_remote_connection(  this->sftp_connection  );
+        pdlg->set_transfer_info(TransferThread::TRANSFER_GET,local_file_path,local_file_type,remote_file_name,remote_file_type );
+        QObject::connect(pdlg,SIGNAL(transfer_finished(int)),
+                         this,SLOT(slot_transfer_finished(int)) );
+        pdlg->exec();
+    }
+}
+
+void NullFXP::slot_new_download_requested(QString local_file_name,QString local_file_type,
+                                          QString remote_file_name,QString remote_file_type)
+{
+    ProgressDialog *pdlg = new ProgressDialog(this);
+    pdlg->set_remote_connection(  this->sftp_connection  );
+    pdlg->set_transfer_info(TransferThread::TRANSFER_GET,local_file_name,local_file_type,remote_file_name,remote_file_type );
+    QObject::connect(pdlg,SIGNAL(transfer_finished(int)),
+                     this,SLOT(slot_transfer_finished(int)) );
+    pdlg->exec();
+}
+
+void NullFXP::slot_transfer_finished(int status )
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
+    qDebug()<<"transfer status: " << status ;
+    
+    ProgressDialog * pdlg = (ProgressDialog*)sender();
+    
+    delete pdlg ;
+    
+}
+void NullFXP::slot_show_transfer_queue(bool show)
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    transfer_queue_list_view->setVisible(show);
+}
+void NullFXP::slot_show_fxp_command_log(bool show)
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    this->remoteView->slot_show_fxp_command_log(show);
+}
+
+void NullFXP::slot_cascade_sub_windows()
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    this->mdiArea->cascadeSubWindows();
+}
+void NullFXP::slot_tile_sub_windows()
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    this->mdiArea->tileSubWindows();
+    
+}
+
+
+
+
+
+
