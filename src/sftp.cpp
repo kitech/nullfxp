@@ -1475,6 +1475,7 @@ void
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, inout) == -1)
     {
             //fatal("socketpair: %s", strerror(errno));
+        fprintf(stderr,"socketpair: %s", strerror(errno));
     }
     *in = *out = inout[0];
     c_in = c_out = inout[1];
@@ -1484,6 +1485,7 @@ void
     if ((sshpid = fork()) == -1)
     {
        //fatal("fork: %s", strerror(errno));
+        fprintf(stderr,"fork: %s", strerror(errno));
     }
     else if (sshpid == 0) {
         if ((dup2(c_in, STDIN_FILENO) == -1) ||

@@ -36,23 +36,106 @@ RemoteDirModel::RemoteDirModel ( struct sftp_conn * conn , QObject *parent )
 	QObject::connect ( this->remote_dir_retrive_thread,SIGNAL ( remote_dir_node_retrived ( directory_tree_item *,const QModelIndex* ) ),
 	                   this,SLOT ( slot_remote_dir_node_retrived ( directory_tree_item*,const QModelIndex* ) ) );
 
-
-	this->tree_root = new  directory_tree_item ();
-	//memset ( this->tree_root,0,sizeof ( this->tree_root ) );
-
-	directory_tree_item * first_item  = new directory_tree_item();
-	first_item->tree_node_item.insert ( std::make_pair ( 'N',"/" ) );
-	first_item->tree_node_item.insert ( std::make_pair ( 'T',"D" ) ) ;
-	first_item->parent_item = this->tree_root;
-	first_item->row_number = 0;
-	first_item->retrived = 0;
-	first_item->strip_path = "";    //对根，不需要strip前缀，现在程序的表现就好了。
-
-	this->tree_root->child_items.insert ( std::make_pair ( 0, first_item ) );
-	this->tree_root->row_number = 0;
-
-
 }
+
+void RemoteDirModel::set_user_home_path(std::string user_home_path)
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    this->user_home_path = user_home_path ;   
+    
+    qDebug()<<" i know remote home path: "<< this->user_home_path.c_str() ;
+    
+    //Todo: 使用这个初始化路径来初始化这个树，而不是用默认的根路径 .
+    //初始化目录案例：
+    // 1.      /home/users/l/li/liuguangzhao
+    // 2.      /root
+    // 3.       /home/gzl
+    
+    this->tree_root = new  directory_tree_item ();
+	
+    //{创建初始化目录树
+    directory_tree_item * first_item ;
+    //= new directory_tree_item();
+    //first_item->tree_node_item.insert ( std::make_pair ( 'N',"/" ) );
+    //first_item->tree_node_item.insert ( std::make_pair ( 'T',"D" ) ) ;
+    //first_item->parent_item = this->tree_root;
+    //first_item->row_number = 1;
+    //first_item->retrived = 1 ;  //半满结点
+    //first_item->strip_path = "";    //对根，不需要strip前缀，现在程序的表现就好了。
+    
+    directory_tree_item * temp_parent_tree_item = 0 , * temp_tree_item =0 ;
+    std::string temp_strip_path , temp_path_name ;
+    char   buff[PATH_MAX+1] = {0};
+    char    buff2[PATH_MAX+1] = {0};
+    char    buff3[PATH_MAX+1] = {0} ;
+    char * sep_pos = 0 ,* pre_sep_pos ;
+    strcpy( buff,this->user_home_path.c_str());
+    strcpy( buff2,this->user_home_path.c_str());
+    pre_sep_pos = buff ;
+    while ( 1 )
+    {
+        sep_pos = strchr( buff,'/') ;
+        if(sep_pos == NULL )
+        {
+            temp_strip_path = std::string(buff2);
+            memset(buff3,0,PATH_MAX+1);
+            strcpy(buff3,buff2+(pre_sep_pos-buff)+1);
+            temp_path_name = std::string(buff3);
+            temp_parent_tree_item = temp_tree_item ;
+            temp_tree_item = new directory_tree_item();
+        }
+        else
+        {
+            *sep_pos = '&'; //将这个字符替换掉，防止重复查找这个位置
+            if(sep_pos == buff )
+            {
+                strncpy(buff3,buff2,int(sep_pos-buff));
+                temp_strip_path = std::string(buff3);
+                temp_path_name = std::string("/");
+                first_item   = new directory_tree_item();
+                temp_tree_item = first_item ;
+                temp_parent_tree_item = this->tree_root ;
+            }
+            else
+            {
+                strncpy(buff3,buff2,int(sep_pos-buff));
+                temp_strip_path = std::string(buff3);
+                memset(buff3,0,PATH_MAX+1);
+                strncpy(buff3,buff2+(pre_sep_pos-buff)+1,(sep_pos-pre_sep_pos-1));
+                temp_path_name = std::string(buff3);
+                temp_parent_tree_item = temp_tree_item ;
+                temp_tree_item = new directory_tree_item();
+            }
+            
+
+        }
+        qDebug()<<"distance to begin:   strip path:"<< temp_strip_path.c_str() << "dir name:"<< temp_path_name.c_str() ;
+        //assign
+        temp_tree_item->tree_node_item.insert ( std::make_pair ( 'N',temp_path_name ) );
+        temp_tree_item->tree_node_item.insert ( std::make_pair ( 'T',"D" ) ) ;
+        temp_tree_item->parent_item = temp_parent_tree_item ;
+        temp_tree_item->row_number = 0 ;    //指的是此结点在父结点中的第几个结点，在这里预置的只能为0
+        temp_tree_item->retrived = (sep_pos == NULL)?0:1 ;  //半满结点
+        temp_tree_item->strip_path = temp_strip_path;
+        temp_tree_item->file_name = temp_path_name;
+        temp_tree_item->file_size = std::string("0");
+        temp_tree_item->file_type = std::string("D");
+        temp_tree_item->prev_retr_flag = -1 ;
+         
+        //对根，不需要strip前缀，现在程序的表现就好了。
+        temp_parent_tree_item->child_items.insert( std::make_pair(0,temp_tree_item) );
+        
+        //pre_sep_pos
+        pre_sep_pos = sep_pos ;
+        if( sep_pos == NULL ) break ;
+    } 
+    qDebug()<<" seach end :"<< buff ;
+    //}
+    
+    this->tree_root->child_items.insert ( std::make_pair ( 0, first_item ) );
+    this->tree_root->row_number = 0;
+}
+
 
 
 RemoteDirModel::~RemoteDirModel()
@@ -65,6 +148,7 @@ RemoteDirModel::~RemoteDirModel()
 	{
 		delete this->remote_dir_retrive_thread ;
 	}
+    //Todo: 删除model中的现有数据
 }
 
 QModelIndex RemoteDirModel::index ( int row, int column, const QModelIndex &parent ) const
@@ -237,7 +321,7 @@ int RemoteDirModel::rowCount ( const QModelIndex &parent/* = QModelIndex()*/ ) c
 		directory_tree_item * parent_item = static_cast<directory_tree_item*> ( parent.internalPointer() );
 
 		if ( parent_item->retrived == 0
-		        || parent_item->retrived == 1
+		        // || parent_item->retrived == 1
 		        || parent_item->retrived == 2 ) //为了lazy模式的需要，才做一个假数据。
 		{
 			//或者是不是要在这里取子结点的行数，即去远程找数据呢。
@@ -440,5 +524,4 @@ bool RemoteDirModel::dropMimeData ( const QMimeData *data, Qt::DropAction action
     return true ;
 	return ret ;
 }
-
 

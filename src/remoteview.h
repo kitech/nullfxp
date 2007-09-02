@@ -44,6 +44,8 @@ public:
     ~RemoteView();
     QString get_selected_directory();
     
+    void set_user_home_path(std::string user_home_path);
+    
     private:
         char m_curr_path[PATH_MAX+1];
         char m_next_path[PATH_MAX+1];
@@ -54,6 +56,9 @@ public:
         QMenu * dir_tree_context_menu ;
         
         void init_popup_context_menu() ;
+        
+        std::string user_home_path ;    
+        
         
     public slots:
         void i_init_dir_view(struct sftp_conn * conn);
@@ -73,6 +78,8 @@ public:
         void new_transfer_requested(QString local_file_name,QString local_file_type,
                                     QString remote_file_name,QString remote_file_type );
         
+    protected:
+        virtual void closeEvent ( QCloseEvent * event ) ;
 };
 
 #endif

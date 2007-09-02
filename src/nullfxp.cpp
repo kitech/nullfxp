@@ -110,6 +110,11 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
     QObject::connect( remoteView, SIGNAL( new_transfer_requested(QString,QString,QString,QString)),
                       this,SLOT(slot_new_upload_requested(QString,QString,QString,QString)) );
     
+    //
+    QObject::connect( this->mUIMain.action_Local_Window,SIGNAL(triggered()),
+                      this,SLOT(slot_show_local_view()));
+    QObject::connect( this->mUIMain.action_Remote_Window,SIGNAL(triggered()),
+                      this,SLOT(slot_show_remote_view()) );
 
     //////////////
     about_nullfxp_dialog = new AboutNullFXP(this);
@@ -117,6 +122,10 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
                      this,SLOT(slot_about_nullfxp()));
     QObject::connect( this->mUIMain.actionAbout_Qt,SIGNAL(triggered()),
                       qApp,SLOT(aboutQt()));
+    
+    //
+    //QList<QMdiSubWindow *> mdiSubWindow = mdiArea->subWindowList();
+    //qDebug()<<" mdi sub window count :"<< mdiSubWindow.count();
 }
 
 
@@ -350,6 +359,7 @@ void NullFXP::slot_connect_remote_host_finished(int status , struct sftp_conn * 
         assert(conn != 0 );
         this->sftp_connection = conn ;
         this->localView->set_sftp_connection ( this->sftp_connection );
+        this->remoteView->set_user_home_path( this->remote_conn_thread->get_user_home_path() );
     }
     else
     {
@@ -468,6 +478,27 @@ void NullFXP::slot_tile_sub_windows()
     this->mdiArea->tileSubWindows();
     
 }
+
+void NullFXP::slot_show_local_view()
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    if(!this->localView->isVisible())
+    {
+        this->localView->setVisible(true);
+    }
+    
+}
+
+void NullFXP::slot_show_remote_view()
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;  
+    if( ! this->remoteView->isVisible())
+    {
+        this->remoteView->setVisible(true);
+    }
+}
+
+
 
 
 

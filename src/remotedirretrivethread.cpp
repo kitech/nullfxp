@@ -63,9 +63,12 @@ void RemoteDirRetriveThread::run()
         fxp_ls_ret = fxp_do_globbed_ls ( this->sftp_connection , file_name , strip_path , lflag , fileinfos );
 		qDebug() <<"fxp_ls_ret:" << fxp_ls_ret<< ", fileinfos number="<<fileinfos.size() << " use strip:" << strip_path <<" file_name ="<< file_name ;
 				
+        int  curr_count = 0 ;
 		////////////
 		for ( int i = 0 ; i < fileinfos.size() ; i ++ )
 		{
+            curr_count = parent_item->child_items.size();
+            
 			directory_tree_item * thefile = new directory_tree_item();
 			thefile->retrived = 0;
 			thefile->parent_item = parent_item ;
@@ -73,7 +76,7 @@ void RemoteDirRetriveThread::run()
 			thefile->tree_node_item.insert ( std::make_pair ( 'S',fileinfos.at ( i ) ['S'] ) ) ;
 			thefile->tree_node_item.insert ( std::make_pair ( 'T',fileinfos.at ( i ) ['T'] ) ) ;
 			thefile->tree_node_item.insert ( std::make_pair ( 'D',fileinfos.at ( i ) ['D'] ) ) ;
-			thefile->row_number=i;
+            thefile->row_number= curr_count ;
 
 			thefile->strip_path = std::string ( parent_item->strip_path ) + std::string ( "/" ) +  fileinfos.at ( i ) ['N'] ;
 
@@ -82,7 +85,8 @@ void RemoteDirRetriveThread::run()
 			thefile->file_name = fileinfos.at ( i ) ['N'] ;
 			thefile->file_date = fileinfos.at ( i ) ['D'];
 
-			parent_item->child_items.insert ( std::make_pair ( i,thefile ) ) ;
+			//parent_item->child_items.insert ( std::make_pair ( i,thefile ) ) ;
+            parent_item->child_items.insert ( std::make_pair ( curr_count , thefile ) ) ;
 		}
         
         parent_item->prev_retr_flag = parent_item->retrived ;

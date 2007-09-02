@@ -72,6 +72,7 @@ void RemoteView::i_init_dir_view(struct sftp_conn * conn)
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
     this->remote_dir_model = new RemoteDirModel(conn);
+    this->remote_dir_model->set_user_home_path(this->user_home_path);
     
     this->remoteview.treeView->setModel(this->remote_dir_model);
     this->remoteview.treeView->setAcceptDrops(true);
@@ -81,6 +82,9 @@ void RemoteView::i_init_dir_view(struct sftp_conn * conn)
     //do_globbed_ls( conn , this->m_next_path , this->m_curr_path, 0 );
     QObject::connect(this->remote_dir_model,SIGNAL(new_transfer_requested(QString,QString,QString,QString)),
                      this,SIGNAL(new_transfer_requested(QString,QString,QString,QString)) ) ;
+    
+    this->remoteview.treeView->expandAll();
+    
 }
 
 void RemoteView::slot_disconnect_from_remote_host()
@@ -151,7 +155,18 @@ QString RemoteView::get_selected_directory()
 }
 
 
+void RemoteView::set_user_home_path(std::string user_home_path)
+{
+    this->user_home_path = user_home_path ;
+}
 
+void RemoteView::closeEvent ( QCloseEvent * event ) 
+{
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    event->ignore();
+    //this->setVisible(false);
+    QMessageBox::information(this,tr("attemp to close this window?"),tr("you cat's close this window."));
+}
 
 
 

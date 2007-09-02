@@ -44,6 +44,7 @@ public:
     
     void do_init() ;
     void diconnect_ssh_connection();
+    std::string get_user_home_path () ;
     
     private:
         std::string user_name;
@@ -53,6 +54,8 @@ public:
         struct sftp_conn * sftp_connection ;
         
         int child_pid   ;
+        
+        std::string user_home_path ;
         
     private slots:
         void slot_finished()   ;

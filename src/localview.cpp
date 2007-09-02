@@ -159,6 +159,14 @@ void LocalView::slot_refresh_directory_tree()
 
 }
 
+void LocalView::closeEvent ( QCloseEvent * event )
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    event->ignore ();
+    //this->setVisible(false); 
+    QMessageBox::information(this,tr("attemp to close this window?"),tr("you cat's close this window."));
+}
+
 
 
 

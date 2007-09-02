@@ -91,6 +91,8 @@ public:
         
         void slot_transfer_finished(int status );
         
+        void slot_show_local_view();
+        void slot_show_remote_view();
         void slot_cascade_sub_windows();
         void slot_tile_sub_windows();
         void slot_show_transfer_queue(bool show);

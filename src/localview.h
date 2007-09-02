@@ -67,6 +67,8 @@ public:
         
         void slot_refresh_directory_tree();
         
+    protected:
+        virtual void closeEvent ( QCloseEvent * event );
 };
 
 #endif

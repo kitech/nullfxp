@@ -43,7 +43,10 @@ class RemoteDirModel : public QAbstractItemModel
 		RemoteDirModel ( struct sftp_conn * conn , QObject *parent = 0 );
 
 		virtual ~RemoteDirModel();
-
+        //仅需要调用一次的函数,并且是在紧接着该类的初始化之后调用。
+        void set_user_home_path(std::string user_home_path);
+        
+        ////model 函数
 		QVariant data ( const QModelIndex &index, int role ) const;
 		Qt::ItemFlags flags ( const QModelIndex &index ) const;
 		QVariant headerData ( int section, Qt::Orientation orientation,
@@ -136,7 +139,7 @@ class RemoteDirModel : public QAbstractItemModel
         
 		void dump_tree_node_item ( directory_tree_item * node_item ) const ;
 
-        
+        std::string user_home_path ;
 };
 
 #endif

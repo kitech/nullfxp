@@ -119,6 +119,18 @@ void RemoteHostConnectThread::run()
     this->sftp_connection->msg_id = 0 ;
 
     this->do_init();    
+    
+    //取得远程目录当前路径 pwd,一般就是home目录。
+    char * pwd = 0 ;
+    
+    pwd = do_realpath(this->sftp_connection,".");
+    
+    assert( pwd != NULL );
+    
+    qDebug()<<" user default path is : "<< pwd ;
+    
+    user_home_path = std::string(pwd);
+    
 }
 
 void RemoteHostConnectThread::slot_finished()
@@ -204,5 +216,10 @@ void RemoteHostConnectThread::diconnect_ssh_connection()
         qDebug() << "attemp to kill child process :" << this->child_pid <<" ret:"<<ret ;
         waitpid(this->child_pid, NULL, 0);
     }
+}
+
+std::string RemoteHostConnectThread::get_user_home_path () 
+{
+    return this->user_home_path ;
 }
 
