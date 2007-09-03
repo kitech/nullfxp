@@ -31,7 +31,11 @@ RemoteView::RemoteView(QWidget *parent)
  : QWidget(parent)
 {
     this->remoteview.setupUi(this);
-    
+    ///////
+    status_bar = new QStatusBar(  );    
+    this->layout()->addWidget(status_bar);
+    status_bar->showMessage("Ready");
+    ////////////
     memset(this->m_curr_path,0,sizeof(this->m_curr_path));
     memset(this->m_next_path,0,sizeof(this->m_next_path) );
     this->m_curr_path[0] = '/';
@@ -166,6 +170,17 @@ void RemoteView::closeEvent ( QCloseEvent * event )
     event->ignore();
     //this->setVisible(false);
     QMessageBox::information(this,tr("attemp to close this window?"),tr("you cat's close this window."));
+}
+void RemoteView::slot_custom_ui_area()
+{
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    this->remoteview.splitter_2->setStretchFactor(0,5);
+    this->remoteview.splitter_2->setStretchFactor(1,1);
+
+    this->remoteview.splitter->setStretchFactor(0,3);
+    this->remoteview.splitter->setStretchFactor(1,1);
+    this->remoteview.listView_2->setVisible(false);//暂时没有功能在里面先隐藏掉
+
 }
 
 

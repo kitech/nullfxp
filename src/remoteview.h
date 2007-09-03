@@ -50,6 +50,8 @@ public:
         char m_curr_path[PATH_MAX+1];
         char m_next_path[PATH_MAX+1];
         
+        QStatusBar * status_bar ;
+        
         Ui::remoteview remoteview;
         RemoteDirModel * remote_dir_model ;
         
@@ -69,6 +71,8 @@ public:
         
         //////////ui
         void slot_show_fxp_command_log(bool show);
+        
+        void slot_custom_ui_area();
         
     signals:
         void new_transfer_requested( QString file_name,QString file_type ) ;

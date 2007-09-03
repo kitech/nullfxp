@@ -49,6 +49,7 @@ public:
         void new_upload_requested(QString local_file_name,QString local_file_type );
         
     private:
+        QStatusBar * status_bar ;
         QDirModel * model ;
         Ui::LocalView localView ;
         struct sftp_conn * sftp_connection ;

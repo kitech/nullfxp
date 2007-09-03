@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>604</width>
-    <height>429</height>
+    <width>749</width>
+    <height>569</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -18,7 +18,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>604</width>
+     <width>749</width>
      <height>30</height>
     </rect>
    </property>
@@ -29,7 +29,6 @@
     <addaction name="actionConnect" />
     <addaction name="actionDisconnect" />
     <addaction name="separator" />
-    <addaction name="actionInit_remote_dir_view" />
    </widget>
    <widget class="QMenu" name="menuOidfgsdf" >
     <property name="title" >

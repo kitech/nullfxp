@@ -29,11 +29,22 @@ LocalView::LocalView ( QWidget *parent )
 		: QWidget ( parent )
 {
 	localView.setupUi ( this );
+    ////
+    this->status_bar = new QStatusBar();
+    this->layout()->addWidget(this->status_bar);
+    this->status_bar->showMessage("Ready");
+    
+    ////
 	model = new QDirModel();
 	this->localView.treeView->setModel ( model );
 	this->localView.treeView->setRootIndex ( model->index ( QDir::homePath() ) );
 
 	this->init_local_dir_tree_context_menu();
+    
+    ////////ui area custom
+    this->localView.splitter->setStretchFactor(0,3);
+    this->localView.splitter->setStretchFactor(1,1);
+    this->localView.listView->setVisible(false);    //暂时没有功能在里面先隐藏掉
 }
 
 

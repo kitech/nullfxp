@@ -73,13 +73,12 @@ public:
         //void test();
         //void do_init();
         //void do_ls () ;
-        void local_init_dir_view();
+        //void local_init_dir_view();
+        
         void connect_to_remote_host() ;
         void slot_disconnect_from_remote_host();
         
         void slot_connect_remote_host_finished(int status , struct sftp_conn * conn );
-        
-        void remote_init_dir_view();
         
         void slot_new_upload_requested(QString local_file_name,QString local_file_type );
         void slot_new_upload_requested(QString local_file_name,QString local_file_type ,
@@ -107,7 +106,7 @@ public:
         
     private:
         
-        QSplitter * central_widget ;
+        QSplitter * central_splitter_widget ;
         QListView * transfer_queue_list_view;
                 
         LocalView * localView;

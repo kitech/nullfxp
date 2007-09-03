@@ -18,16 +18,16 @@
      <item>
       <widget class="QLabel" name="label" >
        <property name="text" >
-        <string>TextLabel
-llllll
-klkkljllllllllll</string>
+        <string>
+
+</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QLabel" name="label_2" >
        <property name="text" >
-        <string>NullFxp 0.9.0</string>
+        <string>NullFxp 0.9.1</string>
        </property>
       </widget>
      </item>
@@ -45,8 +45,8 @@ klkkljllllllllll</string>
       <widget class="QLabel" name="label_3" >
        <property name="geometry" >
         <rect>
-         <x>70</x>
-         <y>90</y>
+         <x>100</x>
+         <y>60</y>
          <width>241</width>
          <height>18</height>
         </rect>
@@ -72,8 +72,8 @@ p, li { white-space: pre-wrap; }
       <widget class="QLabel" name="label_4" >
        <property name="geometry" >
         <rect>
-         <x>30</x>
-         <y>80</y>
+         <x>100</x>
+         <y>60</y>
          <width>221</width>
          <height>18</height>
         </rect>

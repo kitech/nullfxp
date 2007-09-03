@@ -58,7 +58,7 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
 {
 	this->mUIMain.setupUi ( this );
 
-    central_widget  = new QSplitter ( Qt::Vertical );
+    central_splitter_widget  = new QSplitter ( Qt::Vertical );
 
 	//
 	mdiArea = new QMdiArea;
@@ -72,10 +72,10 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
     
     transfer_queue_list_view = new QListView();
 
-    central_widget->addWidget ( mdiArea );
-    central_widget->addWidget ( transfer_queue_list_view );
+    central_splitter_widget->addWidget ( mdiArea );
+    central_splitter_widget->addWidget ( transfer_queue_list_view );
 
-    setCentralWidget ( central_widget );
+    setCentralWidget ( central_splitter_widget );
 
 	windowMapper = new QSignalMapper ( this );
 
@@ -90,9 +90,6 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
     QObject::connect( this->mUIMain.actionDisconnect,SIGNAL(triggered()),
                       this,SLOT( slot_disconnect_from_remote_host()) );
     
-	QObject::connect ( this->mUIMain.actionInit_remote_dir_view,SIGNAL ( triggered() ),
-	                   this,SLOT ( remote_init_dir_view () ) );
-
 	localView = new LocalView();
 
 	mdiArea->addSubWindow ( localView );
@@ -123,6 +120,11 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
     QObject::connect( this->mUIMain.actionAbout_Qt,SIGNAL(triggered()),
                       qApp,SLOT(aboutQt()));
     
+    //启动主界面大小调整
+    this->slot_tile_sub_windows();
+    this->remoteView->slot_custom_ui_area();
+    this->central_splitter_widget->setStretchFactor(0,4);
+    this->central_splitter_widget->setStretchFactor(1,1);
     //
     //QList<QMdiSubWindow *> mdiSubWindow = mdiArea->subWindowList();
     //qDebug()<<" mdi sub window count :"<< mdiSubWindow.count();
@@ -260,11 +262,11 @@ sftp
 // 
 // }
 
-void NullFXP::local_init_dir_view()
-{
-	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-
-}
+// void NullFXP::local_init_dir_view()
+// {
+// 	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+// 
+// }
 
 void NullFXP::connect_to_remote_host()
 {
@@ -368,15 +370,9 @@ void NullFXP::slot_connect_remote_host_finished(int status , struct sftp_conn * 
     this->connect_status_dailog->accept();
     delete this->connect_status_dailog ;
     this->connect_status_dailog = 0 ;
-}
-
-void NullFXP::remote_init_dir_view()
-{
-	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-
-	//do_globbed_ls(&this->theconn, "/root/", "/root/", 0 );
+    
+    //初始化远程目录树
     this->remoteView->i_init_dir_view ( this->sftp_connection );
-
 }
 
 void NullFXP::slot_new_upload_requested ( QString local_file_name ,QString local_file_type )

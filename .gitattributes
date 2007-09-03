@@ -7,7 +7,6 @@
 bin/plinker -text
 /nullfxp.kdevelop -text
 /nullfxp.pro -text
-src/Makefile -text
 src/ReadMe -text
 src/aboutnullfxp.cpp -text
 src/aboutnullfxp.h -text
