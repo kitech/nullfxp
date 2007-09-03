@@ -83,8 +83,8 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
 	//QObject::connect(this->mUIMain.pushButton,SIGNAL(clicked()),this,SLOT(test()));
 	//QObject::connect(this->mUIMain.pushButton_do_init,SIGNAL(clicked()),this,SLOT(do_init()));
 	//QObject::connect(this->mUIMain.pushButton_do_ls,SIGNAL(clicked()),this,SLOT(do_ls()));
-	QObject::connect ( this->mUIMain.actionInit_dir_view, SIGNAL ( triggered() ) ,
-	                   this, SLOT ( local_init_dir_view() ) );
+	//QObject::connect ( this->mUIMain.actionInit_dir_view, SIGNAL ( triggered() ) ,
+	//                   this, SLOT ( local_init_dir_view() ) );
 	QObject::connect ( this->mUIMain.actionConnect, SIGNAL ( triggered() ) ,
 	                   this, SLOT ( connect_to_remote_host() ) );
     QObject::connect( this->mUIMain.actionDisconnect,SIGNAL(triggered()),

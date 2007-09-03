@@ -525,3 +525,20 @@ bool RemoteDirModel::dropMimeData ( const QMimeData *data, Qt::DropAction action
 	return ret ;
 }
 
+void RemoteDirModel::slot_remote_dir_node_clicked(const QModelIndex & index)
+{
+    //qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    directory_tree_item * clicked_item = 0;
+    clicked_item = static_cast<directory_tree_item*>(index.internalPointer());
+    
+    //this->dump_tree_node_item(clicked_item);
+    
+    if( clicked_item->retrived == 1 ) // 半满状态结点
+    {
+        this->remote_dir_retrive_thread->add_node(clicked_item,&index);
+    }
+    else
+    {
+        //no op needed
+    }
+}

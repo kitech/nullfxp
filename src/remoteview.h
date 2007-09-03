@@ -81,7 +81,9 @@ public:
         void new_transfer_requested( QVector<QPair<QString ,QString > > file_lists ) ;
         void new_transfer_requested(QString local_file_name,QString local_file_type,
                                     QString remote_file_name,QString remote_file_type );
-        
+    private slots:
+        void slot_dir_item_clicked(const QModelIndex & index);
+            
     protected:
         virtual void closeEvent ( QCloseEvent * event ) ;
 };

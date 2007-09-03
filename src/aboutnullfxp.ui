@@ -18,16 +18,16 @@
      <item>
       <widget class="QLabel" name="label" >
        <property name="text" >
-        <string>
-
-</string>
+        <string>. . . . . . . 
+:           :
+: . . . . . : </string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QLabel" name="label_2" >
        <property name="text" >
-        <string>NullFxp 0.9.1</string>
+        <string>NullFxp 0.9.2</string>
        </property>
       </widget>
      </item>

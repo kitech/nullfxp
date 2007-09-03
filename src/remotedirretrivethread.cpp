@@ -63,11 +63,23 @@ void RemoteDirRetriveThread::run()
         fxp_ls_ret = fxp_do_globbed_ls ( this->sftp_connection , file_name , strip_path , lflag , fileinfos );
 		qDebug() <<"fxp_ls_ret:" << fxp_ls_ret<< ", fileinfos number="<<fileinfos.size() << " use strip:" << strip_path <<" file_name ="<< file_name ;
 				
+        //将已经存在的项目找出来
+        std::map<std::string,int> existed_items ;
+        for( int i = 0 ; i < parent_item->child_items.size() ; i ++)
+        {
+            existed_items.insert(std::make_pair(parent_item->child_items[i]->file_name,8));
+        }
         int  curr_count = 0 ;
 		////////////
 		for ( int i = 0 ; i < fileinfos.size() ; i ++ )
 		{
             curr_count = parent_item->child_items.size();
+            
+            if( existed_items.count(fileinfos.at(i)['N']) > 0 )
+            {
+                qDebug()<<"also in model,skipped";
+                continue ;
+            }
             
 			directory_tree_item * thefile = new directory_tree_item();
 			thefile->retrived = 0;

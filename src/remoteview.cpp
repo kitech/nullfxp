@@ -49,6 +49,9 @@ RemoteView::RemoteView(QWidget *parent)
     
     QObject::connect(this->remoteview.treeView,SIGNAL(customContextMenuRequested(const QPoint &)),
                      this,SLOT(slot_dir_tree_customContextMenuRequested (const QPoint & )) );
+    QObject::connect( this->remoteview.treeView,SIGNAL(clicked(const QModelIndex & )),
+                      this,SLOT(slot_dir_item_clicked(const QModelIndex & ))) ;
+    
     this->init_popup_context_menu();
 }
 
@@ -113,6 +116,12 @@ void RemoteView::slot_new_transfer()
     
     QItemSelectionModel *ism = this->remoteview.treeView->selectionModel();
     
+    if( ism == 0 )
+    {
+        QMessageBox::critical(this,tr("waring..."),tr("maybe you haven't connected"));
+        return ;
+    }
+    
     QModelIndexList mil = ism->selectedIndexes()   ;
     
     for(int i = 0 ; i < mil.size(); i +=4 )
@@ -139,6 +148,7 @@ QString RemoteView::get_selected_directory()
     
     if(ism == 0)
     {
+        QMessageBox::critical(this,tr("waring..."),tr("maybe you haven't connected"));                
         return file_path ;
     }
     
@@ -181,6 +191,13 @@ void RemoteView::slot_custom_ui_area()
     this->remoteview.splitter->setStretchFactor(1,1);
     this->remoteview.listView_2->setVisible(false);//暂时没有功能在里面先隐藏掉
 
+}
+
+void RemoteView::slot_dir_item_clicked(const QModelIndex & index)
+{
+    //qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    assert( remote_dir_model != 0 );
+    remote_dir_model->slot_remote_dir_node_clicked(index);
 }
 
 
