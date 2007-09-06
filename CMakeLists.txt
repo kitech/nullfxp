@@ -1,0 +1,6 @@
+PROJECT(nullfxp)
+
+SET(CMAKE_VERBOSE_MAKEFILE on)
+
+SUBDIRS(src)
+

@@ -1,4 +1,5 @@
 * text=auto !eol
+/CMakeLists.txt -text
 /COPYING -text
 /ChangeLog -text
 /Doxyfile -text
@@ -7,6 +8,7 @@
 bin/plinker -text
 /nullfxp.kdevelop -text
 /nullfxp.pro -text
+src/CMakeLists.txt -text
 src/ReadMe -text
 src/aboutnullfxp.cpp -text
 src/aboutnullfxp.h -text

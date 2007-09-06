@@ -68,3 +68,5 @@ HEADERS += nullfxp.h \
 
 LIBS += -lssl
 
+DISTFILES += ../CMakeLists.txt \
+CMakeLists.txt
