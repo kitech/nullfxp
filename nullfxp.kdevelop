@@ -157,16 +157,28 @@
       <envvars/>
       <runarguments>
         <nullfxp/>
+        <libssh.a/>
+        <plinkdummy/>
+        <plinker></plinker>
+        <dummy/>
       </runarguments>
       <cwd>
         <nullfxp>/home/gzl/nullfxp</nullfxp>
+        <libssh.a>/home/gzl/test-nullfxp-svn/</libssh.a>
+        <plinkdummy>/home/gzl/test-nullfxp-svn/src/plinker</plinkdummy>
+        <plinker>/home/gzl/test-nullfxp-svn</plinker>
+        <dummy>/home/gzl/test-nullfxp-svn</dummy>
       </cwd>
       <debugarguments>
         <nullfxp/>
+        <libssh.a/>
+        <plinkdummy/>
+        <plinker></plinker>
+        <dummy/>
       </debugarguments>
     </run>
     <general>
-      <activedir>src</activedir>
+      <activedir></activedir>
     </general>
     <make>
       <abortonerror>true</abortonerror>

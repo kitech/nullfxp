@@ -1,16 +1,9 @@
 SOURCES += main.cpp \
  nullfxp.cpp \
- xmalloc.cpp \
- buffer.cpp \
- misc.cpp \
- bufaux.cpp \
- bufbn.cpp \
  sftp-common.cpp \
  sftp-client.cpp \
- atomicio.cpp \
  sftp-glob.cpp \
  sftp.cpp \
- glob.cpp \
  localview.cpp \
  remoteview.cpp \
  remotedirmodel.cpp \
@@ -26,7 +19,8 @@ SOURCES += main.cpp \
 TEMPLATE = app
 CONFIG += warn_on \
 	  thread \
-          qt
+          qt \
+ console
 TARGET = ../bin/nullfxp
 
 QT += network
@@ -43,13 +37,7 @@ FORMS += nullfxp.ui \
 
 HEADERS += nullfxp.h \
  sftp.h \
- config.h \
- defines.h \
- includes.h \
  xmalloc.h \
- log.h \
- buffer.h \
- glob.h \
  sftp-operation.h \
  localview.h \
  remoteview.h \
@@ -62,14 +50,20 @@ HEADERS += nullfxp.h \
  remotehostconnectthread.h \
  remotehostconnectingstatusdialog.h \
  remotehostquickconnectinfodialog.h \
- atomicio.h \
- misc.h \
  aboutnullfxp.h \
  libssh.h
 
-LIBS += -lssl
 
 DISTFILES += ../CMakeLists.txt \
 CMakeLists.txt \
  plinker/CMakeLists.txt \
  plinker/openbsd-compat/CMakeLists.txt
+
+
+INCLUDEPATH += plinker \
+plinker/openbsd-compat
+LIBS += plinker/libssh.a \
+plinker/openbsd-compat/libopenbsd_compat.a \
+-lssl
+TARGETDEPS += plinker/libssh.a \
+plinker/openbsd-compat/libopenbsd_compat.a

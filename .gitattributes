@@ -5,7 +5,6 @@
 /Doxyfile -text
 /INSTALL -text
 /README -text
-bin/plinker -text
 /nullfxp.kdevelop -text
 /nullfxp.pro -text
 src/CMakeLists.txt -text
@@ -21,6 +20,7 @@ src/buffer.cpp -text
 src/buffer.h -text
 src/config.h -text
 src/defines.h -text
+src/dummy/dummy.pro -text
 src/glob.cpp -text
 src/glob.h -text
 src/includes.h -text
@@ -162,6 +162,7 @@ src/plinker/openbsd-compat/inet_ntoa.c -text
 src/plinker/openbsd-compat/inet_ntop.c -text
 src/plinker/openbsd-compat/mktemp.c -text
 src/plinker/openbsd-compat/openbsd-compat.h -text
+src/plinker/openbsd-compat/openbsd-compat.pro -text
 src/plinker/openbsd-compat/openssl-compat.c -text
 src/plinker/openbsd-compat/openssl-compat.h -text
 src/plinker/openbsd-compat/port-aix.c -text
@@ -210,6 +211,7 @@ src/plinker/packet.c -text
 src/plinker/packet.h -text
 src/plinker/pathnames.h -text
 src/plinker/platform.h -text
+src/plinker/plinker.pro -text
 src/plinker/progressmeter.c -text
 src/plinker/progressmeter.h -text
 src/plinker/readconf.c -text

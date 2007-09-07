@@ -1,5 +1,14 @@
-SUBDIRS += src
+SUBDIRS +=  \
+ src/plinker/openbsd-compat \
+ src/plinker \
+ src/dummy  \
+ src 
+ 
 TEMPLATE = subdirs 
 CONFIG += warn_on \
           qt \
-          thread 
+          thread  \
+ ordered \
+ console
+DESTDIR = .
+
