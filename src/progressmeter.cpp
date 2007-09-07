@@ -22,7 +22,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+//这个地方很是诡异，先把getopt包含进来，再把系统中的getopt给屏蔽掉
+#include <unistd.h>
+#undef getopt
+//liuguangzhao
 
+#include "libssh.h"
 #include "includes.h"
 
 #include <sys/types.h>
@@ -34,7 +39,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-#include <unistd.h>
+//#include <unistd.h>
 
 #include "progressmeter.h"
 #include "atomicio.h"

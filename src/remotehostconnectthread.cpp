@@ -28,15 +28,7 @@
 #include <wait.h>
 
 
-#include "buffer.h"
 #include "sftp.h"
-//#include "log.h"
-#include "xmalloc.h"
-#include "defines.h"
-#include "misc.h"
-
-
-#include "glob.h"
 
 #include "sftp-operation.h"
 

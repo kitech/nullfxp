@@ -15,6 +15,14 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
+
+//这个地方很是诡异，先把getopt包含进来，再把系统中的getopt给屏蔽掉
+#include <unistd.h>
+#undef getopt
+//liuguangzhao
+    
+#include "libssh.h"
 #include "includes.h"
 
 #include <sys/types.h>
@@ -42,7 +50,7 @@ typedef void EditLine;
 #include <string.h>
 #include <unistd.h>
 #include <stdarg.h>
-#include "glob.h"
+
                  
 #include "xmalloc.h"
 #include "log.h"
@@ -53,7 +61,7 @@ typedef void EditLine;
 #include "buffer.h"
 #include "sftp-common.h"
 #include "sftp-client.h"
-                 
+#include "openbsd-compat/glob.h"
 #include "sftp-operation.h"
                  
 
@@ -85,6 +93,8 @@ int remote_glob(struct sftp_conn *, const char *, int,
    int (*)(const char *, int), glob_t *); /* proto for sftp-glob.c */
 
 extern char *__progname;
+
+
 
 /* Separators for interactive commands */
 #define WHITESPACE " \t\r\n"
@@ -1707,3 +1717,4 @@ sftp_main(int argc, char **argv)
 }
 
 */
+

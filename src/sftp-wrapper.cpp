@@ -1,3 +1,9 @@
+//这个地方很是诡异，先把getopt包含进来，再把系统中的getopt给屏蔽掉
+#include <unistd.h>
+#undef getopt
+//liuguangzhao
+
+#include "libssh.h"
 
 #include "includes.h"
 
@@ -28,7 +34,7 @@ typedef void EditLine;
 #include <stdarg.h>
 #include <sys/types.h>
 #include <dirent.h>
-#include "glob.h"
+//#include "glob.h"
 
 #include "xmalloc.h"
 #include "log.h"

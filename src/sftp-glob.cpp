@@ -14,14 +14,17 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-
+#ifdef __cplusplus
+extern "C"{
+#endif
+    
 #include "includes.h"
 
 #include <sys/types.h>
 #ifdef HAVE_SYS_STAT_H
 # include <sys/stat.h>
 #endif
-#include <glob.h>
+//#include <glob.h>
 #include <dirent.h>
 #include <string.h>
 
@@ -30,6 +33,10 @@
 #include "buffer.h"
 #include "sftp-common.h"
 #include "sftp-client.h"
+
+#ifdef __cplusplus
+}
+#endif
 
 int remote_glob(struct sftp_conn *, const char *, int,
     int (*)(const char *, int), glob_t *);

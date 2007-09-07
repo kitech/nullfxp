@@ -24,7 +24,7 @@
 
 #include <QThread>
 
-
+#include "libssh.h"
 #include "sftp-operation.h"
 #include "sftp-client.h"
 #include "sftp-wrapper.h"

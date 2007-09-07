@@ -17,6 +17,14 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+ 
+//这个地方很是诡异，先把getopt包含进来，再把系统中的getopt给屏蔽掉
+#include <unistd.h>
+#undef getopt
+//liuguangzhao
+
+#include "libssh.h"
+
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
@@ -35,9 +43,7 @@
 #endif
 #include <sys/uio.h>
 
-#include "includes.h"
-#include "xmalloc.h"
-#include "atomicio.h"
+
 
 #include "progressmeter.h"
 #include "sftp-common.h"

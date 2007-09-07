@@ -24,12 +24,14 @@
 #include <map>
 #include <string>
 
+#include "config.h"
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif
     
-    
+#include "config.h"
 #include "defines.h"
 #include "includes.h"
 #include "sftp-common.h"

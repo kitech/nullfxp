@@ -1,3 +1,8 @@
+
+ADD_DEFINITIONS(-DHAVE_CONFIG_H -O2 -Wall -Wpointer-arith -Wuninitialized -Wsign-compare     )
+
+SUBDIRS(plinker)
+
 ###################
 INCLUDE (CheckIncludeFiles)
 INCLUDE (CheckFunctionExists)
@@ -38,63 +43,110 @@ INCLUDE_DIRECTORIES( .
     ${QT_INCLUDES}
     
     ${CMAKE_CURRENT_BINARY_DIR}
+    
+    ${CMAKE_CURRENT_SOURCE_DIR}/plinker
 )
 
 SET(qtproject_UIS
-    aboutnullfxp.ui  nullfxp.ui         remotehostconnectingstatusdialog.ui   remoteview.ui
-localview.ui     progressdialog.ui  remotehostquickconnectfinfodailog.ui
-
-)
-
-
+aboutnullfxp.ui  
+nullfxp.ui         
+remotehostconnectingstatusdialog.ui   
+remoteview.ui
+localview.ui     
+progressdialog.ui  
+remotehostquickconnectfinfodailog.ui
+# 
+ )
 QT4_WRAP_UI(qtproject_UIS_H ${qtproject_UIS})
 
+# 
 SET( qtproject_SRCS
-aboutnullfxp.cpp            remotehostconnectingstatusdialog.cpp
-localview.cpp               remotehostconnectthread.cpp
-nullfxp.cpp                 remotehostquickconnectinfodialog.cpp
-progressdialog.cpp          remoteview.cpp
-remotedirmodel.cpp          transferthread.cpp
+aboutnullfxp.cpp            
+remotehostconnectingstatusdialog.cpp
+localview.cpp               
+remotehostconnectthread.cpp
+nullfxp.cpp                 
+remotehostquickconnectinfodialog.cpp
+progressdialog.cpp          
+remoteview.cpp
+remotedirmodel.cpp          
+transferthread.cpp
 remotedirretrivethread.cpp
-)
+ )
 
-SET ( qtproject_moc_HDRS 
-aboutnullfxp.h            remotehostconnectingstatusdialog.h
-localview.h               remotehostconnectthread.h
-nullfxp.h                 remotehostquickconnectinfodialog.h
-progressdialog.h          remoteview.h
-remotedirmodel.h          transferthread.h
+ SET ( qtproject_moc_HDRS 
+aboutnullfxp.h            
+remotehostconnectingstatusdialog.h
+localview.h               
+remotehostconnectthread.h
+nullfxp.h                 
+remotehostquickconnectinfodialog.h
+progressdialog.h          
+remoteview.h
+remotedirmodel.h          
+transferthread.h
 remotedirretrivethread.h
-)
+ )
 QT4_WRAP_CPP(qtproject_moc_SRCS ${qtproject_moc_HDRS})
 
 
 ###############
+# ADD_EXECUTABLE(../bin/nullfxp 
+# 
+# aboutnullfxp.cpp                          
+# atomicio.cpp                              
+# bufaux.cpp                                nullfxp.cpp
+# bufbn.cpp                                 progressdialog.cpp
+# buffer.cpp                                plinker/progressmeter.c
+# plinker/openbsd-compat/glob.c           remotedirmodel.cpp
+# localview.cpp                             remotedirretrivethread.cpp
+# main.cpp                                  remotehostconnectingstatusdialog.cpp
+# misc.c                                  remotehostconnectthread.cpp
+# remotehostquickconnectinfodialog.cpp
+# remoteview.cpp
+# sftp-client.cpp
+# sftp-common.cpp
+# sftp.cpp
+# sftp-glob.cpp
+# sftp-wrapper.cpp
+# transferthread.cpp
+# xmalloc.cpp
+# 
+# ${qtproject_UIS_H}  ${qtproject_moc_SRCS}
+# 
+# )
+
 ADD_EXECUTABLE(../bin/nullfxp 
-
-aboutnullfxp.cpp                          
-atomicio.cpp                              
-bufaux.cpp                                nullfxp.cpp
-bufbn.cpp                                 progressdialog.cpp
-buffer.cpp                                progressmeter.cpp
-glob.cpp                                  remotedirmodel.cpp
-localview.cpp                             remotedirretrivethread.cpp
-main.cpp                                  remotehostconnectingstatusdialog.cpp
-misc.cpp                                  remotehostconnectthread.cpp
-remotehostquickconnectinfodialog.cpp
-remoteview.cpp
-sftp-client.cpp
-sftp-common.cpp
-sftp.cpp
-sftp-glob.cpp
-sftp-wrapper.cpp
-transferthread.cpp
-xmalloc.cpp
-
-${qtproject_UIS_H}  ${qtproject_moc_SRCS}
-
+#     tmpmain.cpp 
+    main.cpp
+####################
+    sftp-common.cpp
+    sftp-glob.cpp
+    sftp-client.cpp
+    progressmeter.cpp
+    sftp.cpp
+    
+########
+    sftp-wrapper.cpp
+    remotehostconnectthread.cpp
+    remotedirretrivethread.cpp
+    remotedirmodel.cpp
+    transferthread.cpp
+    remoteview.cpp
+    localview.cpp
+    remotehostquickconnectinfodialog.cpp
+    remotehostconnectingstatusdialog.cpp
+    progressdialog.cpp
+    aboutnullfxp.cpp
+    nullfxp.cpp
+    
+##########################
+    ${qtproject_UIS_H}  ${qtproject_moc_SRCS}
 )
 
-TARGET_LINK_LIBRARIES(../bin/nullfxp ${QT_LIBRARIES} ssl )
+
+TARGET_LINK_LIBRARIES(../bin/nullfxp ${QT_LIBRARIES} ssl  ssh  openbsd_compat)
+
+ADD_DEPENDENCIES(../bin/nullfxp plinker)
 
 ##http://qtnode.net/wiki?title=Qt_with_cmake&printable=yes

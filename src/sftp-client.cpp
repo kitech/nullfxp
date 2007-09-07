@@ -20,6 +20,12 @@
 /* XXX: remove all logging, only return status codes */
 /* XXX: copy between two remote sites */
 
+//这个地方很是诡异，先把getopt包含进来，再把系统中的getopt给屏蔽掉
+#include <unistd.h>
+#undef getopt
+//liuguangzhao
+
+#include "libssh.h"
 #include "includes.h"
 
 #include <sys/types.h>
@@ -39,7 +45,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
+//#include <unistd.h>
+
 
 #include "xmalloc.h"
 #include "buffer.h"

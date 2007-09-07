@@ -64,9 +64,12 @@ HEADERS += nullfxp.h \
  remotehostquickconnectinfodialog.h \
  atomicio.h \
  misc.h \
- aboutnullfxp.h
+ aboutnullfxp.h \
+ libssh.h
 
 LIBS += -lssl
 
 DISTFILES += ../CMakeLists.txt \
-CMakeLists.txt
+CMakeLists.txt \
+ plinker/CMakeLists.txt \
+ plinker/openbsd-compat/CMakeLists.txt

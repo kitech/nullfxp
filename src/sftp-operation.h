@@ -21,7 +21,7 @@
 #ifndef SFTP_OPERATION_H
 #define SFTP_OPERATION_H
 
-#include "glob.h"
+
 
 #ifdef __cplusplus
 extern "C"

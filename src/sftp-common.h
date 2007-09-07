@@ -28,7 +28,7 @@
 #ifndef SFTP_COMMON_H
 #define SFTP_COMMON_H
 
-#include "buffer.h"
+#include "libssh.h"
 
 /* Maximum packet that we are willing to send/accept */
 #define SFTP_MAX_MSG_LENGTH	(256 * 1024)
@@ -39,7 +39,7 @@
 extern "C"
 {
 #endif
-    
+
 typedef struct Attrib Attrib;
 
 /* File attributes */
@@ -64,8 +64,7 @@ char	*ls_file(const char *, const struct stat *, int);
 
 const char *fx2txt(int);
 
-void
-        strmode(int mode, char *p) ;
+//void     strmode(int mode, char *p) ;
 #ifdef __cplusplus
 }
 #endif

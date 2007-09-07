@@ -2,5 +2,7 @@ PROJECT(nullfxp)
 
 SET(CMAKE_VERBOSE_MAKEFILE on)
 
-SUBDIRS(src)
+#LINK_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/src/plinker/openbsd-compat/) #没有用？
+#SUBDIRS(src)
+ADD_SUBDIRECTORY(src)
 
