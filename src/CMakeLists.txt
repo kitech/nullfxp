@@ -141,6 +141,8 @@ ADD_EXECUTABLE(../bin/nullfxp
     nullfxp.cpp
     
 ##########################
+    globaloption.cpp
+############################
     ${qtproject_UIS_H}  ${qtproject_moc_SRCS}
 )
 

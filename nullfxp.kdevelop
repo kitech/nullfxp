@@ -159,7 +159,7 @@
         <nullfxp/>
         <libssh.a/>
         <plinkdummy/>
-        <plinker></plinker>
+        <plinker/>
         <dummy/>
       </runarguments>
       <cwd>
@@ -173,12 +173,12 @@
         <nullfxp/>
         <libssh.a/>
         <plinkdummy/>
-        <plinker></plinker>
+        <plinker/>
         <dummy/>
       </debugarguments>
     </run>
     <general>
-      <activedir></activedir>
+      <activedir>src</activedir>
     </general>
     <make>
       <abortonerror>true</abortonerror>

@@ -17,60 +17,35 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#ifndef LOCALVIEW_H
-#define LOCALVIEW_H
+#ifndef GLOBALOPTION_H
+#define GLOBALOPTION_H
 
-#include <QtCore>
-#include <QtGui>
-#include <QWidget>
-#include <QMdiSubWindow>
-#include <QTreeWidget>
-#include <QDirModel>
-
-#include "sftp-client.h"
-#include "ui_localview.h"
+#include <stdlib.h>
+#include <string.h>
+#include <vector>
+#include <map>
+#include <string>
 
 /**
 	@author liuguangzhao <gzl@localhost>
 */
-class LocalView : public QWidget
-{
-Q_OBJECT
+class GlobalOption{
 public:
-    LocalView(QWidget *parent = 0);
+    static GlobalOption * instance();
 
-    ~LocalView();
-
-    void set_sftp_connection(struct sftp_conn* conn);
+    ~GlobalOption();
     
-    QString get_selected_directory();
+    //options
+    std::string  remote_codec ;
+    std::string  locale_codec ;
     
-    signals:
-        //void new_upload_requested(QString local_file_name,QString local_file_type );
-        void new_upload_requested(QStringList local_file_names);
-        
     private:
-        QStatusBar * status_bar ;
-        QDirModel * model ;
-        Ui::LocalView localView ;
-        struct sftp_conn * sftp_connection ;
+        GlobalOption();
+        static GlobalOption * mInstance ;
         
-        QMenu * local_dir_tree_context_menu ;
-        
-        void init_local_dir_tree_context_menu();
-        
-    public slots:
-        
-        //void slot_remote_new_transfer_requested(QString filename);
-        
-        void slot_local_dir_tree_context_menu_request(const QPoint & pos );
-        
-        void slot_local_new_upload_requested();
-        
-        void slot_refresh_directory_tree();
-        
-    protected:
-        virtual void closeEvent ( QCloseEvent * event );
 };
+
+///////////////全局变量
+extern GlobalOption * global_option ;
 
 #endif

@@ -17,60 +17,29 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#ifndef LOCALVIEW_H
-#define LOCALVIEW_H
+#include "globaloption.h"
 
-#include <QtCore>
-#include <QtGui>
-#include <QWidget>
-#include <QMdiSubWindow>
-#include <QTreeWidget>
-#include <QDirModel>
+GlobalOption * global_option = GlobalOption::instance();
 
-#include "sftp-client.h"
-#include "ui_localview.h"
+GlobalOption * GlobalOption::mInstance = 0 ;
 
-/**
-	@author liuguangzhao <gzl@localhost>
-*/
-class LocalView : public QWidget
+GlobalOption * GlobalOption::instance()
 {
-Q_OBJECT
-public:
-    LocalView(QWidget *parent = 0);
+    if(GlobalOption::mInstance == 0 )
+    {
+        GlobalOption::mInstance = new GlobalOption();
+        GlobalOption::mInstance->remote_codec = "UTF-8";
+        GlobalOption::mInstance->locale_codec = "UTF-8";
+    }
+    return GlobalOption::mInstance;
+}
+GlobalOption::GlobalOption()
+{
+}
 
-    ~LocalView();
 
-    void set_sftp_connection(struct sftp_conn* conn);
-    
-    QString get_selected_directory();
-    
-    signals:
-        //void new_upload_requested(QString local_file_name,QString local_file_type );
-        void new_upload_requested(QStringList local_file_names);
-        
-    private:
-        QStatusBar * status_bar ;
-        QDirModel * model ;
-        Ui::LocalView localView ;
-        struct sftp_conn * sftp_connection ;
-        
-        QMenu * local_dir_tree_context_menu ;
-        
-        void init_local_dir_tree_context_menu();
-        
-    public slots:
-        
-        //void slot_remote_new_transfer_requested(QString filename);
-        
-        void slot_local_dir_tree_context_menu_request(const QPoint & pos );
-        
-        void slot_local_new_upload_requested();
-        
-        void slot_refresh_directory_tree();
-        
-    protected:
-        virtual void closeEvent ( QCloseEvent * event );
-};
+GlobalOption::~GlobalOption()
+{
+}
 
-#endif
+

@@ -37,6 +37,9 @@
       <property name="dragDropMode" >
        <enum>QAbstractItemView::DragDrop</enum>
       </property>
+      <property name="selectionMode" >
+       <enum>QAbstractItemView::ExtendedSelection</enum>
+      </property>
      </widget>
      <widget class="QListView" name="listView" >
       <property name="acceptDrops" >

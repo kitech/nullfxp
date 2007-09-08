@@ -130,9 +130,8 @@ class RemoteDirModel : public QAbstractItemModel
         void slot_remote_dir_node_clicked(const QModelIndex & index);
         
     signals:
-        void new_transfer_requested(QString local_file_name,QString local_file_type,
-                                    QString remote_file_name,QString remote_file_type );
-        
+        //void new_transfer_requested(QString local_file_name,QString local_file_type,                                    QString remote_file_name,QString remote_file_type);
+        void new_transfer_requested(QStringList local_file_names,                                    QStringList remote_file_names);
 	private:
 
 		directory_tree_item * tree_root ;

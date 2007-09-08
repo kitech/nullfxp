@@ -75,12 +75,14 @@ public:
         void slot_custom_ui_area();
         
     signals:
-        void new_transfer_requested( QString file_name,QString file_type ) ;
+        //void new_transfer_requested( QString file_name,QString file_type ) ;
+        void new_transfer_requested(QStringList remote_file_names);
         //first is file_name , second is file_type 
         //可以多选的时候使用。
-        void new_transfer_requested( QVector<QPair<QString ,QString > > file_lists ) ;
-        void new_transfer_requested(QString local_file_name,QString local_file_type,
-                                    QString remote_file_name,QString remote_file_type );
+        //void new_transfer_requested( QVector<QPair<QString ,QString > > file_lists ) ;
+        //void new_transfer_requested(QString local_file_name,QString local_file_type,
+        //                            QString remote_file_name,QString remote_file_type );
+        void new_transfer_requested(QStringList local_file_names,QStringList remote_file_names);
     private slots:
         void slot_dir_item_clicked(const QModelIndex & index);
             

@@ -45,11 +45,14 @@ public:
     void set_remote_connection(struct sftp_conn * connection);
     
     //type 可以是 TANSFER_GET,TRANSFER_PUT
-    void set_transfer_info(int type,QString local_file_name,QString local_file_type,QString remote_file_name ,QString remote_file_type ) ;
+    //void set_transfer_info(int type,QString local_file_name,QString local_file_type,QString remote_file_name ,QString remote_file_type ) ;
+    void set_transfer_info(int type,QStringList local_file_names,QStringList remote_file_names  ) ;
     
     public slots:
         void slot_set_transfer_percent(int percent );
         void slot_transfer_thread_finished() ;
+        void slot_new_file_transfer_started(QString new_file_name);
+        
         
         void exec ();
         
@@ -59,10 +62,12 @@ public:
     private:
         struct sftp_conn * sftp_connection ;
         int transfer_type ;
-        QString local_file_name ;
-        QString local_file_type ;
-        QString remote_file_name ;
-        QString remote_file_type ;
+        //QString local_file_name ;
+        QStringList local_file_names ;
+        //QString local_file_type ;
+        //QString remote_file_name ;
+        QStringList remote_file_names ;
+        //QString remote_file_type ;
         
         //QTimer  * transfer_thread_finish_poll_timer ;
         TransferThread * sftp_transfer_thread ;

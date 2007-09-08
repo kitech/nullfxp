@@ -24,6 +24,7 @@
 
 #include "sftp-client.h"
 
+#define REMOTE_CODEC "UTF-8"
 
 LocalView::LocalView ( QWidget *parent )
 		: QWidget ( parent )
@@ -118,25 +119,40 @@ void LocalView::slot_local_dir_tree_context_menu_request ( const QPoint & pos )
 void LocalView::slot_local_new_upload_requested()
 {
 	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-	QItemSelectionModel * ism = this->localView.treeView->selectionModel();
-
+	QTextCodec * codec = QTextCodec::codecForName(REMOTE_CODEC);
+    
+    QStringList local_file_names ;
+    QString local_file_name;
+    QByteArray ba;
+    
+    QItemSelectionModel * ism = this->localView.treeView->selectionModel();
+    
 	QModelIndexList mil = ism->selectedIndexes();
 
 	qDebug() << mil ;
 
-	qDebug() << model->fileName ( mil.at ( 0 ) );
-	qDebug() << model->filePath ( mil.at ( 0 ) );
-
-	QString local_file_name = model->filePath ( mil.at ( 0 ) );
-    QString local_file_type = "";
-	//emit  new_upload_requested("/home/gzl/hehe.txt");
-	emit  new_upload_requested ( local_file_name , local_file_type );
-
-
+    for( int i = 0 ; i < mil.count() ; i += this->model->columnCount(QModelIndex()) )
+    {
+        qDebug() << model->fileName ( mil.at ( i ) );
+        qDebug() << model->filePath ( mil.at ( i ) );
+    
+        local_file_name = model->filePath ( mil.at ( i ) );
+        
+        ba = codec->fromUnicode(local_file_name);
+        //qDebug()<<" orginal name:"<< local_file_name <<" unicode name:"<< QString(ba.data() );
+        local_file_name = ba ;
+        //emit  new_upload_requested("/home/gzl/hehe.txt");
+        //emit  new_upload_requested ( local_file_name , local_file_type );
+        
+        local_file_names << local_file_name;
+    }
+    emit   new_upload_requested( local_file_names );
 }
 
 QString LocalView::get_selected_directory()
 {
+    QTextCodec * codec = QTextCodec::codecForName(REMOTE_CODEC);
+    
 	QString local_path ;
 	QItemSelectionModel * ism = this->localView.treeView->selectionModel();
 
@@ -151,6 +167,10 @@ QString LocalView::get_selected_directory()
 
 	local_path = model->filePath ( mil.at ( 0 ) );
 
+    QByteArray ba = codec->fromUnicode(local_path);
+    qDebug()<<" orginal name:"<< local_path
+            <<" unicode name:"<< QString(ba.data() );
+    local_path = ba ;
 	return local_path ;
 
 }

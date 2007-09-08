@@ -23,6 +23,8 @@ src/defines.h -text
 src/dummy/dummy.pro -text
 src/glob.cpp -text
 src/glob.h -text
+src/globaloption.cpp -text
+src/globaloption.h -text
 src/includes.h -text
 src/libssh.h -text
 src/localview.cpp -text

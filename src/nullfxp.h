@@ -80,13 +80,14 @@ public:
         
         void slot_connect_remote_host_finished(int status , struct sftp_conn * conn );
         
-        void slot_new_upload_requested(QString local_file_name,QString local_file_type );
-        void slot_new_upload_requested(QString local_file_name,QString local_file_type ,
-                                      QString remote_file_name,QString remote_file_type );
-        void slot_new_download_requested(QString remote_file_name,QString remote_file_type );
-        void slot_new_download_requested(QString local_file_name,QString local_file_type,
-                                         QString remote_file_name,QString remote_file_name);
+        //void slot_new_upload_requested(QString local_file_name,QString local_file_type );
+        void slot_new_upload_requested(QStringList local_file_names);
         
+        //void slot_new_upload_requested(QString local_file_name,QString local_file_type ,                                      QString remote_file_name,QString remote_file_type );
+        void slot_new_upload_requested(QStringList local_file_names,QStringList remote_file_names );
+        void slot_new_download_requested(QStringList remote_file_names );
+        //void slot_new_download_requested(QString local_file_name,QString local_file_type,  QString remote_file_name,QString remote_file_name);
+        void slot_new_download_requested(QStringList local_file_names, QStringList remote_file_names );
         
         void slot_transfer_finished(int status );
         

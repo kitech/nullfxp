@@ -23,6 +23,7 @@
 
 #include "remotedirmodel.h"
 
+#define REMOTE_CODEC "UTF-8"
 
 //////////////////////////
 /////////////////////////////////
@@ -210,7 +211,8 @@ QVariant RemoteDirModel::data ( const QModelIndex &index, int role ) const
 {
 	//qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 	QVariant ret_var ;
-
+    QTextCodec * codec = 0 ;
+    QString unicode_name ;
 
 	if ( role != Qt::DisplayRole )
 		return QVariant();
@@ -229,7 +231,10 @@ QVariant RemoteDirModel::data ( const QModelIndex &index, int role ) const
 	{
 		case 0:
 			//return node.nodeName();
-			ret_var = QVariant ( item->tree_node_item['N'].c_str() );
+            codec = QTextCodec::codecForName(REMOTE_CODEC);
+            unicode_name = codec->toUnicode(item->tree_node_item['N'].c_str());
+			//ret_var = QVariant ( item->tree_node_item['N'].c_str() );
+            ret_var = QVariant ( unicode_name );
 			break;
 		case 2:
 
@@ -495,11 +500,17 @@ bool RemoteDirModel::dropMimeData ( const QMimeData *data, Qt::DropAction action
                                     int row, int column, const QModelIndex &parent )
 {
 	bool ret = true ;
-
+    QStringList local_file_names;
+    QStringList remote_file_names ;
+    
+    QTextCodec * codec = QTextCodec::codecForName(REMOTE_CODEC);
+    QByteArray ba ;
+    
     directory_tree_item * aim_item = static_cast<directory_tree_item*>(parent.internalPointer());
     
     QString remote_file_name = aim_item->strip_path.c_str();
-    QString remote_file_type = aim_item->file_type.c_str();
+    //QString remote_file_type = aim_item->file_type.c_str();
+    remote_file_names << remote_file_name ;
     
     QList<QUrl> urls = data->urls( ) ;
     
@@ -511,15 +522,22 @@ bool RemoteDirModel::dropMimeData ( const QMimeData *data, Qt::DropAction action
         return false ;    
     }
         
-    if(urls.count() >1 )
+    //if(urls.count() >1 )
     {
-        qDebug()<<"more than one file should process , but not supported now,only one processed";        
+    //    qDebug()<<"more than one file should process , but not supported now,only one processed";        
     }
-    QString file_name = urls.at(0).toString().right(urls.at(0).toString().length()-7);
-    qDebug()<< file_name ;
-    
-    emit this->new_transfer_requested(file_name,QString("-rw-r--r--"),
-                                      remote_file_name,remote_file_type );
+    QString file_name;
+    for( int i = 0 ; i < urls.count() ; i ++ )
+    {
+        file_name = urls.at(i).toString().right(urls.at(i).toString().length()-7);
+        if(file_name.trimmed().length() == 0 ) continue ;
+        ba = codec->fromUnicode(file_name);
+        //qDebug()<< file_name <<" ---> :" REMOTE_CODEC << ba ;
+        file_name = ba ;
+        local_file_names << file_name ;
+    }
+    emit this->new_transfer_requested(local_file_names,remote_file_names);
+
     qDebug()<<"signals emited";
     return true ;
 	return ret ;

@@ -87,8 +87,8 @@ void RemoteView::i_init_dir_view(struct sftp_conn * conn)
     this->remoteview.treeView->setDropIndicatorShown(true);
     this->remoteview.treeView->setDragDropMode(QAbstractItemView::DragDrop);            
     //do_globbed_ls( conn , this->m_next_path , this->m_curr_path, 0 );
-    QObject::connect(this->remote_dir_model,SIGNAL(new_transfer_requested(QString,QString,QString,QString)),
-                     this,SIGNAL(new_transfer_requested(QString,QString,QString,QString)) ) ;
+    QObject::connect(this->remote_dir_model,SIGNAL(new_transfer_requested(QStringList,QStringList)),
+                     this,SIGNAL(new_transfer_requested(QStringList,QStringList )) ) ;
     
     this->remoteview.treeView->expandAll();
     
@@ -111,8 +111,8 @@ void RemoteView::slot_new_transfer()
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
      
-    QString file_path , file_type ;
-    
+    QString file_path   ;
+    QStringList remote_file_names;
     
     QItemSelectionModel *ism = this->remoteview.treeView->selectionModel();
     
@@ -132,12 +132,13 @@ void RemoteView::slot_new_transfer()
         qDebug()<<dti->file_name.c_str()<<" "<<dti->file_type.c_str()
                 <<" "<< dti->strip_path.c_str() ;
         file_path = dti->strip_path.c_str();
-        file_type = dti->file_type.c_str() ;
+        //file_type = dti->file_type.c_str() ;
+        remote_file_names << file_path ;
     }
     
     //emit new_transfer_requested("/vmlinuz-2.6.18.2-34-xen");
-    emit new_transfer_requested(file_path,file_type );
-    
+    //emit new_transfer_requested(file_path,file_type );
+    emit new_transfer_requested(remote_file_names);
 }
 
 QString RemoteView::get_selected_directory()

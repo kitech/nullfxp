@@ -91,6 +91,8 @@ void TransferThread::run()
     std::vector<std::map<char, std::string> >  fileinfos ;
     Attrib a ;  //用于创建远程目录
     
+    this->error_code = 0 ;
+    
     do{
        local_file_pair = this->transfer_ready_queue.front().first;
        remote_file_pair = this->transfer_ready_queue.front().second ;
@@ -113,6 +115,9 @@ void TransferThread::run()
        
        if( this->transfer_type == TransferThread::TRANSFER_PUT )
        {
+           //提示开始处理新文件：
+           emit this->transfer_new_file_started(this->current_local_file_name);
+           
            //将文件上传到目录
            if(is_reg(this->current_local_file_name.toAscii().data())
               && remote_is_dir(this->sftp_connection,this->current_remote_file_name.toAscii().data()) )
@@ -161,11 +166,15 @@ void TransferThread::run()
            }
            else
            {
-               //其他的情况暂时不考虑处理。跳过。
+               //其他的情况暂时不考虑处理。跳过
+               this->error_code = 1 ;
            }
        }
        else if( this->transfer_type == TransferThread::TRANSFER_GET )
        {
+           //提示开始处理新文件：
+           emit this->transfer_new_file_started(this->current_remote_file_name);
+                      
            //将文件下载到目录
            if(is_dir(this->current_local_file_name.toAscii().data())
               && remote_is_reg(this->sftp_connection,this->current_remote_file_name.toAscii().data()) )
@@ -218,11 +227,13 @@ void TransferThread::run()
            else
            {
                //其他的情况暂时不考虑处理。跳过。
+               this->error_code = 1 ;
            }
        }
        else
        {
-            assert( 1 == 2 ) ;   
+            assert( 1 == 2 ) ; 
+            this->error_code = 2 ;  
        }
        
        this->transfer_ready_queue.erase(this->transfer_ready_queue.begin());
@@ -270,22 +281,53 @@ void TransferThread::set_remote_connection ( struct sftp_conn * connection )
 
 }
 
-void TransferThread::set_transfer_info ( int type,QString local_file_name, QString local_file_type ,QString remote_file_name ,QString remote_file_type  )
+//void TransferThread::set_transfer_info ( int type,QString local_file_name, QString local_file_type ,QString remote_file_name ,QString remote_file_type  )
+void TransferThread::set_transfer_info ( int type,QStringList local_file_names,QStringList remote_file_names  )
 {
 	this->transfer_type = type ;
 
-    this->local_file_name = local_file_name;
-    this->local_file_type = local_file_type ;
-    this->remote_file_name = remote_file_name ;
-    this->remote_file_type = remote_file_type ;
+    //this->local_file_name = local_file_name;
+    this->local_file_names = local_file_names ;
+    //this->local_file_type = local_file_type ;
+    this->remote_file_names = remote_file_names ;
+    //this->remote_file_type = remote_file_type ;
 
+    QString local_file_name ;
+    QString remote_file_name ;
+    
     std::pair<std::string , std::string> local_file_pair;
     std::pair<std::string , std::string> remote_file_pair;
-    local_file_pair = std::make_pair(this->local_file_name.toAscii().data(),this->local_file_type.toAscii().data());
-    remote_file_pair = std::make_pair(this->remote_file_name.toAscii().data(),this->remote_file_type.toAscii().data());
     
-    this->transfer_ready_queue.	push_back(std::make_pair(local_file_pair,remote_file_pair));
-    
+    if( type == TransferThread::TRANSFER_PUT )
+    {
+        assert( remote_file_names.count() == 1 );
+        remote_file_name = remote_file_names.at(0);
+        for(int i = 0 ; i < local_file_names.count() ; i ++ )
+        {
+            local_file_name = local_file_names.at(i);
+            local_file_pair = std::make_pair(local_file_name.toAscii().data(),"");
+            remote_file_pair = std::make_pair(remote_file_name.toAscii().data(),"");
+        
+            this->transfer_ready_queue.	push_back(std::make_pair(local_file_pair,remote_file_pair));
+        }
+    }
+    else if( type == TransferThread::TRANSFER_GET )
+    {
+        assert( local_file_names.count() == 1 );
+        local_file_name = local_file_names.at(0);
+        for(int i = 0 ; i < remote_file_names.count() ; i ++ )
+        {
+            remote_file_name = remote_file_names.at(i);            
+            local_file_pair = std::make_pair(local_file_name.toAscii().data(),"");
+            remote_file_pair = std::make_pair(remote_file_name.toAscii().data(),"");
+        
+            this->transfer_ready_queue.	push_back(std::make_pair(local_file_pair,remote_file_pair));
+        }
+    }
+    else
+    {
+        assert( 1 == 2 );   
+    }
 }
 
 int

@@ -98,14 +98,14 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
 
 	mdiArea->addSubWindow ( remoteView );
 
-	QObject::connect ( localView,SIGNAL ( new_upload_requested ( QString ,QString) ),
-	                   this,SLOT ( slot_new_upload_requested ( QString ,QString) ) );
+	QObject::connect ( localView,SIGNAL ( new_upload_requested ( QStringList) ),
+	                   this,SLOT ( slot_new_upload_requested ( QStringList) ) );
 
-    QObject::connect ( remoteView,SIGNAL ( new_transfer_requested ( QString ,QString  ) ),
-                       this,SLOT ( slot_new_download_requested ( QString ,QString  ) ) );
+    QObject::connect ( remoteView,SIGNAL ( new_transfer_requested ( QStringList   ) ),
+                       this,SLOT ( slot_new_download_requested ( QStringList  ) ) );
     
-    QObject::connect( remoteView, SIGNAL( new_transfer_requested(QString,QString,QString,QString)),
-                      this,SLOT(slot_new_upload_requested(QString,QString,QString,QString)) );
+    QObject::connect( remoteView, SIGNAL( new_transfer_requested(QStringList,QStringList)),
+                      this,SLOT(slot_new_upload_requested(QStringList,QStringList)) );
     
     //
     QObject::connect( this->mUIMain.action_Local_Window,SIGNAL(triggered()),
@@ -375,14 +375,17 @@ void NullFXP::slot_connect_remote_host_finished(int status , struct sftp_conn * 
     this->remoteView->i_init_dir_view ( this->sftp_connection );
 }
 
-void NullFXP::slot_new_upload_requested ( QString local_file_name ,QString local_file_type )
+//void NullFXP::slot_new_upload_requested ( QString local_file_name ,QString local_file_type )
+void NullFXP::slot_new_upload_requested ( QStringList local_file_names)
 {
 	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-	QString remote_file_name , remote_file_type  ;
+	QString remote_file_name ;
+    QStringList remote_file_names ;
 
 	remote_file_name = this->remoteView->get_selected_directory();
-    remote_file_type = "";
-
+    //remote_file_type = "";
+    remote_file_names << remote_file_name ;
+    
 	if ( remote_file_name.length() == 0 )
 	{
         qDebug()<<" selected a remote file directory  please";
@@ -391,30 +394,41 @@ void NullFXP::slot_new_upload_requested ( QString local_file_name ,QString local
 	{
 		ProgressDialog * pdlg = new ProgressDialog ( this );
 		pdlg->set_remote_connection ( this->sftp_connection );
-        pdlg->set_transfer_info ( TransferThread::TRANSFER_PUT,local_file_name,local_file_type , remote_file_name , remote_file_type ) ;
+        //pdlg->set_transfer_info ( TransferThread::TRANSFER_PUT,local_file_name,local_file_type , remote_file_name , remote_file_type ) ;
+        pdlg->set_transfer_info ( TransferThread::TRANSFER_PUT,local_file_names , remote_file_names  ) ;
         QObject::connect(pdlg,SIGNAL(transfer_finished(int)),
                          this,SLOT(slot_transfer_finished(int)) );
 		pdlg->exec();
 	}
 }
 
-void NullFXP::slot_new_upload_requested(QString local_file_name,QString local_file_type,
-                                        QString remote_file_name,QString remote_file_type)
+//void NullFXP::slot_new_upload_requested(QString local_file_name,QString local_file_type,                                        QString remote_file_name,QString remote_file_type)
+void NullFXP::slot_new_upload_requested(QStringList local_file_names,QStringList remote_file_names)
 {
+    //QStringList local_file_names;
+    //QStringList remote_file_names;
+    //local_file_names << local_file_name ;
+    //remote_file_names << remote_file_name ;
+    
     ProgressDialog * pdlg = new ProgressDialog ( this );
     pdlg->set_remote_connection ( this->sftp_connection );
-    pdlg->set_transfer_info ( TransferThread::TRANSFER_PUT,local_file_name,local_file_type , remote_file_name , remote_file_type ) ;
+    //pdlg->set_transfer_info ( TransferThread::TRANSFER_PUT,local_file_name,local_file_type , remote_file_name , remote_file_type ) ;
+    pdlg->set_transfer_info ( TransferThread::TRANSFER_PUT,local_file_names,remote_file_names ) ;
     QObject::connect(pdlg,SIGNAL(transfer_finished(int)),
                      this,SLOT(slot_transfer_finished(int)) );
     pdlg->exec();
 }
 
-void NullFXP::slot_new_download_requested(QString remote_file_name , QString remote_file_type )
+//void NullFXP::slot_new_download_requested(QString remote_file_name , QString remote_file_type )
+void NullFXP::slot_new_download_requested(QStringList remote_file_names )
 {
+    QStringList local_file_names ;
+    
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    QString local_file_path , local_file_type ;
+    QString local_file_path  ;
     
     local_file_path = this->localView->get_selected_directory();
+    local_file_names << local_file_path ;
     
     if( local_file_path.length() == 0 )
     {
@@ -424,19 +438,20 @@ void NullFXP::slot_new_download_requested(QString remote_file_name , QString rem
     {
         ProgressDialog *pdlg = new ProgressDialog(this);
         pdlg->set_remote_connection(  this->sftp_connection  );
-        pdlg->set_transfer_info(TransferThread::TRANSFER_GET,local_file_path,local_file_type,remote_file_name,remote_file_type );
+        pdlg->set_transfer_info(TransferThread::TRANSFER_GET,local_file_names,remote_file_names );
         QObject::connect(pdlg,SIGNAL(transfer_finished(int)),
                          this,SLOT(slot_transfer_finished(int)) );
         pdlg->exec();
     }
 }
 
-void NullFXP::slot_new_download_requested(QString local_file_name,QString local_file_type,
-                                          QString remote_file_name,QString remote_file_type)
+//void NullFXP::slot_new_download_requested(QString local_file_name,QString local_file_type,  QString remote_file_name,QString remote_file_type)
+void NullFXP::slot_new_download_requested(QStringList local_file_names, QStringList remote_file_names )
 {
+    
     ProgressDialog *pdlg = new ProgressDialog(this);
     pdlg->set_remote_connection(  this->sftp_connection  );
-    pdlg->set_transfer_info(TransferThread::TRANSFER_GET,local_file_name,local_file_type,remote_file_name,remote_file_type );
+    pdlg->set_transfer_info(TransferThread::TRANSFER_GET,local_file_names,remote_file_names);
     QObject::connect(pdlg,SIGNAL(transfer_finished(int)),
                      this,SLOT(slot_transfer_finished(int)) );
     pdlg->exec();
@@ -451,6 +466,10 @@ void NullFXP::slot_transfer_finished(int status )
     
     delete pdlg ;
     
+    if( status != 0 )
+    {
+        QMessageBox::critical(this,QString(tr("Error: ")),QString(tr("Unknown error: %1")).arg(status));
+    }
 }
 void NullFXP::slot_show_transfer_queue(bool show)
 {

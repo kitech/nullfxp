@@ -47,13 +47,16 @@
        <layout class="QGridLayout" >
         <item row="0" column="0" >
          <widget class="QLabel" name="label_2" >
+          <property name="sizePolicy" >
+           <sizepolicy vsizetype="Preferred" hsizetype="Preferred" >
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text" >
            <string>From:</string>
           </property>
          </widget>
-        </item>
-        <item row="0" column="1" >
-         <widget class="QLineEdit" name="lineEdit_2" />
         </item>
         <item row="1" column="0" >
          <widget class="QLabel" name="label_3" >
@@ -62,8 +65,25 @@
           </property>
          </widget>
         </item>
+        <item row="0" column="1" >
+         <widget class="QComboBox" name="comboBox" >
+          <property name="sizePolicy" >
+           <sizepolicy vsizetype="Fixed" hsizetype="Expanding" >
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
         <item row="1" column="1" >
-         <widget class="QLineEdit" name="lineEdit_3" />
+         <widget class="QComboBox" name="comboBox_2" >
+          <property name="sizePolicy" >
+           <sizepolicy vsizetype="Fixed" hsizetype="Expanding" >
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
