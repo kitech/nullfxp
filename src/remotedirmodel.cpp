@@ -37,6 +37,11 @@ RemoteDirModel::RemoteDirModel ( struct sftp_conn * conn , QObject *parent )
 	QObject::connect ( this->remote_dir_retrive_thread,SIGNAL ( remote_dir_node_retrived ( directory_tree_item *,const QModelIndex* ) ),
 	                   this,SLOT ( slot_remote_dir_node_retrived ( directory_tree_item*,const QModelIndex* ) ) );
 
+    //
+    QObject::connect( this->remote_dir_retrive_thread,SIGNAL( enter_remote_dir_retrive_loop()),
+                      this,SIGNAL(enter_remote_dir_retrive_loop()));
+    QObject::connect ( this->remote_dir_retrive_thread,SIGNAL(leave_remote_dir_retrive_loop()),
+                       this,SIGNAL(leave_remote_dir_retrive_loop()));
 }
 
 void RemoteDirModel::set_user_home_path(std::string user_home_path)

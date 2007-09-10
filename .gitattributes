@@ -291,6 +291,7 @@ src/sys-queue.h -text
 src/tmpmain.cpp -text
 src/transferthread.cpp -text
 src/transferthread.h -text
+src/version.h -text
 src/xmalloc.cpp -text
 src/xmalloc.h -text
 templates/cpp -text

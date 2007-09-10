@@ -96,7 +96,11 @@ public:
     void add_node(directory_tree_item* parent_item , const QModelIndex * parent_model );
             
     signals:
+        void enter_remote_dir_retrive_loop();
+        void leave_remote_dir_retrive_loop();
+        
         void remote_dir_node_retrived(directory_tree_item* parent_item , const QModelIndex * parent_model );
+        
          
     private:
        std::map<directory_tree_item*,const QModelIndex*>   dir_node_process_queue ;

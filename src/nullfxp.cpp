@@ -107,6 +107,8 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
     QObject::connect( remoteView, SIGNAL( new_transfer_requested(QStringList,QStringList)),
                       this,SLOT(slot_new_upload_requested(QStringList,QStringList)) );
     
+    this->sub_windows = this->mdiArea->subWindowList();
+    
     //
     QObject::connect( this->mUIMain.action_Local_Window,SIGNAL(triggered()),
                       this,SLOT(slot_show_local_view()));
@@ -381,6 +383,12 @@ void NullFXP::slot_new_upload_requested ( QStringList local_file_names)
 	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 	QString remote_file_name ;
     QStringList remote_file_names ;
+    
+    if(this->remoteView->is_in_remote_dir_retrive_loop())
+    {
+        QMessageBox::warning(this,tr("attentions:"),tr("retriving remote directory tree,wait a minute please.") );
+        return ;
+    }
 
 	remote_file_name = this->remoteView->get_selected_directory();
     //remote_file_type = "";
@@ -409,7 +417,11 @@ void NullFXP::slot_new_upload_requested(QStringList local_file_names,QStringList
     //QStringList remote_file_names;
     //local_file_names << local_file_name ;
     //remote_file_names << remote_file_name ;
-    
+    if(this->remoteView->is_in_remote_dir_retrive_loop())
+    {
+        QMessageBox::warning(this,tr("attentions:"),tr("retriving remote directory tree,wait a minute please.") );
+        return ;
+    }
     ProgressDialog * pdlg = new ProgressDialog ( this );
     pdlg->set_remote_connection ( this->sftp_connection );
     //pdlg->set_transfer_info ( TransferThread::TRANSFER_PUT,local_file_name,local_file_type , remote_file_name , remote_file_type ) ;
@@ -501,7 +513,7 @@ void NullFXP::slot_show_local_view()
     {
         this->localView->setVisible(true);
     }
-    
+    this->mdiArea->setActiveSubWindow(this->sub_windows.at(0));
 }
 
 void NullFXP::slot_show_remote_view()
@@ -511,6 +523,7 @@ void NullFXP::slot_show_remote_view()
     {
         this->remoteView->setVisible(true);
     }
+    this->mdiArea->setActiveSubWindow(this->sub_windows.at(1));
 }
 
 

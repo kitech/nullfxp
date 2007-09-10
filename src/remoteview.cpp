@@ -53,6 +53,11 @@ RemoteView::RemoteView(QWidget *parent)
                       this,SLOT(slot_dir_item_clicked(const QModelIndex & ))) ;
     
     this->init_popup_context_menu();
+    
+    this->keep_alive = false ;
+    this->keep_alive_timer = new QTimer();
+    this->in_remote_dir_retrive_loop = false;
+    this->keep_alive_interval = 30 ;
 }
 
 void RemoteView::init_popup_context_menu()
@@ -68,6 +73,12 @@ void RemoteView::init_popup_context_menu()
 
 RemoteView::~RemoteView()
 {
+    if(this->keep_alive_timer->isActive() )
+    {
+        this->keep_alive_timer->stop();
+    }
+    delete this->keep_alive_timer ;
+    
 }
 void RemoteView::slot_show_fxp_command_log(bool show)
 {
@@ -88,7 +99,12 @@ void RemoteView::i_init_dir_view(struct sftp_conn * conn)
     this->remoteview.treeView->setDragDropMode(QAbstractItemView::DragDrop);            
     //do_globbed_ls( conn , this->m_next_path , this->m_curr_path, 0 );
     QObject::connect(this->remote_dir_model,SIGNAL(new_transfer_requested(QStringList,QStringList)),
-                     this,SIGNAL(new_transfer_requested(QStringList,QStringList )) ) ;
+                     this,SLOT(slot_new_transfer_requested(QStringList,QStringList )) ) ;
+    
+    QObject::connect( this->remote_dir_model,SIGNAL(enter_remote_dir_retrive_loop()),
+                      this,SLOT(slot_enter_remote_dir_retrive_loop()));
+    QObject::connect( this->remote_dir_model,SIGNAL(leave_remote_dir_retrive_loop()),
+                      this,SLOT(slot_leave_remote_dir_retrive_loop()));
     
     this->remoteview.treeView->expandAll();
     
@@ -113,6 +129,12 @@ void RemoteView::slot_new_transfer()
      
     QString file_path   ;
     QStringList remote_file_names;
+    
+    if( this->in_remote_dir_retrive_loop )
+    {
+        QMessageBox::warning(this,tr("attentions:"),tr("retriving remote directory tree,wait a minute please.") );
+        return ;
+    }
     
     QItemSelectionModel *ism = this->remoteview.treeView->selectionModel();
     
@@ -139,6 +161,19 @@ void RemoteView::slot_new_transfer()
     //emit new_transfer_requested("/vmlinuz-2.6.18.2-34-xen");
     //emit new_transfer_requested(file_path,file_type );
     emit new_transfer_requested(remote_file_names);
+}
+
+void RemoteView::slot_new_transfer_requested(QStringList local_file_names,                                    QStringList remote_file_names)
+{
+    if( this->in_remote_dir_retrive_loop )
+    {
+        QMessageBox::warning(this,tr("attentions:"),tr("retriving remote directory tree,wait a minute please.") );
+        return ;
+    }
+    else
+    {
+        emit this->new_transfer_requested(local_file_names,remote_file_names);
+    }
 }
 
 QString RemoteView::get_selected_directory()
@@ -198,9 +233,51 @@ void RemoteView::slot_dir_item_clicked(const QModelIndex & index)
 {
     //qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     assert( remote_dir_model != 0 );
+
     remote_dir_model->slot_remote_dir_node_clicked(index);
+
 }
 
+void RemoteView::slot_enter_remote_dir_retrive_loop()
+{
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    this->in_remote_dir_retrive_loop = true ;
+    this->orginal_cursor = this->remoteview.treeView->cursor();
+    this->remoteview.treeView->setCursor(Qt::BusyCursor);
+}
 
+void RemoteView::slot_leave_remote_dir_retrive_loop()
+{
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    this->remoteview.treeView->setCursor(this->orginal_cursor);
+    this->in_remote_dir_retrive_loop = false ;
+}
 
+void RemoteView::set_keep_alive(bool keep_alive,int time_out)
+{
+    //this->keep_alive_interval = time_out ;
+    //this->keep_alive = keep_alive ;
+    if( keep_alive != this->keep_alive )
+    {
+        if( this->keep_alive == true )
+        {
+            this->keep_alive_timer->stop();
+        }
+        else
+        {
+            this->keep_alive_timer->start();
+        }
+        this->keep_alive = keep_alive ;
+    }
+    if( time_out != this->keep_alive_interval)
+    {
+        this->keep_alive_interval = time_out ;
+        this->keep_alive_timer->setInterval(this->keep_alive_interval);
+    }
+}
+
+void RemoteView:: slot_keep_alive_time_out()
+{
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+}
 

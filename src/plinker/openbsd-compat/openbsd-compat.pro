@@ -79,7 +79,8 @@ sha2.h \
 sigact.h \
 sys-queue.h \
 sys-tree.h \
-vis.h
+vis.h \
+ ../../version.h
 TARGET = openbsd_compat
 
 QMAKE_CXXFLAGS_DEBUG += -std=gnu99 \

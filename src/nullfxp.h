@@ -103,7 +103,7 @@ public:
 
         QMdiArea *mdiArea;
         QSignalMapper *windowMapper;                
-        
+        QList<QMdiSubWindow *>  sub_windows ;
         
     private:
         

@@ -178,7 +178,7 @@
       </debugarguments>
     </run>
     <general>
-      <activedir>src</activedir>
+      <activedir>src/plinker/openbsd-compat</activedir>
     </general>
     <make>
       <abortonerror>true</abortonerror>

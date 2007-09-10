@@ -41,6 +41,8 @@ void RemoteDirRetriveThread::run()
     int row_count = 0 ;
     int fxp_ls_ret = 0 ;
     
+    emit enter_remote_dir_retrive_loop();
+    
 	while ( this->dir_node_process_queue.size() >0 )
 	{
         std::map<directory_tree_item*,const QModelIndex*>::iterator mit;
@@ -82,7 +84,14 @@ void RemoteDirRetriveThread::run()
             }
             
 			directory_tree_item * thefile = new directory_tree_item();
-			thefile->retrived = 0;
+            
+            
+            if(fileinfos.at ( i ) ['T'][0] == 'd' ||
+               fileinfos.at ( i ) ['T'][0] == 'l' )
+                thefile->retrived = 0;
+            else    //对非目录就不需要再让它再次列目录了
+                thefile->retrived = 9 ;
+            
 			thefile->parent_item = parent_item ;
 			thefile->tree_node_item.insert ( std::make_pair ( 'N',fileinfos.at ( i ) ['N'] ) ) ;
 			thefile->tree_node_item.insert ( std::make_pair ( 'S',fileinfos.at ( i ) ['S'] ) ) ;
@@ -109,6 +118,7 @@ void RemoteDirRetriveThread::run()
         emit this->remote_dir_node_retrived(parent_item,parent_model);
         
 	}
+    emit this->leave_remote_dir_retrive_loop();
 }
 
 void RemoteDirRetriveThread::add_node ( directory_tree_item* parent_item , const QModelIndex * parent_model )

@@ -46,6 +46,9 @@ public:
     
     void set_user_home_path(std::string user_home_path);
     
+    bool is_in_remote_dir_retrive_loop() 
+        { return this->in_remote_dir_retrive_loop ; }
+    
     private:
         char m_curr_path[PATH_MAX+1];
         char m_next_path[PATH_MAX+1];
@@ -61,6 +64,11 @@ public:
         
         std::string user_home_path ;    
         
+        QCursor orginal_cursor ;
+        bool    in_remote_dir_retrive_loop ;
+        bool    keep_alive ;
+        QTimer  * keep_alive_timer ;
+        int     keep_alive_interval;
         
     public slots:
         void i_init_dir_view(struct sftp_conn * conn);
@@ -68,11 +76,18 @@ public:
         
         void slot_dir_tree_customContextMenuRequested ( const QPoint & pos );
         void slot_new_transfer();
+        void slot_new_transfer_requested(QStringList local_file_names,                                    QStringList remote_file_names);
         
         //////////ui
         void slot_show_fxp_command_log(bool show);
         
         void slot_custom_ui_area();
+        
+        void slot_enter_remote_dir_retrive_loop();
+        void slot_leave_remote_dir_retrive_loop();
+        
+        /// time_out 秒
+        void set_keep_alive(bool keep_alive,int time_out=30);
         
     signals:
         //void new_transfer_requested( QString file_name,QString file_type ) ;
@@ -85,6 +100,7 @@ public:
         void new_transfer_requested(QStringList local_file_names,QStringList remote_file_names);
     private slots:
         void slot_dir_item_clicked(const QModelIndex & index);
+        void slot_keep_alive_time_out();
             
     protected:
         virtual void closeEvent ( QCloseEvent * event ) ;
