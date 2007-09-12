@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef VERSION_H
-#define VERSION_H
+#ifndef NULLFXP_VERSION_H
+#define NULLFXP_VERSION_H
 
 #define NULLFXP_VERSION	"NullFXP 0.9.6"
 

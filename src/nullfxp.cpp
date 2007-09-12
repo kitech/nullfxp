@@ -122,6 +122,9 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
     QObject::connect( this->mUIMain.actionAbout_Qt,SIGNAL(triggered()),
                       qApp,SLOT(aboutQt()));
     
+    //
+    this->sftp_connection = 0 ;
+    
     //启动主界面大小调整
     this->slot_tile_sub_windows();
     this->remoteView->slot_custom_ui_area();
@@ -346,13 +349,17 @@ void NullFXP::connect_to_remote_host()
 void NullFXP::slot_disconnect_from_remote_host()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    this->remoteView->slot_disconnect_from_remote_host();
-    this->remote_conn_thread->diconnect_ssh_connection();
-    delete this->remote_conn_thread ; this->remote_conn_thread = 0 ;
     
-    delete this->connect_status_dailog ; this->connect_status_dailog = 0 ;
-    
-    free(this->sftp_connection); this->sftp_connection = 0 ;
+    if( this->sftp_connection != 0 )
+    {
+        this->remoteView->slot_disconnect_from_remote_host();
+        this->remote_conn_thread->diconnect_ssh_connection();
+        delete this->remote_conn_thread ; this->remote_conn_thread = 0 ;
+        
+        delete this->connect_status_dailog ; this->connect_status_dailog = 0 ;
+        
+        free(this->sftp_connection); this->sftp_connection = 0 ;
+    }
 }
 
 void NullFXP::slot_connect_remote_host_finished(int status , struct sftp_conn * conn )

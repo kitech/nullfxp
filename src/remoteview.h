@@ -100,10 +100,16 @@ public:
         //void new_transfer_requested(QString local_file_name,QString local_file_type,
         //                            QString remote_file_name,QString remote_file_type );
         void new_transfer_requested(QStringList local_file_names,QStringList remote_file_names);
+        
     private slots:
         void slot_dir_item_clicked(const QModelIndex & index);
         void slot_keep_alive_time_out();
         void slot_refresh_directory_tree();
+        void slot_mkdir();
+        void slot_rmdir();        
+        void slot_rename();
+        
+        void rm_file_or_directory_recursively();
             
     protected:
         virtual void closeEvent ( QCloseEvent * event ) ;

@@ -20,11 +20,13 @@
 
 #include <QtCore>
 
+#include "sftp.h"
+#include "sftp-operation.h"
 
 #include "remoteview.h"
 
 
-#include "sftp-operation.h"
+
 
 
 RemoteView::RemoteView(QWidget *parent)
@@ -65,13 +67,38 @@ void RemoteView::init_popup_context_menu()
 
     this->dir_tree_context_menu = new QMenu();
     QAction *action ;
-    action  = new QAction("transfer",0);
+    action  = new QAction(tr("Download"),0);
     this->dir_tree_context_menu->addAction(action);
     QObject::connect(action,SIGNAL(triggered()),this,SLOT(slot_new_transfer()));
+    
+    action = new QAction("",0);
+    action->setSeparator(true);
+    this->dir_tree_context_menu->addAction(action);
     
     action = new QAction(tr("Refresh"),0);
     this->dir_tree_context_menu->addAction(action);
     QObject::connect(action,SIGNAL(triggered()),this,SLOT(slot_refresh_directory_tree()));
+    
+    action = new QAction("",0);
+    action->setSeparator(true);
+    this->dir_tree_context_menu->addAction(action);
+        
+    action = new QAction(tr("Create directory..."),0);
+    this->dir_tree_context_menu->addAction(action);
+    QObject::connect(action,SIGNAL(triggered()),this,SLOT(slot_mkdir()));
+    
+    action = new QAction(tr("Delete directory"),0);
+    this->dir_tree_context_menu->addAction(action);
+    QObject::connect(action,SIGNAL(triggered()),this,SLOT(slot_rmdir()));
+
+    action = new QAction(tr("Rename..."),0);
+    this->dir_tree_context_menu->addAction(action);
+    QObject::connect(action,SIGNAL(triggered()),this,SLOT(slot_rename()));
+    
+    //TODO 实现递归删除功能,这里先隐藏了
+//     action = new QAction(tr("Remove recursively!!!"),0);
+//     this->dir_tree_context_menu->addAction(action);
+//     QObject::connect(action,SIGNAL(triggered()),this,SLOT(rm_file_or_directory_recursively()));
     
 }
 
@@ -123,8 +150,9 @@ void RemoteView::slot_disconnect_from_remote_host()
 
 void RemoteView::slot_dir_tree_customContextMenuRequested ( const QPoint & pos )
 {
-    
-    this->dir_tree_context_menu->popup(this->mapToGlobal(pos));
+    QPoint real_pos = this->mapToGlobal(pos);
+    real_pos = QPoint(real_pos.x()+12,real_pos.y()+36);
+    this->dir_tree_context_menu->popup(real_pos);
 }
 
 void RemoteView::slot_new_transfer()
@@ -333,5 +361,163 @@ void RemoteView::update_layout()
 void RemoteView::slot_refresh_directory_tree()
 {
     this->update_layout();
+}
+
+void RemoteView::slot_mkdir()
+{
+    QString dir_name ;
+    
+    QItemSelectionModel *ism = this->remoteview.treeView->selectionModel();
+    
+    if(ism == 0)
+    {
+        qDebug()<<" why???? no QItemSelectionModel??";
+        QMessageBox::critical(this,tr("waring..."),tr("maybe you haven't connected"));                
+        return  ;
+        return ;
+    }
+    
+    QModelIndexList mil = ism->selectedIndexes()   ;
+    
+    if( mil.count() == 0 )
+    {
+        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+        QMessageBox::critical(this,tr("waring..."),tr("no item selected"));
+        return ;
+    }
+    
+    QModelIndex midx = mil.at(0);
+    directory_tree_item * dti = (directory_tree_item*) midx.internalPointer();
+    
+    //TODO 检查所选择的项是不是目录
+    
+    
+    dir_name = QInputDialog::getText(this,tr("Create directory:"),
+                                      tr("Input directory name:"),
+                                         QLineEdit::Normal,
+                                         tr("new_direcotry") );
+     
+    if(  dir_name.length () == 0 )
+    {
+        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+        QMessageBox::critical(this,tr("waring..."),tr("no directory name supplyed "));
+        return;
+    }
+    //TODO 将 file_path 转换编码再执行下面的操作
+    
+    this->remote_dir_model->slot_execute_command(dti,midx.internalPointer(),SSH2_FXP_MKDIR,std::string(dir_name.toAscii().data()) );
+    
+}
+
+void RemoteView::slot_rmdir()
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    
+    QItemSelectionModel *ism = this->remoteview.treeView->selectionModel();
+    
+    if(ism == 0)
+    {
+        qDebug()<<" why???? no QItemSelectionModel??";
+        QMessageBox::critical(this,tr("waring..."),tr("maybe you haven't connected"));                
+        return  ;
+        return ;
+    }
+    
+    QModelIndexList mil = ism->selectedIndexes()   ;
+    
+    if( mil.count() == 0 )
+    {
+        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+        QMessageBox::critical(this,tr("waring..."),tr("no item selected"));
+        return ;
+    }
+    
+    QModelIndex midx = mil.at(0);
+    directory_tree_item * dti = (directory_tree_item*) midx.internalPointer();
+    QModelIndex parent_model =  midx.parent() ;
+    directory_tree_item * parent_item = (directory_tree_item*)parent_model.internalPointer();
+    
+    //TODO 检查所选择的项是不是目录
+    
+    this->remote_dir_model->slot_execute_command(parent_item,parent_model.internalPointer() ,SSH2_FXP_RMDIR,std::string( dti->file_name ) );
+    
+}
+
+void RemoteView::rm_file_or_directory_recursively()
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    
+    QItemSelectionModel *ism = this->remoteview.treeView->selectionModel();
+    
+    if(ism == 0)
+    {
+        qDebug()<<" why???? no QItemSelectionModel??";
+        QMessageBox::critical(this,tr("waring..."),tr("maybe you haven't connected"));                
+        return  ;
+        return ;
+    }
+    
+    QModelIndexList mil = ism->selectedIndexes()   ;
+    
+    if( mil.count() == 0 )
+    {
+        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+        QMessageBox::critical(this,tr("waring..."),tr("no item selected"));
+        return ;
+    }
+    
+    QModelIndex midx = mil.at(0);
+    directory_tree_item * dti = (directory_tree_item*) midx.internalPointer();
+    QModelIndex parent_model =  midx.parent() ;
+    directory_tree_item * parent_item = (directory_tree_item*)parent_model.internalPointer();
+    
+    this->remote_dir_model->slot_execute_command(parent_item,parent_model.internalPointer() ,SSH2_FXP_REMOVE , std::string( dti->file_name ) );
+}
+
+void RemoteView::slot_rename()
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    
+    QItemSelectionModel *ism = this->remoteview.treeView->selectionModel();
+    
+    if(ism == 0)
+    {
+        qDebug()<<" why???? no QItemSelectionModel??";
+        QMessageBox::critical(this,tr("waring..."),tr("maybe you haven't connected"));                
+        return  ;
+        return ;
+    }
+    
+    QModelIndexList mil = ism->selectedIndexes()   ;
+    
+    if( mil.count() == 0 )
+    {
+        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+        QMessageBox::critical(this,tr("waring..."),tr("no item selected"));
+        return ;
+    }
+    
+    QModelIndex midx = mil.at(0);
+    directory_tree_item * dti = (directory_tree_item*) midx.internalPointer();
+    QModelIndex parent_model =  midx.parent() ;
+    directory_tree_item * parent_item = (directory_tree_item*)parent_model.internalPointer();
+    
+    QString rename_to ;
+    rename_to = QInputDialog::getText(this,tr("Rename to:"),
+                                      tr("Input new name:"),
+                                         QLineEdit::Normal,
+                                         tr("rename") );
+     
+    if(  rename_to.length () == 0 )
+    {
+        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+        QMessageBox::critical(this,tr("waring..."),tr("no new name supplyed "));
+        return;
+    }
+    
+    //TODO 将 rename_to 转换编码再执行下面的操作
+    
+    this->remote_dir_model->slot_execute_command(parent_item,parent_model.internalPointer() ,SSH2_FXP_RENAME , std::string( dti->file_name + "!" + std::string( rename_to.toAscii().data() ) ) );
+    
 }
 

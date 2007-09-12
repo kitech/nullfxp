@@ -55,6 +55,8 @@ public:
         QStatusBar * status_bar ;
         QDirModel * model ;
         Ui::LocalView localView ;
+        void expand_to_home_directory(QModelIndex parent_model,int level );
+        
         struct sftp_conn * sftp_connection ;
         
         QMenu * local_dir_tree_context_menu ;

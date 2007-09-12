@@ -38,8 +38,11 @@ LocalView::LocalView ( QWidget *parent )
     ////
 	model = new QDirModel();
 	this->localView.treeView->setModel ( model );
-	this->localView.treeView->setRootIndex ( model->index ( QDir::homePath() ) );
-
+	this->localView.treeView->setRootIndex ( model->index ( "/" ) );
+    //this->localView.treeView->setRootIndex ( model->index ( QDir::homePath() ) );
+    this->localView.treeView->setColumnWidth(0,this->localView.treeView->columnWidth(0)*2);    
+    this->expand_to_home_directory(this->localView.treeView->rootIndex (),1 );
+    
 	this->init_local_dir_tree_context_menu();
     
     ////////ui area custom
@@ -56,7 +59,7 @@ void LocalView::init_local_dir_tree_context_menu()
 {
 	this->local_dir_tree_context_menu = new QMenu();
 
-	QAction *action = new QAction ( "transer it",0 );
+	QAction *action = new QAction ( tr("Upload"),0 );
 
 	this->local_dir_tree_context_menu->addAction ( action );
 
@@ -64,12 +67,48 @@ void LocalView::init_local_dir_tree_context_menu()
 	                   this , SLOT ( slot_local_dir_tree_context_menu_request ( const QPoint & ) ) );
 	QObject::connect ( action,SIGNAL ( triggered() ), this,SLOT ( slot_local_new_upload_requested() ) );
 
+    action = new QAction("",0);
+    action->setSeparator(true);
+    this->local_dir_tree_context_menu->addAction ( action );
+    
 	////reresh action
-	action = new QAction ( "refresh",0 );
+	action = new QAction ( tr("Refresh"),0 );
 	this->local_dir_tree_context_menu->addAction ( action );
 
 	QObject::connect ( action,SIGNAL ( triggered() ),
 	                   this,SLOT ( slot_refresh_directory_tree() ) );
+}
+//仅会被调用一次，在该实例的构造函数中
+void LocalView::expand_to_home_directory( QModelIndex parent_model,int level )
+{
+    int row_cnt = this->model->rowCount(parent_model) ;
+    QString home_path = QDir::homePath();
+    QStringList home_path_grade = home_path.split('/');
+    //qDebug()<<home_path_grade << level ;
+    QModelIndex curr_model ;
+    for( int i = 0 ; i < row_cnt ; i ++)
+    {
+        curr_model = this->model->index(i,0,parent_model) ;
+        QString file_name = this->model->fileName(curr_model);
+        if( file_name == home_path_grade.at(level) )
+        {
+            this->localView.treeView->expand(curr_model);
+            if( level == home_path_grade.count()-1)
+            {
+                break;
+            }
+            else
+            {
+                this->expand_to_home_directory(curr_model,level+1);
+                break;
+            }
+        }
+    }
+    if( level == 1 )
+    {
+        this->localView.treeView->scrollTo( curr_model );
+    }
+    //qDebug()<<" root row count:"<< row_cnt ;
 }
 
 void LocalView::set_sftp_connection ( struct sftp_conn* conn )
@@ -110,9 +149,10 @@ void LocalView::set_sftp_connection ( struct sftp_conn* conn )
 
 void LocalView::slot_local_dir_tree_context_menu_request ( const QPoint & pos )
 {
-	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-
-	this->local_dir_tree_context_menu->popup ( this->mapToGlobal ( pos ) );
+	//qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    QPoint real_pos = this->mapToGlobal(pos);
+    real_pos = QPoint(real_pos.x()+12,real_pos.y()+36);
+	this->local_dir_tree_context_menu->popup ( real_pos );
 
 }
 

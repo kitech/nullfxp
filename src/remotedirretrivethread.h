@@ -97,16 +97,46 @@ public:
     virtual void run();
 
     void add_node(directory_tree_item* parent_item , void * parent_model_internal_pointer );
-            
+    
+    void slot_execute_command(directory_tree_item* parent_item , void * parent_model_internal_pointer, int cmd , std::string params );
+
+    private:
+        int  retrive_dir();
+        int  mkdir();
+        int  rmdir();
+        int  rm_file_or_directory_recursively();  // <==> rm -rf
+        int  rename();
+        
     signals:
         void enter_remote_dir_retrive_loop();
         void leave_remote_dir_retrive_loop();
         
         void remote_dir_node_retrived(directory_tree_item* parent_item , void * parent_model_internal_pointer );
         
-         
+        void execute_command_finished( directory_tree_item* parent_item , void * parent_model_internal_pointer, int cmd ,int status );
+        
     private:
+
        std::map<directory_tree_item*,void * >   dir_node_process_queue ;
+       class command_queue_elem
+       {
+           public:
+               command_queue_elem()
+               {  
+                   this->parent_item=0;
+                   this->parent_model_internal_pointer = 0 ;
+                   this->cmd = -1 ;
+                   this->retry_times = 0 ;
+               }
+               
+               directory_tree_item* parent_item;
+               void * parent_model_internal_pointer;
+               int  cmd;
+               std::string  params;
+               int  retry_times ;
+       };       
+       std::vector<command_queue_elem*>  command_queue;
+       
        struct sftp_conn * sftp_connection;
        
        void subtract_existed_model(directory_tree_item * parent_item , std::vector<std::map<char,std::string> > & new_items );

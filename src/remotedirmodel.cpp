@@ -620,3 +620,9 @@ void RemoteDirModel::slot_remote_dir_node_clicked ( const QModelIndex & index )
 		//no op needed
 	}
 }
+
+void RemoteDirModel::slot_execute_command( directory_tree_item* parent_item , void * parent_model_internal_pointer, int cmd , std::string params )
+{
+    this->remote_dir_retrive_thread->slot_execute_command(parent_item,parent_model_internal_pointer,cmd , params);
+}
+
