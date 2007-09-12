@@ -44,11 +44,14 @@ class directory_tree_item
             this->retrived = 0;
             this->parent_item = 0;
             this->row_number = -1;
+            this->delete_flag = 0 ;
         }
-        
+        ~directory_tree_item();
+
         int type ;  // dir , not dir    // depcreated
         int prev_retr_flag ;    // 前一步的retrived 状态值。在改变retrived的状态的时候使用。
         int retrived ;  // 1 , 0
+        int delete_flag ;   // 1 , 0 ;
         /*
         0 表示UI没有要求过的，所以我们也没有取过数据的            
         1 表示UI没有请求过，我们自己填入了部分数据（如用户指定他的初始化目录的时候），即这表示需要更新的结点
@@ -67,7 +70,7 @@ class directory_tree_item
         int row_number ;    //指的是所包含的子结点个数
 				//N , S , T , D
 				//T = D , F , L
-        std::map< char  , std::string > tree_node_item ;
+        //std::map< char  , std::string > tree_node_item ;
                 
         std::string strip_path ;
         std::string file_name ;
@@ -93,19 +96,21 @@ public:
 
     virtual void run();
 
-    void add_node(directory_tree_item* parent_item , const QModelIndex * parent_model );
+    void add_node(directory_tree_item* parent_item , void * parent_model_internal_pointer );
             
     signals:
         void enter_remote_dir_retrive_loop();
         void leave_remote_dir_retrive_loop();
         
-        void remote_dir_node_retrived(directory_tree_item* parent_item , const QModelIndex * parent_model );
+        void remote_dir_node_retrived(directory_tree_item* parent_item , void * parent_model_internal_pointer );
         
          
     private:
-       std::map<directory_tree_item*,const QModelIndex*>   dir_node_process_queue ;
+       std::map<directory_tree_item*,void * >   dir_node_process_queue ;
        struct sftp_conn * sftp_connection;
-        
+       
+       void subtract_existed_model(directory_tree_item * parent_item , std::vector<std::map<char,std::string> > & new_items );
+       
 };
 
 #endif

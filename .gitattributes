@@ -34,6 +34,7 @@ src/log.h -text
 src/main.cpp -text
 src/misc.cpp -text
 src/misc.h -text
+src/nullfxp-version.h -text
 src/nullfxp.cpp -text
 src/nullfxp.h -text
 src/nullfxp.ui -text
@@ -291,7 +292,6 @@ src/sys-queue.h -text
 src/tmpmain.cpp -text
 src/transferthread.cpp -text
 src/transferthread.h -text
-src/version.h -text
 src/xmalloc.cpp -text
 src/xmalloc.h -text
 templates/cpp -text

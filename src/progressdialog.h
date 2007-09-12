@@ -48,6 +48,8 @@ public:
     //void set_transfer_info(int type,QString local_file_name,QString local_file_type,QString remote_file_name ,QString remote_file_type ) ;
     void set_transfer_info(int type,QStringList local_file_names,QStringList remote_file_names  ) ;
     
+    int get_transfer_type() { return this->transfer_type ; }
+    
     public slots:
         void slot_set_transfer_percent(int percent );
         void slot_transfer_thread_finished() ;

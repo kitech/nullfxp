@@ -445,9 +445,11 @@ void NullFXP::slot_new_download_requested(QStringList remote_file_names )
     if( local_file_path.length() == 0 )
     {
         qDebug()<<" selected a local file directory  please"; 
+        QMessageBox::critical(this,tr("waring..."),tr("you should selecte a local file directory."));
     }
     else
     {
+        
         ProgressDialog *pdlg = new ProgressDialog(this);
         pdlg->set_remote_connection(  this->sftp_connection  );
         pdlg->set_transfer_info(TransferThread::TRANSFER_GET,local_file_names,remote_file_names );
@@ -472,16 +474,34 @@ void NullFXP::slot_new_download_requested(QStringList local_file_names, QStringL
 void NullFXP::slot_transfer_finished(int status )
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
-    qDebug()<<"transfer status: " << status ;
+    //qDebug()<<"transfer status: " << status ;
     
     ProgressDialog * pdlg = (ProgressDialog*)sender();
     
-    delete pdlg ;
-    
     if( status != 0 )
     {
-        QMessageBox::critical(this,QString(tr("Error: ")),QString(tr("Unknown error: %1")).arg(status));
+        QMessageBox::critical(this,QString(tr("Error: ")),
+                              QString(tr("Unknown error: %1         ")).arg(status));
     }
+    else
+    {
+        //TODO 通知UI更新目录结构
+        int transfer_type = pdlg->get_transfer_type();
+        if( transfer_type == TransferThread::TRANSFER_GET )
+        {
+            this->localView->update_layout();
+        }
+        else if( transfer_type == TransferThread::TRANSFER_PUT )
+        {
+            this->remoteView->update_layout();
+        }
+        else
+        {
+            // xxxxx: 没有预期到的错误
+            assert( 1== 2 );
+        }
+    }
+    delete pdlg ;
 }
 void NullFXP::slot_show_transfer_queue(bool show)
 {

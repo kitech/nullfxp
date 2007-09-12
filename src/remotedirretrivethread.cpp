@@ -17,8 +17,26 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#include <vector>
+#include <map>
+#include <string>
+
+#include <QtCore>
+
 #include "remotedirretrivethread.h"
 
+////////////////////////directory_tree_item
+directory_tree_item::~directory_tree_item()
+{
+    qDebug()<<"tree delete now";
+    int line = this->child_items.size();
+    for(int i = line -1 ; i >=0 ; i --)
+    {
+        delete this->child_items[i];
+    }
+}
+
+///////////////////////////////////
 RemoteDirRetriveThread::RemoteDirRetriveThread ( struct sftp_conn * conn , QObject* parent ) : QThread ( parent )
 {
     this->sftp_connection = conn ;
@@ -33,7 +51,7 @@ void RemoteDirRetriveThread::run()
 {
 
 	directory_tree_item * parent_item;
-	const QModelIndex * parent_model ;
+    void *  parent_model_internal_pointer ;
     
     std::vector<std::map<char,std::string> > fileinfos;
     char file_name[PATH_MAX] ;//= parent_item->tree_node_item['N'];
@@ -45,11 +63,11 @@ void RemoteDirRetriveThread::run()
     
 	while ( this->dir_node_process_queue.size() >0 )
 	{
-        std::map<directory_tree_item*,const QModelIndex*>::iterator mit;
+        std::map<directory_tree_item*,void * >::iterator mit;
         mit = this->dir_node_process_queue.begin();
         
         parent_item = mit->first ;
-        parent_model = mit->second ;
+        parent_model_internal_pointer = mit->second ;
         fileinfos.clear();
         
         
@@ -64,7 +82,7 @@ void RemoteDirRetriveThread::run()
 		//strcpy(strip_path,"/" );
         fxp_ls_ret = fxp_do_globbed_ls ( this->sftp_connection , file_name , strip_path , lflag , fileinfos );
 		qDebug() <<"fxp_ls_ret:" << fxp_ls_ret<< ", fileinfos number="<<fileinfos.size() << " use strip:" << strip_path <<" file_name ="<< file_name ;
-				
+	
         //将已经存在的项目找出来
         std::map<std::string,int> existed_items ;
         for( int i = 0 ; i < parent_item->child_items.size() ; i ++)
@@ -93,10 +111,6 @@ void RemoteDirRetriveThread::run()
                 thefile->retrived = 9 ;
             
 			thefile->parent_item = parent_item ;
-			thefile->tree_node_item.insert ( std::make_pair ( 'N',fileinfos.at ( i ) ['N'] ) ) ;
-			thefile->tree_node_item.insert ( std::make_pair ( 'S',fileinfos.at ( i ) ['S'] ) ) ;
-			thefile->tree_node_item.insert ( std::make_pair ( 'T',fileinfos.at ( i ) ['T'] ) ) ;
-			thefile->tree_node_item.insert ( std::make_pair ( 'D',fileinfos.at ( i ) ['D'] ) ) ;
             thefile->row_number= curr_count ;
 
 			thefile->strip_path = std::string ( parent_item->strip_path ) + std::string ( "/" ) +  fileinfos.at ( i ) ['N'] ;
@@ -110,18 +124,69 @@ void RemoteDirRetriveThread::run()
             parent_item->child_items.insert ( std::make_pair ( curr_count , thefile ) ) ;
 		}
         
+        this->subtract_existed_model(parent_item,fileinfos);
+        
         parent_item->prev_retr_flag = parent_item->retrived ;
         parent_item->retrived = 9 ;
-        
-        //////
+//         
+//         //////
         this->dir_node_process_queue.erase(parent_item);
-        emit this->remote_dir_node_retrived(parent_item,parent_model);
+        emit this->remote_dir_node_retrived(parent_item,parent_model_internal_pointer);
         
 	}
     emit this->leave_remote_dir_retrive_loop();
 }
 
-void RemoteDirRetriveThread::add_node ( directory_tree_item* parent_item , const QModelIndex * parent_model )
+void RemoteDirRetriveThread::subtract_existed_model(directory_tree_item * parent_item , std::vector<std::map<char,std::string> > & new_items )
+{
+    assert( new_items.size() <= parent_item->child_items.size() );
+    std::string  tmp_file_name ;
+    std::map<std::string,int> new_file_items ;
+    
+    std::vector<directory_tree_item*> missed_item_handle;
+    
+    directory_tree_item * missed_item , *temp_item ;
+    
+    if( new_items.size() != parent_item->child_items.size() )
+    {
+        qDebug()<<" some item miss in new file list";
+        for(int i = 0 ; i < new_items.size() ; i ++ )
+        {
+            new_file_items.insert(std::make_pair(new_items.at(i)['N'],1));
+        }
+        for( int i = 0 ; i < parent_item->child_items.size() ; i ++ )
+        {
+            tmp_file_name = parent_item->child_items[i]->file_name;
+            if( new_file_items.count(tmp_file_name) == 0 )
+            {
+                qDebug()<<" missed file :"<<i<<" "<<tmp_file_name.c_str();
+                missed_item = parent_item->child_items[i] ;
+                missed_item->delete_flag =1 ;
+                
+//                 if(i!=parent_item->child_items.size()-1)
+//                 {
+//                     for( int j = i+1 ; j < parent_item->child_items.size() ; j ++ )
+//                     {
+//                         temp_item = parent_item->child_items[j];
+//                         temp_item->row_number = j-1 ;
+//                         parent_item->child_items[j-1] = temp_item ;
+//                     }
+//                     int c_size = parent_item->child_items.size() ;
+//                     parent_item->child_items.erase(c_size-1);
+//                 }
+//                 else
+//                 {
+//                     int c_size = parent_item->child_items.size() ;
+//                     parent_item->child_items.erase(c_size-1);
+//                 }
+                // xxxx: 执行下面一句程序会崩溃，不执行会内存潺漏
+                //delete missed_item ;missed_item = 0 ;
+            }
+        }
+    }
+}
+
+void RemoteDirRetriveThread::add_node ( directory_tree_item* parent_item ,void * parent_model_internal_pointer )
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
@@ -130,7 +195,7 @@ void RemoteDirRetriveThread::add_node ( directory_tree_item* parent_item , const
         parent_item->prev_retr_flag = parent_item->retrived ;
         parent_item->retrived = 8 ;
                 
-        this->dir_node_process_queue.insert ( std::make_pair ( parent_item,parent_model ) );
+        this->dir_node_process_queue.insert ( std::make_pair ( parent_item,parent_model_internal_pointer ) );
 		if ( !this->isRunning() )
 		{
 			this->start();
@@ -143,4 +208,3 @@ void RemoteDirRetriveThread::add_node ( directory_tree_item* parent_item , const
     assert ( this->dir_node_process_queue.count ( parent_item ) == 1 );
 
 }
-

@@ -69,6 +69,10 @@ void RemoteView::init_popup_context_menu()
     this->dir_tree_context_menu->addAction(action);
     QObject::connect(action,SIGNAL(triggered()),this,SLOT(slot_new_transfer()));
     
+    action = new QAction(tr("Refresh"),0);
+    this->dir_tree_context_menu->addAction(action);
+    QObject::connect(action,SIGNAL(triggered()),this,SLOT(slot_refresh_directory_tree()));
+    
 }
 
 RemoteView::~RemoteView()
@@ -107,7 +111,7 @@ void RemoteView::i_init_dir_view(struct sftp_conn * conn)
                       this,SLOT(slot_leave_remote_dir_retrive_loop()));
     
     this->remoteview.treeView->expandAll();
-    
+    this->remoteview.treeView->setColumnWidth(0,this->remoteview.treeView->columnWidth(0)*2);
 }
 
 void RemoteView::slot_disconnect_from_remote_host()
@@ -249,10 +253,13 @@ void RemoteView::slot_enter_remote_dir_retrive_loop()
 void RemoteView::slot_leave_remote_dir_retrive_loop()
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    
     this->remoteview.treeView->setCursor(this->orginal_cursor);
     this->in_remote_dir_retrive_loop = false ;
+    
 }
 
+//TODO
 void RemoteView::set_keep_alive(bool keep_alive,int time_out)
 {
     //this->keep_alive_interval = time_out ;
@@ -279,5 +286,52 @@ void RemoteView::set_keep_alive(bool keep_alive,int time_out)
 void RemoteView:: slot_keep_alive_time_out()
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+}
+
+void RemoteView::update_layout()
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    
+    QString file_path ;
+    
+    QItemSelectionModel *ism = this->remoteview.treeView->selectionModel();
+    
+    if(ism == 0)
+    {
+        //QMessageBox::critical(this,tr("waring..."),tr("maybe you haven't connected"));                
+        //return file_path ;
+        qDebug()<<" why???? no QItemSelectionModel??";
+        
+        return ;
+    }
+    
+    QModelIndexList mil = ism->selectedIndexes()   ;
+    
+    if( mil.count() == 0 )
+    {
+            qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+    }
+    
+    for(int i = 0 ; i < mil.size(); i +=4 )
+    {
+        QModelIndex midx = mil.at(i);
+        qDebug()<<midx ;
+        directory_tree_item * dti = (directory_tree_item*) midx.internalPointer();
+        qDebug()<<dti->file_name.c_str()<<" "<<dti->file_type.c_str()
+                <<" "<< dti->strip_path.c_str() ;
+        file_path = dti->strip_path.c_str();
+        dti->retrived = 1;
+        dti->prev_retr_flag=9;
+        this->remote_dir_model->slot_remote_dir_node_clicked(midx);
+    }
+    
+    //return file_path ;
+    
+    //this->remote_dir_model->update_layout();
+}
+
+void RemoteView::slot_refresh_directory_tree()
+{
+    this->update_layout();
 }
 

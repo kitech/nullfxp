@@ -151,17 +151,30 @@ void LocalView::slot_local_new_upload_requested()
 
 QString LocalView::get_selected_directory()
 {
+    //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    
     QTextCodec * codec = QTextCodec::codecForName(REMOTE_CODEC);
     
 	QString local_path ;
 	QItemSelectionModel * ism = this->localView.treeView->selectionModel();
 
+    if( ism == 0 )
+    {        
+        return QString();
+    }
+    
+    
 	QModelIndexList mil = ism->selectedIndexes();
 
-	qDebug() << mil ;
+    if(mil.count() == 0 )
+    {
+        return QString();
+    }
+    
+	//qDebug() << mil ;
 
-	qDebug() << model->fileName ( mil.at ( 0 ) );
-	qDebug() << model->filePath ( mil.at ( 0 ) );
+	//qDebug() << model->fileName ( mil.at ( 0 ) );
+	//qDebug() << model->filePath ( mil.at ( 0 ) );
 
 	QString local_file = model->filePath ( mil.at ( 0 ) );
 
@@ -188,6 +201,11 @@ void LocalView::slot_refresh_directory_tree()
 		model->refresh ( mil.at ( 0 ) );
 	}
 
+}
+void LocalView::update_layout()
+{
+    //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    this->model->refresh(QModelIndex());
 }
 
 void LocalView::closeEvent ( QCloseEvent * event )

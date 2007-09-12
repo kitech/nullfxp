@@ -49,6 +49,8 @@ public:
     bool is_in_remote_dir_retrive_loop() 
         { return this->in_remote_dir_retrive_loop ; }
     
+    void update_layout();
+    
     private:
         char m_curr_path[PATH_MAX+1];
         char m_next_path[PATH_MAX+1];
@@ -101,6 +103,7 @@ public:
     private slots:
         void slot_dir_item_clicked(const QModelIndex & index);
         void slot_keep_alive_time_out();
+        void slot_refresh_directory_tree();
             
     protected:
         virtual void closeEvent ( QCloseEvent * event ) ;

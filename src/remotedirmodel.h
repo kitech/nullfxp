@@ -46,6 +46,7 @@ class RemoteDirModel : public QAbstractItemModel
         //仅需要调用一次的函数,并且是在紧接着该类的初始化之后调用。
         void set_user_home_path(std::string user_home_path);
         
+                
         ////model 函数
 		QVariant data ( const QModelIndex &index, int role ) const;
 		Qt::ItemFlags flags ( const QModelIndex &index ) const;
@@ -125,9 +126,11 @@ class RemoteDirModel : public QAbstractItemModel
         
         
     public slots:
-        void slot_remote_dir_node_retrived(directory_tree_item* parent_item,const QModelIndex * parent_model );
+        void slot_remote_dir_node_retrived(directory_tree_item* parent_item,void *  parent_model_internal_pointer );
+      
         
         void slot_remote_dir_node_clicked(const QModelIndex & index);
+        
         
     signals:
         //void new_transfer_requested(QString local_file_name,QString local_file_type,                                    QString remote_file_name,QString remote_file_type);

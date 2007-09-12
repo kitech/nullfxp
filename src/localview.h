@@ -45,6 +45,8 @@ public:
     
     QString get_selected_directory();
     
+    void update_layout();
+    
     signals:
         //void new_upload_requested(QString local_file_name,QString local_file_type );
         void new_upload_requested(QStringList local_file_names);
