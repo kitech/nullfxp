@@ -20,10 +20,10 @@
 #include <cassert>
 #include <QtCore>
 
-
+#include "globaloption.h"
 #include "remotedirmodel.h"
 
-#define REMOTE_CODEC "UTF-8"
+//#define REMOTE_CODEC "UTF-8"
 
 //////////////////////////
 /////////////////////////////////
@@ -216,7 +216,7 @@ QVariant RemoteDirModel::data ( const QModelIndex &index, int role ) const
 {
 	//qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 	QVariant ret_var ;
-	QTextCodec * codec = 0 ;
+    QTextCodec * codec = GlobalOption::instance()->remote_codec ;
 	QString unicode_name ;
 
 	if ( role != Qt::DisplayRole )
@@ -236,7 +236,7 @@ QVariant RemoteDirModel::data ( const QModelIndex &index, int role ) const
 	{
 		case 0:
 			//return node.nodeName();
-			codec = QTextCodec::codecForName ( REMOTE_CODEC );
+			//codec = QTextCodec::codecForName ( REMOTE_CODEC );
 			unicode_name = codec->toUnicode ( item->file_name.c_str() );
 			//ret_var = QVariant ( item->tree_node_item['N'].c_str() );
 			ret_var = QVariant ( unicode_name );
@@ -337,46 +337,7 @@ int RemoteDirModel::rowCount ( const QModelIndex &parent/* = QModelIndex()*/ ) c
 			//或者是不是要在这里取子结点的行数，即去远程找数据呢。
 			//row_count =1 ;
 			this->remote_dir_retrive_thread->add_node ( parent_item,parent.internalPointer() );
-			/*
-			this->dump_tree_node_item(  parent_item ) ;
-			//row_count = parent_item->child_items.size();
-			int lflag = 0;
-			lflag &= ~VIEW_FLAGS;
-			lflag |= LS_LONG_VIEW;
-			std::vector<std::map<char,std::string> > fileinfos;
-			char file_name[PATH_MAX] ;//= parent_item->tree_node_item['N'];
-			char strip_path[PATH_MAX];// = parent_item->strip_path ;
-			strcpy(file_name,(parent_item->strip_path+std::string("/")).c_str());
-			strcpy(strip_path,parent_item->strip_path.c_str() ); 
-			//memset(file_name,0,sizeof(file_name));
-			//strcpy(file_name,"/etc");
-			//strcpy(strip_path,"/" );   
-			fxp_do_globbed_ls( this->sftp_connection , file_name , strip_path , lflag , fileinfos );
-			qDebug()<< "fileinfos number="<<fileinfos.size()<< " use strip:" << strip_path <<" file_name ="<< file_name ;
-			row_count = fileinfos.size();
-			parent_item->retrived = 1 ;
-			////////////
-			for(int i = 0 ; i < fileinfos.size() ; i ++ )
-			{
-			    directory_tree_item * thefile = new directory_tree_item();
-			    thefile->retrived = 0;
-			    thefile->parent_item = parent_item ;
-			    thefile->tree_node_item.insert(std::make_pair('N',fileinfos.at(i)['N']) ) ;
-			    thefile->tree_node_item.insert(std::make_pair('S',fileinfos.at(i)['S']) ) ;
-			    thefile->tree_node_item.insert(std::make_pair('T',fileinfos.at(i)['T']) ) ;
-			    thefile->tree_node_item.insert(std::make_pair('D',fileinfos.at(i)['D']) ) ;
-			    thefile->row_number=i;
 
-			    thefile->strip_path = std::string(parent_item->strip_path) + std::string("/") +  fileinfos.at(i)['N'] ;
-			   
-			    thefile->file_type = fileinfos.at(i)['T'];
-			    thefile->file_size = fileinfos.at(i)['S'];
-			    thefile->file_name = fileinfos.at(i)['N'] ;
-			    thefile->file_date = fileinfos.at(i)['D'];
-			   
-			    parent_item->child_items.insert(std::make_pair(i,thefile) ) ;
-			}
-			*/
 		}
 		else
 		{
@@ -563,7 +524,9 @@ bool RemoteDirModel::dropMimeData ( const QMimeData *data, Qt::DropAction action
 	QStringList local_file_names;
 	QStringList remote_file_names ;
 
-	QTextCodec * codec = QTextCodec::codecForName ( REMOTE_CODEC );
+	//QTextCodec * codec = QTextCodec::codecForName ( REMOTE_CODEC );
+    QTextCodec * codec = GlobalOption::instance()->locale_codec ;
+    
 	QByteArray ba ;
 
 	directory_tree_item * aim_item = static_cast<directory_tree_item*> ( parent.internalPointer() );

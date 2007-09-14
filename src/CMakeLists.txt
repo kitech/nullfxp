@@ -55,6 +55,7 @@ remoteview.ui
 localview.ui     
 progressdialog.ui  
 remotehostquickconnectfinfodailog.ui
+globaloptionsdialog.ui
 # 
  )
 QT4_WRAP_UI(qtproject_UIS_H ${qtproject_UIS})
@@ -72,6 +73,7 @@ remoteview.cpp
 remotedirmodel.cpp          
 transferthread.cpp
 remotedirretrivethread.cpp
+globaloptionsdialog.cpp
  )
 
  SET ( qtproject_moc_HDRS 
@@ -86,6 +88,7 @@ remoteview.h
 remotedirmodel.h          
 transferthread.h
 remotedirretrivethread.h
+globaloptionsdialog.h
  )
 QT4_WRAP_CPP(qtproject_moc_SRCS ${qtproject_moc_HDRS})
 
@@ -142,6 +145,7 @@ ADD_EXECUTABLE(../bin/nullfxp
     
 ##########################
     globaloption.cpp
+    globaloptionsdialog.cpp
 ############################
     ${qtproject_UIS_H}  ${qtproject_moc_SRCS}
 )

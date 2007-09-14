@@ -21,10 +21,11 @@
 
 
 #include "localview.h"
+#include "globaloption.h"
 
 #include "sftp-client.h"
 
-#define REMOTE_CODEC "UTF-8"
+//#define REMOTE_CODEC "UTF-8"
 
 LocalView::LocalView ( QWidget *parent )
 		: QWidget ( parent )
@@ -116,37 +117,6 @@ void LocalView::set_sftp_connection ( struct sftp_conn* conn )
 	this->sftp_connection = conn ;
 }
 
-// void LocalView::slot_remote_new_transfer_requested(QString filename)
-// {
-//     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-//
-//     qDebug()<<" remote will transer:"<<filename ;
-//
-//     QItemSelectionModel * ism = this->localView.treeView->selectionModel();
-//
-//     QModelIndexList mil = ism->selectedIndexes();
-//
-//     qDebug()<< mil ;
-//
-//     qDebug()<< model->fileName(mil.at(0));
-//     qDebug()<< model->filePath(mil.at(0));
-//     //qDebug()<< model->fileName(mil.at(2));
-//     //do_download(this->sftp_connection,filename.toAscii().data(),
-//     //            "/home/gzl/vmlinuz-2.6.18.2-34-xen",0);
-//     //std::string remote_file = filename.toAscii().data();
-//     char local_file[256];
-//     char remote_file[256];
-//     strcpy(remote_file,filename.toAscii().data() );
-//     strcpy(local_file,model->filePath(mil.at(0)).toAscii().data() );
-//     strcat(local_file,"/");
-//     strcat(local_file,filename.split('/').at(filename.split('/').size()-1).toAscii().data() ) ;
-//
-//     qDebug()<<" remote file: "<<filename
-//             << " save to local :" << local_file ;
-//
-//     do_download(this->sftp_connection,remote_file, local_file , 0);
-// }
-
 void LocalView::slot_local_dir_tree_context_menu_request ( const QPoint & pos )
 {
 	//qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
@@ -159,7 +129,8 @@ void LocalView::slot_local_dir_tree_context_menu_request ( const QPoint & pos )
 void LocalView::slot_local_new_upload_requested()
 {
 	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-	QTextCodec * codec = QTextCodec::codecForName(REMOTE_CODEC);
+	//QTextCodec * codec = QTextCodec::codecForName(REMOTE_CODEC);
+    QTextCodec * codec = GlobalOption::instance()->locale_codec ;
     
     QStringList local_file_names ;
     QString local_file_name;
@@ -193,7 +164,8 @@ QString LocalView::get_selected_directory()
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
-    QTextCodec * codec = QTextCodec::codecForName(REMOTE_CODEC);
+    //QTextCodec * codec = QTextCodec::codecForName(REMOTE_CODEC);
+    QTextCodec * codec = GlobalOption::instance()->locale_codec ;
     
 	QString local_path ;
 	QItemSelectionModel * ism = this->localView.treeView->selectionModel();

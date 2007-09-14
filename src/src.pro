@@ -16,7 +16,8 @@ SOURCES += main.cpp \
  remotehostconnectingstatusdialog.cpp \
  remotehostquickconnectinfodialog.cpp \
  aboutnullfxp.cpp \
- globaloption.cpp
+ globaloption.cpp \
+ globaloptionsdialog.cpp
 TEMPLATE = app
 CONFIG += warn_on \
 	  thread \
@@ -34,7 +35,8 @@ FORMS += nullfxp.ui \
  progressdialog.ui \
  remotehostconnectingstatusdialog.ui \
  remotehostquickconnectfinfodailog.ui \
- aboutnullfxp.ui
+ aboutnullfxp.ui \
+ globaloptionsdialog.ui
 
 HEADERS += nullfxp.h \
  sftp.h \
@@ -53,7 +55,8 @@ HEADERS += nullfxp.h \
  remotehostquickconnectinfodialog.h \
  aboutnullfxp.h \
  libssh.h \
- globaloption.h
+ globaloption.h \
+ globaloptionsdialog.h
 
 
 DISTFILES += ../CMakeLists.txt \

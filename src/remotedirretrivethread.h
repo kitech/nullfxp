@@ -105,6 +105,7 @@ public:
         int  mkdir();
         int  rmdir();
         int  rm_file_or_directory_recursively();  // <==> rm -rf
+        int  rm_file_or_directory_recursively_ex(std::string parent_path);  // <==> rm -rf
         int  rename();
         
     signals:

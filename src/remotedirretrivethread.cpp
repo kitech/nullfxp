@@ -303,12 +303,14 @@ int  RemoteDirRetriveThread::rm_file_or_directory_recursively()
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
     int exec_ret = -1;
-    glob_t g;
     QStringList  sys_dirs;
     sys_dirs<<"/usr"<<"/bin"<<"/sbin"<<"/lib"<<"/etc"<<"/dev"<<"/proc"
             <<"/mnt"<<"/sys"<<"/var";
     
+    directory_tree_item * child_item = 0 ;
+    directory_tree_item * parent_item = 0 ;
     command_queue_elem * cmd_item = this->command_queue.at(0);
+    parent_item = cmd_item->parent_item ;
     
     std::string abs_path = cmd_item->parent_item->strip_path + "/" +
             cmd_item->params ;
@@ -333,14 +335,24 @@ int  RemoteDirRetriveThread::rm_file_or_directory_recursively()
 //         }        
         //exec_ret = do_rmdir(this->sftp_connection , remote_path   );
         //TODO 这个地方实现递归删除功能，现在还没有实现。
-        remote_glob(this->sftp_connection , remote_path , GLOB_NOCHECK , NULL ,& g);
-        for( int i = 0 ; g.gl_pathv[i] != NULL ; i ++ )
+//         remote_glob(this->sftp_connection , remote_path , GLOB_NOCHECK , NULL ,& g);
+//         for( int i = 0 ; g.gl_pathv[i] != NULL ; i ++ )
+//         {
+//             qDebug()<<QString(tr("Removing %1")).arg(g.gl_pathv[i]);
+//             exec_ret = do_rm( this->sftp_connection,g.gl_pathv[i] );
+//             if( exec_ret != 0 )
+//             {
+//                 //break ;
+//             }
+//         }
+        //找到这个要删除的结点并删除
+        for( int  i = 0 ; i < parent_item->child_items.size() ; i ++ )
         {
-            qDebug()<<QString(tr("Removing %1")).arg(g.gl_pathv[i]);
-            exec_ret = do_rm( this->sftp_connection,g.gl_pathv[i] );
-            if( exec_ret != 0 )
+            child_item = parent_item->child_items[i];
+            if( child_item->file_name.compare( cmd_item->params ) == 0 )
             {
-                //break ;
+                this->rm_file_or_directory_recursively_ex(child_item->strip_path);
+                break ;
             }
         }
     }
@@ -349,6 +361,122 @@ int  RemoteDirRetriveThread::rm_file_or_directory_recursively()
     
     return exec_ret ;
 }
+
+//TODO 现在删除隐藏文件或者目录还有问题：即以  .  字符开头的项
+int  RemoteDirRetriveThread::rm_file_or_directory_recursively_ex(std::string parent_path)  // <==> rm -rf
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    
+    int exec_ret = -1;
+    glob_t g;
+   
+    std::string abs_path  ;
+    char  remote_path[PATH_MAX] = {0};
+    char  strip_path[PATH_MAX] = {0};
+    char  file_name[PATH_MAX] = {0};
+    std::vector<std::map<char,std::string> > fileinfos ;
+    directory_tree_item * child_item = 0 ;
+    
+     //下面这种方法有问题，改为再次从服务器列出目录，然后处理
+    int lflag = 0 ;    
+    lflag = LS_LONG_VIEW;
+    lflag |= LS_SHOW_ALL ;
+    
+    
+    strcpy ( file_name, ( parent_path+std::string ( "/" ) ).c_str() );
+    strcpy ( strip_path,parent_path.c_str() );
+    
+    exec_ret = fxp_do_globbed_ls(this->sftp_connection,file_name,strip_path,lflag , fileinfos);
+    
+    int file_count = fileinfos.size();
+    //qDebug()<<" rm ex :" << file_count ;
+    
+    for( int i = file_count -1 ; i >= 0 ; i --)
+    {
+        //qDebug()<<" lsed file:"<< fileinfos.at(i)['N'].c_str() ;
+//         path1 = make_absolute(path1, *pwd);
+//         remote_glob(conn, path1, GLOB_NOCHECK, NULL, &g);
+//         for (i = 0; g.gl_pathv[i] && !interrupted; i++) {
+//             printf("Removing %s\n", g.gl_pathv[i]);
+//             err = do_rm(conn, g.gl_pathv[i]);
+//             if (err != 0 && err_abort)
+//                 break;
+//         }        
+            if( fileinfos.at(i)['T'].at(0) == 'd')
+            {
+                if( fileinfos.at(i)['N'].compare(".") == 0 
+                    || fileinfos.at(i)['N'].compare("..") == 0 )
+                {
+                    //qDebug()<<"do ... ls shown . and .. ???";
+                    continue ;
+                }
+                else
+                {
+                    this->rm_file_or_directory_recursively_ex( parent_path + std::string("/") + fileinfos.at(i)['N'] );
+                }
+            }
+            else if( fileinfos.at(i)['T'].at(0) == 'l'
+                     ||  fileinfos.at(i)['T'].at(0) == '-' )
+            {
+                abs_path = parent_path + "/" + fileinfos.at(i)['N'] ;//+ "/" + child_item->file_name ;
+                strcpy( remote_path , abs_path.c_str() );
+                                
+                remote_glob(this->sftp_connection , remote_path , GLOB_NOCHECK , NULL ,& g);
+                for( int i = 0 ; g.gl_pathv[i] != NULL ; i ++ )
+                {
+                    //qDebug()<<QString(tr("Removing %1")).arg(g.gl_pathv[i]);
+                    exec_ret = do_rm( this->sftp_connection,g.gl_pathv[i] );
+                    if( exec_ret != 0 )
+                    {
+                        //break ;
+                    }
+                }
+            }
+            else
+            {
+                qDebug()<<" unknow file type ";
+            }
+//         child_item = parent_item->child_items[i];
+//         if( child_item->file_type.at(0) == 'd')
+//         {
+//             this->rm_file_or_directory_recursively_ex(child_item);
+// 
+//         }
+//         else if( child_item->file_type.at(0) == 'l' //SSH2_FXP_REMOVE 可以删除这个软链接
+//                   ||  child_item->file_type.at(0) == '-' )
+//         {
+//             abs_path = child_item->strip_path ;//+ "/" + child_item->file_name ;
+//             strcpy( remote_path , abs_path.c_str() );
+//             
+//             remote_glob(this->sftp_connection , remote_path , GLOB_NOCHECK , NULL ,& g);
+//             for( int i = 0 ; g.gl_pathv[i] != NULL ; i ++ )
+//             {
+//                 qDebug()<<QString(tr("Removing %1")).arg(g.gl_pathv[i]);
+//                 exec_ret = do_rm( this->sftp_connection,g.gl_pathv[i] );
+//                 if( exec_ret != 0 )
+//                 {
+//                     //break ;
+//                 }
+//             }
+//         }
+//         else 
+//         {
+//             qDebug()<<"unknow file type , don't know how to remove it";
+//         }
+    }
+    
+    //删除这个目录
+    abs_path = parent_path ;//+ "/" + parent_item->file_name ;
+    strcpy( remote_path , abs_path.c_str() );
+    exec_ret = do_rmdir(this->sftp_connection , remote_path   );
+    if(exec_ret != 0 )  //可能这是一个文件，不是目录，那么使用删除文件的指令
+        exec_ret = do_rm(this->sftp_connection , remote_path   );
+    //cmd_item->parent_item->retrived = 2 ;   //让上层视图更新这个结点
+    //this->add_node( cmd_item->parent_item , cmd_item->parent_model_internal_pointer );
+    
+    return exec_ret ;
+}
+
 // linux 路径名中不能出现的字符： ! 
 int  RemoteDirRetriveThread::rename()
 {

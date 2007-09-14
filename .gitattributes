@@ -25,6 +25,9 @@ src/glob.cpp -text
 src/glob.h -text
 src/globaloption.cpp -text
 src/globaloption.h -text
+src/globaloptionsdialog.cpp -text
+src/globaloptionsdialog.h -text
+src/globaloptionsdialog.ui -text
 src/includes.h -text
 src/libssh.h -text
 src/localview.cpp -text

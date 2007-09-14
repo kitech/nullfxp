@@ -95,10 +95,14 @@ void RemoteView::init_popup_context_menu()
     this->dir_tree_context_menu->addAction(action);
     QObject::connect(action,SIGNAL(triggered()),this,SLOT(slot_rename()));
     
-    //TODO 实现递归删除功能,这里先隐藏了
-//     action = new QAction(tr("Remove recursively!!!"),0);
-//     this->dir_tree_context_menu->addAction(action);
-//     QObject::connect(action,SIGNAL(triggered()),this,SLOT(rm_file_or_directory_recursively()));
+    action = new QAction("",0);
+    action->setSeparator(true);
+    this->dir_tree_context_menu->addAction(action);
+        
+    //递归删除目录功能，删除文件的用户按钮
+    action = new QAction(tr("Remove recursively !!!"),0);
+    this->dir_tree_context_menu->addAction(action);
+    QObject::connect(action,SIGNAL(triggered()),this,SLOT(rm_file_or_directory_recursively()));
     
 }
 

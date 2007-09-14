@@ -26,6 +26,9 @@
 #include <map>
 #include <string>
 
+
+class QTextCodec ;
+
 /**
 	@author liuguangzhao <gzl@localhost>
 */
@@ -36,8 +39,12 @@ public:
     ~GlobalOption();
     
     //options
-    std::string  remote_codec ;
-    std::string  locale_codec ;
+    //std::string  remote_codec ;
+    //std::string  locale_codec ;
+    QTextCodec * remote_codec ;
+    QTextCodec * locale_codec ;
+    
+    void set_remote_codec( const char * codes );
     
     private:
         GlobalOption();
