@@ -35,7 +35,8 @@ GlobalOption * GlobalOption::instance()
         GlobalOption::mInstance->remote_codec = QTextCodec::codecForName("UTF-8");
         //GlobalOption::mInstance->locale_codec = "UTF-8";
         GlobalOption::mInstance->locale_codec = QTextCodec::codecForLocale();
-        
+        GlobalOption::mInstance->keep_alive = true ;
+        GlobalOption::mInstance->kepp_alive_internal = 180; //S
     }
     return GlobalOption::mInstance;
 }

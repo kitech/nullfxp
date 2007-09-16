@@ -56,10 +56,7 @@ RemoteView::RemoteView(QWidget *parent)
     
     this->init_popup_context_menu();
     
-    this->keep_alive = false ;
-    this->keep_alive_timer = new QTimer();
     this->in_remote_dir_retrive_loop = false;
-    this->keep_alive_interval = 30 ;
 }
 
 void RemoteView::init_popup_context_menu()
@@ -108,13 +105,8 @@ void RemoteView::init_popup_context_menu()
 
 RemoteView::~RemoteView()
 {
-    if(this->keep_alive_timer->isActive() )
-    {
-        this->keep_alive_timer->stop();
-    }
-    delete this->keep_alive_timer ;
-    
 }
+
 void RemoteView::slot_show_fxp_command_log(bool show)
 {
     this->remoteview.listView->setVisible(show);    
@@ -289,35 +281,6 @@ void RemoteView::slot_leave_remote_dir_retrive_loop()
     this->remoteview.treeView->setCursor(this->orginal_cursor);
     this->in_remote_dir_retrive_loop = false ;
     
-}
-
-//TODO
-void RemoteView::set_keep_alive(bool keep_alive,int time_out)
-{
-    //this->keep_alive_interval = time_out ;
-    //this->keep_alive = keep_alive ;
-    if( keep_alive != this->keep_alive )
-    {
-        if( this->keep_alive == true )
-        {
-            this->keep_alive_timer->stop();
-        }
-        else
-        {
-            this->keep_alive_timer->start();
-        }
-        this->keep_alive = keep_alive ;
-    }
-    if( time_out != this->keep_alive_interval)
-    {
-        this->keep_alive_interval = time_out ;
-        this->keep_alive_timer->setInterval(this->keep_alive_interval);
-    }
-}
-
-void RemoteView:: slot_keep_alive_time_out()
-{
-    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 }
 
 void RemoteView::update_layout()

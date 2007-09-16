@@ -84,6 +84,9 @@ void RemoteDirRetriveThread::run()
             case SSH2_FXP_RENAME:
                 exec_ret_code = this->rename();
                 break ;
+            case SSH2_FXP_KEEP_ALIVE:
+                exec_ret_code = this->keep_alive();
+                break ;
             default:    
                 qDebug()<<tr("unknown command:")<<cmd_elem->cmd;
                 
@@ -371,9 +374,9 @@ int  RemoteDirRetriveThread::rm_file_or_directory_recursively_ex(std::string par
     glob_t g;
    
     std::string abs_path  ;
-    char  remote_path[PATH_MAX] = {0};
-    char  strip_path[PATH_MAX] = {0};
-    char  file_name[PATH_MAX] = {0};
+    char  remote_path[PATH_MAX+1] = {0};
+    char  strip_path[PATH_MAX+1] = {0};
+    char  file_name[PATH_MAX+1] = {0};
     std::vector<std::map<char,std::string> > fileinfos ;
     directory_tree_item * child_item = 0 ;
     
@@ -496,8 +499,8 @@ int  RemoteDirRetriveThread::rename()
     std::string abs_path_rename_to = cmd_item->parent_item->strip_path + "/" +
             cmd_item->params.substr(sep_pos+1) ;
     
-    char  remote_path[PATH_MAX] = {0};
-    char  remote_path_rename_to[PATH_MAX] = {0};
+    char  remote_path[PATH_MAX+1] = {0};
+    char  remote_path_rename_to[PATH_MAX+1] = {0};
     
     strcpy(remote_path, abs_path.c_str());
     strcpy( remote_path_rename_to,abs_path_rename_to.c_str() );
@@ -518,6 +521,23 @@ int  RemoteDirRetriveThread::rename()
     
     return exec_ret ;
 }
+
+int RemoteDirRetriveThread::keep_alive()
+{
+    int exec_ret;
+    int lflag = LS_SHORT_VIEW;
+    char full_path [PATH_MAX+1] = {0};
+    char strip_path [PATH_MAX+1] = {0};
+    std::vector<std::map<char,std::string> > fileinfos;
+    
+    strcpy(full_path,"/nullfxp_keep_alive_dummy_directory");
+    strcpy(strip_path,"/");
+    exec_ret = fxp_do_globbed_ls(this->sftp_connection,full_path,strip_path,lflag,fileinfos);
+    
+    //TODO 在网络失去连接的时候如何向上层类通知，并进行重新连接
+    return exec_ret ;
+}
+
 
 void RemoteDirRetriveThread::add_node ( directory_tree_item* parent_item ,void * parent_model_internal_pointer )
 {

@@ -42,6 +42,14 @@ RemoteDirModel::RemoteDirModel ( struct sftp_conn * conn , QObject *parent )
 	                   this,SIGNAL ( enter_remote_dir_retrive_loop() ) );
 	QObject::connect ( this->remote_dir_retrive_thread,SIGNAL ( leave_remote_dir_retrive_loop() ),
 	                   this,SIGNAL ( leave_remote_dir_retrive_loop() ) );
+    
+    //keep alive 相关设置
+    this->keep_alive = false ;
+    this->keep_alive_timer = new QTimer();
+    this->keep_alive_interval = 150 ;
+    QObject::connect(this->keep_alive_timer,SIGNAL(timeout()),
+                     this,SLOT( slot_keep_alive_time_out() ) );    
+    this->keep_alive_timer->start( this->keep_alive_interval * 1000 );
 }
 
 void RemoteDirModel::set_user_home_path ( std::string user_home_path )
@@ -146,6 +154,12 @@ void RemoteDirModel::set_user_home_path ( std::string user_home_path )
 
 RemoteDirModel::~RemoteDirModel()
 {
+    if(this->keep_alive_timer->isActive() )
+    {
+        this->keep_alive_timer->stop();
+    }
+    delete this->keep_alive_timer ;
+    
 	if ( this->remote_dir_retrive_thread->isRunning() )
 	{
 		qDebug() <<" remote_dir_retrive_thread is run , how stop ?";
@@ -587,5 +601,36 @@ void RemoteDirModel::slot_remote_dir_node_clicked ( const QModelIndex & index )
 void RemoteDirModel::slot_execute_command( directory_tree_item* parent_item , void * parent_model_internal_pointer, int cmd , std::string params )
 {
     this->remote_dir_retrive_thread->slot_execute_command(parent_item,parent_model_internal_pointer,cmd , params);
+}
+
+//TODO
+void RemoteDirModel::set_keep_alive(bool keep_alive,int time_out)
+{
+    //this->keep_alive_interval = time_out ;
+    //this->keep_alive = keep_alive ;
+    if( keep_alive != this->keep_alive )
+    {
+        if( this->keep_alive == true )
+        {
+            this->keep_alive_timer->stop();
+        }
+        else
+        {
+            this->keep_alive_timer->start();
+        }
+        this->keep_alive = keep_alive ;
+    }
+    if( time_out != this->keep_alive_interval)
+    {
+        this->keep_alive_interval = time_out ;
+        this->keep_alive_timer->setInterval(this->keep_alive_interval);
+    }
+}
+
+void RemoteDirModel::slot_keep_alive_time_out()
+{
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    this->remote_dir_retrive_thread->slot_execute_command(0,0,SSH2_FXP_KEEP_ALIVE,"");
+    
 }
 

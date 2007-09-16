@@ -33,6 +33,9 @@
 #include "sftp-client.h"
 #include "sftp-wrapper.h"
 
+
+#define SSH2_FXP_KEEP_ALIVE 8888
+
 //从remotedirmodel.h 移动过来的,
 class directory_tree_item
 {
@@ -107,6 +110,8 @@ public:
         int  rm_file_or_directory_recursively();  // <==> rm -rf
         int  rm_file_or_directory_recursively_ex(std::string parent_path);  // <==> rm -rf
         int  rename();
+        
+        int keep_alive() ;
         
     signals:
         void enter_remote_dir_retrive_loop();

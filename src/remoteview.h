@@ -68,9 +68,7 @@ public:
         
         QCursor orginal_cursor ;
         bool    in_remote_dir_retrive_loop ;
-        bool    keep_alive ;
-        QTimer  * keep_alive_timer ;
-        int     keep_alive_interval;
+
         
     public slots:
         void i_init_dir_view(struct sftp_conn * conn);
@@ -88,9 +86,6 @@ public:
         void slot_enter_remote_dir_retrive_loop();
         void slot_leave_remote_dir_retrive_loop();
         
-        /// time_out 秒
-        void set_keep_alive(bool keep_alive,int time_out=30);
-        
     signals:
         //void new_transfer_requested( QString file_name,QString file_type ) ;
         void new_transfer_requested(QStringList remote_file_names);
@@ -103,7 +98,7 @@ public:
         
     private slots:
         void slot_dir_item_clicked(const QModelIndex & index);
-        void slot_keep_alive_time_out();
+
         void slot_refresh_directory_tree();
         void slot_mkdir();
         void slot_rmdir();        
