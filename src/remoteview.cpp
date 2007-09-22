@@ -270,6 +270,7 @@ void RemoteView::slot_enter_remote_dir_retrive_loop()
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     this->in_remote_dir_retrive_loop = true ;
+    this->remote_dir_model->set_keep_alive(false);
     this->orginal_cursor = this->remoteview.treeView->cursor();
     this->remoteview.treeView->setCursor(Qt::BusyCursor);
 }
@@ -278,9 +279,9 @@ void RemoteView::slot_leave_remote_dir_retrive_loop()
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
-    this->remoteview.treeView->setCursor(this->orginal_cursor);
+    this->remoteview.treeView->setCursor(this->orginal_cursor);    
+    this->remote_dir_model->set_keep_alive(true);
     this->in_remote_dir_retrive_loop = false ;
-    
 }
 
 void RemoteView::update_layout()

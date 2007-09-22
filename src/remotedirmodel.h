@@ -132,9 +132,11 @@ class RemoteDirModel : public QAbstractItemModel
         void slot_remote_dir_node_clicked(const QModelIndex & index);
         
         void slot_execute_command( directory_tree_item* parent_item , void * parent_model_internal_pointer, int cmd , std::string params );
+        
+        //keep_alive
+        void set_keep_alive(bool keep_alive,int time_out=150);
     private slots:
-        /// time_out 秒
-        void set_keep_alive(bool keep_alive,int time_out=30);        
+        /// time_out 秒                
         void slot_keep_alive_time_out();
     signals:
         //void new_transfer_requested(QString local_file_name,QString local_file_type,                                    QString remote_file_name,QString remote_file_type);

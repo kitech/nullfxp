@@ -606,6 +606,7 @@ void RemoteDirModel::slot_execute_command( directory_tree_item* parent_item , vo
 //TODO
 void RemoteDirModel::set_keep_alive(bool keep_alive,int time_out)
 {
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     //this->keep_alive_interval = time_out ;
     //this->keep_alive = keep_alive ;
     if( keep_alive != this->keep_alive )
@@ -622,7 +623,7 @@ void RemoteDirModel::set_keep_alive(bool keep_alive,int time_out)
     }
     if( time_out != this->keep_alive_interval)
     {
-        this->keep_alive_interval = time_out ;
+        this->keep_alive_interval = time_out * 1000;
         this->keep_alive_timer->setInterval(this->keep_alive_interval);
     }
 }
@@ -630,7 +631,7 @@ void RemoteDirModel::set_keep_alive(bool keep_alive,int time_out)
 void RemoteDirModel::slot_keep_alive_time_out()
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    //Bugs: 执行下面的这句有问题，当正在传输文件时会导致程序崩溃
     this->remote_dir_retrive_thread->slot_execute_command(0,0,SSH2_FXP_KEEP_ALIVE,"");
-    
 }
 

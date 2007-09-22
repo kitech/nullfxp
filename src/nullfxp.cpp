@@ -143,136 +143,6 @@ void NullFXP::slot_about_nullfxp()
     this->about_nullfxp_dialog->setVisible(true);
 }
 
-/*
--oForwardX11 no
--oForwardAgent no
--oPermitLocalCommand no
--oClearAllForwardings yes
--v
--v
--lroot
--oProtocol 2
--s
-localhost
-sftp
-
-*/
-
-// void NullFXP::test()
-// {
-// 	qDebug() <<"jhsdhfdsfsdf";
-// 	int in , out ;
-// 	char * sargs [60] = {
-// 	                        "/home/gzl/openssh-4.6p1/ssh",
-// 	                        "-oForwardX11 no",
-// 	                        "-oForwardAgent no",
-// 	                        "-oPermitLocalCommand no",
-// 	                        "-oClearAllForwardings yes",
-// 	                        "-v",
-// 	                        "-v",
-// 	                        "-lroot",
-// 	                        "-oProtocol 2",
-// 	                        "-y",
-// 	                        "",
-// 	                        "-s",
-// 	                        "localhost",
-// 	                        "sftp",
-// 
-// 	                        NULL
-// 	                    };
-// 
-// 	//int exec_ret = execvp(sargs[0], sargs);
-// 
-// 	connect_to_server ( sargs[0],sargs,&in,&out );
-// 	qDebug() <<"Exec ret :" << in << " out: " << out  ;
-// 
-// 	theconn.fd_in = in;
-// 	theconn.fd_out = out ;
-// 	theconn.transfer_buflen = 32768;
-// 	theconn.num_requests = 0 ;
-// 	theconn.version = 0;
-// 	theconn.msg_id = 0 ;
-// 
-// 
-// }
-
-// void NullFXP::do_init()
-// {
-// 	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-// 	int fd_in,  fd_out;
-// 	u_int transfer_buflen=128, num_requests;
-// 	fd_in = this->theconn.fd_in;
-// 	fd_out = this->theconn.fd_out ;
-// 
-// 	u_int type;
-// 	int version;
-// 	Buffer msg;
-// 	struct sftp_conn *ret = & this->theconn;
-// 
-// 	buffer_init ( &msg );
-// 	buffer_put_char ( &msg, SSH2_FXP_INIT );
-// 	buffer_put_int ( &msg, SSH2_FILEXFER_VERSION );
-// 	send_msg ( fd_out, &msg );
-// 
-// 	buffer_clear ( &msg );
-// 
-// 	///////
-// 	get_msg ( fd_in, &msg );
-// 
-// 	/* Expecting a VERSION reply */
-// 	if ( ( type = buffer_get_char ( &msg ) ) != SSH2_FXP_VERSION )
-// 	{
-// 		error ( "Invalid packet back from SSH2_FXP_INIT (type %u)",
-// 		        type );
-// 		buffer_free ( &msg );
-// 		//return(NULL);
-// 		return ;
-// 	}
-// 	version = buffer_get_int ( &msg );
-// 
-// 	debug2 ( "Remote version: %d", version );
-// 
-// 	debug2 ( "buffer_len: %d\n",buffer_len ( &msg ) );
-// 	/* Check for extensions */
-// 	while ( buffer_len ( &msg ) > 0 )
-// 	{
-// 		char *name = ( char* ) buffer_get_string ( &msg, NULL );
-// 		char *value = ( char* ) buffer_get_string ( &msg, NULL );
-// 
-// 		debug2 ( "Init extension: \"%s\"", name );
-// 		xfree ( name );
-// 		xfree ( value );
-// 	}
-// 
-// 	buffer_free ( &msg );
-// 
-// 	//ret = xmalloc(sizeof(*ret));
-// 	ret->fd_in = fd_in;
-// 	ret->fd_out = fd_out;
-// 	ret->transfer_buflen = transfer_buflen;
-// 	ret->num_requests = num_requests;
-// 	ret->version = version;
-// 	ret->msg_id = 1;
-// 
-// 	/* Some filexfer v.0 servers don't support large packets */
-// 	if ( version == 0 )
-// 		ret->transfer_buflen = MIN ( ret->transfer_buflen, 20480 );
-// }
-
-// void NullFXP::do_ls()
-// {
-// 	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-// 
-// 	do_globbed_ls ( &this->theconn, "/home", "/", 0 );
-// 
-// }
-
-// void NullFXP::local_init_dir_view()
-// {
-// 	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-// 
-// }
-
 void NullFXP::connect_to_remote_host()
 {
 	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
@@ -280,45 +150,6 @@ void NullFXP::connect_to_remote_host()
 	QString username ;
 	QString password ;
 	QString remoteaddr ;
-	//QString program = "/home/gzl/openssh-4.6p1/ssh";
-
-	//int in , out ;
-
-    /*
-	arglist args ;
-
-	memset ( &args, '\0', sizeof ( args ) );
-	args.list = NULL;
-
-	addargs ( &args, "%s", program.toAscii().data() );
-	addargs ( &args, "-oForwardX11 no" );
-	addargs ( &args, "-oForwardAgent no" );
-	addargs ( &args, "-oPermitLocalCommand no" );
-	addargs ( &args, "-oClearAllForwardings yes" );
-	addargs ( &args, "-v" );
-	addargs ( &args, "-v" );
-	addargs ( &args, "-l%s",username.toAscii().data() );
-	addargs ( &args, "-oProtocol %d",2 );
-	addargs ( &args, "-y" );
-	addargs ( &args, "%s",password.toAscii().data() );
-	addargs ( &args, "-s" );
-	addargs ( &args, "%s",remoteaddr.toAscii().data() );
-	addargs ( &args, "sftp" );
-
-	connect_to_server ( program .toAscii().data(),args.list,&in,&out );
-	qDebug() <<"Exec ret :" << in << " out: " << out  ;
-
-	theconn.fd_in = in;
-	theconn.fd_out = out ;
-	//theconn.transfer_buflen = 32768;
-    theconn.transfer_buflen = 1024;
-	theconn.num_requests = 0 ;
-	theconn.version = 0;
-	theconn.msg_id = 0 ;
-
-	this->do_init();
-    
-    */
     
     //提示输入远程主机信息
     this->quick_connect_info_dailog = new RemoteHostQuickConnectInfoDialog(this);
@@ -413,6 +244,8 @@ void NullFXP::slot_new_upload_requested ( QStringList local_file_names)
         pdlg->set_transfer_info ( TransferThread::TRANSFER_PUT,local_file_names , remote_file_names  ) ;
         QObject::connect(pdlg,SIGNAL(transfer_finished(int)),
                          this,SLOT(slot_transfer_finished(int)) );
+        
+        this->remoteView->slot_enter_remote_dir_retrive_loop();
 		pdlg->exec();
 	}
 }
@@ -435,6 +268,7 @@ void NullFXP::slot_new_upload_requested(QStringList local_file_names,QStringList
     pdlg->set_transfer_info ( TransferThread::TRANSFER_PUT,local_file_names,remote_file_names ) ;
     QObject::connect(pdlg,SIGNAL(transfer_finished(int)),
                      this,SLOT(slot_transfer_finished(int)) );
+    this->remoteView->slot_enter_remote_dir_retrive_loop();
     pdlg->exec();
 }
 
@@ -462,6 +296,7 @@ void NullFXP::slot_new_download_requested(QStringList remote_file_names )
         pdlg->set_transfer_info(TransferThread::TRANSFER_GET,local_file_names,remote_file_names );
         QObject::connect(pdlg,SIGNAL(transfer_finished(int)),
                          this,SLOT(slot_transfer_finished(int)) );
+        this->remoteView->slot_enter_remote_dir_retrive_loop();
         pdlg->exec();
     }
 }
@@ -475,6 +310,7 @@ void NullFXP::slot_new_download_requested(QStringList local_file_names, QStringL
     pdlg->set_transfer_info(TransferThread::TRANSFER_GET,local_file_names,remote_file_names);
     QObject::connect(pdlg,SIGNAL(transfer_finished(int)),
                      this,SLOT(slot_transfer_finished(int)) );
+    this->remoteView->slot_enter_remote_dir_retrive_loop();
     pdlg->exec();
 }
 
@@ -509,6 +345,8 @@ void NullFXP::slot_transfer_finished(int status )
         }
     }
     delete pdlg ;
+    this->remoteView->slot_leave_remote_dir_retrive_loop();
+    
 }
 void NullFXP::slot_show_transfer_queue(bool show)
 {
