@@ -12,7 +12,6 @@ src/ReadMe -text
 src/aboutnullfxp.cpp -text
 src/aboutnullfxp.h -text
 src/aboutnullfxp.ui -text
-src/config.h -text
 src/globaloption.cpp -text
 src/globaloption.h -text
 src/globaloptionsdialog.cpp -text
@@ -90,8 +89,6 @@ src/nullfxp.ui -text
 src/progressdialog.cpp -text
 src/progressdialog.h -text
 src/progressdialog.ui -text
-src/progressmeter.cpp -text
-src/progressmeter.h -text
 src/remotedirmodel.cpp -text
 src/remotedirmodel.h -text
 src/remotedirretrivethread.cpp -text
