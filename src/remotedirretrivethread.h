@@ -29,10 +29,13 @@
 #include <QtCore>
 #include <QThread>
 
-#include "sftp-operation.h"
-#include "sftp-client.h"
-#include "sftp-wrapper.h"
+// #include "sftp-operation.h"
+// #include "sftp-client.h"
+// #include "sftp-wrapper.h"
 
+#include "sftp.h"
+#include "libssh2.h"
+#include "libssh2_sftp.h"
 
 #define SSH2_FXP_KEEP_ALIVE 8888
 
@@ -93,12 +96,14 @@ class RemoteDirRetriveThread : public QThread
 {
 Q_OBJECT
 public:
-    RemoteDirRetriveThread(struct sftp_conn * conn , QObject* parent=0);
+    RemoteDirRetriveThread(/*struct sftp_conn * conn , */QObject* parent=0);
 
     ~RemoteDirRetriveThread();
-
+    //在实例初始化后马上调用，否则会导致程序崩溃
+    void set_ssh2_handler( void * ssh2_sess , void * ssh2_sftp, int ssh2_sock );
+    
     virtual void run();
-
+        
     void add_node(directory_tree_item* parent_item , void * parent_model_internal_pointer );
     
     void slot_execute_command(directory_tree_item* parent_item , void * parent_model_internal_pointer, int cmd , std::string params );
@@ -112,7 +117,7 @@ public:
         int  rename();
         
         int keep_alive() ;
-        
+        int fxp_do_ls_dir ( char * path,std::vector<std::map<char, std::string> > & fileinfos  );
     signals:
         void enter_remote_dir_retrive_loop();
         void leave_remote_dir_retrive_loop();
@@ -143,7 +148,9 @@ public:
        };       
        std::vector<command_queue_elem*>  command_queue;
        
-       struct sftp_conn * sftp_connection;
+       LIBSSH2_SESSION * ssh2_sess;
+       LIBSSH2_SFTP * ssh2_sftp ;
+       int ssh2_sock ;
        
        void subtract_existed_model(directory_tree_item * parent_item , std::vector<std::map<char,std::string> > & new_items );
        

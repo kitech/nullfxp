@@ -23,8 +23,6 @@
 #include "localview.h"
 #include "globaloption.h"
 
-#include "sftp-client.h"
-
 //#define REMOTE_CODEC "UTF-8"
 
 LocalView::LocalView ( QWidget *parent )
@@ -110,11 +108,6 @@ void LocalView::expand_to_home_directory( QModelIndex parent_model,int level )
         this->localView.treeView->scrollTo( curr_model );
     }
     //qDebug()<<" root row count:"<< row_cnt ;
-}
-
-void LocalView::set_sftp_connection ( struct sftp_conn* conn )
-{
-	this->sftp_connection = conn ;
 }
 
 void LocalView::slot_local_dir_tree_context_menu_request ( const QPoint & pos )

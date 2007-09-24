@@ -24,10 +24,10 @@
 
 #include <QThread>
 
-#include "libssh.h"
-#include "sftp-operation.h"
-#include "sftp-client.h"
-#include "sftp-wrapper.h"
+// #include "libssh.h"
+// #include "sftp-operation.h"
+// #include "sftp-client.h"
+// #include "sftp-wrapper.h"
 
 /**
 	@author liuguangzhao <gzl@localhost>
@@ -51,17 +51,21 @@ public:
         std::string password;
         std::string host_name ;
         int connect_status;
-        struct sftp_conn * sftp_connection ;
+//         struct sftp_conn * sftp_connection ;
         
-        int child_pid   ;
+        //int child_pid   ;
         
         std::string user_home_path ;
+        
+        void * ssh2_sess;
+        int ssh2_sock;
+        void * ssh2_sftp ;
         
     private slots:
         void slot_finished()   ;
         
     signals:
-        void connect_finished( int status , struct sftp_conn* conn );
+        void connect_finished( int status , void * ssh2_sess , int ssh2_sock , void * ssh2_sftp );
 };
 
 #endif

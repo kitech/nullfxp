@@ -24,8 +24,6 @@
 #include <QtGui>
 #include <QDialog>
 
-#include "sftp-client.h"
-
 #include "transferthread.h"
 
 #include "ui_progressdialog.h"
@@ -42,10 +40,9 @@ public:
 
     ~ProgressDialog();
 
-    void set_remote_connection(struct sftp_conn * connection);
+    void set_remote_connection(void* ssh2_sess,void* ssh2_sftp,int ssh2_sock );
     
     //type 可以是 TANSFER_GET,TRANSFER_PUT
-    //void set_transfer_info(int type,QString local_file_name,QString local_file_type,QString remote_file_name ,QString remote_file_type ) ;
     void set_transfer_info(int type,QStringList local_file_names,QStringList remote_file_names  ) ;
     
     int get_transfer_type() { return this->transfer_type ; }
@@ -62,16 +59,11 @@ public:
         void transfer_finished(int status);
         
     private:
-        struct sftp_conn * sftp_connection ;
+
         int transfer_type ;
-        //QString local_file_name ;
         QStringList local_file_names ;
-        //QString local_file_type ;
-        //QString remote_file_name ;
         QStringList remote_file_names ;
-        //QString remote_file_type ;
-        
-        //QTimer  * transfer_thread_finish_poll_timer ;
+
         TransferThread * sftp_transfer_thread ;
         bool   first_show ;
         
@@ -79,6 +71,8 @@ public:
         
         Ui::ProgressDialog ui_progress_dialog; 
         
+    protected:
+        void closeEvent ( QCloseEvent * event ) ;
 };
 
 #endif

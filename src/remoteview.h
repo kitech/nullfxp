@@ -27,10 +27,13 @@
 
 #include "ui_remoteview.h"
 
-#include "sftp-client.h"
-#include "sftp-common.h"
+// #include "sftp-client.h"
+// #include "sftp-common.h"
 
 #include "remotedirmodel.h"
+
+#include "libssh2.h"
+#include "libssh2_sftp.h"
 
 /**
 	@author liuguangzhao <gzl@localhost>
@@ -43,7 +46,8 @@ public:
 
     ~RemoteView();
     QString get_selected_directory();
-    
+    //
+    void set_ssh2_handler( void * ssh2_sess , void * ssh2_sftp, int ssh2_sock );
     void set_user_home_path(std::string user_home_path);
     
     bool is_in_remote_dir_retrive_loop() 
@@ -52,8 +56,6 @@ public:
     void update_layout();
     
     private:
-        char m_curr_path[PATH_MAX+1];
-        char m_next_path[PATH_MAX+1];
         
         QStatusBar * status_bar ;
         
@@ -68,10 +70,15 @@ public:
         
         QCursor orginal_cursor ;
         bool    in_remote_dir_retrive_loop ;
-
         
+        //
+        int     ssh2_sock ;
+        LIBSSH2_SESSION * ssh2_sess ;
+        LIBSSH2_CHANNEL *ssh2_channel;
+        LIBSSH2_SFTP * ssh2_sftp ;
+                
     public slots:
-        void i_init_dir_view(struct sftp_conn * conn);
+        void i_init_dir_view(/*struct sftp_conn * conn*/);
         void slot_disconnect_from_remote_host();
         
         void slot_dir_tree_customContextMenuRequested ( const QPoint & pos );

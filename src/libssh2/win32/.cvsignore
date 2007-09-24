@@ -1,0 +1,12 @@
+*.lib
+*.pdb
+*.dll
+*.exe
+*.obj
+.*.swp
+Debug
+Release
+*.exp
+*.ncb
+*.opt
+*.plg

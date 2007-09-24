@@ -27,9 +27,8 @@
 
 #include <QThread>
 
-
-
-#include "sftp-client.h"
+#include "libssh2.h"
+#include "libssh2_sftp.h"
 
 /**
 	@author liuguangzhao <gzl@localhost>
@@ -47,38 +46,43 @@ public:
 
     void run();
     
-    void set_remote_connection(struct sftp_conn * connection);
+    void set_remote_connection( void* ssh2_sess,void* ssh2_sftp,int ssh2_sock );
     
     //说明，在上传的时候local_file_names.count()可以大于1个，而remote_file_names.count()必须等于1
     //在下载的时候：local_file_names.count()必须等于1,而remote_file_names.count()可以大于1个
     //type 可以是 TANSFER_GET,TRANSFER_PUT
-    //void set_transfer_info(int type,QString local_file_name,QString local_file_type,QString remote_file_name, QString remote_file_type ) ;
     void set_transfer_info(int type,QStringList local_file_names,QStringList remote_file_names ) ;
     
     int
-            do_upload ( struct sftp_conn *conn, char *local_path, char *remote_path,
+            do_upload (/* struct sftp_conn *conn,*/ char *local_path, char *remote_path,
                         int pflag );
     int
-            do_download ( struct sftp_conn *conn, char *remote_path, char *local_path,
+            do_download (/* struct sftp_conn *conn, */char *remote_path, char *local_path,
                                           int pflag )   ;
     
     int     get_error_code () { return this->error_code ;} 
     
+    private :
+        int remote_is_dir(  char *path );
+        int remote_is_reg(  char *path ); 
+        int fxp_do_ls_dir ( char * path,std::vector<std::map<char, std::string> > & fileinfos      );
+          
     signals:
         void  transfer_percent_changed(int percent);
         void  transfer_new_file_started(QString new_file_name);
         
     private:
         
-        struct sftp_conn * sftp_connection ;
-        int transfer_type ;
-        //QString local_file_name ;
-        QStringList local_file_names ;
-        //QString local_file_type ;
-        //QString remote_file_name ;        
-        QStringList remote_file_names;
-        //QString remote_file_type ;
+//         struct sftp_conn * sftp_connection ;
+        LIBSSH2_SESSION * ssh2_sess;
+        LIBSSH2_SFTP * ssh2_sftp;
+        int ssh2_sock ;
         
+        int transfer_type ;
+
+        QStringList local_file_names ;
+        QStringList remote_file_names;
+
         uint64_t total_file_size ;
         uint64_t total_transfered_file_length ; 
         uint32_t total_file_count ;

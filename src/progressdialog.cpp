@@ -38,19 +38,6 @@
 #endif
 #include <sys/uio.h>
 
-#include "includes.h"
-#include "xmalloc.h"
-#include "atomicio.h"
-
-#include "progressmeter.h"
-#include "sftp-common.h"
-#include "sys-queue.h"
-
-#include "sftp.h"
-#include "sftp-operation.h"
-#include "sftp-client.h"
-#include "sftp-wrapper.h"
-
 #include "globaloption.h"
 #include "progressdialog.h"
 
@@ -80,13 +67,11 @@ ProgressDialog::~ProgressDialog()
     delete this->sftp_transfer_thread;
 }
 
-void ProgressDialog::set_remote_connection(struct sftp_conn * connection)
+void ProgressDialog::set_remote_connection(void* ssh2_sess,void* ssh2_sftp,int ssh2_sock )
 {
-    this->sftp_connection = connection ;
-    this->sftp_transfer_thread->set_remote_connection(connection);
+    this->sftp_transfer_thread->set_remote_connection( ssh2_sess,ssh2_sftp,ssh2_sock );
 }
 
-//void ProgressDialog::set_transfer_info(int type,QString local_file_name,QString local_file_type,QString remote_file_name ,QString remote_file_type  ) 
 void ProgressDialog::set_transfer_info(int type,QStringList local_file_names,QStringList remote_file_names  ) 
 {
     QString local_file_name ;
@@ -99,9 +84,8 @@ void ProgressDialog::set_transfer_info(int type,QStringList local_file_names,QSt
     this->transfer_type = type ;
     
     this->local_file_names = local_file_names;
-    //this->local_file_type = local_file_type ;
     this->remote_file_names = remote_file_names ;
-    //this->remote_file_type = remote_file_type ;
+
     this->sftp_transfer_thread->set_transfer_info(type,local_file_names,remote_file_names  );
     
     if(type == TransferThread::TRANSFER_PUT)
@@ -216,6 +200,11 @@ void ProgressDialog::slot_new_file_transfer_started(QString new_file_name)
     //this->setToolTip(u_new_file_name);
 }
 
-
+void ProgressDialog::closeEvent ( QCloseEvent * event ) 
+{
+    event->ignore();
+    //this->setVisible(false);
+    QMessageBox::information(this,tr("attemp to close this window?"),tr("you cat's close this window."));
+}
 
 

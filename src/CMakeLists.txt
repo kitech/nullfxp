@@ -1,7 +1,8 @@
 
-ADD_DEFINITIONS(-DHAVE_CONFIG_H -O2 -Wall -Wpointer-arith -Wuninitialized -Wsign-compare     )
+ADD_DEFINITIONS(-g -DHAVE_CONFIG_H -O2 -Wall -Wpointer-arith -Wuninitialized -Wsign-compare     )
 
-SUBDIRS(plinker)
+#SUBDIRS(plinker)
+SUBDIRS(libssh2)
 
 ###################
 INCLUDE (CheckIncludeFiles)
@@ -44,7 +45,7 @@ INCLUDE_DIRECTORIES( .
     
     ${CMAKE_CURRENT_BINARY_DIR}
     
-    ${CMAKE_CURRENT_SOURCE_DIR}/plinker
+    ${CMAKE_CURRENT_SOURCE_DIR}/libssh2/include
 )
 
 SET(qtproject_UIS
@@ -123,14 +124,15 @@ ADD_EXECUTABLE(../bin/nullfxp
 #     tmpmain.cpp 
     main.cpp
 ####################
-    sftp-common.cpp
-    sftp-glob.cpp
-    sftp-client.cpp
-    progressmeter.cpp
-    sftp.cpp
-    
+#    sftp-common.cpp
+#    sftp-glob.cpp
+#    sftp-client.cpp
+#    progressmeter.cpp
+#    sftp.cpp
+#    sftp-wrapper.cpp    
+    utils.cpp
 ########
-    sftp-wrapper.cpp
+
     remotehostconnectthread.cpp
     remotedirretrivethread.cpp
     remotedirmodel.cpp
@@ -151,8 +153,8 @@ ADD_EXECUTABLE(../bin/nullfxp
 )
 
 
-TARGET_LINK_LIBRARIES(../bin/nullfxp ${QT_LIBRARIES} ssl  ssh  openbsd_compat)
+TARGET_LINK_LIBRARIES(../bin/nullfxp ${QT_LIBRARIES} ssl  ssh2  )
 
-ADD_DEPENDENCIES(../bin/nullfxp plinker)
+ADD_DEPENDENCIES(../bin/nullfxp libssh2)
 
 ##http://qtnode.net/wiki?title=Qt_with_cmake&printable=yes

@@ -28,12 +28,11 @@
 //////////////////////////
 /////////////////////////////////
 /////////////////////////////////////
-RemoteDirModel::RemoteDirModel ( struct sftp_conn * conn , QObject *parent )
+RemoteDirModel::RemoteDirModel (  QObject *parent )
 		:QAbstractItemModel ( parent )
 {
-	this->sftp_connection = conn ;
 
-	this->remote_dir_retrive_thread = new RemoteDirRetriveThread ( conn );
+	this->remote_dir_retrive_thread = new RemoteDirRetriveThread ( );
 	QObject::connect ( this->remote_dir_retrive_thread,SIGNAL ( remote_dir_node_retrived ( directory_tree_item *,void * ) ),
 	                   this,SLOT ( slot_remote_dir_node_retrived ( directory_tree_item*,   void * ) ) );
 
@@ -44,12 +43,17 @@ RemoteDirModel::RemoteDirModel ( struct sftp_conn * conn , QObject *parent )
 	                   this,SIGNAL ( leave_remote_dir_retrive_loop() ) );
     
     //keep alive 相关设置
-    this->keep_alive = false ;
+    this->keep_alive = true ;
     this->keep_alive_timer = new QTimer();
     this->keep_alive_interval = 150 ;
+    this->keep_alive_timer->setInterval( this->keep_alive_interval*1000 );
     QObject::connect(this->keep_alive_timer,SIGNAL(timeout()),
                      this,SLOT( slot_keep_alive_time_out() ) );    
-    this->keep_alive_timer->start( this->keep_alive_interval * 1000 );
+    //this->keep_alive_timer->start( this->keep_alive_interval * 1000 );
+}
+void RemoteDirModel::set_ssh2_handler( void * ssh2_sess , void * ssh2_sftp, int ssh2_sock )
+{
+    this->remote_dir_retrive_thread->set_ssh2_handler(ssh2_sess,ssh2_sftp,ssh2_sock);
 }
 
 void RemoteDirModel::set_user_home_path ( std::string user_home_path )
@@ -69,13 +73,6 @@ void RemoteDirModel::set_user_home_path ( std::string user_home_path )
 
 	//{创建初始化目录树
 	directory_tree_item * first_item ;
-	//= new directory_tree_item();
-	//first_item->tree_node_item.insert ( std::make_pair ( 'N',"/" ) );
-	//first_item->tree_node_item.insert ( std::make_pair ( 'T',"D" ) ) ;
-	//first_item->parent_item = this->tree_root;
-	//first_item->row_number = 1;
-	//first_item->retrived = 1 ;  //半满结点
-	//first_item->strip_path = "";    //对根，不需要strip前缀，现在程序的表现就好了。
 
 	directory_tree_item * temp_parent_tree_item = 0 , * temp_tree_item =0 ;
 	std::string temp_strip_path , temp_path_name ;
@@ -136,7 +133,6 @@ void RemoteDirModel::set_user_home_path ( std::string user_home_path )
 		temp_tree_item->file_type = std::string ( "D" );
 		temp_tree_item->prev_retr_flag = -1 ;
 
-		//对根，不需要strip前缀，现在程序的表现就好了。
 		temp_parent_tree_item->child_items.insert ( std::make_pair ( 0,temp_tree_item ) );
 
 		//pre_sep_pos
@@ -144,13 +140,16 @@ void RemoteDirModel::set_user_home_path ( std::string user_home_path )
 		if ( sep_pos == NULL ) break ;
 	}
 	qDebug() <<" seach end :"<< buff ;
-	//}
 
 	this->tree_root->child_items.insert ( std::make_pair ( 0, first_item ) );
 	this->tree_root->row_number = 0;
+    
+    //启动keep alive 功能。
+    if(this->keep_alive )
+    {
+        this->keep_alive_timer->start();
+    }
 }
-
-
 
 RemoteDirModel::~RemoteDirModel()
 {
@@ -168,7 +167,7 @@ RemoteDirModel::~RemoteDirModel()
 	{
 		delete this->remote_dir_retrive_thread ;
 	}
-	//Todo: 删除model中的现有数据
+	//TODO: 删除model中的现有数据
 }
 
 QModelIndex RemoteDirModel::index ( int row, int column, const QModelIndex &parent ) const
@@ -307,15 +306,15 @@ QVariant RemoteDirModel::headerData ( int section, Qt::Orientation orientation,
 		switch ( section )
 		{
 			case 0:
-				return QVariant ( "Name" );
+				return QVariant ( tr("Name") );
 			case 1:
-				return QVariant ( "Size" );
+				return QVariant ( tr("Size") );
 			case 2:
-				return QVariant ( "Type" );
+				return QVariant ( tr("Type") );
 			case 3:
-				return QVariant ( "Date" );
+				return QVariant ( tr("Date") );
 			default:
-				return QVariant ( "what are you want?" );
+				return QVariant ( tr("what are you want?" ));
 		}
 	}
 
@@ -606,7 +605,6 @@ void RemoteDirModel::slot_execute_command( directory_tree_item* parent_item , vo
 //TODO
 void RemoteDirModel::set_keep_alive(bool keep_alive,int time_out)
 {
-    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     //this->keep_alive_interval = time_out ;
     //this->keep_alive = keep_alive ;
     if( keep_alive != this->keep_alive )
@@ -623,7 +621,7 @@ void RemoteDirModel::set_keep_alive(bool keep_alive,int time_out)
     }
     if( time_out != this->keep_alive_interval)
     {
-        this->keep_alive_interval = time_out * 1000;
+        this->keep_alive_interval = time_out ;
         this->keep_alive_timer->setInterval(this->keep_alive_interval);
     }
 }
@@ -631,7 +629,7 @@ void RemoteDirModel::set_keep_alive(bool keep_alive,int time_out)
 void RemoteDirModel::slot_keep_alive_time_out()
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    //Bugs: 执行下面的这句有问题，当正在传输文件时会导致程序崩溃
     this->remote_dir_retrive_thread->slot_execute_command(0,0,SSH2_FXP_KEEP_ALIVE,"");
+    
 }
 

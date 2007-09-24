@@ -24,9 +24,9 @@
 #include <QtGui>
 #include <QAbstractItemModel>
 
-#include "sftp-operation.h"
-#include "sftp-client.h"
-#include "sftp-wrapper.h"
+// #include "sftp-operation.h"
+// #include "sftp-client.h"
+// #include "sftp-wrapper.h"
 
 #include "remotedirretrivethread.h"
 
@@ -40,12 +40,13 @@ class RemoteDirModel : public QAbstractItemModel
 {
 		Q_OBJECT
 	public:
-		RemoteDirModel ( struct sftp_conn * conn , QObject *parent = 0 );
+		RemoteDirModel ( /*struct sftp_conn * conn , */QObject *parent = 0 );
 
 		virtual ~RemoteDirModel();
         //仅需要调用一次的函数,并且是在紧接着该类的初始化之后调用。
         void set_user_home_path(std::string user_home_path);
-        
+        //这个调用应该在set_user_home_path之前
+        void set_ssh2_handler( void * ssh2_sess , void * ssh2_sftp, int ssh2_sock );
                 
         ////model 函数
 		QVariant data ( const QModelIndex &index, int role ) const;
@@ -135,7 +136,7 @@ class RemoteDirModel : public QAbstractItemModel
         
         //keep_alive
         void set_keep_alive(bool keep_alive,int time_out=150);
-    private slots:
+    private slots:        
         /// time_out 秒                
         void slot_keep_alive_time_out();
     signals:
@@ -149,7 +150,7 @@ class RemoteDirModel : public QAbstractItemModel
 	private:
 
 		directory_tree_item * tree_root ;
-		struct sftp_conn * sftp_connection ;
+		//struct sftp_conn * sftp_connection ;
         RemoteDirRetriveThread * remote_dir_retrive_thread ;
         
 		void dump_tree_node_item ( directory_tree_item * node_item ) const ;

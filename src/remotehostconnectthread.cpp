@@ -26,19 +26,44 @@
 #include <errno.h>
 #include <signal.h>
 #include <wait.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netdb.h>
 
-
-#include "sftp.h"
-
-#include "sftp-operation.h"
+// #include "sftp.h"
+// 
+// #include "sftp-operation.h"
 
 #include "localview.h"
 #include "remoteview.h"
 #include "progressdialog.h"
 
-
-
 #include "remotehostconnectthread.h"
+
+#include "libssh2.h"
+#include "libssh2_sftp.h"
+
+//static char ssh2_user_name[60];
+static char ssh2_password[60] ;
+
+static void kbd_callback(const char *name, int name_len, 
+                         const char *instruction, int instruction_len, int num_prompts,
+                         const LIBSSH2_USERAUTH_KBDINT_PROMPT *prompts,
+                         LIBSSH2_USERAUTH_KBDINT_RESPONSE *responses,
+                         void **abstract)
+{
+    (void)name;
+    (void)name_len;
+    (void)instruction;
+    (void)instruction_len;
+    if (num_prompts == 1) {
+        responses[0].text = strdup(ssh2_password);
+        responses[0].length = strlen(ssh2_password);
+    }
+    (void)prompts;
+    (void)abstract;
+} /* kbd_callback */
 
 RemoteHostConnectThread::RemoteHostConnectThread(QString user_name , QString password , QString host_name ,QObject* parent): QThread(parent)
 {
@@ -46,7 +71,6 @@ RemoteHostConnectThread::RemoteHostConnectThread(QString user_name , QString pas
     this->password = password.toStdString();
     this->host_name = host_name.toStdString();
     this->connect_status = 0;
-    this->sftp_connection = 0 ;
     
     ////////////////
     QObject::connect(this,SIGNAL(finished()) ,this , SLOT(slot_finished()) );
@@ -63,151 +87,109 @@ void RemoteHostConnectThread::run()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
-    QString username ;
-    QString password ;
-    QString remoteaddr ;
+    //LIBSSH2_SESSION * ssh2_sess =0 ;    
+    //LIBSSH2_SFTP * ssh2_sftp =0;
+    int ret= 0;
+    char home_path[PATH_MAX+1] = {0};
+    char host_ipadd[60] = {0};
     
-    //QString program = "/home/gzl/openssh-4.6p1/ssh";
-    QString program =  QCoreApplication::applicationDirPath () + "/plinker" ;
-    
-    
-    int in , out ;
-    this->sftp_connection = (struct sftp_conn*) xmalloc(sizeof(struct sftp_conn));
-    memset(this->sftp_connection , 0 , sizeof(struct sftp_conn) );
-    
-    username = QString( this->user_name.c_str());
-    password = QString( this->password.c_str()) ;
-    remoteaddr = QString ( this->host_name.c_str()) ;
-    
-    arglist args ;
+    //create socket 
+    struct sockaddr_in serv_addr ;
+    memset( & serv_addr , 0 , sizeof( serv_addr )) ;
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons( 22 );
+    //serv_addr.sin_addr.s_addr = 
+    struct hostent * remote_host_ipaddrs = ::gethostbyname(this->host_name.c_str());
+    char * ent_pos_c = 0 ;
+    int counter = 0 ;
+    printf("remote_host ip: %s \n",remote_host_ipaddrs->h_name);
 
-    memset ( &args, '\0', sizeof ( args ) );
-    args.list = NULL;
+    ent_pos_c = remote_host_ipaddrs->h_addr_list[0];
+    while(ent_pos_c!= NULL )
+    {
+        printf("host addr: %s -> %s  \n", ent_pos_c , inet_ntop(AF_INET,ent_pos_c,host_ipadd,sizeof(host_ipadd) ) );
+        ent_pos_c =  remote_host_ipaddrs->h_addr_list[++counter];
+    }
+    
+    ret = inet_pton(AF_INET , host_ipadd ,&serv_addr.sin_addr.s_addr);
+    printf(" inet_pton ret: %d \n" , ret );
+    
+    this->ssh2_sock = socket(AF_INET,SOCK_STREAM,0);
+    ret = ::connect( this->ssh2_sock,(struct sockaddr*)&serv_addr,sizeof(serv_addr));
+    assert( ret == 0 );
+    
+    //create session
+    ssh2_sess = libssh2_session_init();
+    
+    ret = libssh2_session_startup((LIBSSH2_SESSION*)ssh2_sess,this->ssh2_sock);
+    assert( ret == 0 );
 
-    addargs ( &args, "%s", program.toAscii().data() );
-    addargs ( &args, "-oForwardX11 no" );
-    addargs ( &args, "-oForwardAgent no" );
-    addargs ( &args, "-oPermitLocalCommand no" );
-    addargs ( &args, "-oClearAllForwardings yes" );
-    addargs ( &args, "-v" );
-    addargs ( &args, "-v" );
-    addargs ( &args, "-l%s",username.toAscii().data() );
-    addargs ( &args, "-oProtocol %d",2 );
-    addargs ( &args, "-y" );
-    addargs ( &args, "%s",password.toAscii().data() );
-    addargs ( &args, "-s" );
-    addargs ( &args, "%s",remoteaddr.toAscii().data() );
-    addargs ( &args, "sftp" );
+    ///////////
+    //auth
+    char * auth_list = libssh2_userauth_list((LIBSSH2_SESSION*)ssh2_sess,this->user_name.c_str(),strlen(this->user_name.c_str()) );
+    printf("user auth list : %s \n" , auth_list ) ;
+    
+    strncpy(ssh2_password,this->password.c_str() , sizeof(ssh2_password));
+    
+    ret = libssh2_userauth_keyboard_interactive((LIBSSH2_SESSION*)ssh2_sess,this->user_name.c_str(),&kbd_callback) ;
+    qDebug()<<"keyboard interactive :"<<ret ;
+    if( ret == -1 )
+    {
+        ret = libssh2_userauth_password((LIBSSH2_SESSION*)ssh2_sess,this->user_name.c_str(),ssh2_password);
+        qDebug()<<"auth_password :"<<ret ;
+    }
+    
+    ret = libssh2_userauth_authenticated((LIBSSH2_SESSION*)ssh2_sess);
+    if( ret == 0 )
+    {
+        this->connect_status = 1 ;
+        qDebug()<<" user auth faild";
+        return ;
+    }
+    ssh2_sftp = libssh2_sftp_init((LIBSSH2_SESSION*)ssh2_sess );
+    assert( ssh2_sftp != NULL );
 
-    connect_to_server ( program .toAscii().data(),args.list,&in,&out , & this->child_pid  );
-    qDebug() <<"Exec ret :" << in << " out: " << out << "child : ";
-
-    this->sftp_connection->fd_in = in;
-    this->sftp_connection->fd_out = out ;
-	//theconn.transfer_buflen = 32768;
-    this->sftp_connection->transfer_buflen = 1024;
-    this->sftp_connection->num_requests = 0 ;
-    this->sftp_connection->version = 0;
-    this->sftp_connection->msg_id = 0 ;
-
-    this->do_init();    
     
-    //取得远程目录当前路径 pwd,一般就是home目录。
-    char * pwd = 0 ;
+    ret = libssh2_sftp_realpath((LIBSSH2_SFTP*)ssh2_sftp,".",home_path,PATH_MAX);
+    if(ret != 0 )
+    {
+        qDebug()<<" realpath : "<< ret  
+                << " err code : " << libssh2_sftp_last_error((LIBSSH2_SFTP*)ssh2_sftp) 
+                << home_path ;
+        
+        assert( ret >= 0 );
+    }
+    this->user_home_path = std::string( home_path );
     
-    pwd = do_realpath(this->sftp_connection,".");
-    
-    assert( pwd != NULL );
-    
-    qDebug()<<" user default path is : "<< pwd ;
-    
-    user_home_path = std::string(pwd);
-    
+    this->connect_status = 0 ;
 }
 
 void RemoteHostConnectThread::slot_finished()
 {
-    emit this->connect_finished(this->connect_status,this->sftp_connection);
+    emit this->connect_finished(this->connect_status,this->ssh2_sess,this->ssh2_sock,this->ssh2_sftp );
 }
 
 void RemoteHostConnectThread::do_init()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    int fd_in,  fd_out;
-    u_int transfer_buflen=128, num_requests;
-    fd_in = this->sftp_connection->fd_in;
-    fd_out = this->sftp_connection->fd_out ;
 
-    u_int type;
-    int version;
-    Buffer msg;
-    struct sftp_conn *ret = this->sftp_connection ;
-
-    buffer_init ( &msg );
-    buffer_put_char ( &msg, SSH2_FXP_INIT );
-    buffer_put_int ( &msg, SSH2_FILEXFER_VERSION );
-    send_msg ( fd_out, &msg );
-
-    buffer_clear ( &msg );
-
-    ///////
-    get_msg ( fd_in, &msg );
-
-    /* Expecting a VERSION reply */
-    if ( ( type = buffer_get_char ( &msg ) ) != SSH2_FXP_VERSION )
-    {
-        printf ( "Invalid packet back from SSH2_FXP_INIT (type %u)\n",
-                type );
-        buffer_free ( &msg );
-		//return(NULL);
-        return ;
-    }
-    version = buffer_get_int ( &msg );
-
-    printf ( "Remote version: %d\n", version );
-
-    printf ( "buffer_len: %d\n",buffer_len ( &msg ) );
-    /* Check for extensions */
-    while ( buffer_len ( &msg ) > 0 )
-    {
-        char *name = ( char* ) buffer_get_string ( &msg, NULL );
-        char *value = ( char* ) buffer_get_string ( &msg, NULL );
-
-        printf ( "Init extension: \"%s\"\n", name );
-        xfree ( name );
-        xfree ( value );
-    }
-
-    buffer_free ( &msg );
-
-	//ret = xmalloc(sizeof(*ret));
-    ret->fd_in = fd_in;
-    ret->fd_out = fd_out;
-    ret->transfer_buflen = transfer_buflen;
-    ret->num_requests = num_requests;
-    ret->version = version;
-    ret->msg_id = 1;
-
-    /* Some filexfer v.0 servers don't support large packets */
-    if ( version == 0 )
-        ret->transfer_buflen = MIN ( ret->transfer_buflen, 20480 );
 }
 
 void RemoteHostConnectThread::diconnect_ssh_connection()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
-    int ret = 0 ;
-    if( this->child_pid > 0 )
-    {
-        ret = kill(this->child_pid,SIGHUP);
-        qDebug() << "attemp to kill child process :" << this->child_pid <<" ret:"<<ret ;
-        ret = kill(this->child_pid,SIGTERM);
-        qDebug() << "attemp to kill child process :" << this->child_pid <<" ret:"<<ret ;
-        ret = kill(this->child_pid,SIGABRT);
-        qDebug() << "attemp to kill child process :" << this->child_pid <<" ret:"<<ret ;
-        waitpid(this->child_pid, NULL, 0);
-    }
+//     int ret = 0 ;
+//     if( this->child_pid > 0 )
+//     {
+//         ret = kill(this->child_pid,SIGHUP);
+//         qDebug() << "attemp to kill child process :" << this->child_pid <<" ret:"<<ret ;
+//         ret = kill(this->child_pid,SIGTERM);
+//         qDebug() << "attemp to kill child process :" << this->child_pid <<" ret:"<<ret ;
+//         ret = kill(this->child_pid,SIGABRT);
+//         qDebug() << "attemp to kill child process :" << this->child_pid <<" ret:"<<ret ;
+//         waitpid(this->child_pid, NULL, 0);
+//     }
 }
 
 std::string RemoteHostConnectThread::get_user_home_path () 

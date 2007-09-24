@@ -23,14 +23,16 @@
 
 #include <QtCore>
 
-#include "sftp.h"
-#include "sftp-operation.h"
+// #include "sftp.h"
+// #include "sftp-operation.h"
 
 #include "remotedirretrivethread.h"
 
+#include "utils.h"
+
 //这种声明方法是为什么呢？
-int remote_glob(struct sftp_conn *, const char *, int,
-                int (*)(const char *, int), glob_t *); /* proto for sftp-glob.c */
+// int remote_glob(struct sftp_conn *, const char *, int,
+//                 int (*)(const char *, int), glob_t *); /* proto for sftp-glob.c */
                 
 ////////////////////////directory_tree_item
 directory_tree_item::~directory_tree_item()
@@ -44,19 +46,24 @@ directory_tree_item::~directory_tree_item()
 }
 
 ///////////////////////////////////
-RemoteDirRetriveThread::RemoteDirRetriveThread ( struct sftp_conn * conn , QObject* parent ) : QThread ( parent )
+RemoteDirRetriveThread::RemoteDirRetriveThread (QObject* parent ) : QThread ( parent )
 {
-    this->sftp_connection = conn ;
+
 }
 
 
 RemoteDirRetriveThread::~RemoteDirRetriveThread()
 {}
 
+void RemoteDirRetriveThread::set_ssh2_handler( void * ssh2_sess , void * ssh2_sftp, int ssh2_sock )
+{
+    this->ssh2_sess = (LIBSSH2_SESSION*) ssh2_sess ;
+    this->ssh2_sftp = (LIBSSH2_SFTP * ) ssh2_sftp ;
+    this->ssh2_sock = ssh2_sock ;
+}
 
 void RemoteDirRetriveThread::run()
 {
-    
     emit enter_remote_dir_retrive_loop();
     
     int exec_ret_code = -1 ;
@@ -98,42 +105,84 @@ void RemoteDirRetriveThread::run()
     }
 
     emit this->leave_remote_dir_retrive_loop();
+    
 }
 
 int  RemoteDirRetriveThread::retrive_dir()
 {
+
     int exec_ret = -1;
     
     directory_tree_item * parent_item;
     void *  parent_model_internal_pointer ;
     
     std::vector<std::map<char,std::string> > fileinfos;
-    char file_name[PATH_MAX] ;//= parent_item->tree_node_item['N'];
-    char strip_path[PATH_MAX];// = parent_item->strip_path ;    
+    char file_name[PATH_MAX+1] ;
+    char strip_path[PATH_MAX+1];
     int row_count = 0 ;
     int fxp_ls_ret = 0 ;
+    char file_size[20] = {0};
+    char file_date[32] = {0};
+    char file_type[20] = {0};
+
     
     while ( this->dir_node_process_queue.size() >0 )
     {
         std::map<directory_tree_item*,void * >::iterator mit;
         mit = this->dir_node_process_queue.begin();
-        
+
         parent_item = mit->first ;
         parent_model_internal_pointer = mit->second ;
-        fileinfos.clear();
-        
-        
-        int lflag = 0;
-        lflag &= ~VIEW_FLAGS;
-        lflag |= LS_LONG_VIEW;
-
+       
         strcpy ( file_name, ( parent_item->strip_path+std::string ( "/" ) ).c_str() );
         strcpy ( strip_path,parent_item->strip_path.c_str() );
-		//memset(file_name,0,sizeof(file_name));
-		//strcpy(file_name,"/etc");
-		//strcpy(strip_path,"/" );
-        fxp_ls_ret = fxp_do_globbed_ls ( this->sftp_connection , file_name , strip_path , lflag , fileinfos );
-        qDebug() <<"fxp_ls_ret:" << fxp_ls_ret<< ", fileinfos number="<<fileinfos.size() << " use strip:" << strip_path <<" file_name ="<< file_name ;
+
+        fileinfos.clear();
+
+        LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib ;
+        memset(&ssh2_sftp_attrib,0,sizeof(LIBSSH2_SFTP_ATTRIBUTES));
+        LIBSSH2_SFTP_HANDLE * ssh2_sftp_handle = libssh2_sftp_opendir(this->ssh2_sftp,file_name);
+
+        // ssh2_sftp_handle == 0 是怎么回事呢？ 返回值 应该是
+        // 1 . 这个file_name 是一个链接，但这个链接指向的是一个普通文件而不是目录时libssh2_sftp_opendir返回0 , 而 libssh2_sftp_last_error 返回值为 2 == SSH2_FX_NO_SUCH_FILE
+        if( ssh2_sftp_handle == 0 )
+        {
+            qDebug()<<" sftp last error: "<< libssh2_sftp_last_error( this->ssh2_sftp );
+        }
+        while( ssh2_sftp_handle != 0 &&
+               libssh2_sftp_readdir( ssh2_sftp_handle ,file_name , PATH_MAX ,& ssh2_sftp_attrib ) > 0 )
+        {
+
+            std::map<char,std::string> thefile ;
+            if( strlen ( file_name ) == 1 && file_name[0] == '.' ) continue ;
+            if( strlen ( file_name ) == 2 && file_name[0] == '.' && file_name[1] == '.') continue ;
+            //不处理隐藏文件? 处理隐藏文件
+            if( file_name[0] == '.' ) continue ;
+            
+            memset(file_size,0,sizeof(file_size )) ;
+            snprintf(file_size,sizeof(file_size) , "%llu",ssh2_sftp_attrib.filesize );
+            
+            struct tm *ltime = localtime((time_t*)&ssh2_sftp_attrib.mtime);
+            if (ltime != NULL) 
+            {
+                if (time(NULL) - ssh2_sftp_attrib.mtime < (365*24*60*60)/2)
+                    strftime(file_date, sizeof file_date, "%Y/%m/%d %H:%M:%S", ltime);
+                else
+                    strftime(file_date, sizeof file_date, "%Y/%m/%d %H:%M:%S", ltime);
+            }
+
+            strmode(ssh2_sftp_attrib.permissions,file_type );
+            //printf(" ls dir : %s %s , date=%s , type=%s \n" , file_name , file_size , file_date , file_type );
+            thefile.insert(std::make_pair('N',std::string(file_name)));
+            thefile.insert(std::make_pair('T',std::string(file_type)));
+            thefile.insert(std::make_pair('S',std::string(file_size)));
+            thefile.insert(std::make_pair('D',std::string( file_date )));  
+                      
+            fileinfos.push_back(thefile);
+            memset(&ssh2_sftp_attrib,0,sizeof(LIBSSH2_SFTP_ATTRIBUTES) );
+        }  
+
+        //qDebug() <<"fxp_ls_ret:" << fxp_ls_ret<< ", fileinfos number="<<fileinfos.size() << " use strip:" << strip_path <<" file_name ="<< file_name ;
 	
         //将已经存在的项目找出来
         std::map<std::string,int> existed_items ;
@@ -142,6 +191,7 @@ int  RemoteDirRetriveThread::retrive_dir()
             existed_items.insert(std::make_pair(parent_item->child_items[i]->file_name,8));
         }
         int  curr_count = 0 ;
+
         ////////////
         for ( int i = 0 ; i < fileinfos.size() ; i ++ )
         {
@@ -177,16 +227,20 @@ int  RemoteDirRetriveThread::retrive_dir()
         }
         
         this->subtract_existed_model(parent_item,fileinfos);
-        
+
         parent_item->prev_retr_flag = parent_item->retrived ;
         parent_item->retrived = 9 ;
+
         //         
         //         //////
         this->dir_node_process_queue.erase(parent_item);
         emit this->remote_dir_node_retrived(parent_item,parent_model_internal_pointer);
-        
+
+        if(ssh2_sftp_handle!=0) //TODO 应该在循环上面检测到为0就continue才对啊。
+            libssh2_sftp_closedir(ssh2_sftp_handle);
+
     }
-    
+
     return exec_ret ;
 }
 
@@ -246,7 +300,7 @@ int  RemoteDirRetriveThread::mkdir()
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
     int exec_ret = -1;
-    Attrib ab ;
+//     Attrib ab ;
     
     command_queue_elem * cmd_item = this->command_queue.at(0);
     
@@ -257,12 +311,12 @@ int  RemoteDirRetriveThread::mkdir()
     
     qDebug()<< "abs  path :"<< abs_path .c_str() ;
     
-    attrib_clear(&ab);
-    ab.flags |= SSH2_FILEXFER_ATTR_PERMISSIONS;
-    ab.perm = 0777;
+//     attrib_clear(&ab);
+//     ab.flags |= SSH2_FILEXFER_ATTR_PERMISSIONS;
+//     ab.perm = 0777;
     
-    exec_ret = do_mkdir(this->sftp_connection , remote_path ,&ab );
-    
+//     exec_ret = do_mkdir(this->sftp_connection , remote_path ,&ab );
+    exec_ret = libssh2_sftp_mkdir( ssh2_sftp , remote_path , 0777 );
     //cmd_item->parent_item->retrived = 2 ;   //让上层视图更新这个结点
     this->add_node( cmd_item->parent_item , cmd_item->parent_model_internal_pointer );
     
@@ -293,7 +347,8 @@ int  RemoteDirRetriveThread::rmdir()
     }
     else
     {
-        exec_ret = do_rmdir(this->sftp_connection , remote_path   );
+//         exec_ret = do_rmdir(this->sftp_connection , remote_path   );
+        exec_ret = libssh2_sftp_rmdir(ssh2_sftp,remote_path);
     }
     //cmd_item->parent_item->retrived = 2 ;   //让上层视图更新这个结点
     this->add_node( cmd_item->parent_item , cmd_item->parent_model_internal_pointer );
@@ -371,7 +426,6 @@ int  RemoteDirRetriveThread::rm_file_or_directory_recursively_ex(std::string par
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
     int exec_ret = -1;
-    glob_t g;
    
     std::string abs_path  ;
     char  remote_path[PATH_MAX+1] = {0};
@@ -380,16 +434,16 @@ int  RemoteDirRetriveThread::rm_file_or_directory_recursively_ex(std::string par
     std::vector<std::map<char,std::string> > fileinfos ;
     directory_tree_item * child_item = 0 ;
     
-     //下面这种方法有问题，改为再次从服务器列出目录，然后处理
+     //再次从服务器列出目录，然后处理
     int lflag = 0 ;    
-    lflag = LS_LONG_VIEW;
-    lflag |= LS_SHOW_ALL ;
-    
+//     lflag = LS_LONG_VIEW;
+//     lflag |= LS_SHOW_ALL ;
     
     strcpy ( file_name, ( parent_path+std::string ( "/" ) ).c_str() );
     strcpy ( strip_path,parent_path.c_str() );
     
-    exec_ret = fxp_do_globbed_ls(this->sftp_connection,file_name,strip_path,lflag , fileinfos);
+//     exec_ret = fxp_do_globbed_ls(this->sftp_connection,file_name,strip_path,lflag , fileinfos);
+    exec_ret = fxp_do_ls_dir( file_name , fileinfos ) ;
     
     int file_count = fileinfos.size();
     //qDebug()<<" rm ex :" << file_count ;
@@ -423,59 +477,41 @@ int  RemoteDirRetriveThread::rm_file_or_directory_recursively_ex(std::string par
             {
                 abs_path = parent_path + "/" + fileinfos.at(i)['N'] ;//+ "/" + child_item->file_name ;
                 strcpy( remote_path , abs_path.c_str() );
+                qDebug()<<QString(tr("Removing %1")).arg( remote_path );
+                exec_ret = libssh2_sftp_unlink( ssh2_sftp , remote_path );
                                 
-                remote_glob(this->sftp_connection , remote_path , GLOB_NOCHECK , NULL ,& g);
-                for( int i = 0 ; g.gl_pathv[i] != NULL ; i ++ )
-                {
-                    //qDebug()<<QString(tr("Removing %1")).arg(g.gl_pathv[i]);
-                    exec_ret = do_rm( this->sftp_connection,g.gl_pathv[i] );
-                    if( exec_ret != 0 )
-                    {
-                        //break ;
-                    }
-                }
+//                 remote_glob(this->sftp_connection , remote_path , GLOB_NOCHECK , NULL ,& g);
+//                 for( int i = 0 ; g.gl_pathv[i] != NULL ; i ++ )
+//                 {
+//                     //qDebug()<<QString(tr("Removing %1")).arg(g.gl_pathv[i]);
+//                     exec_ret = do_rm( this->sftp_connection,g.gl_pathv[i] );
+//                     if( exec_ret != 0 )
+//                     {
+//                         //break ;
+//                     }
+//                 }
             }
             else
             {
-                qDebug()<<" unknow file type ";
+                qDebug()<<" unknow file type ,don't know how to remove it";
             }
-//         child_item = parent_item->child_items[i];
-//         if( child_item->file_type.at(0) == 'd')
-//         {
-//             this->rm_file_or_directory_recursively_ex(child_item);
-// 
-//         }
-//         else if( child_item->file_type.at(0) == 'l' //SSH2_FXP_REMOVE 可以删除这个软链接
-//                   ||  child_item->file_type.at(0) == '-' )
-//         {
-//             abs_path = child_item->strip_path ;//+ "/" + child_item->file_name ;
-//             strcpy( remote_path , abs_path.c_str() );
-//             
-//             remote_glob(this->sftp_connection , remote_path , GLOB_NOCHECK , NULL ,& g);
-//             for( int i = 0 ; g.gl_pathv[i] != NULL ; i ++ )
-//             {
-//                 qDebug()<<QString(tr("Removing %1")).arg(g.gl_pathv[i]);
-//                 exec_ret = do_rm( this->sftp_connection,g.gl_pathv[i] );
-//                 if( exec_ret != 0 )
-//                 {
-//                     //break ;
-//                 }
-//             }
-//         }
-//         else 
-//         {
-//             qDebug()<<"unknow file type , don't know how to remove it";
-//         }
     }
     
     //删除这个目录
     abs_path = parent_path ;//+ "/" + parent_item->file_name ;
     strcpy( remote_path , abs_path.c_str() );
-    exec_ret = do_rmdir(this->sftp_connection , remote_path   );
-    if(exec_ret != 0 )  //可能这是一个文件，不是目录，那么使用删除文件的指令
-        exec_ret = do_rm(this->sftp_connection , remote_path   );
-    //cmd_item->parent_item->retrived = 2 ;   //让上层视图更新这个结点
-    //this->add_node( cmd_item->parent_item , cmd_item->parent_model_internal_pointer );
+//     exec_ret = do_rmdir(this->sftp_connection , remote_path   );
+//     if(exec_ret != 0 )  //可能这是一个文件，不是目录，那么使用删除文件的指令
+//         exec_ret = do_rm(this->sftp_connection , remote_path   );
+    exec_ret = libssh2_sftp_rmdir(ssh2_sftp,remote_path);
+    if( exec_ret != 0 ) //可能这是一个文件，不是目录，那么使用删除文件的指令
+    {
+        exec_ret = libssh2_sftp_unlink(ssh2_sftp,remote_path);
+        if( exec_ret != 0 )
+        {
+            qDebug()<< " count remove file or directory ("<< libssh2_sftp_last_error(ssh2_sftp) <<"): "<< remote_path ;
+        }
+    }
     
     return exec_ret ;
 }
@@ -514,7 +550,8 @@ int  RemoteDirRetriveThread::rename()
     }
     else
     {
-        exec_ret = do_rename(this->sftp_connection , remote_path  , remote_path_rename_to  );
+//         exec_ret = do_rename(this->sftp_connection , remote_path  , remote_path_rename_to  );
+        exec_ret = libssh2_sftp_rename(ssh2_sftp,remote_path,remote_path_rename_to);
     }
     //cmd_item->parent_item->retrived = 2 ;   //让上层视图更新这个结点
     this->add_node( cmd_item->parent_item , cmd_item->parent_model_internal_pointer );
@@ -525,37 +562,97 @@ int  RemoteDirRetriveThread::rename()
 int RemoteDirRetriveThread::keep_alive()
 {
     int exec_ret;
-    int lflag = LS_SHORT_VIEW;
+    int lflag = 0/*LS_SHORT_VIEW*/;
     char full_path [PATH_MAX+1] = {0};
     char strip_path [PATH_MAX+1] = {0};
     std::vector<std::map<char,std::string> > fileinfos;
+    LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib ;
     
     strcpy(full_path,"/nullfxp_keep_alive_dummy_directory");
     strcpy(strip_path,"/");
-    exec_ret = fxp_do_globbed_ls(this->sftp_connection,full_path,strip_path,lflag,fileinfos);
-    
+//     exec_ret = fxp_do_globbed_ls(this->sftp_connection,full_path,strip_path,lflag,fileinfos);
+//     
+    exec_ret = libssh2_sftp_stat(ssh2_sftp,full_path,&ssh2_sftp_attrib);
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<< " stat : "<< exec_ret <<" sftp errno:"<< libssh2_sftp_last_error(ssh2_sftp) ;
     //TODO 在网络失去连接的时候如何向上层类通知，并进行重新连接
     return exec_ret ;
 }
 
+int RemoteDirRetriveThread::fxp_do_ls_dir ( char * path,std::vector<std::map<char, std::string> > & fileinfos      )
+{
+    LIBSSH2_SFTP_HANDLE * sftp_handle = 0 ;
+    LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib ;
+    std::map<char,std::string> thefile;
+    char file_name[PATH_MAX+1];
+    char file_size[PATH_MAX+1];
+    char file_type[PATH_MAX+1];
+    char file_date[PATH_MAX+1];
+    int file_count = 0 ;
+    
+    sftp_handle = libssh2_sftp_opendir(ssh2_sftp,path);
+    if( sftp_handle == 0 )
+    {
+        return 0;
+    }
+    else
+    {
+        fileinfos.clear();
+        memset(&ssh2_sftp_attrib,0,sizeof(LIBSSH2_SFTP_ATTRIBUTES));
+        while( libssh2_sftp_readdir( sftp_handle , file_name , PATH_MAX , & ssh2_sftp_attrib ) > 0 )
+        {
+            if( strlen ( file_name ) == 1 && file_name[0] == '.' ) continue ;
+            if( strlen ( file_name ) == 2 && file_name[0] == '.' && file_name[1] == '.') continue ;
+            //不处理隐藏文件? 处理隐藏文件
+            //if( file_name[0] == '.' ) continue ;
+            
+            memset(file_size,0,sizeof(file_size )) ;
+            snprintf(file_size,sizeof(file_size) , "%llu",ssh2_sftp_attrib.filesize );
+            
+            struct tm *ltime = localtime((time_t*)&ssh2_sftp_attrib.mtime);
+            if (ltime != NULL) 
+            {
+                if (time(NULL) - ssh2_sftp_attrib.mtime < (365*24*60*60)/2)
+                    strftime(file_date, sizeof file_date, "%Y/%m/%d %H:%M:%S", ltime);
+                else
+                    strftime(file_date, sizeof file_date, "%Y/%m/%d %H:%M:%S", ltime);
+            }
+
+            strmode(ssh2_sftp_attrib.permissions,file_type );
+            //printf(" ls dir : %s %s , date=%s , type=%s \n" , file_name , file_size , file_date , file_type );
+            thefile.insert(std::make_pair('N',std::string(file_name)));
+            thefile.insert(std::make_pair('T',std::string(file_type)));
+            thefile.insert(std::make_pair('S',std::string(file_size)));
+            thefile.insert(std::make_pair('D',std::string( file_date )));  
+                      
+            fileinfos.push_back(thefile);
+            memset(&ssh2_sftp_attrib,0,sizeof(LIBSSH2_SFTP_ATTRIBUTES) );
+            thefile.clear();
+        }
+        libssh2_sftp_closedir(sftp_handle);
+        return fileinfos.size();
+    }
+    
+    return 0 ; 
+}
 
 void RemoteDirRetriveThread::add_node ( directory_tree_item* parent_item ,void * parent_model_internal_pointer )
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    
-        parent_item->prev_retr_flag = parent_item->retrived ;
-        parent_item->retrived = 8 ;
-        command_queue_elem * cmd_elem = new command_queue_elem();
-        cmd_elem->parent_item = parent_item;
-        cmd_elem->parent_model_internal_pointer = parent_model_internal_pointer;
-        cmd_elem->cmd = SSH2_FXP_READDIR;
-        this->command_queue.push_back(cmd_elem);
-        
-		if ( !this->isRunning() )
-		{
-			this->start();
-		}
-    
+	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+	
+	parent_item->prev_retr_flag = parent_item->retrived ;
+	parent_item->retrived = 8 ;
+	command_queue_elem * cmd_elem = new command_queue_elem();
+	cmd_elem->parent_item = parent_item;
+	cmd_elem->parent_model_internal_pointer = parent_model_internal_pointer;
+	cmd_elem->cmd = SSH2_FXP_READDIR;
+	this->command_queue.push_back ( cmd_elem );
+	
+	if (  !this->isRunning()  )
+	{
+		this->start();
+	}
+
+    //TODO 检测重复命令
 //     if ( this->dir_node_process_queue.count ( parent_item ) == 0 )
 // 	{
 //         parent_item->prev_retr_flag = parent_item->retrived ;

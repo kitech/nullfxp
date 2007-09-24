@@ -1,9 +1,7 @@
 SUBDIRS +=  \
- src/plinker/openbsd-compat \
- src/plinker \
- src/dummy  \
- src 
- 
+ src/libssh2 \
+  src
+
 TEMPLATE = subdirs 
 CONFIG += warn_on \
           qt \

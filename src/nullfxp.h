@@ -46,7 +46,6 @@
  class QSignalMapper;
  
 #include "ui_nullfxp.h"
-#include "sftp-client.h"
 
 #include "localview.h"
 #include "remoteview.h"
@@ -78,15 +77,14 @@ public:
         void connect_to_remote_host() ;
         void slot_disconnect_from_remote_host();
         
-        void slot_connect_remote_host_finished(int status , struct sftp_conn * conn );
+        void slot_connect_remote_host_finished(int status,void * ssh2_sess , int ssh2_sock, void * ssh2_sftp );
         
-        //void slot_new_upload_requested(QString local_file_name,QString local_file_type );
         void slot_new_upload_requested(QStringList local_file_names);
         
-        //void slot_new_upload_requested(QString local_file_name,QString local_file_type ,                                      QString remote_file_name,QString remote_file_type );
+
         void slot_new_upload_requested(QStringList local_file_names,QStringList remote_file_names );
         void slot_new_download_requested(QStringList remote_file_names );
-        //void slot_new_download_requested(QString local_file_name,QString local_file_type,  QString remote_file_name,QString remote_file_name);
+
         void slot_new_download_requested(QStringList local_file_names, QStringList remote_file_names );
         
         void slot_transfer_finished(int status );
@@ -119,17 +117,12 @@ public:
         RemoteHostConnectingStatusDialog * connect_status_dailog ;
         RemoteHostQuickConnectInfoDialog * quick_connect_info_dailog ;
         RemoteHostConnectThread * remote_conn_thread ;
-        /*
-        struct sftp_conn {
-            int fd_in;
-            int fd_out;
-            u_int transfer_buflen;
-            u_int num_requests;
-            u_int version;
-            u_int msg_id;
-        };
-        */
-        struct sftp_conn * sftp_connection ;
+
+    private:
+        //connection 
+        void * ssh2_sess ;
+        void * ssh2_sftp ;
+        int ssh2_sock ;
 };
 
 #endif

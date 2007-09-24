@@ -33,17 +33,17 @@
 #include <QCoreApplication>
 
 #include "nullfxp.h"
-#include "buffer.h"
-#include "sftp.h"
-#include "log.h"
-#include "xmalloc.h"
-#include "defines.h"
-#include "misc.h"
+// #include "buffer.h"
+// #include "sftp.h"
+// #include "log.h"
+// #include "xmalloc.h"
+// #include "defines.h"
+// #include "misc.h"
 
 
 //#include "glob.h"
 
-#include "sftp-operation.h"
+// #include "sftp-operation.h"
 
 #include "localview.h"
 #include "remoteview.h"
@@ -58,24 +58,24 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
 {
 	this->mUIMain.setupUi ( this );
 
-    central_splitter_widget  = new QSplitter ( Qt::Vertical );
+	central_splitter_widget  = new QSplitter ( Qt::Vertical );
 
 	//
 	mdiArea = new QMdiArea;
-    QObject::connect(this->mUIMain.actionTransfer_queue,SIGNAL(triggered(bool)),
-                     this,SLOT(slot_show_transfer_queue(bool)));
-    QObject::connect(this->mUIMain.actionShow_log,SIGNAL(triggered(bool)),
-                     this,SLOT(slot_show_fxp_command_log(bool)));
-    
-    QObject::connect(this->mUIMain.actionCascade_window,SIGNAL(triggered()),this,SLOT(slot_cascade_sub_windows()));
-    QObject::connect(this->mUIMain.actionTile_window,SIGNAL(triggered()),this,SLOT(slot_tile_sub_windows()));
-    
-    transfer_queue_list_view = new QListView();
+	QObject::connect ( this->mUIMain.actionTransfer_queue,SIGNAL ( triggered ( bool ) ),
+	                   this,SLOT ( slot_show_transfer_queue ( bool ) ) );
+	QObject::connect ( this->mUIMain.actionShow_log,SIGNAL ( triggered ( bool ) ),
+	                   this,SLOT ( slot_show_fxp_command_log ( bool ) ) );
 
-    central_splitter_widget->addWidget ( mdiArea );
-    central_splitter_widget->addWidget ( transfer_queue_list_view );
+	QObject::connect ( this->mUIMain.actionCascade_window,SIGNAL ( triggered() ),this,SLOT ( slot_cascade_sub_windows() ) );
+	QObject::connect ( this->mUIMain.actionTile_window,SIGNAL ( triggered() ),this,SLOT ( slot_tile_sub_windows() ) );
 
-    setCentralWidget ( central_splitter_widget );
+	transfer_queue_list_view = new QListView();
+
+	central_splitter_widget->addWidget ( mdiArea );
+	central_splitter_widget->addWidget ( transfer_queue_list_view );
+
+	setCentralWidget ( central_splitter_widget );
 
 	windowMapper = new QSignalMapper ( this );
 
@@ -87,9 +87,9 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
 	//                   this, SLOT ( local_init_dir_view() ) );
 	QObject::connect ( this->mUIMain.actionConnect, SIGNAL ( triggered() ) ,
 	                   this, SLOT ( connect_to_remote_host() ) );
-    QObject::connect( this->mUIMain.actionDisconnect,SIGNAL(triggered()),
-                      this,SLOT( slot_disconnect_from_remote_host()) );
-    
+	QObject::connect ( this->mUIMain.actionDisconnect,SIGNAL ( triggered() ),
+	                   this,SLOT ( slot_disconnect_from_remote_host() ) );
+
 	localView = new LocalView();
 
 	mdiArea->addSubWindow ( localView );
@@ -98,41 +98,43 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
 
 	mdiArea->addSubWindow ( remoteView );
 
-	QObject::connect ( localView,SIGNAL ( new_upload_requested ( QStringList) ),
-	                   this,SLOT ( slot_new_upload_requested ( QStringList) ) );
+	QObject::connect ( localView,SIGNAL ( new_upload_requested ( QStringList ) ),
+	                   this,SLOT ( slot_new_upload_requested ( QStringList ) ) );
 
-    QObject::connect ( remoteView,SIGNAL ( new_transfer_requested ( QStringList   ) ),
-                       this,SLOT ( slot_new_download_requested ( QStringList  ) ) );
-    
-    QObject::connect( remoteView, SIGNAL( new_transfer_requested(QStringList,QStringList)),
-                      this,SLOT(slot_new_upload_requested(QStringList,QStringList)) );
-    
-    this->sub_windows = this->mdiArea->subWindowList();
-    
-    //
-    QObject::connect( this->mUIMain.action_Local_Window,SIGNAL(triggered()),
-                      this,SLOT(slot_show_local_view()));
-    QObject::connect( this->mUIMain.action_Remote_Window,SIGNAL(triggered()),
-                      this,SLOT(slot_show_remote_view()) );
+	QObject::connect ( remoteView,SIGNAL ( new_transfer_requested ( QStringList ) ),
+	                   this,SLOT ( slot_new_download_requested ( QStringList ) ) );
 
-    //////////////
-    about_nullfxp_dialog = new AboutNullFXP(this);
-    QObject::connect(this->mUIMain.actionAbout_NullFXP,SIGNAL(triggered()),
-                     this,SLOT(slot_about_nullfxp()));
-    QObject::connect( this->mUIMain.actionAbout_Qt,SIGNAL(triggered()),
-                      qApp,SLOT(aboutQt()));
-    
-    //
-    this->sftp_connection = 0 ;
-    
-    //启动主界面大小调整
-    this->slot_tile_sub_windows();
-    this->remoteView->slot_custom_ui_area();
-    this->central_splitter_widget->setStretchFactor(0,4);
-    this->central_splitter_widget->setStretchFactor(1,1);
-    //
-    //QList<QMdiSubWindow *> mdiSubWindow = mdiArea->subWindowList();
-    //qDebug()<<" mdi sub window count :"<< mdiSubWindow.count();
+	QObject::connect ( remoteView, SIGNAL ( new_transfer_requested ( QStringList,QStringList ) ),
+	                   this,SLOT ( slot_new_upload_requested ( QStringList,QStringList ) ) );
+
+	this->sub_windows = this->mdiArea->subWindowList();
+
+	//
+	QObject::connect ( this->mUIMain.action_Local_Window,SIGNAL ( triggered() ),
+	                   this,SLOT ( slot_show_local_view() ) );
+	QObject::connect ( this->mUIMain.action_Remote_Window,SIGNAL ( triggered() ),
+	                   this,SLOT ( slot_show_remote_view() ) );
+
+	//////////////
+	about_nullfxp_dialog = new AboutNullFXP ( this );
+	QObject::connect ( this->mUIMain.actionAbout_NullFXP,SIGNAL ( triggered() ),
+	                   this,SLOT ( slot_about_nullfxp() ) );
+	QObject::connect ( this->mUIMain.actionAbout_Qt,SIGNAL ( triggered() ),
+	                   qApp,SLOT ( aboutQt() ) );
+
+	//
+//     this->sftp_connection = 0 ;
+
+	//启动主界面大小调整
+	this->slot_tile_sub_windows();
+	this->remoteView->slot_custom_ui_area();
+	this->central_splitter_widget->setStretchFactor ( 0,4 );
+	this->central_splitter_widget->setStretchFactor ( 1,1 );
+	//
+	//QList<QMdiSubWindow *> mdiSubWindow = mdiArea->subWindowList();
+	//qDebug()<<" mdi sub window count :"<< mdiSubWindow.count();
+
+
 }
 
 
@@ -140,7 +142,7 @@ NullFXP::~NullFXP()
 {}
 void NullFXP::slot_about_nullfxp()
 {
-    this->about_nullfxp_dialog->setVisible(true);
+	this->about_nullfxp_dialog->setVisible ( true );
 }
 
 void NullFXP::connect_to_remote_host()
@@ -150,245 +152,239 @@ void NullFXP::connect_to_remote_host()
 	QString username ;
 	QString password ;
 	QString remoteaddr ;
-    
-    //提示输入远程主机信息
-    this->quick_connect_info_dailog = new RemoteHostQuickConnectInfoDialog(this);
-    if( this->quick_connect_info_dailog->exec() == QDialog::Accepted )
-    {
-        username = this->quick_connect_info_dailog->get_user_name();
-        password = this->quick_connect_info_dailog->get_password();
-        remoteaddr = this->quick_connect_info_dailog->get_host_name();
-        
-        delete this->quick_connect_info_dailog;this->quick_connect_info_dailog=0;
-        
-	   //this->localView->set_sftp_connection ( &theconn );
-        remote_conn_thread = new RemoteHostConnectThread(
-                username,  password,remoteaddr ) ;
-        QObject::connect( this->remote_conn_thread , SIGNAL(connect_finished(int,struct sftp_conn*)),
-                          this, SLOT( slot_connect_remote_host_finished(int,struct sftp_conn*)) );
-    
-        this->connect_status_dailog = new RemoteHostConnectingStatusDialog(username,remoteaddr,this, Qt::Dialog );
-        this->connect_status_dailog->exec();    
-    }
-    else
-    {
-        qDebug()<<"user canceled ...";
-    }        
-    
+
+	//提示输入远程主机信息
+	this->quick_connect_info_dailog = new RemoteHostQuickConnectInfoDialog ( this );
+	if ( this->quick_connect_info_dailog->exec() == QDialog::Accepted )
+	{
+		username = this->quick_connect_info_dailog->get_user_name();
+		password = this->quick_connect_info_dailog->get_password();
+		remoteaddr = this->quick_connect_info_dailog->get_host_name();
+
+		delete this->quick_connect_info_dailog;this->quick_connect_info_dailog=0;
+
+		//this->localView->set_sftp_connection ( &theconn );
+		remote_conn_thread = new RemoteHostConnectThread (
+		                         username,  password,remoteaddr ) ;
+		QObject::connect ( this->remote_conn_thread , SIGNAL ( connect_finished ( int,void * , int , void * ) ),
+		                   this, SLOT ( slot_connect_remote_host_finished ( int ,void * , int , void * ) ) );
+
+		this->connect_status_dailog = new RemoteHostConnectingStatusDialog ( username,remoteaddr,this, Qt::Dialog );
+		this->connect_status_dailog->exec();
+	}
+	else
+	{
+		qDebug() <<"user canceled ...";
+	}
+
 }
 
 void NullFXP::slot_disconnect_from_remote_host()
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    
-    if( this->sftp_connection != 0 )
-    {
-        this->remoteView->slot_disconnect_from_remote_host();
-        this->remote_conn_thread->diconnect_ssh_connection();
-        delete this->remote_conn_thread ; this->remote_conn_thread = 0 ;
-        
-        delete this->connect_status_dailog ; this->connect_status_dailog = 0 ;
-        
-        free(this->sftp_connection); this->sftp_connection = 0 ;
-    }
+	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+
+//     if( this->sftp_connection != 0 )
+//     {
+//         this->remoteView->slot_disconnect_from_remote_host();
+//         this->remote_conn_thread->diconnect_ssh_connection();
+//         delete this->remote_conn_thread ; this->remote_conn_thread = 0 ;
+//
+//         delete this->connect_status_dailog ; this->connect_status_dailog = 0 ;
+//
+//         free(this->sftp_connection); this->sftp_connection = 0 ;
+//     }
 }
 
-void NullFXP::slot_connect_remote_host_finished(int status , struct sftp_conn * conn )
+void NullFXP::slot_connect_remote_host_finished ( int status,void * ssh2_sess , int ssh2_sock, void * ssh2_sftp )
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    if(status == 0 )
-    {
-        assert(conn != 0 );
-        this->sftp_connection = conn ;
-        this->localView->set_sftp_connection ( this->sftp_connection );
-        this->remoteView->set_user_home_path( this->remote_conn_thread->get_user_home_path() );
-    }
-    else
-    {
-        assert(1==2);
-    }
-    this->connect_status_dailog->accept();
-    delete this->connect_status_dailog ;
-    this->connect_status_dailog = 0 ;
-    
-    //初始化远程目录树
-    this->remoteView->i_init_dir_view ( this->sftp_connection );
+	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+	if ( status == 0 )
+	{
+        this->ssh2_sess = ssh2_sess ;
+        this->ssh2_sftp = ssh2_sftp;
+        this->ssh2_sock = ssh2_sock ;
+        this->remoteView->set_ssh2_handler(ssh2_sess,ssh2_sftp,ssh2_sock);
+		this->remoteView->set_user_home_path ( this->remote_conn_thread->get_user_home_path() );
+	}
+	else
+	{
+		assert ( 1==2 );
+	}
+	this->connect_status_dailog->accept();
+	delete this->connect_status_dailog ;
+	this->connect_status_dailog = 0 ;
+
+	//初始化远程目录树
+	this->remoteView->i_init_dir_view ( /* this->sftp_connection */ );
 }
 
-//void NullFXP::slot_new_upload_requested ( QString local_file_name ,QString local_file_type )
-void NullFXP::slot_new_upload_requested ( QStringList local_file_names)
+void NullFXP::slot_new_upload_requested ( QStringList local_file_names )
 {
 	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 	QString remote_file_name ;
-    QStringList remote_file_names ;
-    
-    if(this->remoteView->is_in_remote_dir_retrive_loop())
-    {
-        QMessageBox::warning(this,tr("attentions:"),tr("retriving remote directory tree,wait a minute please.") );
-        return ;
-    }
+	QStringList remote_file_names ;
+
+	if ( this->remoteView->is_in_remote_dir_retrive_loop() )
+	{
+		QMessageBox::warning ( this,tr ( "attentions:" ),tr ( "retriving remote directory tree,wait a minute please." ) );
+		return ;
+	}
 
 	remote_file_name = this->remoteView->get_selected_directory();
-    //remote_file_type = "";
-    remote_file_names << remote_file_name ;
-    
+	//remote_file_type = "";
+	remote_file_names << remote_file_name ;
+
 	if ( remote_file_name.length() == 0 )
 	{
-        qDebug()<<" selected a remote file directory  please";
+		qDebug() <<" selected a remote file directory  please";
 	}
 	else
 	{
 		ProgressDialog * pdlg = new ProgressDialog ( this );
-		pdlg->set_remote_connection ( this->sftp_connection );
-        //pdlg->set_transfer_info ( TransferThread::TRANSFER_PUT,local_file_name,local_file_type , remote_file_name , remote_file_type ) ;
-        pdlg->set_transfer_info ( TransferThread::TRANSFER_PUT,local_file_names , remote_file_names  ) ;
-        QObject::connect(pdlg,SIGNAL(transfer_finished(int)),
-                         this,SLOT(slot_transfer_finished(int)) );
-        
+        pdlg->set_remote_connection ( ssh2_sess,ssh2_sftp,ssh2_sock );
+		//pdlg->set_transfer_info ( TransferThread::TRANSFER_PUT,local_file_name,local_file_type , remote_file_name , remote_file_type ) ;
+		pdlg->set_transfer_info ( TransferThread::TRANSFER_PUT,local_file_names , remote_file_names ) ;
+		QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
+		                   this,SLOT ( slot_transfer_finished ( int ) ) );
         this->remoteView->slot_enter_remote_dir_retrive_loop();
 		pdlg->exec();
 	}
 }
 
-//void NullFXP::slot_new_upload_requested(QString local_file_name,QString local_file_type,                                        QString remote_file_name,QString remote_file_type)
-void NullFXP::slot_new_upload_requested(QStringList local_file_names,QStringList remote_file_names)
+void NullFXP::slot_new_upload_requested ( QStringList local_file_names,QStringList remote_file_names )
 {
-    //QStringList local_file_names;
-    //QStringList remote_file_names;
-    //local_file_names << local_file_name ;
-    //remote_file_names << remote_file_name ;
-    if(this->remoteView->is_in_remote_dir_retrive_loop())
-    {
-        QMessageBox::warning(this,tr("attentions:"),tr("retriving remote directory tree,wait a minute please.") );
-        return ;
-    }
-    ProgressDialog * pdlg = new ProgressDialog ( this );
-    pdlg->set_remote_connection ( this->sftp_connection );
-    //pdlg->set_transfer_info ( TransferThread::TRANSFER_PUT,local_file_name,local_file_type , remote_file_name , remote_file_type ) ;
-    pdlg->set_transfer_info ( TransferThread::TRANSFER_PUT,local_file_names,remote_file_names ) ;
-    QObject::connect(pdlg,SIGNAL(transfer_finished(int)),
-                     this,SLOT(slot_transfer_finished(int)) );
+	//QStringList local_file_names;
+	//QStringList remote_file_names;
+	//local_file_names << local_file_name ;
+	//remote_file_names << remote_file_name ;
+	if ( this->remoteView->is_in_remote_dir_retrive_loop() )
+	{
+		QMessageBox::warning ( this,tr ( "attentions:" ),tr ( "retriving remote directory tree,wait a minute please." ) );
+		return ;
+	}
+	ProgressDialog * pdlg = new ProgressDialog ( this );
+    pdlg->set_remote_connection ( ssh2_sess,ssh2_sftp,ssh2_sock );
+	pdlg->set_transfer_info ( TransferThread::TRANSFER_PUT,local_file_names,remote_file_names ) ;
+	QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
+	                   this,SLOT ( slot_transfer_finished ( int ) ) );
     this->remoteView->slot_enter_remote_dir_retrive_loop();
-    pdlg->exec();
+	pdlg->exec();
 }
 
-//void NullFXP::slot_new_download_requested(QString remote_file_name , QString remote_file_type )
-void NullFXP::slot_new_download_requested(QStringList remote_file_names )
+void NullFXP::slot_new_download_requested ( QStringList remote_file_names )
 {
-    QStringList local_file_names ;
-    
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    QString local_file_path  ;
-    
-    local_file_path = this->localView->get_selected_directory();
-    local_file_names << local_file_path ;
-    
-    if( local_file_path.length() == 0 )
-    {
-        qDebug()<<" selected a local file directory  please"; 
-        QMessageBox::critical(this,tr("waring..."),tr("you should selecte a local file directory."));
-    }
-    else
-    {
-        
-        ProgressDialog *pdlg = new ProgressDialog(this);
-        pdlg->set_remote_connection(  this->sftp_connection  );
-        pdlg->set_transfer_info(TransferThread::TRANSFER_GET,local_file_names,remote_file_names );
-        QObject::connect(pdlg,SIGNAL(transfer_finished(int)),
-                         this,SLOT(slot_transfer_finished(int)) );
+	QStringList local_file_names ;
+
+	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+	QString local_file_path  ;
+
+	local_file_path = this->localView->get_selected_directory();
+	local_file_names << local_file_path ;
+
+	if ( local_file_path.length() == 0 )
+	{
+		qDebug() <<" selected a local file directory  please";
+		QMessageBox::critical ( this,tr ( "waring..." ),tr ( "you should selecte a local file directory." ) );
+	}
+	else
+	{
+
+		ProgressDialog *pdlg = new ProgressDialog ( this );
+        pdlg->set_remote_connection ( ssh2_sess,ssh2_sftp,ssh2_sock );
+		pdlg->set_transfer_info ( TransferThread::TRANSFER_GET,local_file_names,remote_file_names );
+		QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
+		                   this,SLOT ( slot_transfer_finished ( int ) ) );
         this->remoteView->slot_enter_remote_dir_retrive_loop();
-        pdlg->exec();
-    }
+		pdlg->exec();
+	}
 }
 
-//void NullFXP::slot_new_download_requested(QString local_file_name,QString local_file_type,  QString remote_file_name,QString remote_file_type)
-void NullFXP::slot_new_download_requested(QStringList local_file_names, QStringList remote_file_names )
+void NullFXP::slot_new_download_requested ( QStringList local_file_names, QStringList remote_file_names )
 {
-    
-    ProgressDialog *pdlg = new ProgressDialog(this);
-    pdlg->set_remote_connection(  this->sftp_connection  );
-    pdlg->set_transfer_info(TransferThread::TRANSFER_GET,local_file_names,remote_file_names);
-    QObject::connect(pdlg,SIGNAL(transfer_finished(int)),
-                     this,SLOT(slot_transfer_finished(int)) );
+
+	ProgressDialog *pdlg = new ProgressDialog ( this );
+    pdlg->set_remote_connection ( ssh2_sess,ssh2_sftp,ssh2_sock );
+	pdlg->set_transfer_info ( TransferThread::TRANSFER_GET,local_file_names,remote_file_names );
+	QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
+	                   this,SLOT ( slot_transfer_finished ( int ) ) );
     this->remoteView->slot_enter_remote_dir_retrive_loop();
-    pdlg->exec();
+	pdlg->exec();
 }
 
-void NullFXP::slot_transfer_finished(int status )
+void NullFXP::slot_transfer_finished ( int status )
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
-    //qDebug()<<"transfer status: " << status ;
-    
-    ProgressDialog * pdlg = (ProgressDialog*)sender();
-    
-    if( status != 0 )
-    {
-        QMessageBox::critical(this,QString(tr("Error: ")),
-                              QString(tr("Unknown error: %1         ")).arg(status));
-    }
-    else
-    {
-        //TODO 通知UI更新目录结构
-        int transfer_type = pdlg->get_transfer_type();
-        if( transfer_type == TransferThread::TRANSFER_GET )
-        {
-            this->localView->update_layout();
-        }
-        else if( transfer_type == TransferThread::TRANSFER_PUT )
-        {
-            this->remoteView->update_layout();
-        }
-        else
-        {
-            // xxxxx: 没有预期到的错误
-            assert( 1== 2 );
-        }
-    }
-    delete pdlg ;
+	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+	//qDebug()<<"transfer status: " << status ;
+
+	ProgressDialog * pdlg = ( ProgressDialog* ) sender();
+
+	if ( status != 0 )
+	{
+		QMessageBox::critical ( this,QString ( tr ( "Error: " ) ),
+		                        QString ( tr ( "Unknown error: %1         " ) ).arg ( status ) );
+	}
+	else
+	{
+		//TODO 通知UI更新目录结构
+		int transfer_type = pdlg->get_transfer_type();
+		if ( transfer_type == TransferThread::TRANSFER_GET )
+		{
+			this->localView->update_layout();
+		}
+		else if ( transfer_type == TransferThread::TRANSFER_PUT )
+		{
+			this->remoteView->update_layout();
+		}
+		else
+		{
+			// xxxxx: 没有预期到的错误
+			assert ( 1== 2 );
+		}
+	}
+	delete pdlg ;
     this->remoteView->slot_leave_remote_dir_retrive_loop();
-    
 }
-void NullFXP::slot_show_transfer_queue(bool show)
+void NullFXP::slot_show_transfer_queue ( bool show )
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    transfer_queue_list_view->setVisible(show);
+	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+	transfer_queue_list_view->setVisible ( show );
 }
-void NullFXP::slot_show_fxp_command_log(bool show)
+void NullFXP::slot_show_fxp_command_log ( bool show )
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    this->remoteView->slot_show_fxp_command_log(show);
+	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+	this->remoteView->slot_show_fxp_command_log ( show );
 }
 
 void NullFXP::slot_cascade_sub_windows()
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    this->mdiArea->cascadeSubWindows();
+	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+	this->mdiArea->cascadeSubWindows();
 }
 void NullFXP::slot_tile_sub_windows()
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    this->mdiArea->tileSubWindows();
-    
+	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+	this->mdiArea->tileSubWindows();
+
 }
 
 void NullFXP::slot_show_local_view()
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    if(!this->localView->isVisible())
-    {
-        this->localView->setVisible(true);
-    }
-    this->mdiArea->setActiveSubWindow(this->sub_windows.at(0));
+	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+	if ( !this->localView->isVisible() )
+	{
+		this->localView->setVisible ( true );
+	}
+	this->mdiArea->setActiveSubWindow ( this->sub_windows.at ( 0 ) );
 }
 
 void NullFXP::slot_show_remote_view()
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;  
-    if( ! this->remoteView->isVisible())
-    {
-        this->remoteView->setVisible(true);
-    }
-    this->mdiArea->setActiveSubWindow(this->sub_windows.at(1));
+	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+	if ( ! this->remoteView->isVisible() )
+	{
+		this->remoteView->setVisible ( true );
+	}
+	this->mdiArea->setActiveSubWindow ( this->sub_windows.at ( 1 ) );
 }
 
 

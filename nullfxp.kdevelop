@@ -13,8 +13,8 @@
     <projectname>nullfxp</projectname>
     <projectdirectory>.</projectdirectory>
     <absoluteprojectpath>false</absoluteprojectpath>
-    <description/>
-    <defaultencoding/>
+    <description></description>
+    <defaultencoding></defaultencoding>
     <versioncontrol>kdevsubversion</versioncontrol>
   </general>
   <kdevfileview>
@@ -67,7 +67,7 @@
       <includePaths>.;</includePaths>
     </codecompletion>
     <creategettersetter>
-      <prefixGet/>
+      <prefixGet></prefixGet>
       <prefixSet>set</prefixSet>
       <prefixVariable>m_,_</prefixVariable>
       <parameterName>theValue</parameterName>
@@ -124,16 +124,16 @@
   </kdevdoctreeview>
   <kdevdebugger>
     <general>
-      <dbgshell/>
+      <dbgshell></dbgshell>
       <breakpoints/>
       <programargs/>
       <gdbpath>/usr/bin/gdb</gdbpath>
       <breakonloadinglibs>true</breakonloadinglibs>
       <separatetty>false</separatetty>
       <floatingtoolbar>false</floatingtoolbar>
-      <configGdbScript/>
-      <runShellScript/>
-      <runGdbScript/>
+      <configGdbScript></configGdbScript>
+      <runShellScript></runShellScript>
+      <runGdbScript></runGdbScript>
     </general>
     <display>
       <staticmembers>false</staticmembers>
@@ -145,9 +145,9 @@
   <kdevtrollproject>
     <run>
       <mainprogram>/home/gzl/nullfxp-svn</mainprogram>
-      <programargs/>
+      <programargs></programargs>
       <directoryradio>executable</directoryradio>
-      <globaldebugarguments/>
+      <globaldebugarguments></globaldebugarguments>
       <globalcwd>/home/gzl/nullfxp-svn</globalcwd>
       <useglobalprogram>false</useglobalprogram>
       <terminal>false</terminal>
@@ -161,6 +161,7 @@
         <plinkdummy/>
         <plinker/>
         <dummy/>
+        <src/>
       </runarguments>
       <cwd>
         <nullfxp>/home/gzl/nullfxp</nullfxp>
@@ -168,6 +169,7 @@
         <plinkdummy>/home/gzl/test-nullfxp-svn/src/plinker</plinkdummy>
         <plinker>/home/gzl/test-nullfxp-svn</plinker>
         <dummy>/home/gzl/test-nullfxp-svn</dummy>
+        <src>/home/gzl/1.0.0-dev</src>
       </cwd>
       <debugarguments>
         <nullfxp/>
@@ -175,17 +177,18 @@
         <plinkdummy/>
         <plinker/>
         <dummy/>
+        <src/>
       </debugarguments>
     </run>
     <general>
-      <activedir>src/plinker/openbsd-compat</activedir>
+      <activedir>src/libssh2</activedir>
     </general>
     <make>
       <abortonerror>true</abortonerror>
       <runmultiplejobs>false</runmultiplejobs>
       <numberofjobs>1</numberofjobs>
       <dontact>false</dontact>
-      <makebin/>
+      <makebin></makebin>
       <prio>0</prio>
       <envvars/>
     </make>
@@ -262,8 +265,8 @@
     <url>dsfsdfsdf</url>
   </dist>
   <ctagspart>
-    <customArguments/>
-    <customTagfilePath>/home/gzl/nullfxp-svn/tags</customTagfilePath>
+    <customArguments></customArguments>
+    <customTagfilePath>/home/gzl/1.0.0-dev/tags</customTagfilePath>
     <activeTagsFiles/>
   </ctagspart>
 </kdevelop>

@@ -20,8 +20,8 @@
 
 #include <QtCore>
 
-#include "sftp.h"
-#include "sftp-operation.h"
+// #include "sftp.h"
+// #include "sftp-operation.h"
 
 #include "remoteview.h"
 
@@ -38,10 +38,10 @@ RemoteView::RemoteView(QWidget *parent)
     this->layout()->addWidget(status_bar);
     status_bar->showMessage("Ready");
     ////////////
-    memset(this->m_curr_path,0,sizeof(this->m_curr_path));
-    memset(this->m_next_path,0,sizeof(this->m_next_path) );
-    this->m_curr_path[0] = '/';
-    this->m_next_path[0] = '/';
+//     memset(this->m_curr_path,0,sizeof(this->m_curr_path));
+//     memset(this->m_next_path,0,sizeof(this->m_next_path) );
+//     this->m_curr_path[0] = '/';
+//     this->m_next_path[0] = '/';
     
     this->remoteview.treeView->setAcceptDrops(true);
     this->remoteview.treeView->setDragEnabled(true);
@@ -112,11 +112,13 @@ void RemoteView::slot_show_fxp_command_log(bool show)
     this->remoteview.listView->setVisible(show);    
 }
 
-void RemoteView::i_init_dir_view(struct sftp_conn * conn)
+void RemoteView::i_init_dir_view(/*struct sftp_conn * conn*/)
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
-    this->remote_dir_model = new RemoteDirModel(conn);
+    this->remote_dir_model = new RemoteDirModel(/*conn*/);
+    this->remote_dir_model->set_ssh2_handler(this->ssh2_sess,this->ssh2_sftp,this->ssh2_sock );
+    
     this->remote_dir_model->set_user_home_path(this->user_home_path);
     
     this->remoteview.treeView->setModel(this->remote_dir_model);
@@ -124,7 +126,6 @@ void RemoteView::i_init_dir_view(struct sftp_conn * conn)
     this->remoteview.treeView->setDragEnabled(true);
     this->remoteview.treeView->setDropIndicatorShown(true);
     this->remoteview.treeView->setDragDropMode(QAbstractItemView::DragDrop);            
-    //do_globbed_ls( conn , this->m_next_path , this->m_curr_path, 0 );
     QObject::connect(this->remote_dir_model,SIGNAL(new_transfer_requested(QStringList,QStringList)),
                      this,SLOT(slot_new_transfer_requested(QStringList,QStringList )) ) ;
     
@@ -232,6 +233,12 @@ QString RemoteView::get_selected_directory()
 
 }
 
+void RemoteView::set_ssh2_handler( void * ssh2_sess , void * ssh2_sftp, int ssh2_sock )
+{
+    this->ssh2_sess = (LIBSSH2_SESSION*) ssh2_sess ;
+    this->ssh2_sftp = (LIBSSH2_SFTP * ) ssh2_sftp ;
+    this->ssh2_sock = ssh2_sock ;
+}
 
 void RemoteView::set_user_home_path(std::string user_home_path)
 {
@@ -279,9 +286,10 @@ void RemoteView::slot_leave_remote_dir_retrive_loop()
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
-    this->remoteview.treeView->setCursor(this->orginal_cursor);    
+    this->remoteview.treeView->setCursor(this->orginal_cursor);
     this->remote_dir_model->set_keep_alive(true);
     this->in_remote_dir_retrive_loop = false ;
+    
 }
 
 void RemoteView::update_layout()

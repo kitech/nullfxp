@@ -27,7 +27,7 @@
 #include <QTreeWidget>
 #include <QDirModel>
 
-#include "sftp-client.h"
+// #include "sftp-client.h"
 #include "ui_localview.h"
 
 /**
@@ -41,14 +41,11 @@ public:
 
     ~LocalView();
 
-    void set_sftp_connection(struct sftp_conn* conn);
-    
     QString get_selected_directory();
     
     void update_layout();
     
     signals:
-        //void new_upload_requested(QString local_file_name,QString local_file_type );
         void new_upload_requested(QStringList local_file_names);
         
     private:
@@ -57,15 +54,11 @@ public:
         Ui::LocalView localView ;
         void expand_to_home_directory(QModelIndex parent_model,int level );
         
-        struct sftp_conn * sftp_connection ;
-        
         QMenu * local_dir_tree_context_menu ;
         
         void init_local_dir_tree_context_menu();
         
     public slots:
-        
-        //void slot_remote_new_transfer_requested(QString filename);
         
         void slot_local_dir_tree_context_menu_request(const QPoint & pos );
         
