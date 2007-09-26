@@ -101,7 +101,8 @@ public:
 
         QMdiArea *mdiArea;
         QSignalMapper *windowMapper;                
-        QList<QMdiSubWindow *>  sub_windows ;
+        //QList<QMdiSubWindow *>  sub_windows ;
+        RemoteView * get_top_most_remote_view () ;
         
     private:
         
@@ -109,7 +110,7 @@ public:
         QListView * transfer_queue_list_view;
                 
         LocalView * localView;
-        RemoteView * remoteView ;
+        //RemoteView * remoteView ;
         
         Ui::MainWindow mUIMain;
         AboutNullFXP  * about_nullfxp_dialog;
@@ -119,10 +120,10 @@ public:
         RemoteHostConnectThread * remote_conn_thread ;
 
     private:
-        //connection 
-        void * ssh2_sess ;
-        void * ssh2_sftp ;
-        int ssh2_sock ;
+        //connection can not store here
+        //void * ssh2_sess ;
+        //void * ssh2_sftp ;
+        //int ssh2_sock ;
 };
 
 #endif

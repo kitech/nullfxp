@@ -197,3 +197,17 @@ std::string RemoteHostConnectThread::get_user_home_path ()
     return this->user_home_path ;
 }
 
+QString RemoteHostConnectThread::get_host_name()
+{
+    return QString(this->host_name.c_str());
+}
+
+QString RemoteHostConnectThread::get_user_name()
+{
+    return this->user_name.c_str() ;
+}
+QString RemoteHostConnectThread::get_password ()
+{
+    return this->password.c_str()  ;
+}
+

@@ -20,14 +20,7 @@
 
 #include <QtCore>
 
-// #include "sftp.h"
-// #include "sftp-operation.h"
-
 #include "remoteview.h"
-
-
-
-
 
 RemoteView::RemoteView(QWidget *parent)
  : QWidget(parent)
@@ -38,10 +31,6 @@ RemoteView::RemoteView(QWidget *parent)
     this->layout()->addWidget(status_bar);
     status_bar->showMessage("Ready");
     ////////////
-//     memset(this->m_curr_path,0,sizeof(this->m_curr_path));
-//     memset(this->m_next_path,0,sizeof(this->m_next_path) );
-//     this->m_curr_path[0] = '/';
-//     this->m_next_path[0] = '/';
     
     this->remoteview.treeView->setAcceptDrops(true);
     this->remoteview.treeView->setDragEnabled(true);
@@ -112,11 +101,11 @@ void RemoteView::slot_show_fxp_command_log(bool show)
     this->remoteview.listView->setVisible(show);    
 }
 
-void RemoteView::i_init_dir_view(/*struct sftp_conn * conn*/)
+void RemoteView::i_init_dir_view( )
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
-    this->remote_dir_model = new RemoteDirModel(/*conn*/);
+    this->remote_dir_model = new RemoteDirModel( );
     this->remote_dir_model->set_ssh2_handler(this->ssh2_sess,this->ssh2_sftp,this->ssh2_sock );
     
     this->remote_dir_model->set_user_home_path(this->user_home_path);
@@ -238,6 +227,28 @@ void RemoteView::set_ssh2_handler( void * ssh2_sess , void * ssh2_sftp, int ssh2
     this->ssh2_sess = (LIBSSH2_SESSION*) ssh2_sess ;
     this->ssh2_sftp = (LIBSSH2_SFTP * ) ssh2_sftp ;
     this->ssh2_sock = ssh2_sock ;
+}
+LIBSSH2_SESSION * RemoteView::get_ssh2_sess()
+{
+    return this->ssh2_sess ;
+}
+LIBSSH2_SFTP * RemoteView::get_ssh2_sftp ()
+{
+    return this->ssh2_sftp ;
+}
+int RemoteView::get_ssh2_sock ( )
+{
+    return this->ssh2_sock ;
+}
+
+void RemoteView::set_host_info( QString host_name , QString   user_name , QString password )
+{
+
+    this->host_name = host_name ;
+    this->user_name = user_name ;
+    this->password = password ;
+
+    this->setWindowTitle(this->windowTitle() + ": " + this->user_name + "@" + this->host_name );
 }
 
 void RemoteView::set_user_home_path(std::string user_home_path)

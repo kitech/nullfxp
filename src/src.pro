@@ -51,8 +51,6 @@ HEADERS += nullfxp.h \
 
 DISTFILES += ../CMakeLists.txt \
 CMakeLists.txt \
- plinker/CMakeLists.txt \
- plinker/openbsd-compat/CMakeLists.txt \
  libssh2/CMakeLists.txt
 
 

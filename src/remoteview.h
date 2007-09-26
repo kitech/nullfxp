@@ -47,6 +47,7 @@ public:
     ~RemoteView();
     QString get_selected_directory();
     //
+    void set_host_info ( QString host_name ,QString user_name, QString password );
     void set_ssh2_handler( void * ssh2_sess , void * ssh2_sftp, int ssh2_sock );
     void set_user_home_path(std::string user_home_path);
     
@@ -54,6 +55,10 @@ public:
         { return this->in_remote_dir_retrive_loop ; }
     
     void update_layout();
+    
+    LIBSSH2_SESSION * get_ssh2_sess();
+    LIBSSH2_SFTP * get_ssh2_sftp ();
+    int get_ssh2_sock ( );
     
     private:
         
@@ -76,6 +81,10 @@ public:
         LIBSSH2_SESSION * ssh2_sess ;
         LIBSSH2_CHANNEL *ssh2_channel;
         LIBSSH2_SFTP * ssh2_sftp ;
+        
+        QString host_name ;
+        QString user_name ;
+        QString password ;
                 
     public slots:
         void i_init_dir_view(/*struct sftp_conn * conn*/);

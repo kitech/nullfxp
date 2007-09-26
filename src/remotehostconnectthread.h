@@ -46,6 +46,10 @@ public:
     void diconnect_ssh_connection();
     std::string get_user_home_path () ;
     
+    QString get_host_name () ;
+    QString get_user_name () ;
+    QString get_password () ;
+    
     private:
         std::string user_name;
         std::string password;

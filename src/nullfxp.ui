@@ -89,7 +89,7 @@
   </action>
   <action name="actionConnect" >
    <property name="text" >
-    <string>Connect ...</string>
+    <string>New Connect ...</string>
    </property>
   </action>
   <action name="actionDisconnect" >
