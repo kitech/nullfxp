@@ -20,16 +20,23 @@
 
 #include <QtCore>
 
+#include "utils.h"
+
+#include "progressdialog.h"
+#include "localview.h"
 #include "remoteview.h"
 
-RemoteView::RemoteView(QWidget *parent)
+
+
+RemoteView::RemoteView(LocalView * local_view ,QWidget *parent)
  : QWidget(parent)
 {
     this->remoteview.setupUi(this);
+    this->local_view = local_view ;
     ///////
     status_bar = new QStatusBar(  );    
     this->layout()->addWidget(status_bar);
-    status_bar->showMessage("Ready");
+    status_bar->showMessage(tr("Ready"));
     ////////////
     
     this->remoteview.treeView->setAcceptDrops(true);
@@ -116,7 +123,7 @@ void RemoteView::i_init_dir_view( )
     this->remoteview.treeView->setDropIndicatorShown(true);
     this->remoteview.treeView->setDragDropMode(QAbstractItemView::DragDrop);            
     QObject::connect(this->remote_dir_model,SIGNAL(new_transfer_requested(QStringList,QStringList)),
-                     this,SLOT(slot_new_transfer_requested(QStringList,QStringList )) ) ;
+                     this,SLOT(slot_new_upload_requested(QStringList,QStringList )) ) ;
     
     QObject::connect( this->remote_dir_model,SIGNAL(enter_remote_dir_retrive_loop()),
                       this,SLOT(slot_enter_remote_dir_retrive_loop()));
@@ -178,21 +185,33 @@ void RemoteView::slot_new_transfer()
     
     //emit new_transfer_requested("/vmlinuz-2.6.18.2-34-xen");
     //emit new_transfer_requested(file_path,file_type );
-    emit new_transfer_requested(remote_file_names);
+    //emit new_transfer_requested(remote_file_names);
+    //这里是指的下载文件
+    this->slot_new_download_requested( remote_file_names ) ;
 }
-
-void RemoteView::slot_new_transfer_requested(QStringList local_file_names,                                    QStringList remote_file_names)
-{
-    if( this->in_remote_dir_retrive_loop )
-    {
-        QMessageBox::warning(this,tr("attentions:"),tr("retriving remote directory tree,wait a minute please.") );
-        return ;
-    }
-    else
-    {
-        emit this->new_transfer_requested(local_file_names,remote_file_names);
-    }
-}
+//已经改为 slot_new_upload_requested (  ls , rs ) 
+// void RemoteView::slot_new_transfer_requested(QStringList local_file_names,                                    QStringList remote_file_names)
+// {
+//     if( this->in_remote_dir_retrive_loop )
+//     {
+//         QMessageBox::warning(this,tr("attentions:"),tr("retriving remote directory tree,wait a minute please.") );
+//         return ;
+//     }
+//     else
+//     {
+//         //emit this->new_transfer_requested(local_file_names,remote_file_names);
+//         ProgressDialog * pdlg = new ProgressDialog ( this );
+//         pdlg->set_remote_connection ( this->get_ssh2_sess() ,
+//                                       this->get_ssh2_sftp(),
+//                                               this->get_ssh2_sock()  );
+// 
+//         pdlg->set_transfer_info ( TransferThread::TRANSFER_PUT,local_file_names , remote_file_names ) ;
+//         QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
+//                            this,SLOT ( slot_transfer_finished ( int ) ) );
+//         this->slot_enter_remote_dir_retrive_loop();
+//         pdlg->exec();
+//     }
+// }
 
 QString RemoteView::get_selected_directory()
 {
@@ -216,6 +235,15 @@ QString RemoteView::get_selected_directory()
         qDebug()<<dti->file_name.c_str()<<" "<<dti->file_type.c_str()
                 <<" "<< dti->strip_path.c_str() ;
         file_path = dti->strip_path.c_str();
+        if( dti->file_type.at(0) == 'd' || dti->file_type.at(0) == 'D'
+            || dti->file_type.at(0) == 'l' )
+        {
+            //TODO dti->file_type.at(0) == 'l' ，这时不一定是目录，可能会出错。
+        }
+        else
+        {
+            file_path = "" ;
+        }
     }
     
     return file_path ;
@@ -261,11 +289,14 @@ void RemoteView::closeEvent ( QCloseEvent * event )
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     event->ignore();
     //this->setVisible(false);
-    QMessageBox::information(this,tr("attemp to close this window?"),tr("you cat's close this window."));
+    if( QMessageBox::question(this,tr("Attemp to close this window?"),tr("Are you sure  disconnect ?"),QMessageBox::Ok|QMessageBox::Cancel,QMessageBox::Cancel ) == QMessageBox::Ok )
+    {
+    }
 }
 void RemoteView::slot_custom_ui_area()
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    //这个设置必须在show之前设置才有效果
     this->remoteview.splitter_2->setStretchFactor(0,5);
     this->remoteview.splitter_2->setStretchFactor(1,1);
 
@@ -507,4 +538,149 @@ void RemoteView::slot_rename()
     this->remote_dir_model->slot_execute_command(parent_item,parent_model.internalPointer() ,SSH2_FXP_RENAME , std::string( dti->file_name + "!" + std::string( rename_to.toAscii().data() ) ) );
     
 }
+
+void RemoteView::slot_new_upload_requested ( QStringList local_file_names,                                    QStringList remote_file_names )
+{
+    if( this->in_remote_dir_retrive_loop )
+    {
+        QMessageBox::warning(this,tr("Attentions:"),tr("retriving remote directory tree,wait a minute please.") );
+        return ;
+    }
+    else
+    {
+        //emit this->new_transfer_requested(local_file_names,remote_file_names);
+        ProgressDialog * pdlg = new ProgressDialog ( this );
+        pdlg->set_remote_connection ( this->get_ssh2_sess() ,
+                                      this->get_ssh2_sftp(),
+                                              this->get_ssh2_sock()  );
+    
+        pdlg->set_transfer_info ( TransferThread::TRANSFER_PUT,local_file_names , remote_file_names ) ;
+        QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
+                           this,SLOT ( slot_transfer_finished ( int ) ) );
+        this->slot_enter_remote_dir_retrive_loop();
+        pdlg->exec();
+    }
+}
+void RemoteView::slot_new_upload_requested ( QStringList local_file_names ) 
+{
+    QString remote_file_name ;
+    QStringList remote_file_names ;
+
+    RemoteView * remote_view = this/*->get_top_most_remote_view()*/ ;
+
+    qDebug()<<" window title :" << remote_view->windowTitle() ;
+    if ( remote_view->is_in_remote_dir_retrive_loop() )
+    {
+        QMessageBox::warning ( this,tr ( "attentions:" ),tr ( "retriving remote directory tree,wait a minute please." ) );
+        return ;
+    }
+
+    remote_file_name = remote_view->get_selected_directory();
+    remote_file_names << remote_file_name ;
+
+    if ( remote_file_name.length() == 0 )
+    {
+        qDebug() <<" selected a remote file directory  please";
+        QMessageBox::critical ( this,tr ( "Waring..." ),tr ( "you should selecte a remote file directory." ) );        
+    }
+    else
+    {
+        ProgressDialog * pdlg = new ProgressDialog ( this );
+        pdlg->set_remote_connection ( remote_view->get_ssh2_sess() ,
+                                      remote_view->get_ssh2_sftp(),
+                                              remote_view->get_ssh2_sock()  );
+
+        pdlg->set_transfer_info ( TransferThread::TRANSFER_PUT,local_file_names , remote_file_names ) ;
+// 		QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
+// 		                   this,SLOT ( slot_transfer_finished ( int ) ) );
+        QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
+                           remote_view , SLOT ( slot_transfer_finished ( int ) ) );        
+        remote_view->slot_enter_remote_dir_retrive_loop();
+        pdlg->exec();
+    }
+}
+
+void RemoteView::slot_new_download_requested(QStringList local_file_names,                                    QStringList remote_file_names)
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    qDebug() << local_file_names << remote_file_names ;
+    
+    RemoteView * remote_view = this/*->get_top_most_remote_view()*/ ;
+        
+	ProgressDialog *pdlg = new ProgressDialog ( this );
+    pdlg->set_remote_connection ( remote_view->get_ssh2_sess() ,
+                                  remote_view->get_ssh2_sftp(),
+                                          remote_view->get_ssh2_sock()  );
+	pdlg->set_transfer_info ( TransferThread::TRANSFER_GET,local_file_names,remote_file_names );
+	QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
+	                   this,SLOT ( slot_transfer_finished ( int ) ) );
+    remote_view->slot_enter_remote_dir_retrive_loop();
+	pdlg->exec();
+}
+void RemoteView::slot_new_download_requested( QStringList remote_file_names ) 
+{
+	QStringList local_file_names ;
+    
+	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+	QString local_file_path  ;
+        
+    RemoteView * remote_view = this/*->get_top_most_remote_view() */;
+    
+	local_file_path = this->local_view->get_selected_directory();
+	local_file_names << local_file_path ;
+    
+    if ( local_file_path.length() == 0 || ! is_dir(local_file_path.toAscii().data() ) )
+	{
+		qDebug() <<" selected a local file directory  please";
+		QMessageBox::critical ( this,tr ( "waring..." ),tr ( "you should selecte a local file directory." ) );
+	}
+	else
+	{
+    
+		ProgressDialog *pdlg = new ProgressDialog ( this );
+        pdlg->set_remote_connection ( remote_view->get_ssh2_sess() ,
+                                      remote_view->get_ssh2_sftp(),
+                                              remote_view->get_ssh2_sock()  );
+		pdlg->set_transfer_info ( TransferThread::TRANSFER_GET,local_file_names,remote_file_names );
+		QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
+		                   this,SLOT ( slot_transfer_finished ( int ) ) );
+        remote_view->slot_enter_remote_dir_retrive_loop();
+		pdlg->exec();
+	}
+}
+
+void RemoteView::slot_transfer_finished( int status ) 
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
+    RemoteView * remote_view = this/*->get_top_most_remote_view()*/ ;
+    
+    ProgressDialog * pdlg = ( ProgressDialog* ) sender();
+
+    if ( status != 0 )
+    {
+        QMessageBox::critical ( this,QString ( tr ( "Error: " ) ),
+                                QString ( tr ( "Unknown error: %1         " ) ).arg ( status ) );
+    }
+    else
+    {
+		//TODO 通知UI更新目录结构
+        int transfer_type = pdlg->get_transfer_type();
+        if ( transfer_type == TransferThread::TRANSFER_GET )
+        {
+            //this->localView->update_layout();
+        }
+        else if ( transfer_type == TransferThread::TRANSFER_PUT )
+        {
+            remote_view->update_layout();
+        }
+        else
+        {
+			// xxxxx: 没有预期到的错误
+            assert ( 1== 2 );
+        }
+    }
+    delete pdlg ;
+    remote_view->slot_leave_remote_dir_retrive_loop();
+}
+
 

@@ -19,7 +19,7 @@
  ***************************************************************************/
 #include <QtCore>
 
-
+#include "remoteview.h"
 #include "localview.h"
 #include "globaloption.h"
 
@@ -32,7 +32,7 @@ LocalView::LocalView ( QWidget *parent )
     ////
     this->status_bar = new QStatusBar();
     this->layout()->addWidget(this->status_bar);
-    this->status_bar->showMessage("Ready");
+    this->status_bar->showMessage(tr("Ready"));
     
     ////
 	model = new QDirModel();

@@ -286,7 +286,7 @@ void TransferThread::run()
            }
            //将目录下载到目录
            else if( is_dir(this->current_local_file_name.toAscii().data())
-                    && remote_is_dir(/*this->sftp_connection,*/this->current_remote_file_name.toAscii().data()) )
+                    && remote_is_dir(this->current_remote_file_name.toAscii().data()) )
            {
                qDebug()<<"downloading dir to dir ...";
                this->sleep(debug_sleep_time);
@@ -300,8 +300,7 @@ void TransferThread::run()
                fileinfos.clear();
                transfer_ret = fxp_do_ls_dir(/*this->sftp_connection,*/
                                             QString(this->current_remote_file_name+"/").toAscii().data(),
-                                            /* this->current_remote_file_name.toAscii().data(),
-                                                     ls_flag,*/fileinfos);
+                                            fileinfos);
                qDebug()<<"ret:"<<transfer_ret<<" file count:"<<fileinfos.size();
                
                // local dir = curr local dir +  curr remote dir 的最后一层目录
@@ -400,7 +399,7 @@ TransferThread::do_download (/* struct sftp_conn *conn,*/ char *remote_path, cha
     int file_size , tran_len = 0   ;
     LIBSSH2_SFTP_HANDLE * sftp_handle ;
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
-    char buff[1024] = {0};
+    char buff[5120] = {0};
     
     sftp_handle = libssh2_sftp_open(ssh2_sftp,remote_path,LIBSSH2_FXF_READ,0);
     if( sftp_handle == NULL )
@@ -732,7 +731,7 @@ TransferThread::do_upload (/* struct sftp_conn *conn,*/ char *local_path, char *
     LIBSSH2_SFTP_HANDLE * sftp_handle ;
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
     struct stat     file_stat ;
-    char buff[1024] = {0};
+    char buff[5120] = {0};
     
     sftp_handle = libssh2_sftp_open( ssh2_sftp,remote_path,LIBSSH2_FXF_READ|LIBSSH2_FXF_WRITE|LIBSSH2_FXF_CREAT|LIBSSH2_FXF_TRUNC,0666 ) ;
     if( sftp_handle == NULL )

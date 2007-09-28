@@ -30,6 +30,8 @@
 // #include "sftp-client.h"
 #include "ui_localview.h"
 
+class RemoteView ;
+
 /**
 	@author liuguangzhao <gzl@localhost>
 */

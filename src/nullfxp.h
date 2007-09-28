@@ -79,15 +79,14 @@ public:
         
         void slot_connect_remote_host_finished(int status,void * ssh2_sess , int ssh2_sock, void * ssh2_sftp );
         
-        void slot_new_upload_requested(QStringList local_file_names);
-        
+        void slot_new_upload_requested(QStringList local_file_names);        
 
-        void slot_new_upload_requested(QStringList local_file_names,QStringList remote_file_names );
-        void slot_new_download_requested(QStringList remote_file_names );
+        //void slot_new_upload_requested(QStringList local_file_names,QStringList remote_file_names );
+        //void slot_new_download_requested(QStringList remote_file_names );
 
-        void slot_new_download_requested(QStringList local_file_names, QStringList remote_file_names );
+        //void slot_new_download_requested(QStringList local_file_names, QStringList remote_file_names );
         
-        void slot_transfer_finished(int status );
+        //void slot_transfer_finished(int status );
         
         void slot_show_local_view();
         void slot_show_remote_view();
@@ -95,7 +94,7 @@ public:
         void slot_tile_sub_windows();
         void slot_show_transfer_queue(bool show);
         void slot_show_fxp_command_log(bool show);
-        
+
     private:
         MdiChild *activeMdiChild();        
 

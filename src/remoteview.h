@@ -35,6 +35,8 @@
 #include "libssh2.h"
 #include "libssh2_sftp.h"
 
+class LocalView ;
+
 /**
 	@author liuguangzhao <gzl@localhost>
 */
@@ -42,7 +44,7 @@ class RemoteView : public QWidget
 {
     Q_OBJECT
 public:
-    RemoteView(QWidget *parent = 0);
+    RemoteView(LocalView * local_view , QWidget *parent = 0);
 
     ~RemoteView();
     QString get_selected_directory();
@@ -61,6 +63,7 @@ public:
     int get_ssh2_sock ( );
     
     private:
+        LocalView  * local_view ;
         
         QStatusBar * status_bar ;
         
@@ -92,7 +95,11 @@ public:
         
         void slot_dir_tree_customContextMenuRequested ( const QPoint & pos );
         void slot_new_transfer();
-        void slot_new_transfer_requested(QStringList local_file_names,                                    QStringList remote_file_names);
+        //void slot_new_transfer_requested(QStringList local_file_names,                                    QStringList remote_file_names);
+        void slot_new_upload_requested(QStringList local_file_names,                                    QStringList remote_file_names);
+        void slot_new_upload_requested( QStringList local_file_names ) ;
+        void slot_new_download_requested(QStringList local_file_names,                                    QStringList remote_file_names);
+        void slot_new_download_requested( QStringList remote_file_names ) ;
         
         //////////ui
         void slot_show_fxp_command_log(bool show);
@@ -101,6 +108,8 @@ public:
         
         void slot_enter_remote_dir_retrive_loop();
         void slot_leave_remote_dir_retrive_loop();
+        
+        void slot_transfer_finished( int status ) ;
         
     signals:
         //void new_transfer_requested( QString file_name,QString file_type ) ;
