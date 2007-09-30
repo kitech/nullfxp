@@ -90,7 +90,7 @@ public:
         QString password ;
                 
     public slots:
-        void i_init_dir_view(/*struct sftp_conn * conn*/);
+        void i_init_dir_view( );
         void slot_disconnect_from_remote_host();
         
         void slot_dir_tree_customContextMenuRequested ( const QPoint & pos );

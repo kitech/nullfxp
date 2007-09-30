@@ -138,13 +138,15 @@ void NullFXP::connect_to_remote_host()
 
 		delete this->quick_connect_info_dailog;this->quick_connect_info_dailog=0;
 
+        this->connect_status_dailog = new RemoteHostConnectingStatusDialog ( username,remoteaddr,this, Qt::Dialog );
 		//this->localView->set_sftp_connection ( &theconn );
 		remote_conn_thread = new RemoteHostConnectThread (
 		                         username,  password,remoteaddr ) ;
 		QObject::connect ( this->remote_conn_thread , SIGNAL ( connect_finished ( int,void * , int , void * ) ),
 		                   this, SLOT ( slot_connect_remote_host_finished ( int ,void * , int , void * ) ) );
 
-		this->connect_status_dailog = new RemoteHostConnectingStatusDialog ( username,remoteaddr,this, Qt::Dialog );
+        QObject::connect(remote_conn_thread , SIGNAL(connect_state_changed(QString)),
+                         connect_status_dailog,SLOT(slot_connect_state_changed(QString)));        
 		this->connect_status_dailog->exec();
 	}
 	else
@@ -162,11 +164,22 @@ void NullFXP::slot_disconnect_from_remote_host()
     
     if( remote_view == 0 )
     {
-        
+        //do nothing
     }
     else
     {
         qDebug()<< " disconnect : "<< remote_view->windowTitle() ;
+        QList<QMdiSubWindow *> sub_window_list = this->mdiArea->subWindowList(QMdiArea::StackingOrder);
+        int sub_wnd_count = sub_window_list.count() ;
+    
+        for( sub_wnd_count = sub_wnd_count -1 ;  sub_wnd_count >= 0  ; sub_wnd_count -- )
+        {
+            if( sub_window_list.at( sub_wnd_count )->widget() != this->localView )
+            {
+                sub_window_list.at( sub_wnd_count )->close();
+                break ;
+            }
+        }
     }
 }
 
@@ -201,7 +214,9 @@ void NullFXP::slot_connect_remote_host_finished ( int status,void * ssh2_sess , 
 	}
 	else
 	{
-		assert ( 1==2 );
+		//assert ( 1==2 );
+        //this->connect_status_dailog->setVisible(false);
+        QMessageBox::critical(this,tr("Connect Error:"),tr("Check user name and password , retry again") );
 	}
 	this->connect_status_dailog->accept();
 	delete this->connect_status_dailog ;

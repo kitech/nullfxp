@@ -37,7 +37,7 @@
 ////////////////////////directory_tree_item
 directory_tree_item::~directory_tree_item()
 {
-    qDebug()<<"tree delete now";
+    //qDebug()<<"tree delete now";
     int line = this->child_items.size();
     for(int i = line -1 ; i >=0 ; i --)
     {
@@ -53,7 +53,14 @@ RemoteDirRetriveThread::RemoteDirRetriveThread (QObject* parent ) : QThread ( pa
 
 
 RemoteDirRetriveThread::~RemoteDirRetriveThread()
-{}
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    libssh2_sftp_shutdown(this->ssh2_sftp);
+    libssh2_session_disconnect( this->ssh2_sess,"SSH_DISCONNECT_BY_APPLICATION" );
+    libssh2_session_free( this->ssh2_sess );
+    ::close( this->ssh2_sock );
+    //TODO delete model data , ok , delete it in RemoteDirModel class
+}
 
 void RemoteDirRetriveThread::set_ssh2_handler( void * ssh2_sess , void * ssh2_sftp, int ssh2_sock )
 {

@@ -167,7 +167,8 @@ RemoteDirModel::~RemoteDirModel()
 	{
 		delete this->remote_dir_retrive_thread ;
 	}
-	//TODO: 删除model中的现有数据
+    if( tree_root != 0 ) delete tree_root ;
+	//TODO: 删除model中的现有数据, 已经实现，上一行
 }
 
 QModelIndex RemoteDirModel::index ( int row, int column, const QModelIndex &parent ) const

@@ -101,6 +101,8 @@ void RemoteView::init_popup_context_menu()
 
 RemoteView::~RemoteView()
 {
+    this->remoteview.treeView->setModel(0);
+    delete this->remote_dir_model ;
 }
 
 void RemoteView::slot_show_fxp_command_log(bool show)
@@ -289,8 +291,10 @@ void RemoteView::closeEvent ( QCloseEvent * event )
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     event->ignore();
     //this->setVisible(false);
-    if( QMessageBox::question(this,tr("Attemp to close this window?"),tr("Are you sure  disconnect ?"),QMessageBox::Ok|QMessageBox::Cancel,QMessageBox::Cancel ) == QMessageBox::Ok )
+    if( QMessageBox::question(this,tr("Attemp to close this window?"),tr("Are you sure  disconnect from %1?").arg(this->windowTitle()) ,QMessageBox::Ok|QMessageBox::Cancel,QMessageBox::Cancel ) == QMessageBox::Ok )
     {
+        qDebug()<<"delete remote view";
+        delete this ;
     }
 }
 void RemoteView::slot_custom_ui_area()

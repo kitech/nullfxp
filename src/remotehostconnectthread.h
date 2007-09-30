@@ -50,6 +50,9 @@ public:
     QString get_user_name () ;
     QString get_password () ;
     
+    signals:
+        void  connect_state_changed( QString state_desc );
+        
     private:
         std::string user_name;
         std::string password;

@@ -30,13 +30,9 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <assert.h>
 
-// #include "sftp.h"
-// 
-// #include "sftp-operation.h"
 
-#include "localview.h"
-#include "remoteview.h"
 #include "progressdialog.h"
 
 #include "remotehostconnectthread.h"
@@ -91,7 +87,7 @@ void RemoteHostConnectThread::run()
     //LIBSSH2_SFTP * ssh2_sftp =0;
     int ret= 0;
     char home_path[PATH_MAX+1] = {0};
-    char host_ipadd[60] = {0};
+    char host_ipaddr[60] = {0};
     
     //create socket 
     struct sockaddr_in serv_addr ;
@@ -99,31 +95,35 @@ void RemoteHostConnectThread::run()
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons( 22 );
     //serv_addr.sin_addr.s_addr = 
+    
+    emit connect_state_changed(tr("Resoving %1 ...").arg(this->host_name.c_str()));
     struct hostent * remote_host_ipaddrs = ::gethostbyname(this->host_name.c_str());
     char * ent_pos_c = 0 ;
     int counter = 0 ;
-    printf("remote_host ip: %s \n",remote_host_ipaddrs->h_name);
+    printf("remote_host name is : %s \n",remote_host_ipaddrs->h_name);
 
     ent_pos_c = remote_host_ipaddrs->h_addr_list[0];
     while(ent_pos_c!= NULL )
     {
-        printf("host addr: %s -> %s  \n", ent_pos_c , inet_ntop(AF_INET,ent_pos_c,host_ipadd,sizeof(host_ipadd) ) );
+        printf("host addr: %s -> %s  \n", ent_pos_c , inet_ntop(AF_INET,ent_pos_c,host_ipaddr , sizeof(host_ipaddr) ) );
         ent_pos_c =  remote_host_ipaddrs->h_addr_list[++counter];
+        emit connect_state_changed( tr("Remote host IP: %1").arg(host_ipaddr) );
     }
     
-    ret = inet_pton(AF_INET , host_ipadd ,&serv_addr.sin_addr.s_addr);
+    ret = inet_pton(AF_INET , host_ipaddr ,&serv_addr.sin_addr.s_addr);
     printf(" inet_pton ret: %d \n" , ret );
     
+    emit connect_state_changed( tr("Connecting to %1 ( %2 ) ").arg(this->host_name.c_str()).arg(host_ipaddr) );
     this->ssh2_sock = socket(AF_INET,SOCK_STREAM,0);
     ret = ::connect( this->ssh2_sock,(struct sockaddr*)&serv_addr,sizeof(serv_addr));
     assert( ret == 0 );
     
     //create session
-    ssh2_sess = libssh2_session_init();
-    
+    ssh2_sess = libssh2_session_init();    
     ret = libssh2_session_startup((LIBSSH2_SESSION*)ssh2_sess,this->ssh2_sock);
     assert( ret == 0 );
-
+    emit connect_state_changed( tr( "SSH session started ..."));
+    
     ///////////
     //auth
     char * auth_list = libssh2_userauth_list((LIBSSH2_SESSION*)ssh2_sess,this->user_name.c_str(),strlen(this->user_name.c_str()) );
@@ -131,10 +131,12 @@ void RemoteHostConnectThread::run()
     
     strncpy(ssh2_password,this->password.c_str() , sizeof(ssh2_password));
     
+    emit connect_state_changed( tr( "User authing (Keyboard Interactive)...") );
     ret = libssh2_userauth_keyboard_interactive((LIBSSH2_SESSION*)ssh2_sess,this->user_name.c_str(),&kbd_callback) ;
     qDebug()<<"keyboard interactive :"<<ret ;
     if( ret == -1 )
     {
+        emit connect_state_changed( tr( "User auth faild (Keyboard Interactive). Trying (Password ) ...") );
         ret = libssh2_userauth_password((LIBSSH2_SESSION*)ssh2_sess,this->user_name.c_str(),ssh2_password);
         qDebug()<<"auth_password :"<<ret ;
     }
@@ -144,12 +146,14 @@ void RemoteHostConnectThread::run()
     {
         this->connect_status = 1 ;
         qDebug()<<" user auth faild";
+        emit connect_state_changed( tr( "User faild (Keyboard Interactive)(Password ).") );
         return ;
     }
+    
     ssh2_sftp = libssh2_sftp_init((LIBSSH2_SESSION*)ssh2_sess );
     assert( ssh2_sftp != NULL );
 
-    
+    emit connect_state_changed(tr("User auth successfully"));
     ret = libssh2_sftp_realpath((LIBSSH2_SFTP*)ssh2_sftp,".",home_path,PATH_MAX);
     if(ret != 0 )
     {

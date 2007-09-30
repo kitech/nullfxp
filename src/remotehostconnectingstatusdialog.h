@@ -36,6 +36,9 @@ public:
 
     ~RemoteHostConnectingStatusDialog();
     
+    public slots:
+        void  slot_connect_state_changed(QString state_desc );
+        
     private slots:
         void slot_time_out();
     
