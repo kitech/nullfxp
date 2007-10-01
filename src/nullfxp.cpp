@@ -1,6 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2007 by liuguangzhao   *
- *   gzl@localhost   *
+ *   liuguangzhao@users.sourceforge.net   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -197,12 +197,6 @@ void NullFXP::slot_connect_remote_host_finished ( int status,void * ssh2_sess , 
         remote_view->slot_custom_ui_area();
         remote_view->show();
   
-        //QObject::connect ( remote_view,SIGNAL ( new_transfer_requested ( QStringList ) ),
-        //                this,SLOT ( slot_new_download_requested ( QStringList ) ) );
-            
-        //QObject::connect ( remote_view, SIGNAL ( new_transfer_requested ( QStringList,QStringList ) ),
-        //                this,SLOT ( slot_new_upload_requested ( QStringList,QStringList ) ) );
-
         remote_view->set_ssh2_handler(ssh2_sess,ssh2_sftp,ssh2_sock);
         remote_view->set_user_home_path ( this->remote_conn_thread->get_user_home_path() );
         remote_view->set_host_info(conn_thread->get_host_name(),
@@ -210,7 +204,6 @@ void NullFXP::slot_connect_remote_host_finished ( int status,void * ssh2_sess , 
                                            conn_thread->get_password() );
         //初始化远程目录树        
         remote_view->i_init_dir_view (  );
-//         remote_view->slot_custom_ui_area();
 	}
 	else
 	{
@@ -238,138 +231,10 @@ void NullFXP::slot_new_upload_requested ( QStringList local_file_names )
         return ;
     }
     remote_view->slot_new_upload_requested( local_file_names ) ;
-    
-//     qDebug()<<" window title :" << remote_view->windowTitle() ;
-//     if ( remote_view->is_in_remote_dir_retrive_loop() )
-// 	{
-// 		QMessageBox::warning ( this,tr ( "attentions:" ),tr ( "retriving remote directory tree,wait a minute please." ) );
-// 		return ;
-// 	}
-// 
-//     remote_file_name = remote_view->get_selected_directory();
-// 	remote_file_names << remote_file_name ;
-// 
-// 	if ( remote_file_name.length() == 0 )
-// 	{
-// 		qDebug() <<" selected a remote file directory  please";
-// 	}
-// 	else
-// 	{
-// 		ProgressDialog * pdlg = new ProgressDialog ( this );
-//         pdlg->set_remote_connection ( remote_view->get_ssh2_sess() ,
-//                                       remote_view->get_ssh2_sftp(),
-//                                               remote_view->get_ssh2_sock()  );
-// 
-// 		pdlg->set_transfer_info ( TransferThread::TRANSFER_PUT,local_file_names , remote_file_names ) ;
-// // 		QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
-// // 		                   this,SLOT ( slot_transfer_finished ( int ) ) );
-// 		QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
-//                            remote_view , SLOT ( slot_transfer_finished ( int ) ) );        
-//         remote_view->slot_enter_remote_dir_retrive_loop();
-// 		pdlg->exec();
-// 	}
+
 }
-// 
-// void NullFXP::slot_new_upload_requested ( QStringList local_file_names,QStringList remote_file_names )
-// {
-//     RemoteView * remote_view = this->get_top_most_remote_view() ;
-//     if ( remote_view->is_in_remote_dir_retrive_loop() )
-// 	{
-// 		QMessageBox::warning ( this,tr ( "attentions:" ),tr ( "retriving remote directory tree,wait a minute please." ) );
-// 		return ;
-// 	}
-// 	ProgressDialog * pdlg = new ProgressDialog ( this );
-//     pdlg->set_remote_connection ( remote_view->get_ssh2_sess() ,
-//                                   remote_view->get_ssh2_sftp(),
-//                                   remote_view->get_ssh2_sock()  );
-// 	pdlg->set_transfer_info ( TransferThread::TRANSFER_PUT,local_file_names,remote_file_names ) ;
-// 	QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
-// 	                   this,SLOT ( slot_transfer_finished ( int ) ) );
-//     remote_view->slot_enter_remote_dir_retrive_loop();
-// 	pdlg->exec();
-// }
-// 
-// void NullFXP::slot_new_download_requested ( QStringList remote_file_names )
-// {
-// 	QStringList local_file_names ;
-// 
-// 	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-// 	QString local_file_path  ;
-//     
-//     RemoteView * remote_view = this->get_top_most_remote_view() ;
-// 
-// 	local_file_path = this->localView->get_selected_directory();
-// 	local_file_names << local_file_path ;
-// 
-// 	if ( local_file_path.length() == 0 )
-// 	{
-// 		qDebug() <<" selected a local file directory  please";
-// 		QMessageBox::critical ( this,tr ( "waring..." ),tr ( "you should selecte a local file directory." ) );
-// 	}
-// 	else
-// 	{
-// 
-// 		ProgressDialog *pdlg = new ProgressDialog ( this );
-//         pdlg->set_remote_connection ( remote_view->get_ssh2_sess() ,
-//                                       remote_view->get_ssh2_sftp(),
-//                                               remote_view->get_ssh2_sock()  );
-// 		pdlg->set_transfer_info ( TransferThread::TRANSFER_GET,local_file_names,remote_file_names );
-// 		QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
-// 		                   this,SLOT ( slot_transfer_finished ( int ) ) );
-//         remote_view->slot_enter_remote_dir_retrive_loop();
-// 		pdlg->exec();
-// 	}
-// }
-// 
-// void NullFXP::slot_new_download_requested ( QStringList local_file_names, QStringList remote_file_names )
-// {
-//     RemoteView * remote_view = this->get_top_most_remote_view() ;
-//     
-// 	ProgressDialog *pdlg = new ProgressDialog ( this );
-//     pdlg->set_remote_connection ( remote_view->get_ssh2_sess() ,
-//                                   remote_view->get_ssh2_sftp(),
-//                                           remote_view->get_ssh2_sock()  );
-// 	pdlg->set_transfer_info ( TransferThread::TRANSFER_GET,local_file_names,remote_file_names );
-// 	QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
-// 	                   this,SLOT ( slot_transfer_finished ( int ) ) );
-//     remote_view->slot_enter_remote_dir_retrive_loop();
-// 	pdlg->exec();
-// }
 
-/*void NullFXP::slot_transfer_finished ( int status )
-{
-	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-	//qDebug()<<"transfer status: " << status ;
-    RemoteView * remote_view = this->get_top_most_remote_view() ;
-    
-	ProgressDialog * pdlg = ( ProgressDialog* ) sender();
 
-	if ( status != 0 )
-	{
-		QMessageBox::critical ( this,QString ( tr ( "Error: " ) ),
-		                        QString ( tr ( "Unknown error: %1         " ) ).arg ( status ) );
-	}
-	else
-	{
-		//TODO 通知UI更新目录结构
-		int transfer_type = pdlg->get_transfer_type();
-		if ( transfer_type == TransferThread::TRANSFER_GET )
-		{
-			this->localView->update_layout();
-		}
-		else if ( transfer_type == TransferThread::TRANSFER_PUT )
-		{
-            remote_view->update_layout();
-		}
-		else
-		{
-			// xxxxx: 没有预期到的错误
-			assert ( 1== 2 );
-		}
-	}
-	delete pdlg ;
-    remote_view->slot_leave_remote_dir_retrive_loop();
-}*/
 void NullFXP::slot_show_transfer_queue ( bool show )
 {
 	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;

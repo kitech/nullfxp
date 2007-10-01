@@ -100,6 +100,13 @@ void RemoteHostConnectThread::run()
     struct hostent * remote_host_ipaddrs = ::gethostbyname(this->host_name.c_str());
     char * ent_pos_c = 0 ;
     int counter = 0 ;
+    if( remote_host_ipaddrs == 0 )
+    {
+        emit connect_state_changed( tr( "Resoving host faild : (%1),%2 ").arg(h_errno).arg(hstrerror(h_errno)) ) ;
+        this->connect_status = 1 ;
+        //assert( ret == 0 );
+        return ;
+    }
     printf("remote_host name is : %s \n",remote_host_ipaddrs->h_name);
 
     ent_pos_c = remote_host_ipaddrs->h_addr_list[0];
@@ -116,7 +123,13 @@ void RemoteHostConnectThread::run()
     emit connect_state_changed( tr("Connecting to %1 ( %2 ) ").arg(this->host_name.c_str()).arg(host_ipaddr) );
     this->ssh2_sock = socket(AF_INET,SOCK_STREAM,0);
     ret = ::connect( this->ssh2_sock,(struct sockaddr*)&serv_addr,sizeof(serv_addr));
-    assert( ret == 0 );
+    if( ret != 0 )
+    {
+        emit connect_state_changed( tr( "Connect faild : (%1),%2 ").arg(errno).arg(strerror(errno)) ) ;
+        this->connect_status = 1 ;
+        //assert( ret == 0 );
+        return ;
+    }
     
     //create session
     ssh2_sess = libssh2_session_init();    
@@ -176,24 +189,11 @@ void RemoteHostConnectThread::slot_finished()
 void RemoteHostConnectThread::do_init()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-
 }
 
 void RemoteHostConnectThread::diconnect_ssh_connection()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    
-//     int ret = 0 ;
-//     if( this->child_pid > 0 )
-//     {
-//         ret = kill(this->child_pid,SIGHUP);
-//         qDebug() << "attemp to kill child process :" << this->child_pid <<" ret:"<<ret ;
-//         ret = kill(this->child_pid,SIGTERM);
-//         qDebug() << "attemp to kill child process :" << this->child_pid <<" ret:"<<ret ;
-//         ret = kill(this->child_pid,SIGABRT);
-//         qDebug() << "attemp to kill child process :" << this->child_pid <<" ret:"<<ret ;
-//         waitpid(this->child_pid, NULL, 0);
-//     }
 }
 
 std::string RemoteHostConnectThread::get_user_home_path () 
