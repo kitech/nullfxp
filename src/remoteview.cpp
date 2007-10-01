@@ -290,9 +290,16 @@ void RemoteView::closeEvent ( QCloseEvent * event )
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     event->ignore();
+    if( this->in_remote_dir_retrive_loop )
+    {
+        //TODO 怎么能友好的结束
+        //QMessageBox::warning(this,tr("attentions:"),tr("retriving remote directory tree,wait a minute please.") );
+        //return ;
+    }
     //this->setVisible(false);
     if( QMessageBox::question(this,tr("Attemp to close this window?"),tr("Are you sure  disconnect from %1?").arg(this->windowTitle()) ,QMessageBox::Ok|QMessageBox::Cancel,QMessageBox::Cancel ) == QMessageBox::Ok )
     {
+        this->setVisible(false);
         qDebug()<<"delete remote view";
         delete this ;
     }

@@ -161,7 +161,11 @@ RemoteDirModel::~RemoteDirModel()
     
 	if ( this->remote_dir_retrive_thread->isRunning() )
 	{
+        //TODO 怎么能友好的结束,  现在这么做只能让程序不崩溃掉。
 		qDebug() <<" remote_dir_retrive_thread is run , how stop ?";
+        this->remote_dir_retrive_thread->terminate();
+        //this->remote_dir_retrive_thread->wait();  //这个不好用
+        delete this->remote_dir_retrive_thread ;        
 	}
 	else
 	{

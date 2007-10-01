@@ -49,7 +49,8 @@ public:
         QTimer  timer ;
         
         Ui::RemoteHostConnectingStatusDialog connect_status_dialog;
-    
+    protected:
+        virtual void closeEvent ( QCloseEvent * event ) ;
 };
 
 #endif

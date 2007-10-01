@@ -17,6 +17,9 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#include <QtCore>
+#include <QtGui>
+
 #include "remotehostconnectingstatusdialog.h"
 
 RemoteHostConnectingStatusDialog::RemoteHostConnectingStatusDialog ( QString user_name,QString host_name,QWidget* parent, Qt::WindowFlags f ) : QDialog ( parent, f )
@@ -60,3 +63,7 @@ void  RemoteHostConnectingStatusDialog::slot_connect_state_changed(QString state
     this->connect_status_dialog.lineEdit_2->setText( state_desc ) ;
 }
 
+void RemoteHostConnectingStatusDialog::closeEvent ( QCloseEvent * event ) 
+{
+    event->ignore();
+}
