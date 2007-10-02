@@ -23,8 +23,9 @@
 
 #include <QtCore>
 
-// #include "sftp.h"
-// #include "sftp-operation.h"
+#ifdef WIN32
+#include <winsock2.h>
+#endif
 
 #include "remotedirretrivethread.h"
 
@@ -58,7 +59,12 @@ RemoteDirRetriveThread::~RemoteDirRetriveThread()
     libssh2_sftp_shutdown(this->ssh2_sftp);
     libssh2_session_disconnect( this->ssh2_sess,"SSH_DISCONNECT_BY_APPLICATION" );
     libssh2_session_free( this->ssh2_sess );
+    #ifdef WIN32    
+    ::closesocket( this->ssh2_sock ) ;
+    #else
     ::close( this->ssh2_sock );
+    #endif
+    
     //TODO delete model data , ok , delete it in RemoteDirModel class
 }
 

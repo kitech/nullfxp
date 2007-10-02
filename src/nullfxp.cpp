@@ -22,11 +22,17 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/stat.h>
-#include <sys/socket.h>
+
 #include <sys/types.h>
 #include <errno.h>
 #include <signal.h>
+
+#ifdef WIN32
+#include <winsock2.h>
+#else
+#include <sys/socket.h>
 #include <wait.h>
+#endif
 
 #include <QtNetwork>
 

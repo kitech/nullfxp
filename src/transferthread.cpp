@@ -37,7 +37,12 @@
 #ifdef HAVE_SYS_TIME_H
 # include <sys/time.h>
 #endif
+
+#ifdef WIN32
+#define jjjjjjjjj
+#else
 #include <sys/uio.h>
+#endif
 
 #include <cassert>
 

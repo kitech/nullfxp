@@ -570,8 +570,14 @@ bool RemoteDirModel::dropMimeData ( const QMimeData *data, Qt::DropAction action
 	QString file_name;
 	for ( int i = 0 ; i < urls.count() ; i ++ )
 	{
-		file_name = urls.at ( i ).toString().right ( urls.at ( i ).toString().length()-7 );
+		file_name = urls.at ( i ).toString().right ( urls.at ( i ).toString().length()-7 );		
+		#ifdef WIN32
+			//在windows上Qt获取的路径URL带着 file:///前缀 , 如 file:///E:/xxx/bbb.txt , 而在　unix上这个路径为 file:///home/aaa.txt , 前缀为 file:// , 所以两个值还是差1的，需要下面的语句
+			file_name = file_name.right( file_name.length() - 1 );
+			//qDebug()<< file_name << strlen( "file:///") ;
+		#endif
 		if ( file_name.trimmed().length() == 0 ) continue ;
+		
 		ba = codec->fromUnicode ( file_name );
 		//qDebug()<< file_name <<" ---> :" REMOTE_CODEC << ba ;
 		file_name = ba ;

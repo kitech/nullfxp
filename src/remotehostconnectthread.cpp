@@ -21,15 +21,22 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/stat.h>
-#include <sys/socket.h>
+
 #include <sys/types.h>
 #include <errno.h>
 #include <signal.h>
-#include <wait.h>
+
 #include <sys/types.h>
+
+#ifdef WIN32
+#include <winsock2.h>
+#else
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <wait.h>
+#endif
+
 #include <assert.h>
 
 
@@ -89,6 +96,14 @@ void RemoteHostConnectThread::run()
     char home_path[PATH_MAX+1] = {0};
     char host_ipaddr[60] = {0};
     
+    
+#ifdef WIN32
+		#define WINSOCK_VERSION 2.0
+    WSADATA wsadata;
+
+    WSAStartup(WINSOCK_VERSION, &wsadata);
+#endif
+
     //create socket 
     struct sockaddr_in serv_addr ;
     memset( & serv_addr , 0 , sizeof( serv_addr )) ;
@@ -102,7 +117,11 @@ void RemoteHostConnectThread::run()
     int counter = 0 ;
     if( remote_host_ipaddrs == 0 )
     {
+    	#ifdef WIN32
+    		emit connect_state_changed( tr( "Resoving host faild :  ") ) ;
+    	#else
         emit connect_state_changed( tr( "Resoving host faild : (%1),%2 ").arg(h_errno).arg(hstrerror(h_errno)) ) ;
+      #endif
         this->connect_status = 1 ;
         //assert( ret == 0 );
         return ;
@@ -112,13 +131,25 @@ void RemoteHostConnectThread::run()
     ent_pos_c = remote_host_ipaddrs->h_addr_list[0];
     while(ent_pos_c!= NULL )
     {
+    	#ifdef WIN32
+    		struct in_addr tmp_in_addr ;
+    		memset(&tmp_in_addr,0,sizeof(struct in_addr));
+    		memcpy(&tmp_in_addr,ent_pos_c,sizeof(struct in_addr));
+      	printf("host addr: %s -> %s \n", ent_pos_c , inet_ntoa( tmp_in_addr ) );
+      	strcpy( host_ipaddr,inet_ntoa( tmp_in_addr ) );
+      #else
         printf("host addr: %s -> %s  \n", ent_pos_c , inet_ntop(AF_INET,ent_pos_c,host_ipaddr , sizeof(host_ipaddr) ) );
+      #endif  
         ent_pos_c =  remote_host_ipaddrs->h_addr_list[++counter];
         emit connect_state_changed( tr("Remote host IP: %1").arg(host_ipaddr) );
     }
     
+    #ifdef WIN32
+    serv_addr.sin_addr.s_addr = (unsigned long)inet_addr ( host_ipaddr ) ;
+    #else
     ret = inet_pton(AF_INET , host_ipaddr ,&serv_addr.sin_addr.s_addr);
     printf(" inet_pton ret: %d \n" , ret );
+    #endif   
     
     emit connect_state_changed( tr("Connecting to %1 ( %2 ) ").arg(this->host_name.c_str()).arg(host_ipaddr) );
     this->ssh2_sock = socket(AF_INET,SOCK_STREAM,0);

@@ -52,6 +52,7 @@ src/libssh2/src/libssh2_config.h.in -text
 src/libssh2/src/libssh2_priv.h -text
 src/libssh2/src/mac.c -text
 src/libssh2/src/misc.c -text
+src/libssh2/src/mw_libssh2_config.h -text
 src/libssh2/src/openssl.c -text
 src/libssh2/src/openssl.h -text
 src/libssh2/src/packet.c -text

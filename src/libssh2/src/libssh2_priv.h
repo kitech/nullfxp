@@ -73,6 +73,15 @@
 /* Needed for struct iovec on some platforms */
 #ifdef HAVE_SYS_UIO_H
 #include <sys/uio.h>
+#else
+#ifdef WIN32
+struct iovec
+{
+    char *iov_base;
+    int iov_len;
+};
+#include <winsock2.h>
+#endif
 #endif
 
 #ifdef HAVE_SYS_SOCKET_H
