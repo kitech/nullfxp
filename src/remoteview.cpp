@@ -26,7 +26,7 @@
 #include "localview.h"
 #include "remoteview.h"
 
-
+#include "fileproperties.h"
 
 RemoteView::RemoteView(LocalView * local_view ,QWidget *parent)
  : QWidget(parent)
@@ -71,6 +71,9 @@ void RemoteView::init_popup_context_menu()
     action = new QAction(tr("Refresh"),0);
     this->dir_tree_context_menu->addAction(action);
     QObject::connect(action,SIGNAL(triggered()),this,SLOT(slot_refresh_directory_tree()));
+    action = new QAction(tr("Properties..."),0);
+    this->dir_tree_context_menu->addAction(action);
+    QObject::connect(action,SIGNAL(triggered()),this,SLOT(slot_show_properties()));
     
     action = new QAction("",0);
     action->setSeparator(true);
@@ -390,6 +393,25 @@ void RemoteView::update_layout()
 void RemoteView::slot_refresh_directory_tree()
 {
     this->update_layout();
+}
+
+void RemoteView::slot_show_properties()
+{
+    QItemSelectionModel *ism = this->remoteview.treeView->selectionModel();
+    
+    if(ism == 0)
+    {
+        qDebug()<<" why???? no QItemSelectionModel??";        
+        return ;
+    }
+    
+    QModelIndexList mil = ism->selectedIndexes()   ;
+    //  文件类型，大小，几个时间，文件权限
+    //TODO 从模型中取到这些数据并显示在属性对话框中。
+    FileProperties * fp = new FileProperties(this);
+    fp->set_file_info_model_list(mil);
+    fp->exec();
+    delete fp ;
 }
 
 void RemoteView::slot_mkdir()

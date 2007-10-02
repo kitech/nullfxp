@@ -125,6 +125,7 @@ public:
         void slot_dir_item_clicked(const QModelIndex & index);
 
         void slot_refresh_directory_tree();
+        void slot_show_properties();
         void slot_mkdir();
         void slot_rmdir();        
         void slot_rename();

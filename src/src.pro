@@ -12,12 +12,12 @@ SOURCES += main.cpp \
  aboutnullfxp.cpp \
  globaloption.cpp \
  globaloptionsdialog.cpp \
- utils.cpp
+ utils.cpp \
+ fileproperties.cpp
 TEMPLATE = app
 CONFIG += warn_on \
 	  thread \
           qt \
- console \
  debug
 TARGET = ../bin/nullfxp
 
@@ -32,7 +32,8 @@ FORMS += nullfxp.ui \
  remotehostconnectingstatusdialog.ui \
  remotehostquickconnectfinfodailog.ui \
  aboutnullfxp.ui \
- globaloptionsdialog.ui
+ globaloptionsdialog.ui \
+ fileproperties.ui
 
 HEADERS += nullfxp.h \
  localview.h \
@@ -46,7 +47,8 @@ HEADERS += nullfxp.h \
  remotehostquickconnectinfodialog.h \
  aboutnullfxp.h \
  globaloption.h \
- globaloptionsdialog.h
+ globaloptionsdialog.h \
+ fileproperties.h
 
 
 DISTFILES += ../CMakeLists.txt \
@@ -61,6 +63,8 @@ CMakeLists.txt \
 DEFINES += LIBSSH2DEBUG
 
 CONFIG -= release
+
+
 
 INCLUDEPATH += ./libssh2/include
 

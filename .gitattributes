@@ -12,6 +12,9 @@ src/ReadMe -text
 src/aboutnullfxp.cpp -text
 src/aboutnullfxp.h -text
 src/aboutnullfxp.ui -text
+src/fileproperties.cpp -text
+src/fileproperties.h -text
+src/fileproperties.ui -text
 src/globaloption.cpp -text
 src/globaloption.h -text
 src/globaloptionsdialog.cpp -text

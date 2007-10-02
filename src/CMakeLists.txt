@@ -50,6 +50,7 @@ INCLUDE_DIRECTORIES( .
 
 SET(qtproject_UIS
 aboutnullfxp.ui  
+fileproperties.ui
 nullfxp.ui         
 remotehostconnectingstatusdialog.ui   
 remoteview.ui
@@ -63,7 +64,8 @@ QT4_WRAP_UI(qtproject_UIS_H ${qtproject_UIS})
 
 # 
 SET( qtproject_SRCS
-aboutnullfxp.cpp            
+aboutnullfxp.cpp     
+fileproperties.cpp       
 remotehostconnectingstatusdialog.cpp
 localview.cpp               
 remotehostconnectthread.cpp
@@ -78,7 +80,8 @@ globaloptionsdialog.cpp
  )
 
  SET ( qtproject_moc_HDRS 
-aboutnullfxp.h            
+aboutnullfxp.h    
+fileproperties.h        
 remotehostconnectingstatusdialog.h
 localview.h               
 remotehostconnectthread.h
@@ -148,6 +151,7 @@ ADD_EXECUTABLE(../bin/nullfxp
 ##########################
     globaloption.cpp
     globaloptionsdialog.cpp
+    fileproperties.cpp
 ############################
     ${qtproject_UIS_H}  ${qtproject_moc_SRCS}
 )
