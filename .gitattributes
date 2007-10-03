@@ -110,6 +110,8 @@ src/remoteview.h -text
 src/remoteview.ui -text
 src/sftp.h -text
 src/src.pro -text
+src/synchronizeoptiondialog.ui -text
+src/synchronizewindow.ui -text
 src/tmpmain.cpp -text
 src/transferthread.cpp -text
 src/transferthread.h -text

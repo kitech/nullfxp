@@ -5,7 +5,8 @@ hostkey.c \
 kex.c \
 mac.c \
 misc.c \
-openssl.c \
+#openssl.c \
+#libgcrypt.c \
 packet.c \
 pem.c \
 publickey.c \
@@ -18,6 +19,14 @@ HEADERS += libgcrypt.h \
 libssh2_config.h \
 libssh2_priv.h \
 openssl.h
+
+win32{
+	SOURCES += libgcrypt.c
+} else {
+	SOURCES += openssl.c
+}
+
+
 DESTDIR = .
 
 TEMPLATE = lib

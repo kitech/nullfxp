@@ -202,8 +202,8 @@ void LocalView::slot_refresh_directory_tree()
 	if ( ism !=0 )
 	{
 		QModelIndexList mil = ism->selectedIndexes();
-
-		model->refresh ( mil.at ( 0 ) );
+        if( mil.count() > 0 )
+		  model->refresh ( mil.at ( 0 ) );
 	}
 
 }

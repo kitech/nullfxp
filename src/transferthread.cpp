@@ -265,8 +265,9 @@ void TransferThread::run()
            else
            {
                //其他的情况暂时不考虑处理。跳过
+               //TODO return a error value , not only error code 
                this->error_code = 1 ;
-               assert( 1 == 2 ) ; 
+               //assert( 1 == 2 ) ; 
            }
        }
        else if( this->transfer_type == TransferThread::TRANSFER_GET )
@@ -325,14 +326,15 @@ void TransferThread::run()
            else
            {
                //其他的情况暂时不考虑处理。跳过。
+               //TODO return a error value , not only error code 
                this->error_code = 1 ;
-               assert( 1 == 2 ) ; 
+               //assert( 1 == 2 ) ; 
            }
        }
        else
        {
-            assert( 1 == 2 ) ; 
-            this->error_code = 2 ;  
+           this->error_code = 2 ;
+           assert( 1 == 2 ) ;
        }
        
        this->transfer_ready_queue.erase(this->transfer_ready_queue.begin());

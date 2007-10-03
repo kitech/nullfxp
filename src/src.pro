@@ -18,7 +18,8 @@ TEMPLATE = app
 CONFIG += warn_on \
 	  thread \
           qt \
- debug
+ debug \
+ console
 TARGET = ../bin/nullfxp
 
 QT += network
@@ -33,7 +34,9 @@ FORMS += nullfxp.ui \
  remotehostquickconnectfinfodailog.ui \
  aboutnullfxp.ui \
  globaloptionsdialog.ui \
- fileproperties.ui
+ fileproperties.ui \
+ synchronizeoptiondialog.ui \
+ synchronizewindow.ui
 
 HEADERS += nullfxp.h \
  localview.h \
@@ -66,9 +69,21 @@ CONFIG -= release
 
 
 
-INCLUDEPATH += ./libssh2/include
 
-LIBS += libssh2/src/libssh2.a \
+win32 {
+    debug {
+        LIBPATH += ./libssh2/src/debug
+    }
+    release {
+        LIBPATH += ./libssh2/src/release
+    }
+    LIBS += -lssh2 -lgcrypt -lgpg-error -lws2_32
+}else {
+    LIBS += libssh2/src/libssh2.a \
 -lssl
-TARGETDEPS += libssh2/src/libssh2.a
+
+    TARGETDEPS += libssh2/src/libssh2.a
+}
+
+INCLUDEPATH += ./libssh2/include
 
