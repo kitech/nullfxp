@@ -181,7 +181,7 @@
       </debugarguments>
     </run>
     <general>
-      <activedir>src</activedir>
+      <activedir>src/libssh2</activedir>
     </general>
     <make>
       <abortonerror>true</abortonerror>

@@ -26,24 +26,47 @@
 #include <QtGui>
 #include <QDialog>
 
+#include "libssh2.h"
+#include "libssh2_sftp.h"
+
 #include "ui_fileproperties.h"
+
+class FilePropertiesRetriveThread : public QThread
+{
+    Q_OBJECT
+    public:
+        FilePropertiesRetriveThread( LIBSSH2_SFTP * ssh2_sftp , QString file_path , QObject * parent = 0 );
+        ~FilePropertiesRetriveThread();
+        virtual void run ();
+    signals:
+        void file_attr_abtained( void * attr );
+    private:
+        LIBSSH2_SFTP * ssh2_sftp ;
+        QString file_path ;
+};
 
 /**
 	@author liuguangzhao <gzl@localhost>
 */
-class FileProperties : public QDialog
+class FileProperties : public  QDialog
 {
 Q_OBJECT
 public:
     FileProperties(QWidget *parent = 0);
 
     ~FileProperties();
+    void set_ssh2_sftp( void * ssh2_sftp );
     
     void set_file_info_model_list(QModelIndexList &mil);
-    
-    private:
-        Ui::FileProperties ui_file_prop_dialog;
+
+    public slots:
+        void slot_prop_thread_finished();
+        void slot_file_attr_abtained( void * attr );
         
+    private:
+        void update_perm_table( QString file_perm );
+        Ui::FileProperties ui_file_prop_dialog;
+        LIBSSH2_SFTP * ssh2_sftp ;
 };
 
 #endif

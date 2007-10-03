@@ -88,7 +88,10 @@ public:
         QString host_name ;
         QString user_name ;
         QString password ;
-                
+        
+        //menu item
+        QAction * attr_action;
+        
     public slots:
         void i_init_dir_view( );
         void slot_disconnect_from_remote_host();
