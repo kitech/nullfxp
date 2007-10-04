@@ -48,13 +48,13 @@ public:
     int get_transfer_type() { return this->transfer_type ; }
     
     public slots:
-        void slot_set_transfer_percent(int percent );
+        void slot_set_transfer_percent(int percent , int total_transfered ,int transfer_delta );
         void slot_transfer_thread_finished() ;
         void slot_new_file_transfer_started(QString new_file_name);
         
-        
         void exec ();
-        
+        void slot_cancel_button_clicked();
+        void slot_transfer_got_file_size( int size );
     signals:
         void transfer_finished(int status);
         
@@ -67,10 +67,17 @@ public:
         TransferThread * sftp_transfer_thread ;
         bool   first_show ;
         
+        quint64 total_files_size ;
+        quint64 abtained_files_size ;
+        int     total_files_count ;
+        int     abtained_files_count ;
+        
     private:    //UI element
         
         Ui::ProgressDialog ui_progress_dialog; 
         
+    private:
+        void update_transfer_state();
     protected:
         void closeEvent ( QCloseEvent * event ) ;
 };

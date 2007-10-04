@@ -319,8 +319,8 @@ void RemoteView::slot_custom_ui_area()
 
     this->remoteview.splitter->setStretchFactor(0,3);
     this->remoteview.splitter->setStretchFactor(1,1);
-    this->remoteview.listView_2->setVisible(false);//暂时没有功能在里面先隐藏掉
-
+    //this->remoteview.listView_2->setVisible(false);//暂时没有功能在里面先隐藏掉
+    this->remoteview.tableView->setVisible(false);
 }
 
 void RemoteView::slot_dir_item_clicked(const QModelIndex & index)
@@ -520,7 +520,7 @@ void RemoteView::rm_file_or_directory_recursively()
         QMessageBox::critical(this,tr("waring..."),tr("no item selected"));
         return ;
     }
-    
+    //TODO 处理多选的情况
     QModelIndex midx = mil.at(0);
     directory_tree_item * dti = (directory_tree_item*) midx.internalPointer();
     QModelIndex parent_model =  midx.parent() ;
@@ -704,7 +704,7 @@ void RemoteView::slot_transfer_finished( int status )
         int transfer_type = pdlg->get_transfer_type();
         if ( transfer_type == TransferThread::TRANSFER_GET )
         {
-            //this->localView->update_layout();
+            this->local_view->update_layout();
         }
         else if ( transfer_type == TransferThread::TRANSFER_PUT )
         {

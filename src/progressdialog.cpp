@@ -57,13 +57,21 @@ ProgressDialog::ProgressDialog(QWidget *parent)
     
     QObject::connect(this->sftp_transfer_thread,SIGNAL(finished()),
             this,SLOT(slot_transfer_thread_finished()) );
-    QObject::connect(this->sftp_transfer_thread,SIGNAL(transfer_percent_changed(int )),
-                     this,SLOT(slot_set_transfer_percent(int)) );
+    QObject::connect(this->sftp_transfer_thread,SIGNAL(transfer_percent_changed(int,int ,int )),
+                     this,SLOT(slot_set_transfer_percent(int,int,int)) );
     QObject::connect(this->sftp_transfer_thread,SIGNAL(transfer_new_file_started(QString)),
                      this,SLOT(slot_new_file_transfer_started(QString)));
+    QObject::connect(this->ui_progress_dialog.pushButton,SIGNAL( clicked()),
+                     this,SLOT(slot_cancel_button_clicked()));
+    QObject::connect( this->sftp_transfer_thread,SIGNAL(transfer_got_file_size(int)),
+                      this,SLOT(slot_transfer_got_file_size(int )) );
     
     this->first_show = 1 ;
     this->ui_progress_dialog.progressBar->setValue(0);
+    this->total_files_size = 0 ;
+    this->total_files_count = 0 ;
+    this->abtained_files_size = 0 ;
+    this->abtained_files_count = 0 ;
 }
 
 
@@ -141,17 +149,19 @@ void ProgressDialog::set_transfer_info(int type,QStringList local_file_names,QSt
     {
         assert(1==2);
     }
-    
-    
 }
 
-
-void ProgressDialog::slot_set_transfer_percent(int percent )
+void ProgressDialog::slot_set_transfer_percent(int percent  , int total_transfered,int transfer_delta )
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
-    
     this->ui_progress_dialog.progressBar->setValue(percent);
-    
+    this->ui_progress_dialog.lineEdit_5->setText(QString("%1").arg(total_transfered));
+    this->abtained_files_size += transfer_delta ;//TODO no right logic
+    if( percent == 100 )
+    {
+        this->abtained_files_count += 1 ;
+    }
+    this->update_transfer_state() ;
 }
 
 void ProgressDialog::slot_transfer_thread_finished() 
@@ -202,6 +212,9 @@ void ProgressDialog::slot_new_file_transfer_started(QString new_file_name)
     }
     u_new_file_name = QString(tr("processing: %1")).arg(u_new_file_name);
     this->ui_progress_dialog.progressBar->setStatusTip( u_new_file_name );
+    ////
+    this->total_files_count ++ ;
+    this->update_transfer_state();
     //this->setToolTip(u_new_file_name);
 }
 
@@ -209,7 +222,32 @@ void ProgressDialog::closeEvent ( QCloseEvent * event )
 {
     event->ignore();
     //this->setVisible(false);
-    QMessageBox::information(this,tr("attemp to close this window?"),tr("you cat's close this window."));
+    QMessageBox::information(this,tr("Attemp to close this window?"),tr("Are you sure to stop the transfomition ?"),QMessageBox::Ok | QMessageBox::Cancel );
 }
 
+void ProgressDialog::slot_cancel_button_clicked()
+{
+    this->close() ;
+}
+void ProgressDialog::update_transfer_state()
+{
+    this->ui_progress_dialog.lineEdit_9->setText(QString("%1").arg(this->abtained_files_count));
+    this->ui_progress_dialog.lineEdit_10->setText(QString("%1").arg(this->total_files_count));
+    this->ui_progress_dialog.lineEdit_11->setText(QString("%1").arg(this->abtained_files_size));
+    this->ui_progress_dialog.lineEdit_12->setText(QString("%1").arg(this->total_files_size));
+    if( this->total_files_size == 0 )
+    {
+        this->ui_progress_dialog.progressBar_2->setValue(100);
+    }
+    else
+    {
+        this->ui_progress_dialog.progressBar_2->setValue(100*this->abtained_files_size/this->total_files_size);
+    }
+}
+void ProgressDialog::slot_transfer_got_file_size( int size )
+{
+    this->total_files_size += size ;
+    this->ui_progress_dialog.lineEdit_13->setText(QString("%1").arg(size));
+    this->update_transfer_state() ;
+}
 

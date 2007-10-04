@@ -47,7 +47,7 @@
 #include <cassert>
 
 #include <QtCore>
-
+#include "globaloption.h"
 #include "transferthread.h"
 
 #include "utils.h"
@@ -420,14 +420,16 @@ TransferThread::do_download ( char *remote_path, char *local_path,
     libssh2_sftp_fstat(sftp_handle,&ssh2_sftp_attrib);
     file_size = ssh2_sftp_attrib.filesize;
     qDebug()<<" remote file size :"<< file_size ;
+    emit this->transfer_got_file_size( file_size );
     
-    QFile q_file ( local_path );
+    // 本地编码 --> Qt 内部编码
+    QFile q_file ( GlobalOption::instance()->locale_codec->toUnicode( local_path ) ) ;
     //local_fd = ::open(local_path,O_RDWR|O_TRUNC|O_CREAT,0666 );
     if( ! q_file.open(QIODevice::ReadWrite|QIODevice::Truncate))
     //if( local_fd < 0 )
     {
         //TODO 错误消息通知用户。
-        qDebug()<<"open local file error:"<< strerror(errno) ;        
+        qDebug()<<"open local file error:"<< q_file.errorString() ;        
     }
     else
     {
@@ -437,16 +439,15 @@ TransferThread::do_download ( char *remote_path, char *local_path,
 						//wlen = ::write ( local_fd , buff , rlen );
 						wlen = q_file.write( buff, rlen );
             tran_len += wlen ;
-			qDebug() <<" read len :"<< rlen <<" , write len: "<< wlen 
-                    << " tran len: "<< tran_len ;
+			//qDebug() <<" read len :"<< rlen <<" , write len: "<< wlen                     << " tran len: "<< tran_len ;
 			//my progress signal
             if( file_size == 0 )
             {
-                emit this->transfer_percent_changed ( 100 );
+                emit this->transfer_percent_changed ( 100 , tran_len , wlen );
             }
             else
             {
-                emit this->transfer_percent_changed ( tran_len * 100 / file_size );
+                emit this->transfer_percent_changed ( tran_len * 100 / file_size , tran_len ,wlen );
             }
         }
         //::close(local_fd);
@@ -494,16 +495,18 @@ TransferThread::do_upload ( char *local_path, char *remote_path,
     file_size = file_stat.st_size;
     qDebug()<< "remote_path = "<<  remote_path  << " , local_path = " << native_path ;
     qDebug()<<"local file size:" << file_size ;
+    emit this->transfer_got_file_size( file_size ) ;
     
     //local_fd = ::open(native_path,O_RDONLY );
     //local_handle = ::fopen( native_path , "r");
-    QFile q_file( native_path );
+    // 本地编码 --> Qt 内部编码
+    QFile q_file( GlobalOption::instance()->locale_codec->toUnicode(native_path ) ) ;
     if( ! q_file.open( QIODevice::ReadOnly) )
     //if( local_fd <= 0 )
     //if( local_handle == 0 )
     {
         //TODO 错误消息通知用户。
-        qDebug()<<"open local file error:"<< strerror(errno) ;
+        qDebug()<<"open local file error:"<< q_file.errorString()  ;
         //printf("open local file error:%s\n", strerror( errno ) );        
     }
     else
@@ -524,16 +527,16 @@ TransferThread::do_upload ( char *local_path, char *remote_path,
             
             tran_len += wlen ;
             
-            qDebug()<<" local read : "<< rlen << " sftp write :"<<wlen <<" up len :"<< tran_len ;
+            //qDebug()<<" local read : "<< rlen << " sftp write :"<<wlen <<" up len :"<< tran_len ;
 // 			qDebug() <<" read len :"<< rlen <<" , write len: "<< wlen 
 //                    << " tran len: "<< tran_len ;
             if( file_size == 0 )
             {
-                emit this->transfer_percent_changed ( 100 );
+                emit this->transfer_percent_changed ( 100, tran_len , wlen );
             }
             else
             {
-                emit this->transfer_percent_changed ( tran_len * 100 / file_size );
+                emit this->transfer_percent_changed ( tran_len * 100 / file_size , tran_len ,wlen  );
             }
         }
         q_file.close();

@@ -563,10 +563,6 @@ bool RemoteDirModel::dropMimeData ( const QMimeData *data, Qt::DropAction action
 		return false ;
 	}
 
-	//if(urls.count() >1 )
-	{
-		//    qDebug()<<"more than one file should process , but not supported now,only one processed";
-	}
 	QString file_name;
 	for ( int i = 0 ; i < urls.count() ; i ++ )
 	{
@@ -577,7 +573,7 @@ bool RemoteDirModel::dropMimeData ( const QMimeData *data, Qt::DropAction action
 			//qDebug()<< file_name << strlen( "file:///") ;
 		#endif
 		if ( file_name.trimmed().length() == 0 ) continue ;
-		
+		//从 Qt 内部编码到本地编码
 		ba = codec->fromUnicode ( file_name );
 		//qDebug()<< file_name <<" ---> :" REMOTE_CODEC << ba ;
 		file_name = ba ;

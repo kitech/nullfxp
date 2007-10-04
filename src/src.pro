@@ -13,7 +13,8 @@ SOURCES += main.cpp \
  globaloption.cpp \
  globaloptionsdialog.cpp \
  utils.cpp \
- fileproperties.cpp
+ fileproperties.cpp \
+ localdirfilemodel.cpp
 TEMPLATE = app
 CONFIG += warn_on \
 	  thread \
@@ -51,7 +52,8 @@ HEADERS += nullfxp.h \
  aboutnullfxp.h \
  globaloption.h \
  globaloptionsdialog.h \
- fileproperties.h
+ fileproperties.h \
+ localdirfilemodel.h
 
 
 DISTFILES += ../CMakeLists.txt \

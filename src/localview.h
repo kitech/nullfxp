@@ -27,7 +27,7 @@
 #include <QTreeWidget>
 #include <QDirModel>
 
-// #include "sftp-client.h"
+#include "localdirfilemodel.h"
 #include "ui_localview.h"
 
 class RemoteView ;
@@ -54,6 +54,10 @@ public:
         QStatusBar * status_bar ;
         QDirModel * model ;
         Ui::LocalView localView ;
+        LocalDirFileModel * dir_file_model ;
+        int   table_row_height ;
+        QAbstractItemView * curr_item_view ;    //
+        
         void expand_to_home_directory(QModelIndex parent_model,int level );
         
         QMenu * local_dir_tree_context_menu ;
@@ -67,6 +71,10 @@ public:
         void slot_local_new_upload_requested();
         
         void slot_refresh_directory_tree();
+        
+    private slots:
+        void slot_dir_tree_item_clicked( const QModelIndex & index);
+        void slot_dir_file_view_double_clicked( const QModelIndex & index );
         
     protected:
         virtual void closeEvent ( QCloseEvent * event );

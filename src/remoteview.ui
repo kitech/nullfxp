@@ -60,20 +60,7 @@
         <enum>QAbstractItemView::ExtendedSelection</enum>
        </property>
       </widget>
-      <widget class="QListView" name="listView_2" >
-       <property name="contextMenuPolicy" >
-        <enum>Qt::CustomContextMenu</enum>
-       </property>
-       <property name="acceptDrops" >
-        <bool>true</bool>
-       </property>
-       <property name="dragEnabled" >
-        <bool>true</bool>
-       </property>
-       <property name="dragDropMode" >
-        <enum>QAbstractItemView::DragDrop</enum>
-       </property>
-      </widget>
+      <widget class="QTableView" name="tableView" />
      </widget>
      <widget class="QListView" name="listView" >
       <property name="sizePolicy" >

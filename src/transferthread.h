@@ -68,8 +68,9 @@ public:
         int fxp_do_ls_dir ( char * path,std::vector<std::map<char, std::string> > & fileinfos      );
           
     signals:
-        void  transfer_percent_changed(int percent);
+        void  transfer_percent_changed( int percent , int total_transfered ,int transfer_delta );
         void  transfer_new_file_started(QString new_file_name);
+        void  transfer_got_file_size( int size );
         
     private:
         

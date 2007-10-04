@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>480</width>
-    <height>569</height>
+    <width>464</width>
+    <height>566</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -99,22 +99,30 @@
       <item>
        <layout class="QHBoxLayout" >
         <item>
-         <widget class="QLineEdit" name="lineEdit_5" />
-        </item>
-        <item>
-         <widget class="QLabel" name="label_5" >
+         <widget class="QLineEdit" name="lineEdit_5" >
           <property name="text" >
-           <string>MB of</string>
+           <string>0</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEdit_13" />
+         <widget class="QLabel" name="label_5" >
+          <property name="text" >
+           <string> of</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="lineEdit_13" >
+          <property name="text" >
+           <string>0</string>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QLabel" name="label_6" >
           <property name="text" >
-           <string>MB transfered</string>
+           <string> transfered</string>
           </property>
          </widget>
         </item>
@@ -159,7 +167,17 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEdit_6" />
+         <widget class="QLineEdit" name="lineEdit_6" >
+          <property name="toolTip" >
+           <string>&lt;html>&lt;head>&lt;meta name="qrichtext" content="1" />&lt;style type="text/css">
+p, li { white-space: pre-wrap; }
+&lt;/style>&lt;/head>&lt;body style=" font-family:'Sans Serif'; font-size:9pt; font-weight:400; font-style:normal;">
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Eclapsed time from transfer start&lt;/p>&lt;/body>&lt;/html></string>
+          </property>
+          <property name="text" >
+           <string>0</string>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QLabel" name="label_8" >
@@ -169,7 +187,17 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEdit_7" />
+         <widget class="QLineEdit" name="lineEdit_7" >
+          <property name="toolTip" >
+           <string>&lt;html>&lt;head>&lt;meta name="qrichtext" content="1" />&lt;style type="text/css">
+p, li { white-space: pre-wrap; }
+&lt;/style>&lt;/head>&lt;body style=" font-family:'Sans Serif'; font-size:9pt; font-weight:400; font-style:normal;">
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Left time &lt;/p>&lt;/body>&lt;/html></string>
+          </property>
+          <property name="text" >
+           <string>0</string>
+          </property>
+         </widget>
         </item>
         <item>
          <spacer>
@@ -196,7 +224,11 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEdit_8" />
+         <widget class="QLineEdit" name="lineEdit_8" >
+          <property name="text" >
+           <string>0</string>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QLabel" name="label_10" >
@@ -223,7 +255,11 @@
       <item>
        <layout class="QHBoxLayout" >
         <item>
-         <widget class="QLineEdit" name="lineEdit_9" />
+         <widget class="QLineEdit" name="lineEdit_9" >
+          <property name="text" >
+           <string>1</string>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QLabel" name="label_11" >
@@ -233,7 +269,11 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEdit_10" />
+         <widget class="QLineEdit" name="lineEdit_10" >
+          <property name="text" >
+           <string>1</string>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QLabel" name="label_12" >
@@ -260,22 +300,30 @@
       <item>
        <layout class="QHBoxLayout" >
         <item>
-         <widget class="QLineEdit" name="lineEdit_11" />
-        </item>
-        <item>
-         <widget class="QLabel" name="label_13" >
+         <widget class="QLineEdit" name="lineEdit_11" >
           <property name="text" >
-           <string>MB of</string>
+           <string>0</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEdit_12" />
+         <widget class="QLabel" name="label_13" >
+          <property name="text" >
+           <string> of</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="lineEdit_12" >
+          <property name="text" >
+           <string>0</string>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QLabel" name="label_14" >
           <property name="text" >
-           <string>MB transfered</string>
+           <string> transfered</string>
           </property>
          </widget>
         </item>
