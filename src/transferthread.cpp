@@ -421,8 +421,10 @@ TransferThread::do_download ( char *remote_path, char *local_path,
     file_size = ssh2_sftp_attrib.filesize;
     qDebug()<<" remote file size :"<< file_size ;
     
-    local_fd = ::open(local_path,O_RDWR|O_TRUNC|O_CREAT,0666 );
-    if( local_fd < 0 )
+    QFile q_file ( local_path );
+    //local_fd = ::open(local_path,O_RDWR|O_TRUNC|O_CREAT,0666 );
+    if( ! q_file.open(QIODevice::ReadWrite|QIODevice::Truncate))
+    //if( local_fd < 0 )
     {
         //TODO 错误消息通知用户。
         qDebug()<<"open local file error:"<< strerror(errno) ;        
@@ -432,10 +434,11 @@ TransferThread::do_download ( char *remote_path, char *local_path,
         //read remote file  and then write to local file
         while( (rlen = libssh2_sftp_read(sftp_handle,buff,sizeof(buff) ) ) > 0 )
         {
-			wlen = ::write ( local_fd , buff , rlen );
+						//wlen = ::write ( local_fd , buff , rlen );
+						wlen = q_file.write( buff, rlen );
             tran_len += wlen ;
-			//qDebug() <<" read len :"<< rlen <<" , write len: "<< wlen 
-            //        << " tran len: "<< tran_len ;
+			qDebug() <<" read len :"<< rlen <<" , write len: "<< wlen 
+                    << " tran len: "<< tran_len ;
 			//my progress signal
             if( file_size == 0 )
             {
@@ -446,7 +449,9 @@ TransferThread::do_download ( char *remote_path, char *local_path,
                 emit this->transfer_percent_changed ( tran_len * 100 / file_size );
             }
         }
-        ::close(local_fd);
+        //::close(local_fd);
+
+        q_file.close();
     }
     
     libssh2_sftp_close(sftp_handle);
@@ -468,6 +473,8 @@ TransferThread::do_upload ( char *local_path, char *remote_path,
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
     struct stat     file_stat ;
     char buff[5120] = {0};
+    FILE * local_handle = 0;
+    char native_path [PATH_MAX+1] = {0};
     
     sftp_handle = libssh2_sftp_open( ssh2_sftp,remote_path,LIBSSH2_FXF_READ|LIBSSH2_FXF_WRITE|LIBSSH2_FXF_CREAT|LIBSSH2_FXF_TRUNC,0666 ) ;
     if( sftp_handle == NULL )
@@ -481,13 +488,19 @@ TransferThread::do_upload ( char *local_path, char *remote_path,
     //libssh2_sftp_fstat(sftp_handle,&ssh2_sftp_attrib);
     //file_size = ssh2_sftp_attrib.filesize;
     //qDebug()<<" remote file size :"<< file_size ;
+    strcpy( native_path, QDir::toNativeSeparators( local_path ).toAscii().data());
     memset(&file_stat,0,sizeof(struct stat));
-    ::stat(local_path,&file_stat);
+    ::stat(native_path,&file_stat);
     file_size = file_stat.st_size;
+    qDebug()<< "remote_path = "<<  remote_path  << " , local_path = " << native_path ;
     qDebug()<<"local file size:" << file_size ;
     
-    local_fd = ::open(local_path,O_RDONLY );
-    if( local_fd < 0 )
+    //local_fd = ::open(native_path,O_RDONLY );
+    //local_handle = ::fopen( native_path , "r");
+    QFile q_file( native_path );
+    if( ! q_file.open( QIODevice::ReadOnly) )
+    //if( local_fd <= 0 )
+    //if( local_handle == 0 )
     {
         //TODO 错误消息通知用户。
         qDebug()<<"open local file error:"<< strerror(errno) ;
@@ -495,11 +508,23 @@ TransferThread::do_upload ( char *local_path, char *remote_path,
     }
     else
     {
+    		//fseek(local_handle, 0L, SEEK_SET)	;
         //read local file and then write to remote file
-        while( ( rlen = ::read(local_fd,buff,sizeof(buff))) > 0 )
+        while( ! q_file.atEnd()  )
         {
+        		//rlen = ::read(local_fd,buff,sizeof(buff));
+        		//rlen = ::fread(  buff , 1  , sizeof(buff) , local_handle );
+        		rlen = q_file.read( buff, sizeof( buff ) );
+        		if( rlen <= 0 )
+        			{
+        				//qDebug()<<"errno: "<<errno<<" err msg:"<< strerror( errno) << ftell( local_handle) ;
+        				break ;
+        			}
             wlen = libssh2_sftp_write(sftp_handle,buff,rlen);
+            
             tran_len += wlen ;
+            
+            qDebug()<<" local read : "<< rlen << " sftp write :"<<wlen <<" up len :"<< tran_len ;
 // 			qDebug() <<" read len :"<< rlen <<" , write len: "<< wlen 
 //                    << " tran len: "<< tran_len ;
             if( file_size == 0 )
@@ -511,8 +536,8 @@ TransferThread::do_upload ( char *local_path, char *remote_path,
                 emit this->transfer_percent_changed ( tran_len * 100 / file_size );
             }
         }
+        q_file.close();
     }
-    
     libssh2_sftp_close(sftp_handle);
     
 	return ( 0 );
