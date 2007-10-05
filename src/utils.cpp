@@ -3,6 +3,9 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
+
+#include "globaloption.h"
 
 #ifdef WIN32
 
@@ -171,43 +174,48 @@ strmode ( int mode, char *p )
 	*p++ = ' ';		/* will be a '+' if ACL's implemented */
 	*p = '\0';
 }
-
+//假设这个path的编码方式是本地系统上所用的编码方式
 int     is_dir(char *path)
 {
     struct stat sb;
 
     /* XXX: report errors? */
     if (stat(path, &sb) == -1)
-        return(0);
+	{
+		fprintf(stderr, " is reg : %d %s %s \n" , errno,strerror(errno),path );
+		return(0);
+	}
 
     return(S_ISDIR(sb.st_mode));
 }
-
+//假设这个path的编码方式是本地系统上所用的编码方式
 int is_reg(char *path)
 {
     struct stat sb;
 
     if (stat(path, &sb) == -1)
     {
+		fprintf(stderr, " is reg : %d %s %s \n" , errno,strerror(errno),path );
         return (0);
     }
     return(S_ISREG(sb.st_mode));
 }
-
-void  fxp_local_do_ls(const char *args ,std::vector<std::map<char, std::string> > & fileinfos  )
+//假设这个path的编码方式是本地系统上所用的编码方式
+void  fxp_local_do_ls( QString args , QVector<QMap<char, QString> > & fileinfos )
 {
     int sz ;
-    std::map<char,std::string> thefile;
+    QMap<char,QString> thefile;
     char file_size[32];
     char file_date[64];
     char file_type[32];
     char fname[PATH_MAX+1];
-    char the_path[PATH_MAX+1];
+    //char the_path[PATH_MAX+1];
+	QString the_path ;
     
     struct tm *ltime;
     struct stat thestat ;    
     
-    DIR * dh = opendir(args);
+	DIR * dh = opendir( GlobalOption::instance()->locale_codec->fromUnicode(args) ) ;
     struct dirent * entry = NULL ;
     fileinfos.clear();
     
@@ -215,13 +223,14 @@ void  fxp_local_do_ls(const char *args ,std::vector<std::map<char, std::string> 
     {
         thefile.clear();
         memset(&thestat,0,sizeof(thestat));
-        strcpy(the_path,args);
-        strcat(the_path,"/");
-        strcat(the_path,entry->d_name);
+        //strcpy(the_path,args);
+        //strcat(the_path,"/");
+        //strcat(the_path,entry->d_name);
+		the_path = args + "/"  + GlobalOption::instance()->locale_codec->toUnicode(entry->d_name);
         if(strcmp(entry->d_name,".") == 0) goto out_point;
         if(strcmp(entry->d_name,"..") == 0) goto out_point ;
 
-        if(stat(the_path,&thestat) != 0 ) continue;
+		if(stat( GlobalOption::instance()->locale_codec->fromUnicode(the_path ) , &thestat) != 0 ) continue;
         ltime = localtime(&thestat.st_mtime);
         
         sprintf(file_size,"%llu", thestat.st_size);
@@ -233,10 +242,10 @@ void  fxp_local_do_ls(const char *args ,std::vector<std::map<char, std::string> 
                 sz = strftime(file_date, sizeof file_date, "%Y/%m/%d %H:%M:%S", ltime);
         } 
         strcpy(fname,entry->d_name);
-        thefile.insert(std::make_pair('N',std::string(fname)));
-        thefile.insert(std::make_pair('T',std::string(file_type)));
-        thefile.insert(std::make_pair('S',std::string(file_size)));
-        thefile.insert(std::make_pair('D',std::string( file_date )));
+		thefile.insert( 'N',GlobalOption::instance()->locale_codec->toUnicode(fname) );
+        thefile.insert( 'T',QString(file_type) );
+        thefile.insert( 'S',QString(file_size ) );
+        thefile.insert( 'D',QString( file_date ) );
         
         fileinfos.push_back(thefile);
         
@@ -246,7 +255,7 @@ void  fxp_local_do_ls(const char *args ,std::vector<std::map<char, std::string> 
     }
     closedir(dh);
 }
-
+//假设这个path的编码方式是本地系统上所用的编码方式
 int     fxp_local_do_mkdir(const char * path )
 {
     int ret = 0 ;
@@ -256,6 +265,9 @@ int     fxp_local_do_mkdir(const char * path )
     #else
     ret = mkdir(path,0777);
     #endif
-    
+    if( ret == -1 )
+	{
+		fprintf(stderr, " fxp_local_do_mkdir : %d %s %s \n" , errno,strerror(errno),path );
+	}
     return ret ;
 }

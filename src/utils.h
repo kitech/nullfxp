@@ -25,6 +25,11 @@
 #include <string>
 #include <dirent.h>
 
+#include <QMap>
+#include <QVector>
+#include <QPair>
+#include <QtCore>
+
 // #ifndef S_ISDIR
 // # define S_ISDIR(mode)	(((mode) & (_S_IFMT)) == (_S_IFDIR))
 // #endif /* S_ISDIR */
@@ -45,9 +50,9 @@ int is_reg(char *path);
 
 int     is_dir(char *path) ;
 
-void  fxp_local_do_ls(const char *args ,std::vector<std::map<char, std::string> > & fileinfos  );
+void  fxp_local_do_ls( QString args , QVector<QMap<char, QString> > & fileinfos  );
 
-int     fxp_local_do_mkdir(const char * path );
+int  fxp_local_do_mkdir(const char * path );
 
 #endif
 

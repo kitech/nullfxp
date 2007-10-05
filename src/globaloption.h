@@ -43,6 +43,7 @@ public:
     //std::string  locale_codec ;
     QTextCodec * remote_codec ;
     QTextCodec * locale_codec ;
+	QTextCodec * test_codec ;
     bool         keep_alive ;
     bool         kepp_alive_internal ;
     

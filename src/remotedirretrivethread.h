@@ -39,7 +39,7 @@
 
 #define SSH2_FXP_KEEP_ALIVE 8888
 
-//从remotedirmodel.h 移动过来的,
+//这个类中存储的字符串改为Qt内部使用的Unicode编码。
 class directory_tree_item
 {
     public:
@@ -76,16 +76,13 @@ class directory_tree_item
         int row_number ;    //指的是所包含的子结点个数
 				//N , S , T , D
 				//T = D , F , L
-        //std::map< char  , std::string > tree_node_item ;
                 
-        std::string strip_path ;
-        std::string file_name ;
-        std::string file_size ;
-        std::string file_date ;
-        std::string file_type ;
-        std::string file_perm ;
-        
-                
+        QString strip_path ;
+        QString file_name ;
+        QString file_size ;
+        QString file_date ;
+        QString file_type ;
+        QString file_perm ;  
 };
 
 
@@ -106,18 +103,19 @@ public:
         
     void add_node(directory_tree_item* parent_item , void * parent_model_internal_pointer );
     
-    void slot_execute_command(directory_tree_item* parent_item , void * parent_model_internal_pointer, int cmd , std::string params );
+    void slot_execute_command(directory_tree_item* parent_item , void * parent_model_internal_pointer, 
+		int cmd , QString params );
 
     private:
         int  retrive_dir();
         int  mkdir();
         int  rmdir();
         int  rm_file_or_directory_recursively();  // <==> rm -rf
-        int  rm_file_or_directory_recursively_ex(std::string parent_path);  // <==> rm -rf
+        int  rm_file_or_directory_recursively_ex(QString parent_path);  // <==> rm -rf
         int  rename();
         
         int keep_alive() ;
-        int fxp_do_ls_dir ( char * path,std::vector<std::map<char, std::string> > & fileinfos  );
+        int fxp_do_ls_dir ( QString parent_path  , QVector<QMap<char, QString> > & fileinfos  );
     signals:
         void enter_remote_dir_retrive_loop();
         void leave_remote_dir_retrive_loop();
@@ -143,7 +141,7 @@ public:
                directory_tree_item* parent_item;
                void * parent_model_internal_pointer;
                int  cmd;
-               std::string  params;
+               QString  params;
                int  retry_times ;
        };       
        std::vector<command_queue_elem*>  command_queue;
@@ -152,7 +150,8 @@ public:
        LIBSSH2_SFTP * ssh2_sftp ;
        int ssh2_sock ;
        
-       void subtract_existed_model(directory_tree_item * parent_item , std::vector<std::map<char,std::string> > & new_items );
+       //void subtract_existed_model(directory_tree_item * parent_item , std::vector<std::map<char,std::string> > & new_items );
+	   void subtract_existed_model(directory_tree_item * parent_item , QVector<QMap<char,QString> > & new_items );
        
 };
 

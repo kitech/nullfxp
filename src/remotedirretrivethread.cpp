@@ -27,6 +27,7 @@
 #include <winsock2.h>
 #endif
 
+#include "globaloption.h"
 #include "remotedirretrivethread.h"
 
 #include "utils.h"
@@ -129,9 +130,9 @@ int  RemoteDirRetriveThread::retrive_dir()
     directory_tree_item * parent_item;
     void *  parent_model_internal_pointer ;
     
-    std::vector<std::map<char,std::string> > fileinfos;
+    QVector< QMap< char, QString > > fileinfos;
     char file_name[PATH_MAX+1] ;
-    char strip_path[PATH_MAX+1];
+    //char strip_path[PATH_MAX+1];
     int row_count = 0 ;
     int fxp_ls_ret = 0 ;
     char file_size[20] = {0};
@@ -147,26 +148,27 @@ int  RemoteDirRetriveThread::retrive_dir()
         parent_item = mit->first ;
         parent_model_internal_pointer = mit->second ;
        
-        strcpy ( file_name, ( parent_item->strip_path+std::string ( "/" ) ).c_str() );
-        strcpy ( strip_path,parent_item->strip_path.c_str() );
+        //strcpy ( file_name, ( parent_item->strip_path+ ( "/" ) ).toAscii().data() );
+		//strcpy ( strip_path,parent_item->strip_path .toAscii().data()  );
 
         fileinfos.clear();
 
         LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib ;
         memset(&ssh2_sftp_attrib,0,sizeof(LIBSSH2_SFTP_ATTRIBUTES));
-        LIBSSH2_SFTP_HANDLE * ssh2_sftp_handle = libssh2_sftp_opendir(this->ssh2_sftp,file_name);
+		LIBSSH2_SFTP_HANDLE * ssh2_sftp_handle = libssh2_sftp_opendir(this->ssh2_sftp,GlobalOption::instance()->remote_codec->fromUnicode(parent_item->strip_path+ ( "/" )).data());
 
         // ssh2_sftp_handle == 0 是怎么回事呢？ 返回值 应该是
         // 1 . 这个file_name 是一个链接，但这个链接指向的是一个普通文件而不是目录时libssh2_sftp_opendir返回0 , 而 libssh2_sftp_last_error 返回值为 2 == SSH2_FX_NO_SUCH_FILE
         if( ssh2_sftp_handle == 0 )
         {
-            qDebug()<<" sftp last error: "<< libssh2_sftp_last_error( this->ssh2_sftp );
+            qDebug()<<" sftp last error: "<< libssh2_sftp_last_error( this->ssh2_sftp )
+				<<(parent_item->strip_path+ ( "/" ))<<GlobalOption::instance()->remote_codec->fromUnicode(parent_item->strip_path+ ( "/" )).data();
         }
         while( ssh2_sftp_handle != 0 &&
                libssh2_sftp_readdir( ssh2_sftp_handle ,file_name , PATH_MAX ,& ssh2_sftp_attrib ) > 0 )
         {
 
-            std::map<char,std::string> thefile ;
+            QMap<char,QString> thefile ;
             if( strlen ( file_name ) == 1 && file_name[0] == '.' ) continue ;
             if( strlen ( file_name ) == 2 && file_name[0] == '.' && file_name[1] == '.') continue ;
             //不处理隐藏文件? 处理隐藏文件
@@ -186,10 +188,10 @@ int  RemoteDirRetriveThread::retrive_dir()
 
             strmode(ssh2_sftp_attrib.permissions,file_type );
             //printf(" ls dir : %s %s , date=%s , type=%s \n" , file_name , file_size , file_date , file_type );
-            thefile.insert(std::make_pair('N',std::string(file_name)));
-            thefile.insert(std::make_pair('T',std::string(file_type)));
-            thefile.insert(std::make_pair('S',std::string(file_size)));
-            thefile.insert(std::make_pair('D',std::string( file_date )));  
+			thefile.insert( 'N',QString( GlobalOption::instance()->remote_codec->toUnicode(file_name )) );
+            thefile.insert( 'T',QString( file_type ) );
+            thefile.insert( 'S',QString( file_size ) );
+            thefile.insert( 'D',QString( file_date ) );  
                       
             fileinfos.push_back(thefile);
             memset(&ssh2_sftp_attrib,0,sizeof(LIBSSH2_SFTP_ATTRIBUTES) );
@@ -198,10 +200,10 @@ int  RemoteDirRetriveThread::retrive_dir()
         //qDebug() <<"fxp_ls_ret:" << fxp_ls_ret<< ", fileinfos number="<<fileinfos.size() << " use strip:" << strip_path <<" file_name ="<< file_name ;
 	
         //将已经存在的项目找出来
-        std::map<std::string,int> existed_items ;
+        QMap<QString,int> existed_items ;
         for( int i = 0 ; i < parent_item->child_items.size() ; i ++)
         {
-            existed_items.insert(std::make_pair(parent_item->child_items[i]->file_name,8));
+            existed_items.insert( parent_item->child_items[i]->file_name,8 );
         }
         int  curr_count = 0 ;
 
@@ -227,8 +229,8 @@ int  RemoteDirRetriveThread::retrive_dir()
             
             thefile->parent_item = parent_item ;
             thefile->row_number= curr_count ;
-
-            thefile->strip_path = std::string ( parent_item->strip_path ) + std::string ( "/" ) +  fileinfos.at ( i ) ['N'] ;
+ 
+            thefile->strip_path =   parent_item->strip_path  +  QString( "/" ) +  fileinfos.at ( i ) ['N'] ;
 
             thefile->file_type = fileinfos.at ( i ) ['T'];
             thefile->file_size = fileinfos.at ( i ) ['S'];
@@ -239,7 +241,7 @@ int  RemoteDirRetriveThread::retrive_dir()
             parent_item->child_items.insert ( std::make_pair ( curr_count , thefile ) ) ;
         }
         
-        this->subtract_existed_model(parent_item,fileinfos);
+        this->subtract_existed_model( parent_item , fileinfos );
 
         parent_item->prev_retr_flag = parent_item->retrived ;
         parent_item->retrived = 9 ;
@@ -258,50 +260,32 @@ int  RemoteDirRetriveThread::retrive_dir()
 }
 
 
-void RemoteDirRetriveThread::subtract_existed_model(directory_tree_item * parent_item , std::vector<std::map<char,std::string> > & new_items )
+void RemoteDirRetriveThread::subtract_existed_model(directory_tree_item * parent_item ,
+													QVector<QMap<char,QString> > & new_items )
 {
     assert( new_items.size() <= parent_item->child_items.size() );
-    std::string  tmp_file_name ;
-    std::map<std::string,int> new_file_items ;
+    QString  tmp_file_name ;
+    QMap<QString,int> new_file_items ;
     
     std::vector<directory_tree_item*> missed_item_handle;
     
     directory_tree_item * missed_item , *temp_item ;
     
-    if( new_items.size() != parent_item->child_items.size() )
+    if( new_items.count() != parent_item->child_items.size() )
     {
         qDebug()<<" some item miss in new file list";
-        for(int i = 0 ; i < new_items.size() ; i ++ )
+        for(int i = 0 ; i < new_items.count() ; i ++ )
         {
-            new_file_items.insert(std::make_pair(new_items.at(i)['N'],1));
+            new_file_items.insert( new_items.at(i)['N'],1 );
         }
         for( int i = 0 ; i < parent_item->child_items.size() ; i ++ )
         {
             tmp_file_name = parent_item->child_items[i]->file_name;
             if( new_file_items.count(tmp_file_name) == 0 )
             {
-                qDebug()<<" missed file :"<<i<<" "<<tmp_file_name.c_str();
+                qDebug()<<" missed file :"<<i<<" "<<tmp_file_name ;
                 missed_item = parent_item->child_items[i] ;
-                missed_item->delete_flag =1 ;
-                
-//                 if(i!=parent_item->child_items.size()-1)
-//                 {
-//                     for( int j = i+1 ; j < parent_item->child_items.size() ; j ++ )
-//                     {
-//                         temp_item = parent_item->child_items[j];
-//                         temp_item->row_number = j-1 ;
-//                         parent_item->child_items[j-1] = temp_item ;
-//                     }
-//                     int c_size = parent_item->child_items.size() ;
-//                     parent_item->child_items.erase(c_size-1);
-//                 }
-//                 else
-//                 {
-//                     int c_size = parent_item->child_items.size() ;
-//                     parent_item->child_items.erase(c_size-1);
-//                 }
-                // xxxx: 执行下面一句程序会崩溃，不执行会内存潺漏
-                //delete missed_item ;missed_item = 0 ;
+                missed_item->delete_flag =1 ;	//使用delete 标记来处理，让谁来删掉它呢？
             }
         }
     }
@@ -313,24 +297,14 @@ int  RemoteDirRetriveThread::mkdir()
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
     int exec_ret = -1;
-//     Attrib ab ;
-    
     command_queue_elem * cmd_item = this->command_queue.at(0);
     
-    std::string abs_path = cmd_item->parent_item->strip_path + "/" +
-            cmd_item->params ;
-    char  remote_path[PATH_MAX] = {0};
-    strcpy(remote_path, abs_path.c_str());
+    QString abs_path = cmd_item->parent_item->strip_path + QString("/") + cmd_item->params ;
     
-    qDebug()<< "abs  path :"<< abs_path .c_str() ;
+    qDebug()<< "abs  path :"<< abs_path  ;
     
-//     attrib_clear(&ab);
-//     ab.flags |= SSH2_FILEXFER_ATTR_PERMISSIONS;
-//     ab.perm = 0777;
-    
-//     exec_ret = do_mkdir(this->sftp_connection , remote_path ,&ab );
-    exec_ret = libssh2_sftp_mkdir( ssh2_sftp , remote_path , 0777 );
-    //cmd_item->parent_item->retrived = 2 ;   //让上层视图更新这个结点
+	exec_ret = libssh2_sftp_mkdir( ssh2_sftp , GlobalOption::instance()->remote_codec->fromUnicode(abs_path).data() , 0777 );
+
     this->add_node( cmd_item->parent_item , cmd_item->parent_model_internal_pointer );
     
     return exec_ret ;
@@ -347,21 +321,17 @@ int  RemoteDirRetriveThread::rmdir()
     
     command_queue_elem * cmd_item = this->command_queue.at(0);
     
-    std::string abs_path = cmd_item->parent_item->strip_path + "/" +
-            cmd_item->params ;
-    char  remote_path[PATH_MAX] = {0};
-    strcpy(remote_path, abs_path.c_str());
+    QString abs_path = cmd_item->parent_item->strip_path + "/" + cmd_item->params ;
+
+    qDebug()<< "abs  path :"<< abs_path  ;
     
-    qDebug()<< "abs  path :"<< abs_path .c_str() ;
-    
-    if( sys_dirs.contains( QString(abs_path.c_str())) )
+    if( sys_dirs.contains( abs_path ) )
     {
         qDebug()<<" rm system directory , this is danger.";
     }
     else
     {
-//         exec_ret = do_rmdir(this->sftp_connection , remote_path   );
-        exec_ret = libssh2_sftp_rmdir(ssh2_sftp,remote_path);
+		exec_ret = libssh2_sftp_rmdir(ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(abs_path).data()  );
     }
     //cmd_item->parent_item->retrived = 2 ;   //让上层视图更新这个结点
     this->add_node( cmd_item->parent_item , cmd_item->parent_model_internal_pointer );
@@ -383,14 +353,13 @@ int  RemoteDirRetriveThread::rm_file_or_directory_recursively()
     command_queue_elem * cmd_item = this->command_queue.at(0);
     parent_item = cmd_item->parent_item ;
     
-    std::string abs_path = cmd_item->parent_item->strip_path + "/" +
-            cmd_item->params ;
-    char  remote_path[PATH_MAX] = {0};
-    strcpy(remote_path, abs_path.c_str());
+    QString abs_path = cmd_item->parent_item->strip_path + "/" +  cmd_item->params ;
+    //char  remote_path[PATH_MAX] = {0};
+	//strcpy(remote_path, abs_path.toAscii().data());
     
-    qDebug()<< "abs  path :"<< abs_path .c_str() ;
+    qDebug()<< "abs  path :"<< abs_path  ;
     
-    if( sys_dirs.contains( QString(abs_path.c_str())) )
+    if( sys_dirs.contains(  abs_path) )
     {
         qDebug()<<" rm  system directory recusively , this is danger.";
     }
@@ -427,36 +396,36 @@ int  RemoteDirRetriveThread::rm_file_or_directory_recursively()
             }
         }
     }
-    //cmd_item->parent_item->retrived = 2 ;   //让上层视图更新这个结点
-    this->add_node( cmd_item->parent_item , cmd_item->parent_model_internal_pointer );
+
+	this->add_node( cmd_item->parent_item , cmd_item->parent_model_internal_pointer );
     
     return exec_ret ;
 }
 
 //TODO 现在删除隐藏文件或者目录还有问题：即以  .  字符开头的项
-int  RemoteDirRetriveThread::rm_file_or_directory_recursively_ex(std::string parent_path)  // <==> rm -rf
+int  RemoteDirRetriveThread::rm_file_or_directory_recursively_ex( QString parent_path )  // <==> rm -rf
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
     int exec_ret = -1;
    
-    std::string abs_path  ;
-    char  remote_path[PATH_MAX+1] = {0};
-    char  strip_path[PATH_MAX+1] = {0};
-    char  file_name[PATH_MAX+1] = {0};
-    std::vector<std::map<char,std::string> > fileinfos ;
+    QString abs_path  ;
+    //char  remote_path[PATH_MAX+1] = {0};
+    //char  strip_path[PATH_MAX+1] = {0};
+    //char  file_name[PATH_MAX+1] = {0};
+    QVector<QMap<char, QString> > fileinfos ;
     directory_tree_item * child_item = 0 ;
     
      //再次从服务器列出目录，然后处理
-    int lflag = 0 ;    
+    //int lflag = 0 ;    
 //     lflag = LS_LONG_VIEW;
 //     lflag |= LS_SHOW_ALL ;
     
-    strcpy ( file_name, ( parent_path+std::string ( "/" ) ).c_str() );
-    strcpy ( strip_path,parent_path.c_str() );
+    //strcpy ( file_name, ( parent_path+  ( "/" ) ).toAscii().data() );
+	//strcpy ( strip_path,parent_path.toAscii().data() );
     
 //     exec_ret = fxp_do_globbed_ls(this->sftp_connection,file_name,strip_path,lflag , fileinfos);
-    exec_ret = fxp_do_ls_dir( file_name , fileinfos ) ;
+    exec_ret = fxp_do_ls_dir( parent_path+  ( "/" ) , fileinfos ) ;
     
     int file_count = fileinfos.size();
     //qDebug()<<" rm ex :" << file_count ;
@@ -482,16 +451,16 @@ int  RemoteDirRetriveThread::rm_file_or_directory_recursively_ex(std::string par
                 }
                 else
                 {
-                    this->rm_file_or_directory_recursively_ex( parent_path + std::string("/") + fileinfos.at(i)['N'] );
+                    this->rm_file_or_directory_recursively_ex( parent_path + ("/") + fileinfos.at(i)['N'] );
                 }
             }
             else if( fileinfos.at(i)['T'].at(0) == 'l'
                      ||  fileinfos.at(i)['T'].at(0) == '-' )
             {
                 abs_path = parent_path + "/" + fileinfos.at(i)['N'] ;//+ "/" + child_item->file_name ;
-                strcpy( remote_path , abs_path.c_str() );
-                qDebug()<<QString(tr("Removing %1")).arg( remote_path );
-                exec_ret = libssh2_sftp_unlink( ssh2_sftp , remote_path );
+				//strcpy( remote_path , abs_path.toAscii().data() );
+                //qDebug()<<QString(tr("Removing %1")).arg( remote_path );
+				exec_ret = libssh2_sftp_unlink( ssh2_sftp , GlobalOption::instance()->remote_codec->fromUnicode(abs_path) );
                                 
 //                 remote_glob(this->sftp_connection , remote_path , GLOB_NOCHECK , NULL ,& g);
 //                 for( int i = 0 ; g.gl_pathv[i] != NULL ; i ++ )
@@ -512,17 +481,17 @@ int  RemoteDirRetriveThread::rm_file_or_directory_recursively_ex(std::string par
     
     //删除这个目录
     abs_path = parent_path ;//+ "/" + parent_item->file_name ;
-    strcpy( remote_path , abs_path.c_str() );
+	//strcpy( remote_path , abs_path.toAscii().data() );
 //     exec_ret = do_rmdir(this->sftp_connection , remote_path   );
 //     if(exec_ret != 0 )  //可能这是一个文件，不是目录，那么使用删除文件的指令
 //         exec_ret = do_rm(this->sftp_connection , remote_path   );
-    exec_ret = libssh2_sftp_rmdir(ssh2_sftp,remote_path);
+	exec_ret = libssh2_sftp_rmdir(ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(abs_path) );
     if( exec_ret != 0 ) //可能这是一个文件，不是目录，那么使用删除文件的指令
     {
-        exec_ret = libssh2_sftp_unlink(ssh2_sftp,remote_path);
+        exec_ret = libssh2_sftp_unlink(ssh2_sftp,GlobalOption::instance()->remote_codec->fromUnicode(abs_path) );
         if( exec_ret != 0 )
         {
-            qDebug()<< " count remove file or directory ("<< libssh2_sftp_last_error(ssh2_sftp) <<"): "<< remote_path ;
+            qDebug()<< " count remove file or directory ("<< libssh2_sftp_last_error(ssh2_sftp) <<"): "<< abs_path ;
         }
     }
     
@@ -541,32 +510,25 @@ int  RemoteDirRetriveThread::rename()
     
     command_queue_elem * cmd_item = this->command_queue.at(0);
     
-    size_t sep_pos = cmd_item->params.find('!');
+	size_t sep_pos = cmd_item->params.indexOf('!');
     
-    std::string abs_path = cmd_item->parent_item->strip_path + "/" +
-            cmd_item->params.substr(0,sep_pos) ;
-    std::string abs_path_rename_to = cmd_item->parent_item->strip_path + "/" +
-            cmd_item->params.substr(sep_pos+1) ;
+    QString abs_path = cmd_item->parent_item->strip_path + "/" +  cmd_item->params.mid(0,sep_pos) ;
+    QString abs_path_rename_to = cmd_item->parent_item->strip_path + "/" + cmd_item->params.mid(sep_pos+1,-1) ;
     
-    char  remote_path[PATH_MAX+1] = {0};
-    char  remote_path_rename_to[PATH_MAX+1] = {0};
+    qDebug()<< "abs  path :"<< abs_path  
+            << " abs path rename to ;"<< abs_path_rename_to ;
     
-    strcpy(remote_path, abs_path.c_str());
-    strcpy( remote_path_rename_to,abs_path_rename_to.c_str() );
-    
-    qDebug()<< "abs  path :"<< abs_path .c_str()
-            << " abs path rename to ;"<< abs_path_rename_to.c_str();
-    
-    if( sys_dirs.contains( QString(abs_path.c_str())) )
+    if( sys_dirs.contains(  abs_path ))
     {
         qDebug()<<" rm system directory , this is danger.";
     }
     else
     {
-//         exec_ret = do_rename(this->sftp_connection , remote_path  , remote_path_rename_to  );
-        exec_ret = libssh2_sftp_rename(ssh2_sftp,remote_path,remote_path_rename_to);
+        exec_ret = libssh2_sftp_rename(ssh2_sftp,
+			GlobalOption::instance()->remote_codec->fromUnicode(abs_path).data() ,
+			GlobalOption::instance()->remote_codec->fromUnicode(abs_path_rename_to) );
     }
-    //cmd_item->parent_item->retrived = 2 ;   //让上层视图更新这个结点
+
     this->add_node( cmd_item->parent_item , cmd_item->parent_model_internal_pointer );
     
     return exec_ret ;
@@ -575,34 +537,32 @@ int  RemoteDirRetriveThread::rename()
 int RemoteDirRetriveThread::keep_alive()
 {
     int exec_ret;
-    int lflag = 0/*LS_SHORT_VIEW*/;
     char full_path [PATH_MAX+1] = {0};
     char strip_path [PATH_MAX+1] = {0};
-    std::vector<std::map<char,std::string> > fileinfos;
+
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib ;
     
     strcpy(full_path,"/nullfxp_keep_alive_dummy_directory");
     strcpy(strip_path,"/");
-//     exec_ret = fxp_do_globbed_ls(this->sftp_connection,full_path,strip_path,lflag,fileinfos);
-//     
+
     exec_ret = libssh2_sftp_stat(ssh2_sftp,full_path,&ssh2_sftp_attrib);
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<< " stat : "<< exec_ret <<" sftp errno:"<< libssh2_sftp_last_error(ssh2_sftp) ;
     //TODO 在网络失去连接的时候如何向上层类通知，并进行重新连接
     return exec_ret ;
 }
 
-int RemoteDirRetriveThread::fxp_do_ls_dir ( char * path,std::vector<std::map<char, std::string> > & fileinfos      )
+int RemoteDirRetriveThread::fxp_do_ls_dir ( QString path , QVector<QMap<char, QString> > & fileinfos      )
 {
     LIBSSH2_SFTP_HANDLE * sftp_handle = 0 ;
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib ;
-    std::map<char,std::string> thefile;
+    QMap<char, QString> thefile;
     char file_name[PATH_MAX+1];
     char file_size[PATH_MAX+1];
     char file_type[PATH_MAX+1];
     char file_date[PATH_MAX+1];
     int file_count = 0 ;
     
-    sftp_handle = libssh2_sftp_opendir(ssh2_sftp,path);
+	sftp_handle = libssh2_sftp_opendir(ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(path).data() );
     if( sftp_handle == 0 )
     {
         return 0;
@@ -632,10 +592,10 @@ int RemoteDirRetriveThread::fxp_do_ls_dir ( char * path,std::vector<std::map<cha
 
             strmode(ssh2_sftp_attrib.permissions,file_type );
             //printf(" ls dir : %s %s , date=%s , type=%s \n" , file_name , file_size , file_date , file_type );
-            thefile.insert(std::make_pair('N',std::string(file_name)));
-            thefile.insert(std::make_pair('T',std::string(file_type)));
-            thefile.insert(std::make_pair('S',std::string(file_size)));
-            thefile.insert(std::make_pair('D',std::string( file_date )));  
+			thefile.insert( 'N', GlobalOption::instance()->remote_codec->toUnicode(file_name ) );
+            thefile.insert( 'T', file_type );
+            thefile.insert( 'S', file_size );
+            thefile.insert( 'D',  file_date );  
                       
             fileinfos.push_back(thefile);
             memset(&ssh2_sftp_attrib,0,sizeof(LIBSSH2_SFTP_ATTRIBUTES) );
@@ -685,7 +645,8 @@ void RemoteDirRetriveThread::add_node ( directory_tree_item* parent_item ,void *
 
 }
 
-void RemoteDirRetriveThread::slot_execute_command(directory_tree_item* parent_item , void * parent_model_internal_pointer,  int cmd , std::string params )
+void RemoteDirRetriveThread::slot_execute_command(directory_tree_item* parent_item , 
+												  void * parent_model_internal_pointer,  int cmd , QString params )
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     

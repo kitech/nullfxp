@@ -19,6 +19,7 @@
  ***************************************************************************/
 #include <cassert>
 
+#include <QtCore>
 #include <QTextCodec>
 
 #include "globaloption.h"
@@ -35,8 +36,17 @@ GlobalOption * GlobalOption::instance()
         GlobalOption::mInstance->remote_codec = QTextCodec::codecForName("UTF-8");
         //GlobalOption::mInstance->locale_codec = "UTF-8";
         GlobalOption::mInstance->locale_codec = QTextCodec::codecForLocale();
+		qDebug()<<"Locale codec Mib Enum:"<< GlobalOption::mInstance->locale_codec->mibEnum()
+			<<"Locale codec name: "<< GlobalOption::mInstance->locale_codec->name()
+			<<GlobalOption::mInstance->locale_codec->aliases()
+			<<"Remote codec name:" << GlobalOption::mInstance->remote_codec->name() 
+			<<GlobalOption::mInstance->remote_codec->aliases() ;
+			//<< GlobalOption::mInstance->remote_codec->availableCodecs () ;
         GlobalOption::mInstance->keep_alive = true ;
         GlobalOption::mInstance->kepp_alive_internal = 180; //S
+		 GlobalOption::mInstance->test_codec =  QTextCodec::codecForName("C");
+		 Q_CHECK_PTR(GlobalOption::mInstance->test_codec);
+		//qDebug()<<"GBK: "<<  GlobalOption::mInstance->test_codec->aliases();
     }
     return GlobalOption::mInstance;
 }

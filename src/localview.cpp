@@ -152,7 +152,6 @@ void LocalView::slot_local_new_upload_requested()
 {
 	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 	//QTextCodec * codec = QTextCodec::codecForName(REMOTE_CODEC);
-    QTextCodec * codec = GlobalOption::instance()->locale_codec ;
     
     QStringList local_file_names ;
     QString local_file_name;
@@ -172,13 +171,16 @@ void LocalView::slot_local_new_upload_requested()
     
         local_file_name = (static_cast<QDirModel*>(this->curr_item_view->model()))->filePath ( mil.at ( i ) );
         
-        ba = codec->fromUnicode(local_file_name);
+		//ba = codec->toUnicode(local_file_name.toAscii()).toAscii();
+		//下面这句说明了什么呢？在Mingw平台下，控制台输入正常时即为 Unicode编码，也就是DirModel返回的路径是Unicode编码的
+		//qDebug()<<codec->canEncode(local_file_name)<<"桌面"<< GlobalOption::instance()->remote_codec->toUnicode("桌面");
         //qDebug()<<" orginal name:"<< local_file_name <<" unicode name:"<< QString(ba.data() );
-        local_file_name = ba ;
+        //local_file_name = ba ;
         //emit  new_upload_requested("/home/gzl/hehe.txt");
         //emit  new_upload_requested ( local_file_name , local_file_type );
         
         local_file_names << local_file_name;
+		qDebug()<< local_file_names ;
     }
     emit   new_upload_requested( local_file_names );
 }
@@ -187,9 +189,7 @@ QString LocalView::get_selected_directory()
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
-    //QTextCodec * codec = QTextCodec::codecForName(REMOTE_CODEC);
-    QTextCodec * codec = GlobalOption::instance()->locale_codec ;
-    
+   
 	QString local_path ;
 	QItemSelectionModel * ism = this->localView.treeView->selectionModel();
 
@@ -215,10 +215,10 @@ QString LocalView::get_selected_directory()
 
 	local_path = model->filePath ( mil.at ( 0 ) );
 
-    QByteArray ba = codec->fromUnicode(local_path);
-    qDebug()<<" orginal name:"<< local_path
-            <<" unicode name:"<< QString(ba.data() );
-    local_path = ba ;
+    //QByteArray ba = codec->fromUnicode(local_path);
+    //qDebug()<<" orginal name:"<< local_path
+    //        <<" unicode name:"<< QString(ba.data() );
+    //local_path = ba ;
 	return local_path ;
 
 }

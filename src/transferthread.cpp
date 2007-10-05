@@ -61,14 +61,14 @@ TransferThread::TransferThread ( QObject *parent )
 TransferThread::~TransferThread()
 {}
 
-int TransferThread::remote_is_dir(  char *path )
+int TransferThread::remote_is_dir(  QString path )
 {
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
     LIBSSH2_SFTP_HANDLE * sftp_handle ;
     
     memset(&ssh2_sftp_attrib,0,sizeof(ssh2_sftp_attrib));
     
-    sftp_handle = libssh2_sftp_opendir( this->ssh2_sftp , path );
+	sftp_handle = libssh2_sftp_opendir( this->ssh2_sftp ,GlobalOption::instance()->remote_codec->fromUnicode( path ) .data() );
     
     if( sftp_handle != NULL )
     {
@@ -83,7 +83,7 @@ int TransferThread::remote_is_dir(  char *path )
     return 0;
 }
 
-int TransferThread::remote_is_reg(  char *path )
+int TransferThread::remote_is_reg( QString path )
 {
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
     LIBSSH2_SFTP_HANDLE * sftp_handle ;
@@ -95,7 +95,7 @@ int TransferThread::remote_is_reg(  char *path )
     flags = LIBSSH2_FXF_READ ;
     mode = 022;
     
-    sftp_handle = libssh2_sftp_open( this->ssh2_sftp , path , flags , mode );
+    sftp_handle = libssh2_sftp_open( this->ssh2_sftp , GlobalOption::instance()->remote_codec->fromUnicode( path ) .data() , flags , mode );
     
     if( sftp_handle != NULL )
     {
@@ -109,19 +109,19 @@ int TransferThread::remote_is_reg(  char *path )
     }
     return 0;
 }
-
-int TransferThread::fxp_do_ls_dir ( char * path,std::vector<std::map<char, std::string> > & fileinfos      )
+//假设这个path的编码方式是远程服务器上所用的编码方式
+int TransferThread::fxp_do_ls_dir ( QString path  , QVector<QMap<char, QString> > & fileinfos    )
 {
     LIBSSH2_SFTP_HANDLE * sftp_handle = 0 ;
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib ;
-    std::map<char,std::string> thefile;
+    QMap<char, QString> thefile;
     char file_name[PATH_MAX+1];
     char file_size[PATH_MAX+1];
     char file_type[PATH_MAX+1];
     char file_date[PATH_MAX+1];
     int file_count = 0 ;
     
-    sftp_handle = libssh2_sftp_opendir(ssh2_sftp,path);
+	sftp_handle = libssh2_sftp_opendir(ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(path).data() );
     if( sftp_handle == 0 )
     {
         return 0;
@@ -135,7 +135,7 @@ int TransferThread::fxp_do_ls_dir ( char * path,std::vector<std::map<char, std::
             if( strlen ( file_name ) == 1 && file_name[0] == '.' ) continue ;
             if( strlen ( file_name ) == 2 && file_name[0] == '.' && file_name[1] == '.') continue ;
             //不处理隐藏文件? 处理隐藏文件
-            if( file_name[0] == '.' ) continue ;
+            //if( file_name[0] == '.' ) continue ;
             
             memset(file_size,0,sizeof(file_size )) ;
             snprintf(file_size,sizeof(file_size) , "%llu",ssh2_sftp_attrib.filesize );
@@ -151,10 +151,10 @@ int TransferThread::fxp_do_ls_dir ( char * path,std::vector<std::map<char, std::
 
             strmode(ssh2_sftp_attrib.permissions,file_type );
             //printf(" ls dir : %s %s , date=%s , type=%s \n" , file_name , file_size , file_date , file_type );
-            thefile.insert(std::make_pair('N',std::string(file_name)));
-            thefile.insert(std::make_pair('T',std::string(file_type)));
-            thefile.insert(std::make_pair('S',std::string(file_size)));
-            thefile.insert(std::make_pair('D',std::string( file_date )));  
+			thefile.insert( 'N', GlobalOption::instance()->remote_codec->toUnicode(file_name ) );
+            thefile.insert( 'T', file_type );
+            thefile.insert( 'S', file_size );
+            thefile.insert( 'D',  file_date );  
                       
             fileinfos.push_back(thefile);
             memset(&ssh2_sftp_attrib,0,sizeof(LIBSSH2_SFTP_ATTRIBUTES) );
@@ -177,13 +177,13 @@ void TransferThread::run()
 	int transfer_ret ;
     int debug_sleep_time = 5 ;
     
-    std::pair<std::string , std::string> local_file_pair;
-    std::pair<std::string , std::string> remote_file_pair;
+    QPair<QString , QString> local_file_pair;
+    QPair<QString , QString> remote_file_pair;
     
-    std::pair<std::string , std::string> temp_local_file_pair;
-    std::pair<std::string , std::string> temp_remote_file_pair;
+    QPair< QString , QString> temp_local_file_pair;
+    QPair< QString , QString> temp_remote_file_pair;
         
-    std::vector<std::map<char, std::string> >  fileinfos ;
+    QVector<QMap<char, QString> >  fileinfos ;
 //     Attrib a ;  //用于创建远程目录
     
     this->error_code = 0 ;
@@ -191,10 +191,10 @@ void TransferThread::run()
     do{
        local_file_pair = this->transfer_ready_queue.front().first;
        remote_file_pair = this->transfer_ready_queue.front().second ;
-       this->current_local_file_name = local_file_pair.first.c_str();
-       this->current_local_file_type = local_file_pair.second.c_str(); 
-       this->current_remote_file_name = remote_file_pair.first.c_str();
-       this->current_remote_file_type = remote_file_pair.second.c_str() ;
+       this->current_local_file_name = local_file_pair.first ;
+       this->current_local_file_type = local_file_pair.second ; 
+       this->current_remote_file_name = remote_file_pair.first ;
+       this->current_remote_file_type = remote_file_pair.second  ;
        
        //这里有几种情况，全部都列出来
        // 上传:
@@ -212,10 +212,10 @@ void TransferThread::run()
        {
            //提示开始处理新文件：
            emit this->transfer_new_file_started(this->current_local_file_name);
-           is_reg(this->current_local_file_name.toAscii().data());
+
            //将文件上传到目录
-           if(is_reg(this->current_local_file_name.toAscii().data())
-              && remote_is_dir(/*this->sftp_connection,*/this->current_remote_file_name.toAscii().data()) )
+		   if( is_reg( GlobalOption::instance()->locale_codec->fromUnicode( this->current_local_file_name ).data() )
+              && remote_is_dir( this->current_remote_file_name ) )
            {
                QString remote_full_path = this->current_remote_file_name + "/"
                        + this->current_local_file_name.split ( "/" ).at ( this->current_local_file_name.split ( "/" ).count()-1 ) ;
@@ -224,41 +224,35 @@ void TransferThread::run()
                        << "remote file:" << this->current_remote_file_name
                        << "remote full file path: "<< remote_full_path ;
 
-               transfer_ret = this->do_upload ( /*this->sftp_connection,*/this->current_local_file_name.toAscii().data(),
-                       remote_full_path.toAscii().data(),0 );
+               transfer_ret = this->do_upload (  this->current_local_file_name , remote_full_path ,0 );
            }
            //将目录上传到目录
-           else if(is_dir(this->current_local_file_name.toAscii().data())
-                   && remote_is_dir(/*this->sftp_connection,*/this->current_remote_file_name.toAscii().data()) )
+           else if(is_dir( GlobalOption::instance()->locale_codec->fromUnicode( this->current_local_file_name ).data() )
+                   && remote_is_dir( this->current_remote_file_name ) )
            {
                qDebug()<<"uploding dir to dir ...";
-               this->sleep(debug_sleep_time);
+               //this->sleep(debug_sleep_time);
                //
                //列出本地目录中的文件，加入到队列中，然后继续。
                //如果列出的本地文件是目录，则在这里先确定远程存在此子目录，否则就要创建先。
                fileinfos.clear();
-               fxp_local_do_ls(this->current_local_file_name.toAscii().data(),fileinfos);
+               fxp_local_do_ls(  this->current_local_file_name  ,fileinfos );
                qDebug()<<"ret:"<<transfer_ret<<" count:"<<fileinfos.size() ;
                
                //这个远程目录属性应该和本地属性一样，所以就使用this->current_local_file_type
                //不知道是不是有问题。
-               temp_remote_file_pair = std::make_pair( QString( this->current_remote_file_name + "/" + this->current_local_file_name.split("/").at(this->current_local_file_name.split("/").count()-1)).toAscii().data() ,QString( this->current_local_file_type).toAscii().data() );
+               temp_remote_file_pair = QPair<QString,QString>( this->current_remote_file_name + "/" + this->current_local_file_name.split("/").at(this->current_local_file_name.split("/").count()-1)   ,  this->current_local_file_type  );
                //为远程建立目录
                memset(&ssh2_sftp_attrib,0,sizeof(ssh2_sftp_attrib));
-               transfer_ret = libssh2_sftp_mkdir(ssh2_sftp,temp_remote_file_pair.first.c_str(),0755);
-               qDebug()<<" libssh2_sftp_mkdir : "<< transfer_ret <<" :"<< temp_remote_file_pair.first.c_str();
-//                attrib_clear(&a);
-//                a.flags |= SSH2_FILEXFER_ATTR_PERMISSIONS;
-//                a.perm = 0777;
-//                transfer_ret = do_mkdir(this->sftp_connection, QString(temp_remote_file_pair.first.c_str()).toAscii().data(), &a);
-               
+			   transfer_ret = libssh2_sftp_mkdir(ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode( temp_remote_file_pair.first ).data(), 0755);
+               qDebug()<<" libssh2_sftp_mkdir : "<< transfer_ret <<" :"<< temp_remote_file_pair.first;
+
                //添加到队列当中
                for( int i = 0 ; i < fileinfos.size() ; i ++ )
                {
-                   temp_local_file_pair = std::make_pair( QString( this->current_local_file_name+"/"+
-                           fileinfos.at(i)['N'].c_str()) .toAscii().data() , fileinfos.at(i)['T']) ;
+                   temp_local_file_pair = QPair<QString,QString>(  this->current_local_file_name+"/"+ fileinfos.at(i)['N']  , fileinfos.at(i)['T'] ) ;
                    
-                  this->transfer_ready_queue.push_back(std::make_pair(temp_local_file_pair,temp_remote_file_pair)); 
+                  this->transfer_ready_queue.push_back( QPair<QPair<QString ,QString>,QPair<QString,QString> >( temp_local_file_pair,temp_remote_file_pair ) ); 
                }
                
            }
@@ -276,8 +270,8 @@ void TransferThread::run()
            emit this->transfer_new_file_started(this->current_remote_file_name);
                       
            //将文件下载到目录
-           if(is_dir(this->current_local_file_name.toAscii().data())
-              && remote_is_reg(/*this->sftp_connection,*/this->current_remote_file_name.toAscii().data()) )
+           if(is_dir( GlobalOption::instance()->locale_codec->fromUnicode( this->current_local_file_name ).data() )
+              && remote_is_reg( this->current_remote_file_name ) )
            {
                QString local_full_path = this->current_local_file_name + "/"
                        + this->current_remote_file_name.split ( "/" ).at ( this->current_remote_file_name.split ( "/" ).count()-1 ) ;
@@ -286,41 +280,31 @@ void TransferThread::run()
                        << "remote file:" << this->current_remote_file_name
                        << "local full file path: "<< local_full_path ;
 
-               transfer_ret = this->do_download ( /*this->sftp_connection,*/
-                       this->current_remote_file_name.toAscii().data(),
-                               local_full_path.toAscii().data(), 0 );
+               transfer_ret = this->do_download ( this->current_remote_file_name ,  local_full_path , 0 );
            }
            //将目录下载到目录
-           else if( is_dir(this->current_local_file_name.toAscii().data())
-                    && remote_is_dir(this->current_remote_file_name.toAscii().data()) )
+           else if( is_dir( GlobalOption::instance()->locale_codec->fromUnicode( this->current_local_file_name ).data() )
+                    && remote_is_dir(this->current_remote_file_name ) )
            {
                qDebug()<<"downloading dir to dir ...";
-               this->sleep(debug_sleep_time);
+               //this->sleep(debug_sleep_time);
                //列出本远程目录中的文件，加入到队列中，然后继续。
-               //QString current_remote_strip_path = this->current_remote_file_name;
-               //QString current_remote_full_path = this->current_remote_file_name + "/";
-//                int ls_flag = 0 ;
-//                ls_flag &= ~VIEW_FLAGS;
-//                ls_flag |= LS_LONG_VIEW;
-               
+              
                fileinfos.clear();
-               transfer_ret = fxp_do_ls_dir(/*this->sftp_connection,*/
-                                            QString(this->current_remote_file_name+"/").toAscii().data(),
-                                            fileinfos);
+               transfer_ret = fxp_do_ls_dir( this->current_remote_file_name+"/" ,  fileinfos);
                qDebug()<<"ret:"<<transfer_ret<<" file count:"<<fileinfos.size();
                
                // local dir = curr local dir +  curr remote dir 的最后一层目录
-               temp_local_file_pair = std::make_pair(QString( this->current_local_file_name+"/"+this->current_remote_file_name.split("/").at(this->current_remote_file_name.split("/").count()-1)) .toAscii().data(),this->current_remote_file_type.toAscii().data());
+               temp_local_file_pair = QPair<QString,QString>( this->current_local_file_name+"/"+this->current_remote_file_name.split("/").at(this->current_remote_file_name.split("/").count()-1) ,this->current_remote_file_type );
                //确保本地有这个目录。
-               transfer_ret = fxp_local_do_mkdir(temp_local_file_pair.first.c_str());
-               qDebug()<<" fxp_local_do_mkdir: "<<transfer_ret <<" "<< temp_local_file_pair.first.c_str() ;
+			   transfer_ret = fxp_local_do_mkdir( GlobalOption::instance()->locale_codec->fromUnicode( temp_local_file_pair.first ).data() ) ;
+               qDebug()<<" fxp_local_do_mkdir: "<<transfer_ret <<" "<< temp_local_file_pair.first  ;
                //加入到任务队列
                for(int i = 0 ; i < fileinfos.size() ; i ++)
                {
-                   temp_remote_file_pair = std::make_pair( QString(this->current_remote_file_name+"/"+fileinfos.at(i)['N'].c_str()).toAscii().data() , fileinfos.at(i)['T'] );
+                   temp_remote_file_pair = QPair<QString,QString>(  this->current_remote_file_name+"/"+fileinfos.at(i)['N']  , fileinfos.at(i)['T'] );
                                       
-                   this->transfer_ready_queue.push_back(std::make_pair( temp_local_file_pair,temp_remote_file_pair));
-                   
+                   this->transfer_ready_queue.push_back( QPair<QPair<QString ,QString>,QPair<QString,QString> >(  temp_local_file_pair,temp_remote_file_pair ) ) ;
                }
            }
            else
@@ -338,7 +322,7 @@ void TransferThread::run()
        }
        
        this->transfer_ready_queue.erase(this->transfer_ready_queue.begin());
-       this->transfer_done_queue.push_back(std::make_pair(local_file_pair,remote_file_pair)); 
+       this->transfer_done_queue.push_back( QPair<QPair<QString ,QString>,QPair<QString,QString> >( local_file_pair,remote_file_pair)); 
     }while(this->transfer_ready_queue.size() > 0 ) ;
 
 	qDebug() << " transfer_ret :" << transfer_ret ;
@@ -351,7 +335,7 @@ void TransferThread::set_remote_connection (void* ssh2_sess,void* ssh2_sftp,int 
     this->ssh2_sock = ssh2_sock ;
 }
 
-void TransferThread::set_transfer_info ( int type,QStringList local_file_names,QStringList remote_file_names  )
+void TransferThread::set_transfer_info ( int type , QStringList local_file_names,QStringList remote_file_names  )
 {
 	this->transfer_type = type ;
 
@@ -361,9 +345,11 @@ void TransferThread::set_transfer_info ( int type,QStringList local_file_names,Q
     QString local_file_name ;
     QString remote_file_name ;
     
-    std::pair<std::string , std::string> local_file_pair;
-    std::pair<std::string , std::string> remote_file_pair;
-    
+    //std::pair<std::string , std::string> local_file_pair;
+    //std::pair<std::string , std::string> remote_file_pair;
+    QPair<QString , QString > local_file_pair ;
+	QPair<QString , QString > remote_file_pair ;
+
     if( type == TransferThread::TRANSFER_PUT )
     {
         assert( remote_file_names.count() == 1 );
@@ -371,10 +357,10 @@ void TransferThread::set_transfer_info ( int type,QStringList local_file_names,Q
         for(int i = 0 ; i < local_file_names.count() ; i ++ )
         {
             local_file_name = local_file_names.at(i);
-            local_file_pair = std::make_pair(local_file_name.toAscii().data(),"");
-            remote_file_pair = std::make_pair(remote_file_name.toAscii().data(),"");
+            local_file_pair = QPair<QString,QString>(local_file_name,"");
+            remote_file_pair = QPair<QString,QString>(remote_file_name,"");
         
-            this->transfer_ready_queue.	push_back(std::make_pair(local_file_pair,remote_file_pair));
+            this->transfer_ready_queue.	push_back( QPair<QPair<QString,QString>,QPair<QString,QString> > (local_file_pair,remote_file_pair));
         }
     }
     else if( type == TransferThread::TRANSFER_GET )
@@ -384,10 +370,10 @@ void TransferThread::set_transfer_info ( int type,QStringList local_file_names,Q
         for(int i = 0 ; i < remote_file_names.count() ; i ++ )
         {
             remote_file_name = remote_file_names.at(i);            
-            local_file_pair = std::make_pair(local_file_name.toAscii().data(),"");
-            remote_file_pair = std::make_pair(remote_file_name.toAscii().data(),"");
+            local_file_pair = QPair<QString,QString>(local_file_name ,"");
+            remote_file_pair = QPair<QString,QString>(remote_file_name ,"");
         
-            this->transfer_ready_queue.	push_back(std::make_pair(local_file_pair,remote_file_pair));
+            this->transfer_ready_queue.	push_back( QPair<QPair<QString,QString>,QPair<QString,QString> >  (local_file_pair,remote_file_pair) );
         }
     }
     else
@@ -396,9 +382,7 @@ void TransferThread::set_transfer_info ( int type,QStringList local_file_names,Q
     }
 }
 
-int
-TransferThread::do_download ( char *remote_path, char *local_path,
-                              int pflag )
+int TransferThread::do_download ( QString remote_path, QString local_path,  int pflag )
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
     qDebug()<< "remote_path = "<<  remote_path  << " , local_path = " << local_path ;
@@ -408,7 +392,7 @@ TransferThread::do_download ( char *remote_path, char *local_path,
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
     char buff[5120] = {0};
     
-    sftp_handle = libssh2_sftp_open(ssh2_sftp,remote_path,LIBSSH2_FXF_READ,0);
+	sftp_handle = libssh2_sftp_open(ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(remote_path),LIBSSH2_FXF_READ,0);
     if( sftp_handle == NULL )
     {
         //TODO 错误消息通知用户。
@@ -423,7 +407,7 @@ TransferThread::do_download ( char *remote_path, char *local_path,
     emit this->transfer_got_file_size( file_size );
     
     // 本地编码 --> Qt 内部编码
-    QFile q_file ( GlobalOption::instance()->locale_codec->toUnicode( local_path ) ) ;
+    QFile q_file (  local_path  ) ;
     //local_fd = ::open(local_path,O_RDWR|O_TRUNC|O_CREAT,0666 );
     if( ! q_file.open(QIODevice::ReadWrite|QIODevice::Truncate))
     //if( local_fd < 0 )
@@ -461,9 +445,7 @@ TransferThread::do_download ( char *remote_path, char *local_path,
 }
 
 
-int
-TransferThread::do_upload ( char *local_path, char *remote_path,
-                            int pflag )
+int TransferThread::do_upload ( QString local_path, QString remote_path, int pflag )
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
     qDebug()<< "remote_path = "<<  remote_path  << " , local_path = " << local_path ;
@@ -474,10 +456,12 @@ TransferThread::do_upload ( char *local_path, char *remote_path,
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
     struct stat     file_stat ;
     char buff[5120] = {0};
-    FILE * local_handle = 0;
-    char native_path [PATH_MAX+1] = {0};
+
+    //char native_path [PATH_MAX+1] = {0};
     
-    sftp_handle = libssh2_sftp_open( ssh2_sftp,remote_path,LIBSSH2_FXF_READ|LIBSSH2_FXF_WRITE|LIBSSH2_FXF_CREAT|LIBSSH2_FXF_TRUNC,0666 ) ;
+    sftp_handle = libssh2_sftp_open( ssh2_sftp,
+		GlobalOption::instance()->remote_codec->fromUnicode( remote_path ) ,
+		LIBSSH2_FXF_READ|LIBSSH2_FXF_WRITE|LIBSSH2_FXF_CREAT|LIBSSH2_FXF_TRUNC,0666 ) ;
     if( sftp_handle == NULL )
     {
         //TODO 错误消息通知用户。
@@ -489,18 +473,16 @@ TransferThread::do_upload ( char *local_path, char *remote_path,
     //libssh2_sftp_fstat(sftp_handle,&ssh2_sftp_attrib);
     //file_size = ssh2_sftp_attrib.filesize;
     //qDebug()<<" remote file size :"<< file_size ;
-    strcpy( native_path, QDir::toNativeSeparators( local_path ).toAscii().data());
     memset(&file_stat,0,sizeof(struct stat));
-    ::stat(native_path,&file_stat);
+	::stat( GlobalOption::instance()->locale_codec->fromUnicode(local_path) , &file_stat );
     file_size = file_stat.st_size;
-    qDebug()<< "remote_path = "<<  remote_path  << " , local_path = " << native_path ;
     qDebug()<<"local file size:" << file_size ;
     emit this->transfer_got_file_size( file_size ) ;
     
     //local_fd = ::open(native_path,O_RDONLY );
     //local_handle = ::fopen( native_path , "r");
     // 本地编码 --> Qt 内部编码
-    QFile q_file( GlobalOption::instance()->locale_codec->toUnicode(native_path ) ) ;
+    QFile q_file(  local_path  ) ;
     if( ! q_file.open( QIODevice::ReadOnly) )
     //if( local_fd <= 0 )
     //if( local_handle == 0 )

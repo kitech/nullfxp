@@ -40,7 +40,7 @@ class RemoteDirModel : public QAbstractItemModel
 {
 		Q_OBJECT
 	public:
-		RemoteDirModel ( /*struct sftp_conn * conn , */QObject *parent = 0 );
+		RemoteDirModel ( QObject *parent = 0 );
 
 		virtual ~RemoteDirModel();
         //仅需要调用一次的函数,并且是在紧接着该类的初始化之后调用。
@@ -123,8 +123,7 @@ class RemoteDirModel : public QAbstractItemModel
 // 		public slots:
 // 		    void refresh(const QModelIndex &parent = QModelIndex());
 // 		
-        
-        
+
         
     public slots:
         void slot_remote_dir_node_retrived(directory_tree_item* parent_item,void *  parent_model_internal_pointer );
@@ -132,7 +131,7 @@ class RemoteDirModel : public QAbstractItemModel
         
         void slot_remote_dir_node_clicked(const QModelIndex & index);
         
-        void slot_execute_command( directory_tree_item* parent_item , void * parent_model_internal_pointer, int cmd , std::string params );
+        void slot_execute_command( directory_tree_item* parent_item , void * parent_model_internal_pointer, int cmd , QString params );
         
         //keep_alive
         void set_keep_alive(bool keep_alive,int time_out=150);
@@ -141,7 +140,7 @@ class RemoteDirModel : public QAbstractItemModel
         void slot_keep_alive_time_out();
     signals:
         //void new_transfer_requested(QString local_file_name,QString local_file_type,                                    QString remote_file_name,QString remote_file_type);
-        void new_transfer_requested(QStringList local_file_names,                                    QStringList remote_file_names);
+        void new_transfer_requested(QStringList local_file_names,     QStringList remote_file_names);
         
         //for wait option
         void enter_remote_dir_retrive_loop();

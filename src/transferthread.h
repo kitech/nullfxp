@@ -53,19 +53,15 @@ public:
     //type 可以是 TANSFER_GET,TRANSFER_PUT
     void set_transfer_info(int type,QStringList local_file_names,QStringList remote_file_names ) ;
     
-    int
-            do_upload (/* struct sftp_conn *conn,*/ char *local_path, char *remote_path,
-                        int pflag );
-    int
-            do_download (/* struct sftp_conn *conn, */char *remote_path, char *local_path,
-                                          int pflag )   ;
+    int do_upload ( QString local_path, QString remote_path, int pflag );
+    int  do_download ( QString remote_path, QString local_path,   int pflag )   ;
     
-    int     get_error_code () { return this->error_code ;} 
+    int   get_error_code () { return this->error_code ;} 
     
     private :
-        int remote_is_dir(  char *path );
-        int remote_is_reg(  char *path ); 
-        int fxp_do_ls_dir ( char * path,std::vector<std::map<char, std::string> > & fileinfos      );
+        int remote_is_dir(  QString path );
+        int remote_is_reg(  QString path ); 
+        int fxp_do_ls_dir ( QString parent_path  , QVector<QMap<char, QString> > & fileinfos    );
           
     signals:
         void  transfer_percent_changed( int percent , int total_transfered ,int transfer_delta );
@@ -95,10 +91,12 @@ public:
         QString  current_remote_file_name;
         QString  current_remote_file_type;
         //local_file_name     local_file_type   remote_file_name  remote_file_type 
-        std::vector< std::pair< std::pair<std::string , std::string>, std::pair<std::string,std::string> > > transfer_ready_queue ;
-        std::vector< std::pair< std::pair<std::string , std::string>, std::pair<std::string,std::string> > > transfer_done_queue ;
-        std::vector< std::pair< std::pair<std::string , std::string>, std::pair<std::string,std::string> > > transfer_error_queue ;  
-              
+        //std::vector< std::pair< std::pair<std::string , std::string>, std::pair<std::string,std::string> > > transfer_ready_queue ;
+        //std::vector< std::pair< std::pair<std::string , std::string>, std::pair<std::string,std::string> > > transfer_done_queue ;
+        //std::vector< std::pair< std::pair<std::string , std::string>, std::pair<std::string,std::string> > > transfer_error_queue ;  
+		QVector<QPair<QPair<QString,QString> , QPair<QString,QString> > > transfer_ready_queue;
+        QVector<QPair<QPair<QString,QString> , QPair<QString,QString> > > transfer_done_queue;
+		QVector<QPair<QPair<QString,QString> , QPair<QString,QString> > > transfer_error_queue;
         //
         int error_code ;
         

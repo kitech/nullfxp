@@ -62,11 +62,16 @@ void RemoteHostQuickConnectInfoDialog::slot_test_remote_host_changed(int value)
             break;
         case 2:
             this->quick_connect_info_dialog.lineEdit->setText("www.bjdazhaimen.com");
-            this->quick_connect_info_dialog.lineEdit_3->setText("root");
+            this->quick_connect_info_dialog.lineEdit_3->setText("webroot");
             
             break;
         case 3:
             this->quick_connect_info_dialog.lineEdit->setText("localhost");
+            this->quick_connect_info_dialog.lineEdit_3->setText("gzl");
+
+            break;
+        case 4:
+            this->quick_connect_info_dialog.lineEdit->setText("192.168.1.6");
             this->quick_connect_info_dialog.lineEdit_3->setText("gzl");
 
             break;

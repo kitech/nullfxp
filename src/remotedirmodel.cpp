@@ -75,7 +75,7 @@ void RemoteDirModel::set_user_home_path ( std::string user_home_path )
 	directory_tree_item * first_item ;
 
 	directory_tree_item * temp_parent_tree_item = 0 , * temp_tree_item =0 ;
-	std::string temp_strip_path , temp_path_name ;
+	QString temp_strip_path , temp_path_name ;
 	char   buff[PATH_MAX+1] = {0};
 	char    buff2[PATH_MAX+1] = {0};
 	char    buff3[PATH_MAX+1] = {0} ;
@@ -88,10 +88,10 @@ void RemoteDirModel::set_user_home_path ( std::string user_home_path )
 		sep_pos = strchr ( buff,'/' ) ;
 		if ( sep_pos == NULL )
 		{
-			temp_strip_path = std::string ( buff2 );
+			temp_strip_path =  buff2 ;
 			memset ( buff3,0,PATH_MAX+1 );
 			strcpy ( buff3,buff2+ ( pre_sep_pos-buff ) +1 );
-			temp_path_name = std::string ( buff3 );
+			temp_path_name =  buff3 ;
 			temp_parent_tree_item = temp_tree_item ;
 			temp_tree_item = new directory_tree_item();
 		}
@@ -101,8 +101,8 @@ void RemoteDirModel::set_user_home_path ( std::string user_home_path )
 			if ( sep_pos == buff )
 			{
 				strncpy ( buff3,buff2,int ( sep_pos-buff ) );
-				temp_strip_path = std::string ( buff3 );
-				temp_path_name = std::string ( "/" );
+				temp_strip_path = buff3 ;
+				temp_path_name =  "/" ;
 				first_item   = new directory_tree_item();
 				temp_tree_item = first_item ;
 				temp_parent_tree_item = this->tree_root ;
@@ -110,17 +110,17 @@ void RemoteDirModel::set_user_home_path ( std::string user_home_path )
 			else
 			{
 				strncpy ( buff3,buff2,int ( sep_pos-buff ) );
-				temp_strip_path = std::string ( buff3 );
+				temp_strip_path =  buff3 ;
 				memset ( buff3,0,PATH_MAX+1 );
 				strncpy ( buff3,buff2+ ( pre_sep_pos-buff ) +1, ( sep_pos-pre_sep_pos-1 ) );
-				temp_path_name = std::string ( buff3 );
+				temp_path_name =  buff3 ;
 				temp_parent_tree_item = temp_tree_item ;
 				temp_tree_item = new directory_tree_item();
 			}
 
 
 		}
-		qDebug() <<"distance to begin:   strip path:"<< temp_strip_path.c_str() << "dir name:"<< temp_path_name.c_str() ;
+		qDebug() <<"distance to begin:   strip path:"<< temp_strip_path << "dir name:"<< temp_path_name ;
 		//assign
 		//temp_tree_item->tree_node_item.insert ( std::make_pair ( 'N',temp_path_name ) );
 		//temp_tree_item->tree_node_item.insert ( std::make_pair ( 'T',"D" ) ) ;
@@ -129,8 +129,8 @@ void RemoteDirModel::set_user_home_path ( std::string user_home_path )
 		temp_tree_item->retrived = ( sep_pos == NULL ) ?0:1 ;  //半满结点
 		temp_tree_item->strip_path = temp_strip_path;
 		temp_tree_item->file_name = temp_path_name;
-		temp_tree_item->file_size = std::string ( "0" );
-		temp_tree_item->file_type = std::string ( "D" );
+		temp_tree_item->file_size =  "0" ;
+		temp_tree_item->file_type =  "D" ;
 		temp_tree_item->prev_retr_flag = -1 ;
 
 		temp_parent_tree_item->child_items.insert ( std::make_pair ( 0,temp_tree_item ) );
@@ -234,7 +234,6 @@ QVariant RemoteDirModel::data ( const QModelIndex &index, int role ) const
 {
 	//qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 	QVariant ret_var ;
-    QTextCodec * codec = GlobalOption::instance()->remote_codec ;
 	QString unicode_name ;
 
 	if ( role != Qt::DisplayRole )
@@ -255,20 +254,19 @@ QVariant RemoteDirModel::data ( const QModelIndex &index, int role ) const
 		case 0:
 			//return node.nodeName();
 			//codec = QTextCodec::codecForName ( REMOTE_CODEC );
-			unicode_name = codec->toUnicode ( item->file_name.c_str() );
-			//ret_var = QVariant ( item->tree_node_item['N'].c_str() );
-			ret_var = QVariant ( unicode_name );
+			//unicode_name = codec->toUnicode ( item->file_name );			
+			ret_var = QVariant ( item->file_name );
 			break;
 		case 2:
 
-			ret_var = QVariant ( item->file_type .c_str () );
+			ret_var = QVariant ( item->file_type);
 			break;
 		case 1:
 			//return node.nodeValue().split("\n").join(" ");
-			ret_var = QVariant ( item->file_size .c_str() );
+			ret_var = QVariant ( item->file_size  );
 			break;
 		case 3:
-			ret_var = QVariant ( item->file_date.c_str() );
+			ret_var = QVariant ( item->file_date );
 			break;
 		default:
 			return QVariant();
@@ -436,10 +434,10 @@ void RemoteDirModel::dump_tree_node_item ( directory_tree_item * node_item ) con
 	directory_tree_item * item = ( directory_tree_item * ) item ;
 	assert ( node_item != 0 );
 	qDebug() <<"====================>>>>";
-	qDebug() <<"name="<<QString ( node_item->file_name.c_str() );
-	qDebug() <<"Type="<<QString ( node_item->file_type.c_str() );
-	qDebug() <<"Size="<<QString ( node_item->file_size.c_str() );
-	qDebug() <<"Date="<<QString ( node_item->file_date.c_str() );
+	qDebug() <<"name="<<QString ( node_item->file_name );
+	qDebug() <<"Type="<<QString ( node_item->file_type );
+	qDebug() <<"Size="<<QString ( node_item->file_size );
+	qDebug() <<"Date="<<QString ( node_item->file_date );
 	qDebug() <<"Retrived="<<node_item->retrived;
 	qDebug() <<"prev_retr_flag="<<node_item->prev_retr_flag;
 	qDebug() <<"ChildCount="<<node_item->child_items.size();
@@ -520,8 +518,8 @@ QMimeData *RemoteDirModel::mimeData ( const QModelIndexList &indexes ) const
 
 	assert ( selected_item != NULL );
 
-	file_name = selected_item->strip_path.c_str() ;
-	file_type = selected_item->file_type.c_str() ;
+	file_name = selected_item->strip_path  ;
+	file_type = selected_item->file_type  ;
 
 	//格式说明：sftp://file_name||file_type
 	file_name = QString ( "sftp://" + file_name+"||"+file_type ).toAscii() ;
@@ -543,13 +541,12 @@ bool RemoteDirModel::dropMimeData ( const QMimeData *data, Qt::DropAction action
 	QStringList remote_file_names ;
 
 	//QTextCodec * codec = QTextCodec::codecForName ( REMOTE_CODEC );
-    QTextCodec * codec = GlobalOption::instance()->locale_codec ;
     
 	QByteArray ba ;
 
 	directory_tree_item * aim_item = static_cast<directory_tree_item*> ( parent.internalPointer() );
     
-	QString remote_file_name = aim_item->strip_path.c_str();
+	QString remote_file_name = aim_item->strip_path ;
 	//QString remote_file_type = aim_item->file_type.c_str();
 	remote_file_names << remote_file_name ;
 
@@ -572,11 +569,11 @@ bool RemoteDirModel::dropMimeData ( const QMimeData *data, Qt::DropAction action
 			file_name = file_name.right( file_name.length() - 1 );
 			//qDebug()<< file_name << strlen( "file:///") ;
 		#endif
-		if ( file_name.trimmed().length() == 0 ) continue ;
+		//if ( file_name.trimmed().length() == 0 ) continue ;
 		//从 Qt 内部编码到本地编码
-		ba = codec->fromUnicode ( file_name );
+		//ba = codec->fromUnicode ( file_name );
 		//qDebug()<< file_name <<" ---> :" REMOTE_CODEC << ba ;
-		file_name = ba ;
+		//file_name = ba ;
 		local_file_names << file_name ;
 	}
 	emit this->new_transfer_requested ( local_file_names,remote_file_names );
@@ -604,7 +601,8 @@ void RemoteDirModel::slot_remote_dir_node_clicked ( const QModelIndex & index )
 	}
 }
 
-void RemoteDirModel::slot_execute_command( directory_tree_item* parent_item , void * parent_model_internal_pointer, int cmd , std::string params )
+void RemoteDirModel::slot_execute_command( directory_tree_item* parent_item , 
+										  void * parent_model_internal_pointer, int cmd , QString params )
 {
     this->remote_dir_retrive_thread->slot_execute_command(parent_item,parent_model_internal_pointer,cmd , params);
 }

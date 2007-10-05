@@ -90,10 +90,6 @@ void ProgressDialog::set_transfer_info(int type,QStringList local_file_names,QSt
     QString local_file_name ;
     QString remote_file_name ;
     
-    //QTextCodec * codec = QTextCodec::codecForName(REMOTE_CODEC);
-    QTextCodec * locale_codec = GlobalOption::instance()->locale_codec ;
-    QTextCodec * remote_codec = GlobalOption::instance()->remote_codec ;
-    
     this->transfer_type = type ;
     
     this->local_file_names = local_file_names;
@@ -110,7 +106,6 @@ void ProgressDialog::set_transfer_info(int type,QStringList local_file_names,QSt
         this->ui_progress_dialog.lineEdit->setText(tr("Uploading..."));
         this->ui_progress_dialog.comboBox->clear();
         this->ui_progress_dialog.comboBox_2->clear();
-        remote_file_name = remote_codec->toUnicode(remote_file_name.toAscii() );
         this->ui_progress_dialog.comboBox_2->addItem(remote_file_name);
         
         for(int i = 0 ; i < local_file_names.count() ; i ++)
@@ -118,7 +113,6 @@ void ProgressDialog::set_transfer_info(int type,QStringList local_file_names,QSt
             local_file_name = local_file_names.at(i);
             remote_full_path = remote_file_name + "/"
                     + local_file_name.split ( "/" ).at ( local_file_name.split ( "/" ).count()-1 ) ;
-            local_file_name = locale_codec->toUnicode(local_file_name.toAscii());            
             this->ui_progress_dialog.comboBox_2->addItem( local_file_name );
 
         }
@@ -132,7 +126,6 @@ void ProgressDialog::set_transfer_info(int type,QStringList local_file_names,QSt
         this->ui_progress_dialog.lineEdit->setText(tr("Downloading..."));
         this->ui_progress_dialog.comboBox->clear();
         this->ui_progress_dialog.comboBox_2->clear();
-        local_file_name = locale_codec->toUnicode(local_file_name.toAscii());
         this->ui_progress_dialog.comboBox_2->addItem( local_file_name );
         
         for( int i = 0 ; i < remote_file_names.count() ; i ++ )
@@ -140,7 +133,6 @@ void ProgressDialog::set_transfer_info(int type,QStringList local_file_names,QSt
             remote_file_name = remote_file_names.at(i);
             local_full_path = local_file_name + "/"
                 + remote_file_name.split ( "/" ).at ( remote_file_name.split ( "/" ).count()-1 ) ;
-            remote_file_name = remote_codec->toUnicode(remote_file_name.toAscii());
             this->ui_progress_dialog.comboBox->addItem( remote_file_name );
     
         }
@@ -191,10 +183,8 @@ void ProgressDialog::exec()
 
 void ProgressDialog::slot_new_file_transfer_started(QString new_file_name)
 {
-    //QTextCodec * codec = QTextCodec::codecForName(REMOTE_CODEC);
-    QTextCodec * codec = GlobalOption::instance()->locale_codec ;
     
-    QString u_new_file_name = codec->toUnicode(new_file_name.toAscii());
+    QString u_new_file_name =  new_file_name  ;
     bool found = 0 ;
     for(int i = 0 ; i < this->ui_progress_dialog.comboBox->count() ; i ++ )
     {

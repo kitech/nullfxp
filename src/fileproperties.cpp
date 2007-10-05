@@ -75,7 +75,7 @@ void FileProperties::set_file_info_model_list ( QModelIndexList &mil )
     //qDebug()<<item_node->strip_path.c_str();
 	this->ui_file_prop_dialog.lineEdit->setText ( file_name );
 	this->ui_file_prop_dialog.lineEdit_2->setText ( file_perm.left ( 1 ) );
-    this->ui_file_prop_dialog.lineEdit_3->setText ( item_node->strip_path.length()-file_name.length() ==1 ? "/" : ( item_node->strip_path.substr ( 0,item_node->strip_path.length()-file_name.length()-1 ).c_str() ) );
+    this->ui_file_prop_dialog.lineEdit_3->setText ( item_node->strip_path.length()-file_name.length() ==1 ? "/" : ( item_node->strip_path.mid ( 0,item_node->strip_path.length()-file_name.length()-1 ) ) );
 	this->ui_file_prop_dialog.lineEdit_4->setText ( file_size );
 	this->ui_file_prop_dialog.lineEdit_5->setText ( file_modify_time );
 

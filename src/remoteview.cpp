@@ -20,6 +20,7 @@
 
 #include <QtCore>
 
+#include "globaloption.h"
 #include "utils.h"
 
 #include "progressdialog.h"
@@ -184,10 +185,10 @@ void RemoteView::slot_new_transfer()
         QModelIndex midx = mil.at(i);
         qDebug()<<midx ;
         directory_tree_item * dti = (directory_tree_item*) midx.internalPointer();
-        qDebug()<<dti->file_name.c_str()<<" "<<dti->file_type.c_str()
-                <<" "<< dti->strip_path.c_str() ;
-        file_path = dti->strip_path.c_str();
-        //file_type = dti->file_type.c_str() ;
+        qDebug()<<dti->file_name<<" "<<dti->file_type
+                <<" "<< dti->strip_path  ;
+        file_path = dti->strip_path;
+        //file_type = dti->file_type  ;
         remote_file_names << file_path ;
     }
     
@@ -197,29 +198,7 @@ void RemoteView::slot_new_transfer()
     //这里是指的下载文件
     this->slot_new_download_requested( remote_file_names ) ;
 }
-//已经改为 slot_new_upload_requested (  ls , rs ) 
-// void RemoteView::slot_new_transfer_requested(QStringList local_file_names,                                    QStringList remote_file_names)
-// {
-//     if( this->in_remote_dir_retrive_loop )
-//     {
-//         QMessageBox::warning(this,tr("attentions:"),tr("retriving remote directory tree,wait a minute please.") );
-//         return ;
-//     }
-//     else
-//     {
-//         //emit this->new_transfer_requested(local_file_names,remote_file_names);
-//         ProgressDialog * pdlg = new ProgressDialog ( this );
-//         pdlg->set_remote_connection ( this->get_ssh2_sess() ,
-//                                       this->get_ssh2_sftp(),
-//                                               this->get_ssh2_sock()  );
-// 
-//         pdlg->set_transfer_info ( TransferThread::TRANSFER_PUT,local_file_names , remote_file_names ) ;
-//         QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
-//                            this,SLOT ( slot_transfer_finished ( int ) ) );
-//         this->slot_enter_remote_dir_retrive_loop();
-//         pdlg->exec();
-//     }
-// }
+
 
 QString RemoteView::get_selected_directory()
 {
@@ -240,9 +219,9 @@ QString RemoteView::get_selected_directory()
         QModelIndex midx = mil.at(i);
         qDebug()<<midx ;
         directory_tree_item * dti = (directory_tree_item*) midx.internalPointer();
-        qDebug()<<dti->file_name.c_str()<<" "<<dti->file_type.c_str()
-                <<" "<< dti->strip_path.c_str() ;
-        file_path = dti->strip_path.c_str();
+        qDebug()<<dti->file_name <<" "<<dti->file_type 
+                <<" "<< dti->strip_path  ;
+        file_path = dti->strip_path ;
         if( dti->file_type.at(0) == 'd' || dti->file_type.at(0) == 'D'
             || dti->file_type.at(0) == 'l' )
         {
@@ -380,9 +359,9 @@ void RemoteView::update_layout()
         QModelIndex midx = mil.at(i);
         qDebug()<<midx ;
         directory_tree_item * dti = (directory_tree_item*) midx.internalPointer();
-        qDebug()<<dti->file_name.c_str()<<" "<<dti->file_type.c_str()
-                <<" "<< dti->strip_path.c_str() ;
-        file_path = dti->strip_path.c_str();
+        qDebug()<<dti->file_name<<" "<<dti->file_type
+                <<" "<< dti->strip_path ;
+        file_path = dti->strip_path ;
         dti->retrived = 1;
         dti->prev_retr_flag=9;
         this->remote_dir_model->slot_remote_dir_node_clicked(midx);
@@ -460,7 +439,7 @@ void RemoteView::slot_mkdir()
     }
     //TODO 将 file_path 转换编码再执行下面的操作
     
-    this->remote_dir_model->slot_execute_command(dti,midx.internalPointer(),SSH2_FXP_MKDIR,std::string(dir_name.toAscii().data()) );
+    this->remote_dir_model->slot_execute_command(dti,midx.internalPointer(),SSH2_FXP_MKDIR,dir_name );
     
 }
 
@@ -494,7 +473,7 @@ void RemoteView::slot_rmdir()
     
     //TODO 检查所选择的项是不是目录
     
-    this->remote_dir_model->slot_execute_command(parent_item,parent_model.internalPointer() ,SSH2_FXP_RMDIR,std::string( dti->file_name ) );
+    this->remote_dir_model->slot_execute_command(parent_item,parent_model.internalPointer() ,SSH2_FXP_RMDIR, dti->file_name   );
     
 }
 
@@ -526,7 +505,7 @@ void RemoteView::rm_file_or_directory_recursively()
     QModelIndex parent_model =  midx.parent() ;
     directory_tree_item * parent_item = (directory_tree_item*)parent_model.internalPointer();
     
-    this->remote_dir_model->slot_execute_command(parent_item,parent_model.internalPointer() ,SSH2_FXP_REMOVE , std::string( dti->file_name ) );
+    this->remote_dir_model->slot_execute_command(parent_item,parent_model.internalPointer() ,SSH2_FXP_REMOVE ,  dti->file_name   );
 }
 
 void RemoteView::slot_rename()
@@ -540,7 +519,6 @@ void RemoteView::slot_rename()
         qDebug()<<" why???? no QItemSelectionModel??";
         QMessageBox::critical(this,tr("waring..."),tr("maybe you haven't connected"));                
         return  ;
-        return ;
     }
     
     QModelIndexList mil = ism->selectedIndexes()   ;
@@ -558,25 +536,25 @@ void RemoteView::slot_rename()
     directory_tree_item * parent_item = (directory_tree_item*)parent_model.internalPointer();
     
     QString rename_to ;
-    rename_to = QInputDialog::getText(this,tr("Rename to:"),
-                                      tr("Input new name:"),
-                                         QLineEdit::Normal,
-                                         tr("rename") );
+    rename_to = QInputDialog::getText(this,tr("Rename to:"),  tr("Input new name:"),
+                                         QLineEdit::Normal, tr("Rename to") );
      
-    if(  rename_to.length () == 0 )
+	if(  rename_to  == QString::null )
     {
-        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
-        QMessageBox::critical(this,tr("waring..."),tr("no new name supplyed "));
+        //qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+        //QMessageBox::critical(this,tr("Waring..."),tr("No new name supplyed "));
         return;
     }
-    
-    //TODO 将 rename_to 转换编码再执行下面的操作
-    
-    this->remote_dir_model->slot_execute_command(parent_item,parent_model.internalPointer() ,SSH2_FXP_RENAME , std::string( dti->file_name + "!" + std::string( rename_to.toAscii().data() ) ) );
-    
+	if( rename_to.length() == 0 )
+	{
+		QMessageBox::critical(this,tr("Waring..."),tr("No new name supplyed "));
+		return ;
+	}
+
+    this->remote_dir_model->slot_execute_command(parent_item,parent_model.internalPointer() ,SSH2_FXP_RENAME ,  dti->file_name + "!" + rename_to );
 }
 
-void RemoteView::slot_new_upload_requested ( QStringList local_file_names,                                    QStringList remote_file_names )
+void RemoteView::slot_new_upload_requested ( QStringList local_file_names,  QStringList remote_file_names )
 {
     if( this->in_remote_dir_retrive_loop )
     {
@@ -637,7 +615,7 @@ void RemoteView::slot_new_upload_requested ( QStringList local_file_names )
     }
 }
 
-void RemoteView::slot_new_download_requested(QStringList local_file_names,                                    QStringList remote_file_names)
+void RemoteView::slot_new_download_requested(QStringList local_file_names,   QStringList remote_file_names)
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     qDebug() << local_file_names << remote_file_names ;
@@ -666,7 +644,7 @@ void RemoteView::slot_new_download_requested( QStringList remote_file_names )
 	local_file_path = this->local_view->get_selected_directory();
 	local_file_names << local_file_path ;
     
-    if ( local_file_path.length() == 0 || ! is_dir(local_file_path.toAscii().data() ) )
+	if ( local_file_path.length() == 0 || ! is_dir( GlobalOption::instance()->locale_codec->fromUnicode( local_file_path  ).data() ) )
 	{
 		qDebug() <<" selected a local file directory  please";
 		QMessageBox::critical ( this,tr ( "waring..." ),tr ( "you should selecte a local file directory." ) );
