@@ -29,6 +29,7 @@ LocalView::LocalView ( QWidget *parent )
 		: QWidget ( parent )
 {
 	localView.setupUi ( this );
+    this->setObjectName("lv");
     ////
     this->status_bar = new QStatusBar();
     this->layout()->addWidget(this->status_bar);

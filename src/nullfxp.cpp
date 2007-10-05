@@ -180,7 +180,8 @@ void NullFXP::slot_disconnect_from_remote_host()
     
         for( sub_wnd_count = sub_wnd_count -1 ;  sub_wnd_count >= 0  ; sub_wnd_count -- )
         {
-            if( sub_window_list.at( sub_wnd_count )->widget() != this->localView )
+            if( sub_window_list.at( sub_wnd_count )->widget() != this->localView 
+                && sub_window_list.at( sub_wnd_count )->widget()->objectName()=="rv" )
             {
                 sub_window_list.at( sub_wnd_count )->close();
                 break ;
@@ -196,7 +197,7 @@ void NullFXP::slot_connect_remote_host_finished ( int status,void * ssh2_sess , 
 	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 	if ( status == 0 )
 	{
-        RemoteView * remote_view = new RemoteView(this->localView);
+        RemoteView * remote_view = new RemoteView(this->mdiArea , this->localView);
         
         mdiArea->addSubWindow ( remote_view );
         
@@ -287,7 +288,8 @@ void NullFXP::slot_show_remote_view()
     
     for( sub_wnd_count = sub_wnd_count -1 ;  sub_wnd_count >= 0  ; sub_wnd_count -- )
     {
-        if( sub_window_list.at( sub_wnd_count )->widget() != this->localView )
+        if( sub_window_list.at( sub_wnd_count )->widget() != this->localView 
+            && sub_window_list.at( sub_wnd_count )->widget()->objectName()=="rv" )
         {
             this->mdiArea->setActiveSubWindow ( sub_window_list.at( sub_wnd_count ) );
             break ;
@@ -303,7 +305,8 @@ RemoteView * NullFXP::get_top_most_remote_view ()
     
     for( sub_wnd_count = sub_wnd_count -1 ;  sub_wnd_count >= 0  ; sub_wnd_count -- )
     {
-        if( sub_window_list.at( sub_wnd_count )->widget() != this->localView )
+        if( sub_window_list.at( sub_wnd_count )->widget() != this->localView 
+            && sub_window_list.at( sub_wnd_count )->widget()->objectName()=="rv" )
         {
             remote_view = static_cast<RemoteView*>( sub_window_list.at( sub_wnd_count )->widget() );
             break ;

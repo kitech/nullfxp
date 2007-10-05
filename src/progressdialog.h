@@ -31,12 +31,12 @@
 /**
 	@author liuguangzhao <gzl@localhost>
 */
-class ProgressDialog : public QDialog
+class ProgressDialog : public QWidget
 {
 Q_OBJECT
 public:
     
-    ProgressDialog(QWidget *parent = 0);
+    ProgressDialog(QWidget *parent = 0  );
 
     ~ProgressDialog();
 
@@ -53,6 +53,7 @@ public:
         void slot_new_file_transfer_started(QString new_file_name);
         
         void exec ();
+        void show () ;
         void slot_cancel_button_clicked();
         void slot_transfer_got_file_size( int size );
     signals:

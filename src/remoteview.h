@@ -25,6 +25,7 @@
 #include <QVector>
 #include <QPair>
 
+class ProgressDialog;
 #include "ui_remoteview.h"
 
 // #include "sftp-client.h"
@@ -44,7 +45,7 @@ class RemoteView : public QWidget
 {
     Q_OBJECT
 public:
-    RemoteView(LocalView * local_view , QWidget *parent = 0);
+    RemoteView( QMdiArea * main_mdi_area , LocalView * local_view , QWidget *parent = 0);
 
     ~RemoteView();
     QString get_selected_directory();
@@ -64,7 +65,7 @@ public:
     
     private:
         LocalView  * local_view ;
-        
+        QMdiArea   * main_mdi_area ;
         QStatusBar * status_bar ;
         
         Ui::remoteview remoteview;
@@ -78,6 +79,7 @@ public:
         
         QCursor orginal_cursor ;
         bool    in_remote_dir_retrive_loop ;
+        ProgressDialog * own_progress_dialog ;
         
         //
         int     ssh2_sock ;
