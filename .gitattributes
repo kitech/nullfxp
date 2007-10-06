@@ -20,6 +20,8 @@ src/globaloption.h -text
 src/globaloptionsdialog.cpp -text
 src/globaloptionsdialog.h -text
 src/globaloptionsdialog.ui -text
+src/icons/nullget-1.png -text
+src/icons/nullget-2.png -text
 src/libssh2/CMakeLists.txt -text
 src/libssh2/COPYING -text
 src/libssh2/Makefile.am -text
@@ -91,6 +93,7 @@ src/main.cpp -text
 src/nullfxp-version.h -text
 src/nullfxp.cpp -text
 src/nullfxp.h -text
+src/nullfxp.qrc -text
 src/nullfxp.ui -text
 src/progressdialog.cpp -text
 src/progressdialog.h -text

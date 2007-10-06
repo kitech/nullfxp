@@ -150,6 +150,10 @@ void RemoteView::i_init_dir_view( )
     
     this->remoteview.treeView->expandAll();
     this->remoteview.treeView->setColumnWidth(0,this->remoteview.treeView->columnWidth(0)*2);
+    this->remoteview.treeView->setColumnHidden( 1, true);
+    this->remoteview.treeView->setColumnHidden( 2, true);
+    this->remoteview.treeView->setColumnHidden( 3, true);
+    
     this->remoteview.tableView->setModel( this->remote_dir_model);
     this->remoteview.tableView->setRootIndex( this->remote_dir_model->index( this->user_home_path.c_str() ) );
     //change row height of table 
@@ -181,7 +185,7 @@ void RemoteView::slot_disconnect_from_remote_host()
 void RemoteView::slot_dir_tree_customContextMenuRequested ( const QPoint & pos )
 {
     this->curr_item_view = static_cast<QAbstractItemView*>(sender());
-    QPoint real_pos = this->mapToGlobal(pos);
+    QPoint real_pos = this->curr_item_view->mapToGlobal(pos);
     real_pos = QPoint(real_pos.x()+12,real_pos.y()+36);
     attr_action->setEnabled( ! this->in_remote_dir_retrive_loop );
     this->dir_tree_context_menu->popup(real_pos);
@@ -329,13 +333,17 @@ void RemoteView::closeEvent ( QCloseEvent * event )
 void RemoteView::slot_custom_ui_area()
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    
+    QSizePolicy sp;
+    sp.setVerticalPolicy(QSizePolicy::Ignored);
+    this->remoteview.listView->setSizePolicy( sp ) ;
     //这个设置必须在show之前设置才有效果
-    this->remoteview.splitter_2->setStretchFactor(0,5);
-    this->remoteview.splitter_2->setStretchFactor(1,1);
-
     this->remoteview.splitter->setStretchFactor(0,1);
     this->remoteview.splitter->setStretchFactor(1,2);
-    //this->remoteview.listView_2->setVisible(false);//暂时没有功能在里面先隐藏掉
+
+    this->remoteview.splitter_2->setStretchFactor(0,6);
+    this->remoteview.splitter_2->setStretchFactor(1,1);
+    this->remoteview.listView->setVisible(false);//暂时没有功能在里面先隐藏掉
     //this->remoteview.tableView->setVisible(false);
 }
 

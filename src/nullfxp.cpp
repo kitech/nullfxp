@@ -70,7 +70,10 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
 
 	central_splitter_widget->addWidget ( mdiArea );
 	central_splitter_widget->addWidget ( transfer_queue_list_view );
-    //this->transfer_queue_list_view->setVisible( false ) ;
+    QSizePolicy sp;
+    sp.setVerticalPolicy(QSizePolicy::Ignored);
+    this->transfer_queue_list_view->setSizePolicy( sp ) ;
+    this->transfer_queue_list_view->setVisible(false );
     
 	setCentralWidget ( central_splitter_widget );
 
@@ -110,14 +113,17 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
 	//启动主界面大小调整
 	//this->slot_tile_sub_windows();
 
-	this->central_splitter_widget->setStretchFactor ( 0,4 );
+	this->central_splitter_widget->setStretchFactor ( 0,3 );
 	this->central_splitter_widget->setStretchFactor ( 1,1 );
 
 	//
 	//QList<QMdiSubWindow *> mdiSubWindow = mdiArea->subWindowList();
 	//qDebug()<<" mdi sub window count :"<< mdiSubWindow.count();
     QMdiSubWindow * local_sub_win = mdiArea->subWindowList().at(0);
-    local_sub_win->setGeometry( local_sub_win->x(),local_sub_win->y(), mdiArea->width()/2,  mdiArea->height()*7/8 );
+    local_sub_win->setGeometry( local_sub_win->x(),local_sub_win->y(), mdiArea->width()/2,  mdiArea->height()*19/19 );
+    
+    this->setWindowIcon(QIcon(":/icons/nullget-1.png") ); 
+    //this->setWindowIcon(QIcon(qApp->applicationDirPath()+"/"+"icons/nullget-1.png"));	
 }
 
 NullFXP::~NullFXP()
@@ -264,8 +270,11 @@ void NullFXP::slot_cascade_sub_windows()
 void NullFXP::slot_tile_sub_windows()
 {
 	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    //让本地视图总是显示在左侧,并不改为原来的窗口顺序
+    QMdiSubWindow * curr_active_sub_window = this->mdiArea->activeSubWindow ();
+    this->mdiArea->setActiveSubWindow ( this->mdiArea->subWindowList(QMdiArea::CreationOrder) .at ( 0 ) );
 	this->mdiArea->tileSubWindows();
-
+    this->mdiArea->setActiveSubWindow ( curr_active_sub_window );
 }
 
 void NullFXP::slot_show_local_view()

@@ -91,3 +91,4 @@ win32 {
 
 INCLUDEPATH += ./libssh2/include
 
+RESOURCES = nullfxp.qrc
