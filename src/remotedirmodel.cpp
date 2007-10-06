@@ -205,6 +205,83 @@ QModelIndex RemoteDirModel::index ( int row, int column, const QModelIndex &pare
 	//return createIndex( row , column , 1 ) ;
 }
 
+QModelIndex RemoteDirModel::index ( const QString & path, int column  ) const
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+
+    if( path == "" )
+    {
+        qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+        return this->createIndex(0,0,this->tree_root->child_items[0]  );
+    } 
+
+    QString absolutePath = QDir(path).absolutePath();
+#ifdef Q_OS_WIN
+    absolutePath = absolutePath.toLower();
+    // On Windows, "filename......." and "filename" are equivalent
+    if (absolutePath.endsWith(QLatin1Char('.'))) {
+        int i;
+        for (i = absolutePath.count() - 1; i >= 0; --i) {
+            if (absolutePath.at(i) != QLatin1Char('.'))
+                break;
+        }
+        absolutePath = absolutePath.left(i+1);
+    }
+#endif
+
+    QStringList pathElements = absolutePath.split(QLatin1Char('/'), QString::SkipEmptyParts);
+    if ((pathElements.isEmpty() /*|| !QFileInfo(path).exists()*/)   // the path is "/"
+#ifndef Q_OS_WIN
+         && path != QLatin1String("/")
+#endif
+       )
+    {
+        return QModelIndex();
+    }
+   
+    
+    pathElements.prepend("/");
+    
+    //directory_tree_item * the_item = this->find_node_item_by_path_elements(this->tree_root,pathElements,0);
+    //Q_ASSERT( the_item );
+    qDebug()<< pathElements ;
+
+    return this->find_node_item_by_path_elements(this->tree_root->child_items[0],pathElements,1);
+    
+    return QModelIndex();
+}
+QModelIndex RemoteDirModel::find_node_item_by_path_elements( directory_tree_item * parent_node_item ,QStringList & path_elements , int level ) const
+{
+    if( level < 0 ) return this->createIndex( 0, 0, this->tree_root ) ;
+    QString aim_child_node_item_name = path_elements.at(level);
+    Q_ASSERT( parent_node_item);
+    qDebug()<<__LINE__<< parent_node_item->file_name<<level<<path_elements ;
+    for( int i = 0 ; i < parent_node_item->child_items.size() ; i ++ )
+    {
+        directory_tree_item * child_item = parent_node_item->child_items[i];
+        qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<< child_item->file_name;
+        if( child_item->file_name.compare(aim_child_node_item_name) ==0 )
+        {
+            
+            if( level == path_elements.count()-1 ) 
+            {
+                qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+                QModelIndex mi = this->createIndex( i, 0, child_item );
+                //return child_item;
+                return mi ;
+            }
+            else
+            {
+                qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+                QModelIndex mi =this->find_node_item_by_path_elements( child_item,path_elements,level+1 );
+                return mi ; 
+            }
+        }
+    }
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    return this->createIndex( 0, 0, parent_node_item );
+    //return parent_node_item ;
+}
 QModelIndex RemoteDirModel::parent ( const QModelIndex &child ) const
 {
 	//qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
@@ -637,4 +714,17 @@ void RemoteDirModel::slot_keep_alive_time_out()
     this->remote_dir_retrive_thread->slot_execute_command(0,0,SSH2_FXP_KEEP_ALIVE,"");
     
 }
-
+QString RemoteDirModel::filePath(const QModelIndex &index) const
+{
+    return static_cast<directory_tree_item*>(index.internalPointer())->strip_path ;
+}
+bool RemoteDirModel::isDir(const QModelIndex &index) const
+{
+    directory_tree_item * node_item = static_cast<directory_tree_item*>(index.internalPointer()) ;
+    if( node_item->child_items.size() > 0 
+        || node_item->file_type.at(0) == QChar('d') 
+        || node_item->file_type.at(0) == QChar('D') 
+      )
+        return true ;
+    return false ;
+}

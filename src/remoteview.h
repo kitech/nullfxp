@@ -26,6 +26,8 @@
 #include <QPair>
 
 class ProgressDialog;
+class RemoteDirSortFilterModel ;
+
 #include "ui_remoteview.h"
 
 // #include "sftp-client.h"
@@ -70,6 +72,9 @@ public:
         
         Ui::remoteview remoteview;
         RemoteDirModel * remote_dir_model ;
+        int   table_row_height ;
+        RemoteDirSortFilterModel * remote_dir_sort_filter_model ;
+        QAbstractItemView * curr_item_view ;    //
         
         QMenu * dir_tree_context_menu ;
         
@@ -127,7 +132,7 @@ public:
         void new_transfer_requested(QStringList local_file_names,QStringList remote_file_names);
         
     private slots:
-        void slot_dir_item_clicked(const QModelIndex & index);
+        //void slot_dir_item_clicked(const QModelIndex & index);
 
         void slot_refresh_directory_tree();
         void slot_show_properties();
@@ -136,7 +141,10 @@ public:
         void slot_rename();
         
         void rm_file_or_directory_recursively();
-            
+
+        void slot_dir_tree_item_clicked( const QModelIndex & index);
+        void slot_dir_file_view_double_clicked( const QModelIndex & index );
+        
     protected:
         virtual void closeEvent ( QCloseEvent * event ) ;
 };

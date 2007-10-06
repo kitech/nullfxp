@@ -14,7 +14,8 @@ SOURCES += main.cpp \
  globaloptionsdialog.cpp \
  utils.cpp \
  fileproperties.cpp \
- localdirfilemodel.cpp
+ localdirfilemodel.cpp \
+ remotedirsortfiltermodel.cpp
 TEMPLATE = app
 CONFIG += warn_on \
 	  thread \
@@ -53,7 +54,8 @@ HEADERS += nullfxp.h \
  globaloption.h \
  globaloptionsdialog.h \
  fileproperties.h \
- localdirfilemodel.h
+ localdirfilemodel.h \
+ remotedirsortfiltermodel.h
 
 
 DISTFILES += ../CMakeLists.txt \

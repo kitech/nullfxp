@@ -55,6 +55,8 @@ class RemoteDirModel : public QAbstractItemModel
 		                      int role = Qt::DisplayRole ) const;
 		QModelIndex index ( int row, int column,
 		                    const QModelIndex &parent = QModelIndex() ) const;
+        QModelIndex index ( const QString & path, int column = 0 ) const;
+        
 		QModelIndex parent ( const QModelIndex &child ) const;
 		int rowCount ( const QModelIndex &parent = QModelIndex() ) const;
 		int columnCount ( const QModelIndex &parent = QModelIndex() ) const;
@@ -124,7 +126,8 @@ class RemoteDirModel : public QAbstractItemModel
 // 		    void refresh(const QModelIndex &parent = QModelIndex());
 // 		
 
-        
+        QString filePath(const QModelIndex &index) const;
+        bool isDir(const QModelIndex &index) const;
     public slots:
         void slot_remote_dir_node_retrived(directory_tree_item* parent_item,void *  parent_model_internal_pointer );
       
@@ -151,7 +154,8 @@ class RemoteDirModel : public QAbstractItemModel
 		directory_tree_item * tree_root ;
 		//struct sftp_conn * sftp_connection ;
         RemoteDirRetriveThread * remote_dir_retrive_thread ;
-        
+        //递归查找树
+        QModelIndex find_node_item_by_path_elements( directory_tree_item * parent_node_item , QStringList & path_elements , int level ) const ;
 		void dump_tree_node_item ( directory_tree_item * node_item ) const ;
 
         std::string user_home_path ;

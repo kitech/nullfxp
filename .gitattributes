@@ -99,6 +99,8 @@ src/remotedirmodel.cpp -text
 src/remotedirmodel.h -text
 src/remotedirretrivethread.cpp -text
 src/remotedirretrivethread.h -text
+src/remotedirsortfiltermodel.cpp -text
+src/remotedirsortfiltermodel.h -text
 src/remotehostconnectingstatusdialog.cpp -text
 src/remotehostconnectingstatusdialog.h -text
 src/remotehostconnectingstatusdialog.ui -text

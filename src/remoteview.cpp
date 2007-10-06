@@ -26,6 +26,7 @@
 #include "progressdialog.h"
 #include "localview.h"
 #include "remoteview.h"
+#include "remotedirsortfiltermodel.h"
 
 #include "fileproperties.h"
 
@@ -50,8 +51,10 @@ RemoteView::RemoteView(QMdiArea * main_mdi_area ,LocalView * local_view ,QWidget
     
     QObject::connect(this->remoteview.treeView,SIGNAL(customContextMenuRequested(const QPoint &)),
                      this,SLOT(slot_dir_tree_customContextMenuRequested (const QPoint & )) );
-    QObject::connect( this->remoteview.treeView,SIGNAL(clicked(const QModelIndex & )),
-                      this,SLOT(slot_dir_item_clicked(const QModelIndex & ))) ;
+    QObject::connect(this->remoteview.tableView,SIGNAL(customContextMenuRequested(const QPoint &)),
+                     this,SLOT(slot_dir_tree_customContextMenuRequested (const QPoint & )) );
+    //QObject::connect( this->remoteview.treeView,SIGNAL(clicked(const QModelIndex & )),
+    //                  this,SLOT(slot_dir_item_clicked(const QModelIndex & ))) ;
     
     this->init_popup_context_menu();
     
@@ -105,6 +108,7 @@ void RemoteView::init_popup_context_menu()
     this->dir_tree_context_menu->addAction(action);
     QObject::connect(action,SIGNAL(triggered()),this,SLOT(rm_file_or_directory_recursively()));
     
+    
 }
 
 RemoteView::~RemoteView()
@@ -126,8 +130,12 @@ void RemoteView::i_init_dir_view( )
     this->remote_dir_model->set_ssh2_handler(this->ssh2_sess,this->ssh2_sftp,this->ssh2_sock );
     
     this->remote_dir_model->set_user_home_path(this->user_home_path);
+    this->remote_dir_sort_filter_model = new RemoteDirSortFilterModel();
+    remote_dir_sort_filter_model->setSourceModel( this->remote_dir_model);
+
     
-    this->remoteview.treeView->setModel(this->remote_dir_model);
+    //this->remoteview.treeView->setModel(this->remote_dir_model);
+    this->remoteview.treeView->setModel( remote_dir_sort_filter_model );
     this->remoteview.treeView->setAcceptDrops(true);
     this->remoteview.treeView->setDragEnabled(true);
     this->remoteview.treeView->setDropIndicatorShown(true);
@@ -142,6 +150,25 @@ void RemoteView::i_init_dir_view( )
     
     this->remoteview.treeView->expandAll();
     this->remoteview.treeView->setColumnWidth(0,this->remoteview.treeView->columnWidth(0)*2);
+    this->remoteview.tableView->setModel( this->remote_dir_model);
+    this->remoteview.tableView->setRootIndex( this->remote_dir_model->index( this->user_home_path.c_str() ) );
+    //change row height of table 
+    if( this->remote_dir_model->rowCount( this->remote_dir_model->index( this->user_home_path.c_str() ) ) > 0 )
+    {
+        this->table_row_height = this->remoteview.tableView->rowHeight(0)*2/3;
+    }
+    else
+    {
+        this->table_row_height = 20 ;
+    }
+    for( int i = 0 ; i < this->remote_dir_model->rowCount( this->remote_dir_model->index( this->user_home_path.c_str() ) ); i ++ )
+        this->remoteview.tableView->setRowHeight( i, this->table_row_height );
+    this->remoteview.tableView->resizeColumnToContents( 0 );
+    
+    /////
+    QObject::connect(this->remoteview.treeView,SIGNAL(clicked(const QModelIndex &)),
+                     this,SLOT( slot_dir_tree_item_clicked(const QModelIndex &))) ;
+    QObject::connect( this->remoteview.tableView,SIGNAL( doubleClicked ( const QModelIndex &  ) ) , this,SLOT( slot_dir_file_view_double_clicked ( const QModelIndex & ) ) );
 }
 
 void RemoteView::slot_disconnect_from_remote_host()
@@ -153,6 +180,7 @@ void RemoteView::slot_disconnect_from_remote_host()
 
 void RemoteView::slot_dir_tree_customContextMenuRequested ( const QPoint & pos )
 {
+    this->curr_item_view = static_cast<QAbstractItemView*>(sender());
     QPoint real_pos = this->mapToGlobal(pos);
     real_pos = QPoint(real_pos.x()+12,real_pos.y()+36);
     attr_action->setEnabled( ! this->in_remote_dir_retrive_loop );
@@ -172,7 +200,7 @@ void RemoteView::slot_new_transfer()
         return ;
     }
     
-    QItemSelectionModel *ism = this->remoteview.treeView->selectionModel();
+    QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
     if( ism == 0 )
     {
@@ -186,7 +214,7 @@ void RemoteView::slot_new_transfer()
     {
         QModelIndex midx = mil.at(i);
         qDebug()<<midx ;
-        directory_tree_item * dti = (directory_tree_item*) midx.internalPointer();
+        directory_tree_item * dti = (directory_tree_item*) ( this->curr_item_view!=this->remoteview.treeView ?   midx.internalPointer() : ( this->remote_dir_sort_filter_model->mapToSource(midx ).internalPointer() )  );
         qDebug()<<dti->file_name<<" "<<dti->file_type
                 <<" "<< dti->strip_path  ;
         file_path = dti->strip_path;
@@ -220,7 +248,8 @@ QString RemoteView::get_selected_directory()
     {
         QModelIndex midx = mil.at(i);
         qDebug()<<midx ;
-        directory_tree_item * dti = (directory_tree_item*) midx.internalPointer();
+        QModelIndex aim_midx =  this->remote_dir_sort_filter_model->mapToSource( midx)  ;
+        directory_tree_item * dti = (directory_tree_item*) aim_midx.internalPointer();
         qDebug()<<dti->file_name <<" "<<dti->file_type 
                 <<" "<< dti->strip_path  ;
         file_path = dti->strip_path ;
@@ -304,20 +333,20 @@ void RemoteView::slot_custom_ui_area()
     this->remoteview.splitter_2->setStretchFactor(0,5);
     this->remoteview.splitter_2->setStretchFactor(1,1);
 
-    this->remoteview.splitter->setStretchFactor(0,3);
-    this->remoteview.splitter->setStretchFactor(1,1);
+    this->remoteview.splitter->setStretchFactor(0,1);
+    this->remoteview.splitter->setStretchFactor(1,2);
     //this->remoteview.listView_2->setVisible(false);//暂时没有功能在里面先隐藏掉
-    this->remoteview.tableView->setVisible(false);
+    //this->remoteview.tableView->setVisible(false);
 }
 
-void RemoteView::slot_dir_item_clicked(const QModelIndex & index)
-{
-    //qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    assert( remote_dir_model != 0 );
-
-    remote_dir_model->slot_remote_dir_node_clicked(index);
-
-}
+// void RemoteView::slot_dir_item_clicked(const QModelIndex & index)
+// {
+//     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+//     assert( remote_dir_model != 0 );
+// 
+//     remote_dir_model->slot_remote_dir_node_clicked(index);
+// 
+// }
 
 void RemoteView::slot_enter_remote_dir_retrive_loop()
 {
@@ -366,18 +395,15 @@ void RemoteView::update_layout()
     {
         QModelIndex midx = mil.at(i);
         qDebug()<<midx ;
-        directory_tree_item * dti = (directory_tree_item*) midx.internalPointer();
+        //这个地方为什么不使用mapToSource会崩溃呢？
+        directory_tree_item * dti = static_cast<directory_tree_item*>(this->remote_dir_sort_filter_model->mapToSource(  midx ) .internalPointer());
         qDebug()<<dti->file_name<<" "<<dti->file_type
                 <<" "<< dti->strip_path ;
         file_path = dti->strip_path ;
         dti->retrived = 1;
         dti->prev_retr_flag=9;
-        this->remote_dir_model->slot_remote_dir_node_clicked(midx);
+        this->remote_dir_model->slot_remote_dir_node_clicked(this->remote_dir_sort_filter_model->mapToSource(  midx ) );
     }
-    
-    //return file_path ;
-    
-    //this->remote_dir_model->update_layout();
 }
 
 void RemoteView::slot_refresh_directory_tree()
@@ -387,7 +413,7 @@ void RemoteView::slot_refresh_directory_tree()
 
 void RemoteView::slot_show_properties()
 {
-    QItemSelectionModel *ism = this->remoteview.treeView->selectionModel();
+    QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
     if(ism == 0)
     {
@@ -396,11 +422,21 @@ void RemoteView::slot_show_properties()
     }
     
     QModelIndexList mil = ism->selectedIndexes()   ;
+    QModelIndexList aim_mil ;
+    if( this->curr_item_view == this->remoteview.treeView )
+    {
+        for( int i = 0 ; i < mil.count() ; i ++ )
+        {
+            aim_mil << this->remote_dir_sort_filter_model->mapToSource( mil.at(i) );
+        }
+    }
+    else
+        aim_mil = mil ;
     //  文件类型，大小，几个时间，文件权限
     //TODO 从模型中取到这些数据并显示在属性对话框中。
     FileProperties * fp = new FileProperties(this);
     fp->set_ssh2_sftp( this->ssh2_sftp );
-    fp->set_file_info_model_list(mil);
+    fp->set_file_info_model_list(aim_mil);
     fp->exec();
     delete fp ;
 }
@@ -409,7 +445,7 @@ void RemoteView::slot_mkdir()
 {
     QString dir_name ;
     
-    QItemSelectionModel *ism = this->remoteview.treeView->selectionModel();
+    QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
     if(ism == 0)
     {
@@ -429,7 +465,8 @@ void RemoteView::slot_mkdir()
     }
     
     QModelIndex midx = mil.at(0);
-    directory_tree_item * dti = (directory_tree_item*) midx.internalPointer();
+    QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) ? this->remote_dir_sort_filter_model->mapToSource(midx): midx ;
+    directory_tree_item * dti = (directory_tree_item*)( aim_midx.internalPointer() );
     
     //TODO 检查所选择的项是不是目录
     
@@ -447,7 +484,7 @@ void RemoteView::slot_mkdir()
     }
     //TODO 将 file_path 转换编码再执行下面的操作
     
-    this->remote_dir_model->slot_execute_command(dti,midx.internalPointer(),SSH2_FXP_MKDIR,dir_name );
+    this->remote_dir_model->slot_execute_command(dti,aim_midx.internalPointer(),SSH2_FXP_MKDIR,dir_name );
     
 }
 
@@ -455,7 +492,7 @@ void RemoteView::slot_rmdir()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
-    QItemSelectionModel *ism = this->remoteview.treeView->selectionModel();
+    QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
     if(ism == 0)
     {
@@ -475,8 +512,9 @@ void RemoteView::slot_rmdir()
     }
     
     QModelIndex midx = mil.at(0);
-    directory_tree_item * dti = (directory_tree_item*) midx.internalPointer();
-    QModelIndex parent_model =  midx.parent() ;
+    QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) ? this->remote_dir_sort_filter_model->mapToSource(midx): midx ;    
+    directory_tree_item * dti = (directory_tree_item*) aim_midx.internalPointer();
+    QModelIndex parent_model =  aim_midx.parent() ;
     directory_tree_item * parent_item = (directory_tree_item*)parent_model.internalPointer();
     
     //TODO 检查所选择的项是不是目录
@@ -489,7 +527,7 @@ void RemoteView::rm_file_or_directory_recursively()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
-    QItemSelectionModel *ism = this->remoteview.treeView->selectionModel();
+    QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
     if(ism == 0)
     {
@@ -509,8 +547,9 @@ void RemoteView::rm_file_or_directory_recursively()
     }
     //TODO 处理多选的情况
     QModelIndex midx = mil.at(0);
-    directory_tree_item * dti = (directory_tree_item*) midx.internalPointer();
-    QModelIndex parent_model =  midx.parent() ;
+    QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) ? this->remote_dir_sort_filter_model->mapToSource(midx): midx ;
+    directory_tree_item * dti = (directory_tree_item*) aim_midx.internalPointer();
+    QModelIndex parent_model =  aim_midx.parent() ;
     directory_tree_item * parent_item = (directory_tree_item*)parent_model.internalPointer();
     
     this->remote_dir_model->slot_execute_command(parent_item,parent_model.internalPointer() ,SSH2_FXP_REMOVE ,  dti->file_name   );
@@ -520,7 +559,7 @@ void RemoteView::slot_rename()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
-    QItemSelectionModel *ism = this->remoteview.treeView->selectionModel();
+    QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
     if(ism == 0)
     {
@@ -539,8 +578,9 @@ void RemoteView::slot_rename()
     }
     
     QModelIndex midx = mil.at(0);
-    directory_tree_item * dti = (directory_tree_item*) midx.internalPointer();
-    QModelIndex parent_model =  midx.parent() ;
+    QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) ? this->remote_dir_sort_filter_model->mapToSource(midx): midx ;
+    directory_tree_item * dti = (directory_tree_item*) aim_midx.internalPointer();
+    QModelIndex parent_model =  aim_midx.parent() ;
     directory_tree_item * parent_item = (directory_tree_item*)parent_model.internalPointer();
     
     QString rename_to ;
@@ -640,7 +680,7 @@ void RemoteView::slot_new_download_requested(QStringList local_file_names,   QSt
     
     RemoteView * remote_view = this/*->get_top_most_remote_view()*/ ;
         
-	ProgressDialog *pdlg = new ProgressDialog ( this );
+	ProgressDialog *pdlg = new ProgressDialog ( 0 );
     pdlg->set_remote_connection ( remote_view->get_ssh2_sess() ,
                                   remote_view->get_ssh2_sftp(),
                                           remote_view->get_ssh2_sock()  );
@@ -648,7 +688,10 @@ void RemoteView::slot_new_download_requested(QStringList local_file_names,   QSt
 	QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
 	                   this,SLOT ( slot_transfer_finished ( int ) ) );
     remote_view->slot_enter_remote_dir_retrive_loop();
-	pdlg->exec();
+	//pdlg->exec();
+    this->main_mdi_area->addSubWindow(pdlg);
+    pdlg->show();
+    this->own_progress_dialog = pdlg ;
 }
 void RemoteView::slot_new_download_requested( QStringList remote_file_names ) 
 {
@@ -669,16 +712,16 @@ void RemoteView::slot_new_download_requested( QStringList remote_file_names )
 	}
 	else
 	{
-    
-		ProgressDialog *pdlg = new ProgressDialog ( this );
-        pdlg->set_remote_connection ( remote_view->get_ssh2_sess() ,
-                                      remote_view->get_ssh2_sftp(),
-                                              remote_view->get_ssh2_sock()  );
-		pdlg->set_transfer_info ( TransferThread::TRANSFER_GET,local_file_names,remote_file_names );
-		QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
-		                   this,SLOT ( slot_transfer_finished ( int ) ) );
-        remote_view->slot_enter_remote_dir_retrive_loop();
-		pdlg->exec();
+        this->slot_new_download_requested( local_file_names,remote_file_names);
+// 		ProgressDialog *pdlg = new ProgressDialog ( this );
+//         pdlg->set_remote_connection ( remote_view->get_ssh2_sess() ,
+//                                       remote_view->get_ssh2_sftp(),
+//                                               remote_view->get_ssh2_sock()  );
+// 		pdlg->set_transfer_info ( TransferThread::TRANSFER_GET,local_file_names,remote_file_names );
+// 		QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
+// 		                   this,SLOT ( slot_transfer_finished ( int ) ) );
+//         remote_view->slot_enter_remote_dir_retrive_loop();
+// 		pdlg->exec();
 	}
 }
 
@@ -718,4 +761,44 @@ void RemoteView::slot_transfer_finished( int status )
     remote_view->slot_leave_remote_dir_retrive_loop();
 }
 
+/**
+ *
+ * index 是proxy的index 
+ */
+void RemoteView::slot_dir_tree_item_clicked ( const QModelIndex & index )
+{
+	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+	QString file_path ;
 
+    remote_dir_model->slot_remote_dir_node_clicked(this->remote_dir_sort_filter_model->mapToSource(index));
+        
+	file_path = this->remote_dir_sort_filter_model->filePath ( index );
+	this->remoteview.tableView->setRootIndex ( this->remote_dir_model->index ( file_path ) ) ;
+	for ( int i = 0 ; i < this->remote_dir_model->rowCount ( this->remote_dir_model->index ( file_path ) ); i ++ )
+		this->remoteview.tableView->setRowHeight ( i,this->table_row_height );
+	this->remoteview.tableView->resizeColumnToContents ( 0 );
+}
+
+void RemoteView::slot_dir_file_view_double_clicked( const QModelIndex & index )
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    //TODO if the clicked item is direcotry ,
+     //expand left tree dir and update right table view
+    // got the file path , tell tree ' model , then expand it
+    //文件列表中的双击事件
+    //1。　本地主机，如果是目录，则打开这个目录，如果是文件，则使用本机的程序打开这个文件
+    //2。对于远程主机，　如果是目录，则打开这个目录，如果是文件，则提示是否要下载它。
+    QString file_path ;    
+    if( this->remote_dir_model->isDir( index ) )
+    {
+        this->remoteview.treeView->expand(  this->remote_dir_sort_filter_model->mapFromSource(this->remote_dir_model->index(this->remote_dir_model->filePath(index))).parent());        
+        this->remoteview.treeView->expand(  this->remote_dir_sort_filter_model->mapFromSource(this->remote_dir_model->index(this->remote_dir_model->filePath(index))) );
+        this->slot_dir_tree_item_clicked( this->remote_dir_sort_filter_model->mapFromSource(this->remote_dir_model->index(this->remote_dir_model->filePath(index))));
+        this->remoteview.treeView->selectionModel()->clearSelection();
+        this->remoteview.treeView->selectionModel()->select( this->remote_dir_sort_filter_model->mapFromSource(this->remote_dir_model->index(this->remote_dir_model->filePath(index))) , QItemSelectionModel::Select ) ;
+    }
+    else
+    {
+        qDebug()<<" double clicked a regular file , no op now,only now";
+    }
+}

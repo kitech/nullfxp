@@ -70,7 +70,8 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
 
 	central_splitter_widget->addWidget ( mdiArea );
 	central_splitter_widget->addWidget ( transfer_queue_list_view );
-
+    //this->transfer_queue_list_view->setVisible( false ) ;
+    
 	setCentralWidget ( central_splitter_widget );
 
 	windowMapper = new QSignalMapper ( this );
