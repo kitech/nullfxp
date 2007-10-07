@@ -115,6 +115,8 @@ src/remotehostquickconnectinfodialog.h -text
 src/remoteview.cpp -text
 src/remoteview.h -text
 src/remoteview.ui -text
+src/remoteviewdirtableview.cpp -text
+src/remoteviewdirtableview.h -text
 src/sftp.h -text
 src/src.pro -text
 src/synchronizeoptiondialog.ui -text

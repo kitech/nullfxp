@@ -53,11 +53,13 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
 		: QMainWindow ( parent ,  flags )
 {
 	this->mUIMain.setupUi ( this );
-
+    this->setWindowIcon(QIcon(":/icons/nullget-1.png") ); 
+    //////////////////////////
 	central_splitter_widget  = new QSplitter ( Qt::Vertical );
 
 	//
 	mdiArea = new QMdiArea;
+    mdiArea->setWindowIcon(QIcon(":/icons/nullget-2.png") ); 
 	QObject::connect ( this->mUIMain.actionTransfer_queue,SIGNAL ( triggered ( bool ) ),
 	                   this,SLOT ( slot_show_transfer_queue ( bool ) ) );
 	QObject::connect ( this->mUIMain.actionShow_log,SIGNAL ( triggered ( bool ) ),
@@ -122,8 +124,6 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
     QMdiSubWindow * local_sub_win = mdiArea->subWindowList().at(0);
     local_sub_win->setGeometry( local_sub_win->x(),local_sub_win->y(), mdiArea->width()/2,  mdiArea->height()*19/19 );
     
-    this->setWindowIcon(QIcon(":/icons/nullget-1.png") ); 
-    //this->setWindowIcon(QIcon(qApp->applicationDirPath()+"/"+"icons/nullget-1.png"));	
 }
 
 NullFXP::~NullFXP()

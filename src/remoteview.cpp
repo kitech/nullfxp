@@ -59,6 +59,7 @@ RemoteView::RemoteView(QMdiArea * main_mdi_area ,LocalView * local_view ,QWidget
     this->init_popup_context_menu();
     
     this->in_remote_dir_retrive_loop = false;
+    this->remoteview.tableView->test_use_qt_designer_prompt = 0;
 }
 
 void RemoteView::init_popup_context_menu()
@@ -483,7 +484,10 @@ void RemoteView::slot_mkdir()
                                       tr("Input directory name:"),
                                          QLineEdit::Normal,
                                          tr("new_direcotry") );
-     
+    if( dir_name == QString::null )
+    {
+        return ;
+    } 
     if(  dir_name.length () == 0 )
     {
         qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
@@ -795,7 +799,7 @@ void RemoteView::slot_dir_file_view_double_clicked( const QModelIndex & index )
     // got the file path , tell tree ' model , then expand it
     //文件列表中的双击事件
     //1。　本地主机，如果是目录，则打开这个目录，如果是文件，则使用本机的程序打开这个文件
-    //2。对于远程主机，　如果是目录，则打开这个目录，如果是文件，则提示是否要下载它。
+    //2。对于远程主机，　如果是目录，则打开这个目录，如果是文件，则提示是否要下载它(或者也可以直接打开这个文件）。
     QString file_path ;    
     if( this->remote_dir_model->isDir( index ) )
     {
@@ -810,3 +814,4 @@ void RemoteView::slot_dir_file_view_double_clicked( const QModelIndex & index )
         qDebug()<<" double clicked a regular file , no op now,only now";
     }
 }
+

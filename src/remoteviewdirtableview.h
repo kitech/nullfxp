@@ -19,50 +19,37 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#ifndef REMOTEVIEWDIRTABLEVIEW_H
+#define REMOTEVIEWDIRTABLEVIEW_H
 
-#include <vector>
-#include <map>
-#include <string>
-#include <dirent.h>
+#include <QTableView>
 
-#include <QMap>
-#include <QVector>
-#include <QPair>
-#include <QtCore>
+/**
+	@author liuguangzhao <gzl@localhost>
+*/
+class RemoteViewDirTableView : public QTableView
+{
+		Q_OBJECT
+	public:
 
-// #ifndef S_ISDIR
-// # define S_ISDIR(mode)	(((mode) & (_S_IFMT)) == (_S_IFDIR))
-// #endif /* S_ISDIR */
-// 
-// #ifndef S_ISREG
-// # define S_ISREG(mode)	(((mode) & (_S_IFMT)) == (_S_IFREG))
-// #endif /* S_ISREG */
-// 
-// #ifndef S_ISLNK
-// # define S_ISLNK(mode)	(((mode) & S_IFMT) == S_IFLNK)
-// #endif /* S_ISLNK */
-#ifndef UTILS_H
-#define UTILS_H
+		RemoteViewDirTableView ( QWidget* parent );
 
-#ifdef __cplusplush
-extern "C"{
-#endif
-    
-void strmode(int mode, char *p);
+		~RemoteViewDirTableView();
 
-int is_reg(char *path);
+	protected:
+		virtual void dragEnterEvent ( QDragEnterEvent * event ) ;
+		virtual void dragLeaveEvent ( QDragLeaveEvent * event ) ;
+		virtual void dragMoveEvent ( QDragMoveEvent * event );
+		virtual void dropEvent ( QDropEvent * event ) ;
+		virtual void startDrag ( Qt::DropActions supportedActions );
+		virtual void mouseMoveEvent ( QMouseEvent * event );
+		virtual void mousePressEvent ( QMouseEvent * event );
+    private:
+        QPoint dragStartPosition;
+        
+	public :
+		int test_use_qt_designer_prompt ;
 
-int     is_dir(char *path) ;
-
-void  fxp_local_do_ls( QString args , QVector<QMap<char, QString> > & fileinfos  );
-
-int  fxp_local_do_mkdir(const char * path );
-
-long fxp_getpid();
-
-#ifdef __cplusplush
 };
-#endif
 
 #endif
-

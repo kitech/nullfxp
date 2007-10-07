@@ -174,7 +174,7 @@ strmode ( int mode, char *p )
 	*p++ = ' ';		/* will be a '+' if ACL's implemented */
 	*p = '\0';
 }
-//假设这个path的编码方式是本地系统上所用的编码方式
+//锟斤拷锟斤拷锟斤拷锟斤拷path锟侥憋拷锟诫方式锟角憋拷锟斤拷系统锟斤拷锟斤拷锟矫的憋拷锟诫方式
 int     is_dir(char *path)
 {
     struct stat sb;
@@ -188,7 +188,7 @@ int     is_dir(char *path)
 
     return(S_ISDIR(sb.st_mode));
 }
-//假设这个path的编码方式是本地系统上所用的编码方式
+//锟斤拷锟斤拷锟斤拷锟斤拷path锟侥憋拷锟诫方式锟角憋拷锟斤拷系统锟斤拷锟斤拷锟矫的憋拷锟诫方式
 int is_reg(char *path)
 {
     struct stat sb;
@@ -200,7 +200,7 @@ int is_reg(char *path)
     }
     return(S_ISREG(sb.st_mode));
 }
-//假设这个path的编码方式是本地系统上所用的编码方式
+//锟斤拷锟斤拷锟斤拷锟斤拷path锟侥憋拷锟诫方式锟角憋拷锟斤拷系统锟斤拷锟斤拷锟矫的憋拷锟诫方式
 void  fxp_local_do_ls( QString args , QVector<QMap<char, QString> > & fileinfos )
 {
     int sz ;
@@ -255,7 +255,7 @@ void  fxp_local_do_ls( QString args , QVector<QMap<char, QString> > & fileinfos 
     }
     closedir(dh);
 }
-//假设这个path的编码方式是本地系统上所用的编码方式
+//锟斤拷锟斤拷锟斤拷锟斤拷path锟侥憋拷锟诫方式锟角憋拷锟斤拷系统锟斤拷锟斤拷锟矫的憋拷锟诫方式
 int     fxp_local_do_mkdir(const char * path )
 {
     int ret = 0 ;
@@ -270,4 +270,16 @@ int     fxp_local_do_mkdir(const char * path )
 		fprintf(stderr, " fxp_local_do_mkdir : %d %s %s \n" , errno,strerror(errno),path );
 	}
     return ret ;
+}
+long fxp_getpid()
+{
+    long pid = 0 ;
+    
+#ifdef WIN32
+    pid = ::GetCurrentProcessId();
+#else
+    pid = ::getpid();
+#endif
+    
+    return pid ;
 }

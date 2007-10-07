@@ -368,7 +368,7 @@ Qt::ItemFlags RemoteDirModel::flags ( const QModelIndex &index ) const
 		return Qt::ItemIsEnabled;
 
 	//if ( index.column() == 0 )
-	return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDropEnabled  ;
+	//return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDropEnabled  ;
 	return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled  ;
 	//else
 	//	return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
@@ -629,7 +629,7 @@ bool RemoteDirModel::dropMimeData ( const QMimeData *data, Qt::DropAction action
 
 	QList<QUrl> urls = data->urls( ) ;
 
-	qDebug() << urls << " action: " << action <<" "<< parent ;
+    qDebug() << urls << " action: " << action <<" "<< parent << data->text() ;
 
 	if ( urls.count() == 0 )
 	{

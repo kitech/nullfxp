@@ -54,18 +54,21 @@
         <enum>QAbstractItemView::DragDrop</enum>
        </property>
        <property name="alternatingRowColors" >
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
        <property name="selectionMode" >
         <enum>QAbstractItemView::ExtendedSelection</enum>
        </property>
       </widget>
-      <widget class="QTableView" name="tableView" >
+      <widget class="RemoteViewDirTableView" name="tableView" >
        <property name="contextMenuPolicy" >
         <enum>Qt::CustomContextMenu</enum>
        </property>
+       <property name="dragEnabled" >
+        <bool>true</bool>
+       </property>
        <property name="dragDropMode" >
-        <enum>QAbstractItemView::DropOnly</enum>
+        <enum>QAbstractItemView::DragDrop</enum>
        </property>
        <property name="selectionBehavior" >
         <enum>QAbstractItemView::SelectRows</enum>
@@ -87,6 +90,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>RemoteViewDirTableView</class>
+   <extends>QTableView</extends>
+   <header location="global" >remoteviewdirtableview.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
