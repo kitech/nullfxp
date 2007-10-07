@@ -46,7 +46,7 @@ class RemoteDirModel : public QAbstractItemModel
         //仅需要调用一次的函数,并且是在紧接着该类的初始化之后调用。
         void set_user_home_path(std::string user_home_path);
         //这个调用应该在set_user_home_path之前
-        void set_ssh2_handler( void * ssh2_sess , void * ssh2_sftp, int ssh2_sock );
+        void set_ssh2_handler( void * ssh2_sess /*, void * ssh2_sftp, int ssh2_sock*/ );
                 
         ////model 函数
 		QVariant data ( const QModelIndex &index, int role ) const;

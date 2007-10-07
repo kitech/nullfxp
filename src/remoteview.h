@@ -53,7 +53,7 @@ public:
     QString get_selected_directory();
     //
     void set_host_info ( QString host_name ,QString user_name, QString password );
-    void set_ssh2_handler( void * ssh2_sess , void * ssh2_sftp, int ssh2_sock );
+    void set_ssh2_handler( void * ssh2_sess /*, void * ssh2_sftp*/, int ssh2_sock );
     void set_user_home_path(std::string user_home_path);
     
     bool is_in_remote_dir_retrive_loop() 
@@ -120,6 +120,9 @@ public:
         void slot_leave_remote_dir_retrive_loop();
         
         void slot_transfer_finished( int status ) ;
+        
+        //view drag
+        void slot_drag_ready();
         
     signals:
         //void new_transfer_requested( QString file_name,QString file_type ) ;

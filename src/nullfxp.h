@@ -47,11 +47,16 @@
  
 #include "ui_nullfxp.h"
 
-#include "localview.h"
-#include "remoteview.h"
-#include "remotehostconnectingstatusdialog.h"
-#include "remotehostquickconnectinfodialog.h"
-#include "remotehostconnectthread.h"
+// #include "localview.h"
+// #include "remoteview.h"
+// #include "remotehostconnectingstatusdialog.h"
+// #include "remotehostquickconnectinfodialog.h"
+// #include "remotehostconnectthread.h"
+class LocalView;
+         class RemoteView;
+         class RemoteHostConnectingStatusDialog;
+         class RemoteHostQuickConnectInfoDialog;
+         class RemoteHostConnectThread ;
                  
 #include "aboutnullfxp.h"
                  
@@ -77,7 +82,7 @@ public:
         void connect_to_remote_host() ;
         void slot_disconnect_from_remote_host();
         
-        void slot_connect_remote_host_finished(int status,void * ssh2_sess , int ssh2_sock, void * ssh2_sftp );
+        void slot_connect_remote_host_finished(int status,void * ssh2_sess , int ssh2_sock /*, void * ssh2_sftp */);
         
         void slot_new_upload_requested(QStringList local_file_names);        
 

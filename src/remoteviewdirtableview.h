@@ -35,7 +35,9 @@ class RemoteViewDirTableView : public QTableView
 		RemoteViewDirTableView ( QWidget* parent );
 
 		~RemoteViewDirTableView();
-
+    signals:
+        void drag_ready( );
+        
 	protected:
 		virtual void dragEnterEvent ( QDragEnterEvent * event ) ;
 		virtual void dragLeaveEvent ( QDragLeaveEvent * event ) ;

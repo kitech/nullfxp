@@ -208,13 +208,13 @@ void RemoteHostConnectThread::run()
         assert( ret >= 0 );
     }
     this->user_home_path = std::string( home_path );
-    
+    libssh2_sftp_shutdown( (LIBSSH2_SFTP*) this->ssh2_sftp );
     this->connect_status = 0 ;
 }
 
 void RemoteHostConnectThread::slot_finished()
 {
-    emit this->connect_finished(this->connect_status,this->ssh2_sess,this->ssh2_sock,this->ssh2_sftp );
+    emit this->connect_finished(this->connect_status,this->ssh2_sess,this->ssh2_sock/*,this->ssh2_sftp*/ );
 }
 
 void RemoteHostConnectThread::do_init()
@@ -246,3 +246,7 @@ QString RemoteHostConnectThread::get_password ()
     return this->password.c_str()  ;
 }
 
+void * RemoteHostConnectThread::get_ssh2_sess () 
+{
+    return this->ssh2_sess ;
+}

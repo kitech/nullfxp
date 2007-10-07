@@ -44,7 +44,9 @@
 #include "localview.h"
 #include "remoteview.h"
 #include "progressdialog.h"
-
+#include "remotehostconnectingstatusdialog.h"
+#include "remotehostquickconnectinfodialog.h"
+#include "remotehostconnectthread.h"
 
 
 //////////////////////////
@@ -124,6 +126,9 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
     QMdiSubWindow * local_sub_win = mdiArea->subWindowList().at(0);
     local_sub_win->setGeometry( local_sub_win->x(),local_sub_win->y(), mdiArea->width()/2,  mdiArea->height()*19/19 );
     
+    //启动连接对话框
+    this->show();
+    this->connect_to_remote_host();
 }
 
 NullFXP::~NullFXP()
@@ -155,8 +160,8 @@ void NullFXP::connect_to_remote_host()
 		//this->localView->set_sftp_connection ( &theconn );
 		remote_conn_thread = new RemoteHostConnectThread (
 		                         username,  password,remoteaddr ) ;
-		QObject::connect ( this->remote_conn_thread , SIGNAL ( connect_finished ( int,void * , int , void * ) ),
-		                   this, SLOT ( slot_connect_remote_host_finished ( int ,void * , int , void * ) ) );
+		QObject::connect ( this->remote_conn_thread , SIGNAL ( connect_finished ( int,void * , int /* , void **/ ) ),
+		                   this, SLOT ( slot_connect_remote_host_finished ( int ,void * ,int /* , void **/ ) ) );
 
         QObject::connect(remote_conn_thread , SIGNAL(connect_state_changed(QString)),
                          connect_status_dailog,SLOT(slot_connect_state_changed(QString)));        
@@ -197,7 +202,7 @@ void NullFXP::slot_disconnect_from_remote_host()
     }
 }
 
-void NullFXP::slot_connect_remote_host_finished ( int status,void * ssh2_sess , int ssh2_sock, void * ssh2_sftp )
+void NullFXP::slot_connect_remote_host_finished ( int status,void * ssh2_sess , int ssh2_sock /* , void * ssh2_sftp*/ )
 {
     RemoteHostConnectThread * conn_thread = static_cast< RemoteHostConnectThread*>(sender()) ;
     
@@ -211,7 +216,7 @@ void NullFXP::slot_connect_remote_host_finished ( int status,void * ssh2_sess , 
         remote_view->slot_custom_ui_area();
         remote_view->show();
   
-        remote_view->set_ssh2_handler(ssh2_sess,ssh2_sftp,ssh2_sock);
+        remote_view->set_ssh2_handler(ssh2_sess/*,ssh2_sftp*/ ,ssh2_sock);
         remote_view->set_user_home_path ( this->remote_conn_thread->get_user_home_path() );
         remote_view->set_host_info(conn_thread->get_host_name(),
                                    conn_thread->get_user_name(),

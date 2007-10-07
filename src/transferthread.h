@@ -46,7 +46,7 @@ public:
 
     void run();
     
-    void set_remote_connection( void* ssh2_sess,void* ssh2_sftp,int ssh2_sock );
+    void set_remote_connection( void* ssh2_sess  );
     
     //说明，在上传的时候local_file_names.count()可以大于1个，而remote_file_names.count()必须等于1
     //在下载的时候：local_file_names.count()必须等于1,而remote_file_names.count()可以大于1个
@@ -55,13 +55,14 @@ public:
     
     int do_upload ( QString local_path, QString remote_path, int pflag );
     int  do_download ( QString remote_path, QString local_path,   int pflag )   ;
+    int do_nrsftp_exchange( QString src_url , QString dest_path );
     
     int   get_error_code () { return this->error_code ;} 
     
     private :
-        int remote_is_dir(  QString path );
-        int remote_is_reg(  QString path ); 
-        int fxp_do_ls_dir ( QString parent_path  , QVector<QMap<char, QString> > & fileinfos    );
+        int remote_is_dir( LIBSSH2_SFTP * ssh2_sftp, QString path );
+        int remote_is_reg( LIBSSH2_SFTP * ssh2_sftp, QString path ); 
+        int fxp_do_ls_dir (LIBSSH2_SFTP * ssh2_sftp, QString parent_path  , QVector<QMap<char, QString> > & fileinfos    );
           
     signals:
         void  transfer_percent_changed( int percent , int total_transfered ,int transfer_delta );
@@ -73,7 +74,7 @@ public:
 //         struct sftp_conn * sftp_connection ;
         LIBSSH2_SESSION * ssh2_sess;
         LIBSSH2_SFTP * ssh2_sftp;
-        int ssh2_sock ;
+        //int ssh2_sock ;
         
         int transfer_type ;
 

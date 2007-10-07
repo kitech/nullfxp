@@ -24,11 +24,6 @@
 
 #include <QThread>
 
-// #include "libssh.h"
-// #include "sftp-operation.h"
-// #include "sftp-client.h"
-// #include "sftp-wrapper.h"
-
 /**
 	@author liuguangzhao <gzl@localhost>
 */
@@ -49,6 +44,7 @@ public:
     QString get_host_name () ;
     QString get_user_name () ;
     QString get_password () ;
+    void * get_ssh2_sess () ;
     
     signals:
         void  connect_state_changed( QString state_desc );
@@ -58,9 +54,6 @@ public:
         std::string password;
         std::string host_name ;
         int connect_status;
-//         struct sftp_conn * sftp_connection ;
-        
-        //int child_pid   ;
         
         std::string user_home_path ;
         
@@ -72,7 +65,7 @@ public:
         void slot_finished()   ;
         
     signals:
-        void connect_finished( int status , void * ssh2_sess , int ssh2_sock , void * ssh2_sftp );
+        void connect_finished( int status , void * ssh2_sess , int ssh2_sock /*, void * ssh2_sftp*/ );
 };
 
 #endif

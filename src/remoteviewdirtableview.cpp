@@ -22,6 +22,7 @@
 #include <QtCore>
 #include <QtGui>
 
+#include "remotedirmodel.h"
 #include "remoteviewdirtableview.h"
 
 
@@ -75,21 +76,34 @@ void RemoteViewDirTableView::mouseMoveEvent ( QMouseEvent * event )
     if ((event->pos() - dragStartPosition).manhattanLength()
          < QApplication::startDragDistance())
         return;
-    if( ! this->indexAt( this->dragStartPosition ) .isValid() )
+    
+    //有效性检查
+    QItemSelectionModel * ism = this->selectionModel();
+    if( ! this->indexAt( this->dragStartPosition ) .isValid() 
+      || ism == 0 )
     {
         QTableView::mouseMoveEvent ( event );
         return ;
     }
-    QDrag *drag = new QDrag(this);
-    QMimeData *mimeData = new QMimeData;
-
-    QList<QUrl>  drag_urls;
-    drag_urls<< QUrl("rsftp://heheh")<<QUrl("rsftp://hehhefff");    
-    //mimeData->setData("text/uri-list" , "data");
-    mimeData->setUrls(drag_urls);
-    drag->setMimeData(mimeData);
-
-    Qt::DropAction dropAction = drag->exec(Qt::CopyAction | Qt::MoveAction);
+    emit drag_ready();
+    
+//     QDrag *drag = new QDrag(this);
+//     QMimeData *mimeData = new QMimeData;
+// 
+//     QModelIndexList mil = ism->selectedIndexes();
+//     QList<QUrl>  drag_urls;
+//     //drag_urls<< QUrl("nrsftp://heheh")<<QUrl("nrsftp://hehhefff");
+//     for(int i = 0 ; i< mil.count() ;i += this->model()->columnCount() )
+//     {
+//         QModelIndex midx = mil.at(i);
+//         drag_urls<< QUrl( QString("nrsftp://gzl:passwd@sf.net:22") + qobject_cast<RemoteDirModel*>(this->model())->filePath(midx) + "#1234556");
+//     }
+//     
+//     //mimeData->setData("text/uri-list" , "data");
+//     mimeData->setUrls(drag_urls);
+//     drag->setMimeData(mimeData);
+// 
+//     Qt::DropAction dropAction = drag->exec(Qt::CopyAction | Qt::MoveAction);
     
     //parent_event:
     //QTableView::mouseMoveEvent ( event );

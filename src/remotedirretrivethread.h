@@ -29,10 +29,6 @@
 #include <QtCore>
 #include <QThread>
 
-// #include "sftp-operation.h"
-// #include "sftp-client.h"
-// #include "sftp-wrapper.h"
-
 #include "sftp.h"
 #include "libssh2.h"
 #include "libssh2_sftp.h"
@@ -97,7 +93,7 @@ public:
 
     ~RemoteDirRetriveThread();
     //在实例初始化后马上调用，否则会导致程序崩溃
-    void set_ssh2_handler( void * ssh2_sess , void * ssh2_sftp, int ssh2_sock );
+    void set_ssh2_handler( void * ssh2_sess /*, void * ssh2_sftp, int ssh2_sock*/ );
     
     virtual void run();
         
@@ -148,7 +144,7 @@ public:
        
        LIBSSH2_SESSION * ssh2_sess;
        LIBSSH2_SFTP * ssh2_sftp ;
-       int ssh2_sock ;
+//        int ssh2_sock ;
        
        //void subtract_existed_model(directory_tree_item * parent_item , std::vector<std::map<char,std::string> > & new_items );
 	   void subtract_existed_model(directory_tree_item * parent_item , QVector<QMap<char,QString> > & new_items );

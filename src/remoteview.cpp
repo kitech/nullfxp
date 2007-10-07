@@ -128,7 +128,7 @@ void RemoteView::i_init_dir_view( )
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
     this->remote_dir_model = new RemoteDirModel( );
-    this->remote_dir_model->set_ssh2_handler(this->ssh2_sess,this->ssh2_sftp,this->ssh2_sock );
+    this->remote_dir_model->set_ssh2_handler(this->ssh2_sess /*,this->ssh2_sftp,this->ssh2_sock*/ );
     
     this->remote_dir_model->set_user_home_path(this->user_home_path);
     this->remote_dir_sort_filter_model = new RemoteDirSortFilterModel();
@@ -174,6 +174,8 @@ void RemoteView::i_init_dir_view( )
     QObject::connect(this->remoteview.treeView,SIGNAL(clicked(const QModelIndex &)),
                      this,SLOT( slot_dir_tree_item_clicked(const QModelIndex &))) ;
     QObject::connect( this->remoteview.tableView,SIGNAL( doubleClicked ( const QModelIndex &  ) ) , this,SLOT( slot_dir_file_view_double_clicked ( const QModelIndex & ) ) );
+    QObject::connect( this->remoteview.tableView,SIGNAL( drag_ready()),this,SLOT(slot_drag_ready()) );
+    
 }
 
 void RemoteView::slot_disconnect_from_remote_host()
@@ -273,10 +275,13 @@ QString RemoteView::get_selected_directory()
 
 }
 
-void RemoteView::set_ssh2_handler( void * ssh2_sess , void * ssh2_sftp, int ssh2_sock )
+void RemoteView::set_ssh2_handler( void * ssh2_sess /*, void * ssh2_sftp*/ , int ssh2_sock )
 {
     this->ssh2_sess = (LIBSSH2_SESSION*) ssh2_sess ;
-    this->ssh2_sftp = (LIBSSH2_SFTP * ) ssh2_sftp ;
+//     this->ssh2_sftp = (LIBSSH2_SFTP * ) ssh2_sftp ;
+    this->ssh2_sftp = libssh2_sftp_init( this->ssh2_sess );
+    assert( this->ssh2_sftp != 0 );
+    
     this->ssh2_sock = ssh2_sock ;
 }
 LIBSSH2_SESSION * RemoteView::get_ssh2_sess()
@@ -625,9 +630,9 @@ void RemoteView::slot_new_upload_requested ( QStringList local_file_names,  QStr
     else
     {
         ProgressDialog * pdlg = new ProgressDialog (  );
-        pdlg->set_remote_connection ( remote_view->get_ssh2_sess() ,
+        pdlg->set_remote_connection ( remote_view->get_ssh2_sess() /*,
                                       remote_view->get_ssh2_sftp(),
-                                              remote_view->get_ssh2_sock()  );
+                                              remote_view->get_ssh2_sock() */ );
 
         pdlg->set_transfer_info ( TransferThread::TRANSFER_PUT,local_file_names , remote_file_names ) ;
 // 		QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
@@ -693,9 +698,9 @@ void RemoteView::slot_new_download_requested(QStringList local_file_names,   QSt
     RemoteView * remote_view = this/*->get_top_most_remote_view()*/ ;
         
 	ProgressDialog *pdlg = new ProgressDialog ( 0 );
-    pdlg->set_remote_connection ( remote_view->get_ssh2_sess() ,
+    pdlg->set_remote_connection ( remote_view->get_ssh2_sess() /*,
                                   remote_view->get_ssh2_sftp(),
-                                          remote_view->get_ssh2_sock()  );
+                                          remote_view->get_ssh2_sock() */ );
 	pdlg->set_transfer_info ( TransferThread::TRANSFER_GET,local_file_names,remote_file_names );
 	QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
 	                   this,SLOT ( slot_transfer_finished ( int ) ) );
@@ -815,3 +820,28 @@ void RemoteView::slot_dir_file_view_double_clicked( const QModelIndex & index )
     }
 }
 
+void RemoteView::slot_drag_ready()
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    //注意重复信号的处理
+    QAbstractItemView * sender_view = qobject_cast<QAbstractItemView*>(sender());
+    QDrag *drag = new QDrag(this);
+    QMimeData *mimeData = new QMimeData;
+    
+    QItemSelectionModel * ism = this->remoteview.tableView->selectionModel();
+    QModelIndexList mil = ism->selectedIndexes();
+    QList<QUrl>  drag_urls;
+    //drag_urls<< QUrl("nrsftp://heheh")<<QUrl("nrsftp://hehhefff");
+    for(int i = 0 ; i< mil.count() ;i += this->remote_dir_model->columnCount() )
+    {
+        QModelIndex midx = mil.at(i);
+        drag_urls<< QUrl( QString("nrsftp://%1:%2@%3:22").arg(this->user_name).arg(this->password).arg(this->host_name) + qobject_cast<RemoteDirModel*>(this->remote_dir_model)->filePath(midx) + QString("#%1").arg(QString::number((unsigned int)this->ssh2_sess,16)) );
+    }
+    
+    //mimeData->setData("text/uri-list" , "data");
+    mimeData->setUrls(drag_urls);
+    drag->setMimeData(mimeData);
+    
+    Qt::DropAction dropAction = drag->exec(Qt::CopyAction | Qt::MoveAction);    
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<" drag->exec returned" ;
+}

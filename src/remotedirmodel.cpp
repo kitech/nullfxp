@@ -51,9 +51,9 @@ RemoteDirModel::RemoteDirModel (  QObject *parent )
                      this,SLOT( slot_keep_alive_time_out() ) );    
     //this->keep_alive_timer->start( this->keep_alive_interval * 1000 );
 }
-void RemoteDirModel::set_ssh2_handler( void * ssh2_sess , void * ssh2_sftp, int ssh2_sock )
+void RemoteDirModel::set_ssh2_handler( void * ssh2_sess /*, void * ssh2_sftp, int ssh2_sock*/ )
 {
-    this->remote_dir_retrive_thread->set_ssh2_handler(ssh2_sess,ssh2_sftp,ssh2_sock);
+    this->remote_dir_retrive_thread->set_ssh2_handler(ssh2_sess/*,ssh2_sftp,ssh2_sock*/);
 }
 
 void RemoteDirModel::set_user_home_path ( std::string user_home_path )
@@ -244,7 +244,7 @@ QModelIndex RemoteDirModel::index ( const QString & path, int column  ) const
     
     //directory_tree_item * the_item = this->find_node_item_by_path_elements(this->tree_root,pathElements,0);
     //Q_ASSERT( the_item );
-    qDebug()<< pathElements ;
+    //qDebug()<< pathElements ;
 
     return this->find_node_item_by_path_elements(this->tree_root->child_items[0],pathElements,1);
     
@@ -255,30 +255,30 @@ QModelIndex RemoteDirModel::find_node_item_by_path_elements( directory_tree_item
     if( level < 0 ) return this->createIndex( 0, 0, this->tree_root ) ;
     QString aim_child_node_item_name = path_elements.at(level);
     Q_ASSERT( parent_node_item);
-    qDebug()<<__LINE__<< parent_node_item->file_name<<level<<path_elements ;
+    //qDebug()<<__LINE__<< parent_node_item->file_name<<level<<path_elements ;
     for( int i = 0 ; i < parent_node_item->child_items.size() ; i ++ )
     {
         directory_tree_item * child_item = parent_node_item->child_items[i];
-        qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<< child_item->file_name;
+        //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<< child_item->file_name;
         if( child_item->file_name.compare(aim_child_node_item_name) ==0 )
         {
             
             if( level == path_elements.count()-1 ) 
             {
-                qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+                //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
                 QModelIndex mi = this->createIndex( i, 0, child_item );
                 //return child_item;
                 return mi ;
             }
             else
             {
-                qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+                //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
                 QModelIndex mi =this->find_node_item_by_path_elements( child_item,path_elements,level+1 );
                 return mi ; 
             }
         }
     }
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     return this->createIndex( 0, 0, parent_node_item );
     //return parent_node_item ;
 }
@@ -640,20 +640,34 @@ bool RemoteDirModel::dropMimeData ( const QMimeData *data, Qt::DropAction action
 	QString file_name;
 	for ( int i = 0 ; i < urls.count() ; i ++ )
 	{
-		file_name = urls.at ( i ).toString().right ( urls.at ( i ).toString().length()-7 );		
-		#ifdef WIN32
-			//在windows上Qt获取的路径URL带着 file:///前缀 , 如 file:///E:/xxx/bbb.txt , 而在　unix上这个路径为 file:///home/aaa.txt , 前缀为 file:// , 所以两个值还是差1的，需要下面的语句
-			file_name = file_name.right( file_name.length() - 1 );
-			//qDebug()<< file_name << strlen( "file:///") ;
-		#endif
-		//if ( file_name.trimmed().length() == 0 ) continue ;
-		//从 Qt 内部编码到本地编码
-		//ba = codec->fromUnicode ( file_name );
-		//qDebug()<< file_name <<" ---> :" REMOTE_CODEC << ba ;
-		//file_name = ba ;
-		local_file_names << file_name ;
+        qDebug()<<urls.at(i).toString()<<urls.at(i).scheme();
+        if( urls.at(i).scheme() == "nrsftp")
+        {
+            qDebug()<<" my shemem";
+            local_file_names << urls.at(i).toString() ;
+        }
+        else if( urls.at(i).scheme() == "file")
+        {
+            file_name = urls.at(i).toString().right(urls.at(i).toString().length()-7 );	
+            #ifdef WIN32
+                //在windows上Qt获取的路径URL带着 file:///前缀 , 如 file:///E:/xxx/bbb.txt , 而在　unix上这个路径为 file:///home/aaa.txt , 前缀为 file:// , 所以两个值还是差1的，需要下面的语句
+                file_name = file_name.right( file_name.length() - 1 );
+                //qDebug()<< file_name << strlen( "file:///") ;
+            #endif
+            //if ( file_name.trimmed().length() == 0 ) continue ;
+            //从 Qt 内部编码到本地编码
+            //ba = codec->fromUnicode ( file_name );
+            //qDebug()<< file_name <<" ---> :" REMOTE_CODEC << ba ;
+            //file_name = ba ;
+            local_file_names << file_name ;
+        }
+        else
+        {
+            qDebug()<<" not support shemem";
+        }
 	}
-	emit this->new_transfer_requested ( local_file_names,remote_file_names );
+    if( local_file_names.count() > 0 )
+	   emit this->new_transfer_requested ( local_file_names,remote_file_names );
 
 	qDebug() <<"signals emited";
 	return true ;

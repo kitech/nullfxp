@@ -61,19 +61,22 @@ RemoteDirRetriveThread::~RemoteDirRetriveThread()
     libssh2_session_disconnect( this->ssh2_sess,"SSH_DISCONNECT_BY_APPLICATION" );
     libssh2_session_free( this->ssh2_sess );
     #ifdef WIN32    
-    ::closesocket( this->ssh2_sock ) ;
+    //::closesocket( this->ssh2_sock ) ;
     #else
-    ::close( this->ssh2_sock );
+    //::close( this->ssh2_sock );
     #endif
     
     //TODO delete model data , ok , delete it in RemoteDirModel class
 }
 
-void RemoteDirRetriveThread::set_ssh2_handler( void * ssh2_sess , void * ssh2_sftp, int ssh2_sock )
+void RemoteDirRetriveThread::set_ssh2_handler( void * ssh2_sess /*, void * ssh2_sftp, int ssh2_sock*/ )
 {
     this->ssh2_sess = (LIBSSH2_SESSION*) ssh2_sess ;
-    this->ssh2_sftp = (LIBSSH2_SFTP * ) ssh2_sftp ;
-    this->ssh2_sock = ssh2_sock ;
+    this->ssh2_sftp = libssh2_sftp_init( this->ssh2_sess ) ;
+    qDebug()<<" sftp init: "<< this->ssh2_sftp ;
+    assert( this->ssh2_sftp != 0 );
+//     this->ssh2_sftp = (LIBSSH2_SFTP * ) ssh2_sftp ;
+//     this->ssh2_sock = ssh2_sock ;
 }
 
 void RemoteDirRetriveThread::run()
