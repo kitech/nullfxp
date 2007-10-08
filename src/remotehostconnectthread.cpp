@@ -39,6 +39,7 @@
 
 #include <assert.h>
 
+#include <QtCore>
 
 #include "progressdialog.h"
 
@@ -48,6 +49,8 @@
 #include "libssh2_sftp.h"
 
 //static char ssh2_user_name[60];
+static QMutex ssh2_kbd_cb_mutex ;
+
 static char ssh2_password[60] ;
 
 static void kbd_callback(const char *name, int name_len, 
@@ -77,7 +80,7 @@ RemoteHostConnectThread::RemoteHostConnectThread(QString user_name , QString pas
     
     ////////////////
     QObject::connect(this,SIGNAL(finished()) ,this , SLOT(slot_finished()) );
-    this->start();
+    //this->start();
 }
 
 
@@ -163,7 +166,8 @@ void RemoteHostConnectThread::run()
     }
     
     //create session
-    ssh2_sess = libssh2_session_init();    
+    ssh2_sess = libssh2_session_init();
+    //libssh2_trace((LIBSSH2_SESSION*)ssh2_sess , 64 );    
     ret = libssh2_session_startup((LIBSSH2_SESSION*)ssh2_sess,this->ssh2_sock);
     assert( ret == 0 );
     emit connect_state_changed( tr( "SSH session started ..."));
@@ -173,15 +177,19 @@ void RemoteHostConnectThread::run()
     char * auth_list = libssh2_userauth_list((LIBSSH2_SESSION*)ssh2_sess,this->user_name.c_str(),strlen(this->user_name.c_str()) );
     printf("user auth list : %s \n" , auth_list ) ;
     
-    strncpy(ssh2_password,this->password.c_str() , sizeof(ssh2_password));
-    
     emit connect_state_changed( tr( "User authing (Keyboard Interactive)...") );
+    
+    ssh2_kbd_cb_mutex.lock();
+    strncpy(ssh2_password,this->password.c_str() , sizeof(ssh2_password));
     ret = libssh2_userauth_keyboard_interactive((LIBSSH2_SESSION*)ssh2_sess,this->user_name.c_str(),&kbd_callback) ;
+    memset( ssh2_password,0,sizeof(ssh2_password));
+    ssh2_kbd_cb_mutex.unlock();
+    
     qDebug()<<"keyboard interactive :"<<ret ;
     if( ret == -1 )
     {
         emit connect_state_changed( tr( "User auth faild (Keyboard Interactive). Trying (Password ) ...") );
-        ret = libssh2_userauth_password((LIBSSH2_SESSION*)ssh2_sess,this->user_name.c_str(),ssh2_password);
+        ret = libssh2_userauth_password((LIBSSH2_SESSION*)ssh2_sess,this->user_name.c_str(),this->password.c_str());
         qDebug()<<"auth_password :"<<ret ;
     }
     

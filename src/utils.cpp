@@ -8,6 +8,7 @@
 #include "globaloption.h"
 
 #ifdef WIN32
+#include <windows.h>
 
 //#define	_IFMT		0170000	/* type of file */
 //#define		_IFDIR	0040000	/* directory */

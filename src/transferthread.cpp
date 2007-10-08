@@ -608,7 +608,11 @@ int TransferThread::do_nrsftp_exchange( QString src_url , QString dest_path )
         return 0 ;
     }
     src_sftp_handle = libssh2_sftp_open( src_sftp ,GlobalOption::instance()->remote_codec->fromUnicode(  url.path() ).data()  ,LIBSSH2_FXF_READ,0666);
-    assert( src_sftp_handle != 0 );
+    if( src_sftp_handle == 0 )
+    {
+        qDebug()<<"sftp open error: "<< libssh2_session_last_error((LIBSSH2_SESSION*)(url.fragment().toUInt(0,16)),0,0,0) ; 
+        assert( src_sftp_handle != 0 );
+    }
     
     libssh2_sftp_fstat(src_sftp_handle,&ssh2_sftp_attrib);
     file_size = ssh2_sftp_attrib.filesize;
@@ -629,7 +633,7 @@ int TransferThread::do_nrsftp_exchange( QString src_url , QString dest_path )
 		rlen = libssh2_sftp_read ( src_sftp_handle,buff,sizeof ( buff ) );
         if( rlen <= 0 )
         {
-            qDebug()<<" may be read end ";
+            qDebug()<<" may be read end "<< rlen << libssh2_session_last_error((LIBSSH2_SESSION*)(url.fragment().toUInt(0,16)),0,0,0) ;
             break;
         }
 		wlen = libssh2_sftp_write ( dest_sftp_handle,buff,rlen );

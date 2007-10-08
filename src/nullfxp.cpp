@@ -164,7 +164,8 @@ void NullFXP::connect_to_remote_host()
 		                   this, SLOT ( slot_connect_remote_host_finished ( int ,void * ,int /* , void **/ ) ) );
 
         QObject::connect(remote_conn_thread , SIGNAL(connect_state_changed(QString)),
-                         connect_status_dailog,SLOT(slot_connect_state_changed(QString)));        
+                         connect_status_dailog,SLOT(slot_connect_state_changed(QString)));
+        this->remote_conn_thread->start();        
 		this->connect_status_dailog->exec();
 	}
 	else
