@@ -179,7 +179,8 @@ void LocalView::slot_local_new_upload_requested()
         //local_file_name = ba ;
         //emit  new_upload_requested("/home/gzl/hehe.txt");
         //emit  new_upload_requested ( local_file_name , local_file_type );
-        
+        //加上协议前缀
+        local_file_name = QString("file://" ) + local_file_name ;
         local_file_names << local_file_name;
 		qDebug()<< local_file_names ;
     }

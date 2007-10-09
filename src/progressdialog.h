@@ -40,7 +40,7 @@ public:
 
     ~ProgressDialog();
 
-    void set_remote_connection(void* ssh2_sess );
+    //void set_remote_connection(void* ssh2_sess );
     
     //type 可以是 TANSFER_GET,TRANSFER_PUT
     void set_transfer_info(int type,QStringList local_file_names,QStringList remote_file_names  ) ;

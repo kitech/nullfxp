@@ -30,9 +30,6 @@ class RemoteDirSortFilterModel ;
 
 #include "ui_remoteview.h"
 
-// #include "sftp-client.h"
-// #include "sftp-common.h"
-
 #include "remotedirmodel.h"
 
 #include "libssh2.h"
@@ -61,9 +58,9 @@ public:
     
     void update_layout();
     
-    LIBSSH2_SESSION * get_ssh2_sess();
-    LIBSSH2_SFTP * get_ssh2_sftp ();
-    int get_ssh2_sock ( );
+//     LIBSSH2_SESSION * get_ssh2_sess();
+//     LIBSSH2_SFTP * get_ssh2_sftp ();
+//     int get_ssh2_sock ( );
     
     private:
         LocalView  * local_view ;
@@ -124,9 +121,13 @@ public:
         //view drag
         void slot_drag_ready();
         
+        //
+        bool slot_drop_mime_data(const QMimeData *data, Qt::DropAction action,
+                                 int row, int column, const QModelIndex &parent ) ;
+        
     signals:
         //void new_transfer_requested( QString file_name,QString file_type ) ;
-        void new_transfer_requested(QStringList remote_file_names);
+        //void new_transfer_requested(QStringList remote_file_names);
         //first is file_name , second is file_type 
         //可以多选的时候使用。
         //void new_transfer_requested( QVector<QPair<QString ,QString > > file_lists ) ;

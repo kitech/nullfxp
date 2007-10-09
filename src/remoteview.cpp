@@ -141,8 +141,9 @@ void RemoteView::i_init_dir_view( )
     this->remoteview.treeView->setDragEnabled(true);
     this->remoteview.treeView->setDropIndicatorShown(true);
     this->remoteview.treeView->setDragDropMode(QAbstractItemView::DragDrop);            
-    QObject::connect(this->remote_dir_model,SIGNAL(new_transfer_requested(QStringList,QStringList)),
-                     this,SLOT(slot_new_upload_requested(QStringList,QStringList )) ) ;
+//     QObject::connect(this->remote_dir_model,SIGNAL(new_transfer_requested(QStringList,QStringList)),
+//                      this,SLOT(slot_new_upload_requested(QStringList,QStringList )) ) ;
+    QObject::connect( this->remote_dir_model ,SIGNAL(sig_drop_mime_data(const QMimeData * , Qt::DropAction  ,  int , int , const QModelIndex & ) ),this,SLOT(slot_drop_mime_data(const QMimeData *, Qt::DropAction ,  int , int , const QModelIndex &)));
     
     QObject::connect( this->remote_dir_model,SIGNAL(enter_remote_dir_retrive_loop()),
                       this,SLOT(slot_enter_remote_dir_retrive_loop()));
@@ -226,6 +227,7 @@ void RemoteView::slot_new_transfer()
                 <<" "<< dti->strip_path  ;
         file_path = dti->strip_path;
         //file_type = dti->file_type  ;
+        file_path = QString("nrsftp://%1:%2@%3:22").arg(this->user_name).arg(this->password).arg(this->host_name) + file_path;
         remote_file_names << file_path ;
     }
     
@@ -284,18 +286,18 @@ void RemoteView::set_ssh2_handler( void * ssh2_sess /*, void * ssh2_sftp*/ , int
     
     this->ssh2_sock = ssh2_sock ;
 }
-LIBSSH2_SESSION * RemoteView::get_ssh2_sess()
-{
-    return this->ssh2_sess ;
-}
-LIBSSH2_SFTP * RemoteView::get_ssh2_sftp ()
-{
-    return this->ssh2_sftp ;
-}
-int RemoteView::get_ssh2_sock ( )
-{
-    return this->ssh2_sock ;
-}
+// LIBSSH2_SESSION * RemoteView::get_ssh2_sess()
+// {
+//     return this->ssh2_sess ;
+// }
+// LIBSSH2_SFTP * RemoteView::get_ssh2_sftp ()
+// {
+//     return this->ssh2_sftp ;
+// }
+// int RemoteView::get_ssh2_sock ( )
+// {
+//     return this->ssh2_sock ;
+// }
 
 void RemoteView::set_host_info( QString host_name , QString   user_name , QString password )
 {
@@ -630,9 +632,9 @@ void RemoteView::slot_new_upload_requested ( QStringList local_file_names,  QStr
     else
     {
         ProgressDialog * pdlg = new ProgressDialog (  );
-        pdlg->set_remote_connection ( remote_view->get_ssh2_sess() /*,
-                                      remote_view->get_ssh2_sftp(),
-                                              remote_view->get_ssh2_sock() */ );
+//         pdlg->set_remote_connection ( remote_view->get_ssh2_sess() /*,
+//                                       remote_view->get_ssh2_sftp(),
+//                                               remote_view->get_ssh2_sock() */ );
 
         pdlg->set_transfer_info ( TransferThread::TRANSFER_PUT,local_file_names , remote_file_names ) ;
 // 		QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
@@ -662,7 +664,7 @@ void RemoteView::slot_new_upload_requested ( QStringList local_file_names )
     }
 
     remote_file_name = remote_view->get_selected_directory();
-    remote_file_names << remote_file_name ;
+    
 
     if ( remote_file_name.length() == 0 )
     {
@@ -671,6 +673,8 @@ void RemoteView::slot_new_upload_requested ( QStringList local_file_names )
     }
     else
     {
+        remote_file_name = QString("nrsftp://%1:%2@%3:22").arg(this->user_name).arg(this->password).arg(this->host_name) + remote_file_name ;
+        remote_file_names << remote_file_name ;
         this->slot_new_upload_requested( local_file_names , remote_file_names );
 //         ProgressDialog * pdlg = new ProgressDialog (  );
 //         pdlg->set_remote_connection ( remote_view->get_ssh2_sess() ,
@@ -698,9 +702,9 @@ void RemoteView::slot_new_download_requested(QStringList local_file_names,   QSt
     RemoteView * remote_view = this/*->get_top_most_remote_view()*/ ;
         
 	ProgressDialog *pdlg = new ProgressDialog ( 0 );
-    pdlg->set_remote_connection ( remote_view->get_ssh2_sess() /*,
-                                  remote_view->get_ssh2_sftp(),
-                                          remote_view->get_ssh2_sock() */ );
+//     pdlg->set_remote_connection ( remote_view->get_ssh2_sess() /*,
+//                                   remote_view->get_ssh2_sftp(),
+//                                           remote_view->get_ssh2_sock() */ );
 	pdlg->set_transfer_info ( TransferThread::TRANSFER_GET,local_file_names,remote_file_names );
 	QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
 	                   this,SLOT ( slot_transfer_finished ( int ) ) );
@@ -720,7 +724,7 @@ void RemoteView::slot_new_download_requested( QStringList remote_file_names )
     RemoteView * remote_view = this/*->get_top_most_remote_view() */;
     
 	local_file_path = this->local_view->get_selected_directory();
-	local_file_names << local_file_path ;
+	
     
 	if ( local_file_path.length() == 0 || ! is_dir( GlobalOption::instance()->locale_codec->fromUnicode( local_file_path  ).data() ) )
 	{
@@ -729,6 +733,8 @@ void RemoteView::slot_new_download_requested( QStringList remote_file_names )
 	}
 	else
 	{
+        local_file_path = QString("file://") + local_file_path ;
+        local_file_names << local_file_path ;
         this->slot_new_download_requested( local_file_names,remote_file_names);
 // 		ProgressDialog *pdlg = new ProgressDialog ( this );
 //         pdlg->set_remote_connection ( remote_view->get_ssh2_sess() ,
@@ -835,7 +841,7 @@ void RemoteView::slot_drag_ready()
     for(int i = 0 ; i< mil.count() ;i += this->remote_dir_model->columnCount() )
     {
         QModelIndex midx = mil.at(i);
-        drag_urls<< QUrl( QString("nrsftp://%1:%2@%3:22").arg(this->user_name).arg(this->password).arg(this->host_name) + qobject_cast<RemoteDirModel*>(this->remote_dir_model)->filePath(midx) + QString("#%1").arg(QString::number((unsigned int)this->ssh2_sess,16)) );
+        drag_urls<< QUrl( QString("nrsftp://%1:%2@%3:22").arg(this->user_name).arg(this->password).arg(this->host_name) + qobject_cast<RemoteDirModel*>(this->remote_dir_model)->filePath(midx)  );
     }
     
     //mimeData->setData("text/uri-list" , "data");
@@ -844,4 +850,72 @@ void RemoteView::slot_drag_ready()
     
     Qt::DropAction dropAction = drag->exec(Qt::CopyAction | Qt::MoveAction);    
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<" drag->exec returned" ;
+}
+
+bool RemoteView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction action,
+                                 int row, int column, const QModelIndex &parent ) 
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    
+	QStringList local_file_names;
+	QStringList remote_file_names ;
+    
+	//QTextCodec * codec = QTextCodec::codecForName ( REMOTE_CODEC );
+        
+	QByteArray ba ;
+    
+	directory_tree_item * aim_item = static_cast<directory_tree_item*> ( parent.internalPointer() );
+        
+	QString remote_file_name = aim_item->strip_path ;
+	//QString remote_file_type = aim_item->file_type.c_str();
+    remote_file_name = QString("nrsftp://%1:%2@%3:22").arg(this->user_name).arg(this->password).arg(this->host_name) + remote_file_name ;
+	remote_file_names << remote_file_name ;
+    
+	QList<QUrl> urls = data->urls( ) ;
+    
+    qDebug() << urls << " action: " << action <<" "<< parent << data->text() <<"remote file:"<< remote_file_name  ;
+    
+	if ( urls.count() == 0 )
+	{
+		qDebug() <<" no url droped";
+		return false ;
+	}
+    
+	QString file_name;
+	for ( int i = 0 ; i < urls.count() ; i ++ )
+	{
+        qDebug()<<urls.at(i).toString()<<urls.at(i).scheme();
+        if( urls.at(i).scheme() == "nrsftp")
+        {
+            qDebug()<<" my shemem";
+            local_file_names << urls.at(i).toString() ;
+        }
+        else if( urls.at(i).scheme() == "file")
+        {
+//             file_name = urls.at(i).toString().right(urls.at(i).toString().length()-7 );	
+//             #ifdef WIN32
+//                 //在windows上Qt获取的路径URL带着 file:///前缀 , 如 file:///E:/xxx/bbb.txt , 而在　unix上这个路径为 file:///home/aaa.txt , 前缀为 file:// , 所以两个值还是差1的，需要下面的语句
+//                 file_name = file_name.right( file_name.length() - 1 );
+//                 //qDebug()<< file_name << strlen( "file:///") ;
+//             #endif
+            //if ( file_name.trimmed().length() == 0 ) continue ;
+            //从 Qt 内部编码到本地编码
+            //ba = codec->fromUnicode ( file_name );
+            //qDebug()<< file_name <<" ---> :" REMOTE_CODEC << ba ;
+            //file_name = ba ;
+            file_name = urls.at(i).toString() ;
+            local_file_names << file_name ;
+        }
+        else
+        {
+            qDebug()<<" not support shemem";
+        }
+	}
+    if( local_file_names.count() > 0 )
+    {
+	   this->slot_new_upload_requested ( local_file_names,remote_file_names );
+    }
+	qDebug() <<"drop mime data processed ";
+    
+    return true ;
 }

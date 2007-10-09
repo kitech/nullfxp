@@ -81,10 +81,10 @@ ProgressDialog::~ProgressDialog()
     delete this->sftp_transfer_thread;
 }
 
-void ProgressDialog::set_remote_connection(void* ssh2_sess  )
-{
-    this->sftp_transfer_thread->set_remote_connection( ssh2_sess  );
-}
+// void ProgressDialog::set_remote_connection(void* ssh2_sess  )
+// {
+//     this->sftp_transfer_thread->set_remote_connection( ssh2_sess  );
+// }
 
 void ProgressDialog::set_transfer_info(int type,QStringList local_file_names,QStringList remote_file_names  ) 
 {

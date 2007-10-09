@@ -46,7 +46,7 @@ public:
 
     void run();
     
-    void set_remote_connection( void* ssh2_sess  );
+    //void set_remote_connection( void* ssh2_sess  );
     
     //说明，在上传的时候local_file_names.count()可以大于1个，而remote_file_names.count()必须等于1
     //在下载的时候：local_file_names.count()必须等于1,而remote_file_names.count()可以大于1个
@@ -71,10 +71,13 @@ public:
         
     private:
         
-//         struct sftp_conn * sftp_connection ;
-        LIBSSH2_SESSION * ssh2_sess;
-        LIBSSH2_SFTP * ssh2_sftp;
-        //int ssh2_sock ;
+        LIBSSH2_SESSION * dest_ssh2_sess;
+        LIBSSH2_SFTP * dest_ssh2_sftp;
+        int dest_ssh2_sock ;
+        
+        LIBSSH2_SESSION * src_ssh2_sess ;
+        LIBSSH2_SFTP * src_ssh2_sftp ;
+        int src_ssh2_sock ;
         
         int transfer_type ;
 
