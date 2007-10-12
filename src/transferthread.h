@@ -38,7 +38,9 @@ class TransferThread : public QThread
 Q_OBJECT
 public:
     
-    enum { TRANSFER_GET,TRANSFER_PUT };
+    enum { TRANSFER_MIN, TRANSFER_GET,TRANSFER_PUT,TRANSFER_EXCHANGE,TRANSFER_RETRIVE_TO_LOCAL,TRANSFER_RETRIVE_TO_REMOTE ,TRANSFER_MAX };
+    enum { PROTO_MIN, PROTO_FILE , PROTO_NRSFTP , PROTO_NRFTP , PROTO_HTTP, PROTO_HTTPS,PROTO_FTP,PROTO_RSTP,PROTO_MMS , PROTO_MAX } ;
+    
     
     TransferThread(QObject *parent = 0);
 
@@ -51,7 +53,7 @@ public:
     //说明，在上传的时候local_file_names.count()可以大于1个，而remote_file_names.count()必须等于1
     //在下载的时候：local_file_names.count()必须等于1,而remote_file_names.count()可以大于1个
     //type 可以是 TANSFER_GET,TRANSFER_PUT
-    void set_transfer_info(int type,QStringList local_file_names,QStringList remote_file_names ) ;
+    void set_transfer_info(/*int type,*/QStringList local_file_names,QStringList remote_file_names ) ;
     
     int do_upload ( QString local_path, QString remote_path, int pflag );
     int  do_download ( QString remote_path, QString local_path,   int pflag )   ;
@@ -79,7 +81,7 @@ public:
         LIBSSH2_SFTP * src_ssh2_sftp ;
         int src_ssh2_sock ;
         
-        int transfer_type ;
+        //int transfer_type ;
 
         QStringList local_file_names ;
         QStringList remote_file_names;

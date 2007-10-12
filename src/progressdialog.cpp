@@ -86,62 +86,62 @@ ProgressDialog::~ProgressDialog()
 //     this->sftp_transfer_thread->set_remote_connection( ssh2_sess  );
 // }
 
-void ProgressDialog::set_transfer_info(int type,QStringList local_file_names,QStringList remote_file_names  ) 
+void ProgressDialog::set_transfer_info(/*int type,*/QStringList local_file_names,QStringList remote_file_names  ) 
 {
     QString local_file_name ;
     QString remote_file_name ;
     
-    this->transfer_type = type ;
+    //this->transfer_type = type ;
     
     this->local_file_names = local_file_names;
     this->remote_file_names = remote_file_names ;
 
-    this->sftp_transfer_thread->set_transfer_info(type,local_file_names,remote_file_names  );
+    this->sftp_transfer_thread->set_transfer_info(/*type,*/local_file_names,remote_file_names  );
     
-    if(type == TransferThread::TRANSFER_PUT)
-    {
-        assert( remote_file_names.count() ==1);
-        QString remote_full_path ;
-        remote_file_name = remote_file_names.at(0);
-        
-        this->ui_progress_dialog.lineEdit->setText(tr("Uploading..."));
-        this->ui_progress_dialog.comboBox->clear();
-        this->ui_progress_dialog.comboBox_2->clear();
-        this->ui_progress_dialog.comboBox_2->addItem(remote_file_name);
-        
-        for(int i = 0 ; i < local_file_names.count() ; i ++)
-        {
-            local_file_name = local_file_names.at(i);
-            remote_full_path = remote_file_name + "/"
-                    + local_file_name.split ( "/" ).at ( local_file_name.split ( "/" ).count()-1 ) ;
-            this->ui_progress_dialog.comboBox_2->addItem( local_file_name );
-
-        }
-    }
-    else if( type == TransferThread::TRANSFER_GET)
-    {
-        assert( local_file_names.count() == 1 ) ;
-        local_file_name = local_file_names.at(0);
-        
-        QString local_full_path ;
-        this->ui_progress_dialog.lineEdit->setText(tr("Downloading..."));
-        this->ui_progress_dialog.comboBox->clear();
-        this->ui_progress_dialog.comboBox_2->clear();
-        this->ui_progress_dialog.comboBox_2->addItem( local_file_name );
-        
-        for( int i = 0 ; i < remote_file_names.count() ; i ++ )
-        {
-            remote_file_name = remote_file_names.at(i);
-            local_full_path = local_file_name + "/"
-                + remote_file_name.split ( "/" ).at ( remote_file_name.split ( "/" ).count()-1 ) ;
-            this->ui_progress_dialog.comboBox->addItem( remote_file_name );
-    
-        }
-    }
-    else
-    {
-        assert(1==2);
-    }
+//     if(type == TransferThread::TRANSFER_PUT)
+//     {
+//         assert( remote_file_names.count() ==1);
+//         QString remote_full_path ;
+//         remote_file_name = remote_file_names.at(0);
+//         
+//         this->ui_progress_dialog.lineEdit->setText(tr("Uploading..."));
+//         this->ui_progress_dialog.comboBox->clear();
+//         this->ui_progress_dialog.comboBox_2->clear();
+//         this->ui_progress_dialog.comboBox_2->addItem(remote_file_name);
+//         
+//         for(int i = 0 ; i < local_file_names.count() ; i ++)
+//         {
+//             local_file_name = local_file_names.at(i);
+//             remote_full_path = remote_file_name + "/"
+//                     + local_file_name.split ( "/" ).at ( local_file_name.split ( "/" ).count()-1 ) ;
+//             this->ui_progress_dialog.comboBox_2->addItem( local_file_name );
+// 
+//         }
+//     }
+//     else if( type == TransferThread::TRANSFER_GET)
+//     {
+//         assert( local_file_names.count() == 1 ) ;
+//         local_file_name = local_file_names.at(0);
+//         
+//         QString local_full_path ;
+//         this->ui_progress_dialog.lineEdit->setText(tr("Downloading..."));
+//         this->ui_progress_dialog.comboBox->clear();
+//         this->ui_progress_dialog.comboBox_2->clear();
+//         this->ui_progress_dialog.comboBox_2->addItem( local_file_name );
+//         
+//         for( int i = 0 ; i < remote_file_names.count() ; i ++ )
+//         {
+//             remote_file_name = remote_file_names.at(i);
+//             local_full_path = local_file_name + "/"
+//                 + remote_file_name.split ( "/" ).at ( remote_file_name.split ( "/" ).count()-1 ) ;
+//             this->ui_progress_dialog.comboBox->addItem( remote_file_name );
+//     
+//         }
+//     }
+//     else
+//     {
+//         assert(1==2);
+//     }
 }
 
 void ProgressDialog::slot_set_transfer_percent(int percent  , int total_transfered,int transfer_delta )

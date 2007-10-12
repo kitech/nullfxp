@@ -49,7 +49,7 @@
 #include <QtCore>
 #include "globaloption.h"
 #include "transferthread.h"
-
+#include "remotehostconnectthread.h"
 #include "utils.h"
 
 
@@ -175,6 +175,9 @@ void TransferThread::run()
 	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib ;
+    QUrl current_src_url ;
+    QUrl current_dest_url ;
+    RemoteHostConnectThread * rhct = 0 ;
     
 	int transfer_ret ;
     int debug_sleep_time = 5 ;
@@ -186,9 +189,16 @@ void TransferThread::run()
     QPair< QString , QString> temp_remote_file_pair;
         
     QVector<QMap<char, QString> >  fileinfos ;
-//     Attrib a ;  //用于创建远程目录
     
     this->error_code = 0 ;
+    
+    this->dest_ssh2_sess = 0 ;
+    this->dest_ssh2_sftp = 0 ;
+    this->dest_ssh2_sock = 0 ;
+        
+    this->src_ssh2_sess = 0 ;
+    this->src_ssh2_sftp = 0 ;
+    this->src_ssh2_sock = 0 ;
     
     do{
        local_file_pair = this->transfer_ready_queue.front().first;
@@ -198,6 +208,14 @@ void TransferThread::run()
        this->current_remote_file_name = remote_file_pair.first ;
        this->current_remote_file_type = remote_file_pair.second  ;
        
+       //有效协议传输
+       //file - > nrsftp
+       //nrsftp -> nrsftp
+       //nrsftp -> file
+       current_src_url = this->current_local_file_name ;
+       current_dest_url = this->current_remote_file_name ;
+       this->current_local_file_name = current_src_url.path() ;
+       this->current_remote_file_name = current_dest_url.path() ;       
        //这里有几种情况，全部都列出来
        // 上传:
        // local file type is file               remote file is file     error
@@ -210,11 +228,22 @@ void TransferThread::run()
        // local file type is dir                remote file is file     ok
        // local file type is dir                remote file is dir      ok
        
-       if( this->transfer_type == TransferThread::TRANSFER_PUT )
+       //if( this->transfer_type == TransferThread::TRANSFER_PUT )
+       if( current_src_url.scheme() == "file" && current_dest_url.scheme() == "nrsftp")
        {
            //提示开始处理新文件：
            emit this->transfer_new_file_started(this->current_local_file_name);
-
+            
+           //连接到目录主机：
+           qDebug()<<"connecting to dest ssh host:"<<current_dest_url.userName()<<":"<<current_dest_url.password()<<"@"<<current_dest_url.host() <<":"<<current_dest_url.port() ;
+           rhct = new RemoteHostConnectThread ( current_dest_url.userName() , current_dest_url.password() ,current_dest_url.host() );
+           rhct->run();
+           //TODO get status code and then ...
+           this->dest_ssh2_sess = (LIBSSH2_SESSION*)rhct->get_ssh2_sess();
+           this->dest_ssh2_sock = rhct->get_ssh2_sock();
+           this->dest_ssh2_sftp = libssh2_sftp_init(this->dest_ssh2_sess);
+           delete rhct ; rhct = 0 ;
+           
            //将文件上传到目录
 		   if( is_reg( GlobalOption::instance()->locale_codec->fromUnicode( this->current_local_file_name ).data() )
               && remote_is_dir( this->dest_ssh2_sftp , this->current_remote_file_name ) )
@@ -243,39 +272,31 @@ void TransferThread::run()
                
                //这个远程目录属性应该和本地属性一样，所以就使用this->current_local_file_type
                //不知道是不是有问题。
-               temp_remote_file_pair = QPair<QString,QString>( this->current_remote_file_name + "/" + this->current_local_file_name.split("/").at(this->current_local_file_name.split("/").count()-1)   ,  this->current_local_file_type  );
+               temp_remote_file_pair = QPair<QString,QString>( current_dest_url.toString() + "/" + this->current_local_file_name.split("/").at(this->current_local_file_name.split("/").count()-1)   ,  this->current_local_file_type  );
                //为远程建立目录
                memset(&ssh2_sftp_attrib,0,sizeof(ssh2_sftp_attrib));
-			   transfer_ret = libssh2_sftp_mkdir(this->dest_ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode( temp_remote_file_pair.first ).data(), 0755);
+			   transfer_ret = libssh2_sftp_mkdir(this->dest_ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode( QUrl(temp_remote_file_pair.first).path() ).data(), 0755);
                qDebug()<<" libssh2_sftp_mkdir : "<< transfer_ret <<" :"<< temp_remote_file_pair.first;
 
                //添加到队列当中
                for( int i = 0 ; i < fileinfos.size() ; i ++ )
                {
-                   temp_local_file_pair = QPair<QString,QString>(  this->current_local_file_name+"/"+ fileinfos.at(i)['N']  , fileinfos.at(i)['T'] ) ;
+                   temp_local_file_pair = QPair<QString,QString>(  "file://"+this->current_local_file_name+"/"+ fileinfos.at(i)['N']  , fileinfos.at(i)['T'] ) ;
                    
                   this->transfer_ready_queue.push_back( QPair<QPair<QString ,QString>,QPair<QString,QString> >( temp_local_file_pair,temp_remote_file_pair ) ); 
                }
                
            }
-           else
-           {
-               //处理nrsftp协议
-               QUrl url = this->current_local_file_name ;
-               if( url.scheme() == "nrsftp")
-               {
-                   transfer_ret = this->do_nrsftp_exchange(this->current_local_file_name,this->current_remote_file_name );
-               }
-               else
-               {
-                    //其他的情况暂时不考虑处理。跳过
-                    //TODO return a error value , not only error code 
-                    this->error_code = 1 ;
-                    //assert( 1 == 2 ) ; 
-               }
-           }
-       }
-       else if( this->transfer_type == TransferThread::TRANSFER_GET )
+            else
+            {
+                //其他的情况暂时不考虑处理。跳过
+                //TODO return a error value , not only error code
+                this->error_code = 1 ;
+                //assert( 1 == 2 ) ;
+            }
+		}
+        else if( current_src_url.scheme() == "nrsftp" && current_dest_url.scheme() == "file")
+                //if( this->transfer_type == TransferThread::TRANSFER_GET )
        {
            //提示开始处理新文件：
            emit this->transfer_new_file_started(this->current_remote_file_name);
@@ -326,6 +347,22 @@ void TransferThread::run()
                //assert( 1 == 2 ) ; 
            }
        }
+       else  if( current_src_url.scheme() == "nrsftp" && current_dest_url.scheme() == "nrsftp")
+       {
+               //处理nrsftp协议
+           QUrl url = this->current_local_file_name ;
+           if( url.scheme() == "nrsftp")
+           {
+               transfer_ret = this->do_nrsftp_exchange(this->current_local_file_name,this->current_remote_file_name );
+           }
+           else
+           {
+                    //其他的情况暂时不考虑处理。跳过
+                    //TODO return a error value , not only error code 
+               this->error_code = 1 ;
+                    //assert( 1 == 2 ) ; 
+           }
+       }
        else
        {
            this->error_code = 2 ;
@@ -351,9 +388,9 @@ void TransferThread::run()
 // //     this->dest_ssh2_sock = ssh2_sock ;
 // }
 
-void TransferThread::set_transfer_info ( int type , QStringList local_file_names,QStringList remote_file_names  )
+void TransferThread::set_transfer_info ( /*int type ,*/ QStringList local_file_names,QStringList remote_file_names  )
 {
-	this->transfer_type = type ;
+	//this->transfer_type = type ;
 
     this->local_file_names = local_file_names ;
     this->remote_file_names = remote_file_names ;
@@ -365,37 +402,49 @@ void TransferThread::set_transfer_info ( int type , QStringList local_file_names
     //std::pair<std::string , std::string> remote_file_pair;
     QPair<QString , QString > local_file_pair ;
 	QPair<QString , QString > remote_file_pair ;
-
-    if( type == TransferThread::TRANSFER_PUT )
+    
+    for( int i = 0 ; i < local_file_names.count() ; i ++ )
     {
-        assert( remote_file_names.count() == 1 );
-        remote_file_name = remote_file_names.at(0);
-        for(int i = 0 ; i < local_file_names.count() ; i ++ )
+        local_file_name = local_file_names.at(i);
+        local_file_pair = QPair<QString,QString>(local_file_name,"");
+        for(int j = 0 ; j < remote_file_names.count() ; j ++ )
         {
-            local_file_name = local_file_names.at(i);
-            local_file_pair = QPair<QString,QString>(local_file_name,"");
+            remote_file_name = remote_file_names.at(j);
             remote_file_pair = QPair<QString,QString>(remote_file_name,"");
-        
-            this->transfer_ready_queue.	push_back( QPair<QPair<QString,QString>,QPair<QString,QString> > (local_file_pair,remote_file_pair));
+            this->transfer_ready_queue.	push_back( QPair<QPair<QString,QString>,QPair<QString,QString> > (local_file_pair,remote_file_pair));            
         }
     }
-    else if( type == TransferThread::TRANSFER_GET )
-    {
-        assert( local_file_names.count() == 1 );
-        local_file_name = local_file_names.at(0);
-        for(int i = 0 ; i < remote_file_names.count() ; i ++ )
-        {
-            remote_file_name = remote_file_names.at(i);            
-            local_file_pair = QPair<QString,QString>(local_file_name ,"");
-            remote_file_pair = QPair<QString,QString>(remote_file_name ,"");
-        
-            this->transfer_ready_queue.	push_back( QPair<QPair<QString,QString>,QPair<QString,QString> >  (local_file_pair,remote_file_pair) );
-        }
-    }
-    else
-    {
-        assert( 1 == 2 );   
-    }
+
+//     if( type == TransferThread::TRANSFER_PUT )
+//     {
+//         assert( remote_file_names.count() == 1 );
+//         remote_file_name = remote_file_names.at(0);
+//         for(int i = 0 ; i < local_file_names.count() ; i ++ )
+//         {
+//             local_file_name = local_file_names.at(i);
+//             local_file_pair = QPair<QString,QString>(local_file_name,"");
+//             remote_file_pair = QPair<QString,QString>(remote_file_name,"");
+//         
+//             this->transfer_ready_queue.	push_back( QPair<QPair<QString,QString>,QPair<QString,QString> > (local_file_pair,remote_file_pair));
+//         }
+//     }
+//     else if( type == TransferThread::TRANSFER_GET )
+//     {
+//         assert( local_file_names.count() == 1 );
+//         local_file_name = local_file_names.at(0);
+//         for(int i = 0 ; i < remote_file_names.count() ; i ++ )
+//         {
+//             remote_file_name = remote_file_names.at(i);            
+//             local_file_pair = QPair<QString,QString>(local_file_name ,"");
+//             remote_file_pair = QPair<QString,QString>(remote_file_name ,"");
+//         
+//             this->transfer_ready_queue.	push_back( QPair<QPair<QString,QString>,QPair<QString,QString> >  (local_file_pair,remote_file_pair) );
+//         }
+//     }
+//     else
+//     {
+//         assert( 1 == 2 );   
+//     }
 }
 
 int TransferThread::do_download ( QString remote_path, QString local_path,  int pflag )

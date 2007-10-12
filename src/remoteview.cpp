@@ -636,7 +636,7 @@ void RemoteView::slot_new_upload_requested ( QStringList local_file_names,  QStr
 //                                       remote_view->get_ssh2_sftp(),
 //                                               remote_view->get_ssh2_sock() */ );
 
-        pdlg->set_transfer_info ( TransferThread::TRANSFER_PUT,local_file_names , remote_file_names ) ;
+        pdlg->set_transfer_info (/* TransferThread::TRANSFER_PUT,*/local_file_names , remote_file_names ) ;
 // 		QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
 // 		                   this,SLOT ( slot_transfer_finished ( int ) ) );
         QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
@@ -705,7 +705,7 @@ void RemoteView::slot_new_download_requested(QStringList local_file_names,   QSt
 //     pdlg->set_remote_connection ( remote_view->get_ssh2_sess() /*,
 //                                   remote_view->get_ssh2_sftp(),
 //                                           remote_view->get_ssh2_sock() */ );
-	pdlg->set_transfer_info ( TransferThread::TRANSFER_GET,local_file_names,remote_file_names );
+	pdlg->set_transfer_info ( /*TransferThread::TRANSFER_GET,*/local_file_names,remote_file_names );
 	QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
 	                   this,SLOT ( slot_transfer_finished ( int ) ) );
     remote_view->slot_enter_remote_dir_retrive_loop();
@@ -763,19 +763,19 @@ void RemoteView::slot_transfer_finished( int status )
     else
     {
 		//TODO 通知UI更新目录结构
-        int transfer_type = pdlg->get_transfer_type();
-        if ( transfer_type == TransferThread::TRANSFER_GET )
+        //int transfer_type = pdlg->get_transfer_type();
+        //if ( transfer_type == TransferThread::TRANSFER_GET )
         {
             this->local_view->update_layout();
         }
-        else if ( transfer_type == TransferThread::TRANSFER_PUT )
+        //else if ( transfer_type == TransferThread::TRANSFER_PUT )
         {
             remote_view->update_layout();
         }
-        else
+        //else
         {
 			// xxxxx: 没有预期到的错误
-            assert ( 1== 2 );
+            //assert ( 1== 2 );
         }
     }
     this->main_mdi_area->removeSubWindow(pdlg->parentWidget());

@@ -45,7 +45,7 @@ GlobalOption * GlobalOption::instance()
         GlobalOption::mInstance->keep_alive = true ;
         GlobalOption::mInstance->kepp_alive_internal = 180; //S
 		 GlobalOption::mInstance->test_codec =  QTextCodec::codecForName("C");
-		 Q_CHECK_PTR(GlobalOption::mInstance->test_codec);
+		 //Q_CHECK_PTR(GlobalOption::mInstance->test_codec);
 		//qDebug()<<"GBK: "<<  GlobalOption::mInstance->test_codec->aliases();
     }
     return GlobalOption::mInstance;

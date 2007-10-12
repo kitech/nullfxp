@@ -258,3 +258,8 @@ void * RemoteHostConnectThread::get_ssh2_sess ()
 {
     return this->ssh2_sess ;
 }
+int RemoteHostConnectThread::get_ssh2_sock () 
+{
+    return this->ssh2_sock ;
+}
+

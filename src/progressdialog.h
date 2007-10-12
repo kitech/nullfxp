@@ -43,9 +43,9 @@ public:
     //void set_remote_connection(void* ssh2_sess );
     
     //type 可以是 TANSFER_GET,TRANSFER_PUT
-    void set_transfer_info(int type,QStringList local_file_names,QStringList remote_file_names  ) ;
+    void set_transfer_info(/*int type,*/QStringList local_file_names,QStringList remote_file_names  ) ;
     
-    int get_transfer_type() { return this->transfer_type ; }
+    //int get_transfer_type() { return this->transfer_type ; }
     
     public slots:
         void slot_set_transfer_percent(int percent , int total_transfered ,int transfer_delta );
@@ -61,7 +61,7 @@ public:
         
     private:
 
-        int transfer_type ;
+        //int transfer_type ;
         QStringList local_file_names ;
         QStringList remote_file_names ;
 

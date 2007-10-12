@@ -45,6 +45,7 @@ public:
     QString get_user_name () ;
     QString get_password () ;
     void * get_ssh2_sess () ;
+    int get_ssh2_sock () ;
     
     signals:
         void  connect_state_changed( QString state_desc );
