@@ -53,10 +53,10 @@ public:
     //说明，在上传的时候local_file_names.count()可以大于1个，而remote_file_names.count()必须等于1
     //在下载的时候：local_file_names.count()必须等于1,而remote_file_names.count()可以大于1个
     //type 可以是 TANSFER_GET,TRANSFER_PUT
-    void set_transfer_info(/*int type,*/QStringList local_file_names,QStringList remote_file_names ) ;
+    void set_transfer_info(/*int type,*/QStringList src_file_names,QStringList dest_file_names ) ;
     
-    int do_upload ( QString local_path, QString remote_path, int pflag );
-    int  do_download ( QString remote_path, QString local_path,   int pflag )   ;
+    int do_upload ( QString src_path, QString dest_path, int pflag );
+    int  do_download ( QString src_path, QString dest_path,   int pflag )   ;
     int do_nrsftp_exchange( QString src_url , QString dest_path );
     
     int   get_error_code () { return this->error_code ;} 
@@ -83,23 +83,26 @@ public:
         
         //int transfer_type ;
 
-        QStringList local_file_names ;
-        QStringList remote_file_names;
-
+//         QStringList local_file_names ;
+//         QStringList remote_file_names;
+        QStringList src_file_names ;
+        QStringList dest_file_names;
+        
         uint64_t total_file_size ;
         uint64_t total_transfered_file_length ; 
         uint32_t total_file_count ;
         uint32_t total_transfered_file_count ;
         uint64_t current_file_size ;
         uint64_t current_file_transfered_length ;
-        QString  current_local_file_name;
-        QString  current_local_file_type;
-        QString  current_remote_file_name;
-        QString  current_remote_file_type;
-        //local_file_name     local_file_type   remote_file_name  remote_file_type 
-        //std::vector< std::pair< std::pair<std::string , std::string>, std::pair<std::string,std::string> > > transfer_ready_queue ;
-        //std::vector< std::pair< std::pair<std::string , std::string>, std::pair<std::string,std::string> > > transfer_done_queue ;
-        //std::vector< std::pair< std::pair<std::string , std::string>, std::pair<std::string,std::string> > > transfer_error_queue ;  
+//         QString  current_local_file_name;
+//         QString  current_local_file_type;
+//         QString  current_remote_file_name;
+//         QString  current_remote_file_type;
+        QString  current_src_file_name;
+        QString  current_src_file_type;
+        QString  current_dest_file_name;
+        QString  current_dest_file_type;
+
 		QVector<QPair<QPair<QString,QString> , QPair<QString,QString> > > transfer_ready_queue;
         QVector<QPair<QPair<QString,QString> , QPair<QString,QString> > > transfer_done_queue;
 		QVector<QPair<QPair<QString,QString> , QPair<QString,QString> > > transfer_error_queue;

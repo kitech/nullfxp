@@ -705,7 +705,9 @@ void RemoteView::slot_new_download_requested(QStringList local_file_names,   QSt
 //     pdlg->set_remote_connection ( remote_view->get_ssh2_sess() /*,
 //                                   remote_view->get_ssh2_sftp(),
 //                                           remote_view->get_ssh2_sock() */ );
-	pdlg->set_transfer_info ( /*TransferThread::TRANSFER_GET,*/local_file_names,remote_file_names );
+	//pdlg->set_transfer_info ( /*TransferThread::TRANSFER_GET,*/local_file_names,remote_file_names );
+    // src is remote file , dest if localfile 
+    pdlg->set_transfer_info ( /*TransferThread::TRANSFER_GET,*/remote_file_names , local_file_names );
 	QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
 	                   this,SLOT ( slot_transfer_finished ( int ) ) );
     remote_view->slot_enter_remote_dir_retrive_loop();
