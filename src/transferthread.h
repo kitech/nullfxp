@@ -57,7 +57,7 @@ public:
     
     int do_upload ( QString src_path, QString dest_path, int pflag );
     int  do_download ( QString src_path, QString dest_path,   int pflag )   ;
-    int do_nrsftp_exchange( QString src_url , QString dest_path );
+    int do_nrsftp_exchange( QString src_path , QString dest_path );
     
     int   get_error_code () { return this->error_code ;} 
     

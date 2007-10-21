@@ -169,6 +169,9 @@ int TransferThread::fxp_do_ls_dir ( LIBSSH2_SFTP * ssh2_sftp, QString path  , QV
     return 0 ; 
 }
 
+/**
+ * 
+ */
 void TransferThread::run()
 {
 
@@ -368,17 +371,66 @@ void TransferThread::run()
        else  if( current_src_url.scheme() == "nrsftp" && current_dest_url.scheme() == "nrsftp")
        {
                //处理nrsftp协议
-           QUrl url = this->current_src_file_name ;
-           if( url.scheme() == "nrsftp")
+           if( this->src_ssh2_sess == 0 || this->src_ssh2_sftp == 0 )
            {
-               transfer_ret = this->do_nrsftp_exchange(this->current_src_file_name,this->current_dest_file_name );
+               rhct = new RemoteHostConnectThread ( current_src_url.userName() , current_src_url.password() ,current_src_url.host() );
+               rhct->run();
+                //TODO get status code and then ...
+               this->src_ssh2_sess = (LIBSSH2_SESSION*)rhct->get_ssh2_sess();
+               this->src_ssh2_sock = rhct->get_ssh2_sock();
+               this->src_ssh2_sftp = libssh2_sftp_init(this->src_ssh2_sess);
+               delete rhct ; rhct = 0 ;
+           }
+           if( this->dest_ssh2_sess == 0 || this->dest_ssh2_sftp == 0 )
+           {
+               rhct = new RemoteHostConnectThread ( current_dest_url.userName() , current_dest_url.password() ,current_dest_url.host() );
+               rhct->run();
+                //TODO get status code and then ...
+               this->dest_ssh2_sess = (LIBSSH2_SESSION*)rhct->get_ssh2_sess();
+               this->dest_ssh2_sock = rhct->get_ssh2_sock();
+               this->dest_ssh2_sftp = libssh2_sftp_init(this->dest_ssh2_sess);
+               delete rhct ; rhct = 0 ;
+           }
+           ////////////
+           if( remote_is_dir(this->src_ssh2_sftp, this->current_src_file_name) 
+               && remote_is_dir(this->dest_ssh2_sftp,this->current_dest_file_name ) )
+           {
+                qDebug()<<" nrsftp exchage dir to dir...";
+               fileinfos.clear();
+//                this->current_src_file_name = url.path() ;
+//                this->current_dest_file_name = dest_path ;
+        
+               transfer_ret = fxp_do_ls_dir(  this->src_ssh2_sftp ,  this->current_src_file_name+"/" ,  fileinfos);
+               qDebug()<<"ret:"<<transfer_ret<<" file count:"<<fileinfos.size();
+               
+               temp_remote_file_pair = QPair<QString,QString>( QString("nrsftp://%1:%2@%3:%4").arg(current_dest_url.userName()).arg(current_dest_url.password()).arg(current_dest_url.host()).arg(current_dest_url.port()) + this->current_dest_file_name + "/" + this->current_src_file_name.split("/").at(this->current_src_file_name.split("/").count()-1)   ,  this->current_src_file_type  );
+               //为远程建立目录
+               memset(&ssh2_sftp_attrib,0,sizeof(ssh2_sftp_attrib));
+               transfer_ret = libssh2_sftp_mkdir(this->dest_ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode( QUrl(temp_remote_file_pair.first).path() ).data(), 0755);
+               qDebug()<<" libssh2_sftp_mkdir : "<< transfer_ret <<" :"<< temp_remote_file_pair.first;
+
+               //添加到队列当中
+               for( int i = 0 ; i < fileinfos.size() ; i ++ )
+               {
+                   temp_local_file_pair = QPair<QString,QString>( QString("nrsftp://%1:%2@%3:%4").arg(current_src_url.userName()).arg(current_src_url.password()).arg(current_src_url.host()).arg(current_src_url.port()) +  this->current_src_file_name+"/"+ fileinfos.at(i)['N']  , fileinfos.at(i)['T'] ) ;
+                   
+                   this->transfer_ready_queue.push_back( QPair<QPair<QString ,QString>,QPair<QString,QString> >( temp_local_file_pair,temp_remote_file_pair ) ); 
+               }
+           }
+           else if ( remote_is_reg(this->src_ssh2_sftp, this->current_src_file_name) 
+                     && remote_is_dir(this->dest_ssh2_sftp,this->current_dest_file_name ) )
+           {
+               qDebug()<<" nrsftp exchage file to dir...";
+               QString dest_full_path = this->current_dest_file_name + "/" + this->current_src_file_name.split("/").at(this->current_src_file_name.split("/").count()-1);
+               transfer_ret = this->do_nrsftp_exchange(this->current_src_file_name,dest_full_path );
            }
            else
            {
-                    //其他的情况暂时不考虑处理。跳过
-                    //TODO return a error value , not only error code 
-               this->error_code = 1 ;
-                    //assert( 1 == 2 ) ; 
+				//其他的情况暂时不考虑处理。跳过
+				//TODO return a error value , not only error code
+                qDebug()<<"src: "<< current_src_url<<" dest:"<< current_dest_url ;
+				this->error_code = 1 ;
+				assert ( 1 == 2 ) ;
            }
        }
        else
@@ -613,88 +665,43 @@ int TransferThread::do_upload ( QString local_path, QString remote_path, int pfl
     
 	return ( 0 );
 }
-int TransferThread::do_nrsftp_exchange( QString src_url , QString dest_path )
+int TransferThread::do_nrsftp_exchange( QString src_path , QString dest_path )
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
-    qDebug()<<"from src_url :"<< src_url <<" to "<< dest_path ;
+    qDebug()<<"nrsftp from: "<< src_path <<" to "<< dest_path ;
     
-    LIBSSH2_SFTP * src_sftp = 0 ;
     LIBSSH2_SFTP_HANDLE * src_sftp_handle = 0 ;
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib ;
     LIBSSH2_SFTP_HANDLE * dest_sftp_handle = 0 ;
     char buff[5120] = {0};
-    QUrl url = src_url ;
     int rlen , wlen , tran_len = 0 ;
     int file_size=0;
-    QString file_base_name = url.path().split("/").at(url.path().split("/").count()-1) ;
-    QPair<QString , QString> local_file_pair;
-    QPair<QString , QString> remote_file_pair;
-    
-    QPair< QString , QString> temp_local_file_pair;
-    QPair< QString , QString> temp_remote_file_pair;
-    
-    QVector<QMap<char, QString> >  fileinfos ;
-    
-    
-    qDebug()<< "src path :"<< url.path() << " file name:"<< file_base_name ;
-    
-    src_sftp = libssh2_sftp_init( (LIBSSH2_SESSION*)(url.fragment().toUInt(0,16)) );
-    assert( src_sftp != 0 ) ;
-    
-    //检测传输文件的属性
-    if( remote_is_dir(src_sftp,url.path()) && remote_is_dir(this->dest_ssh2_sftp,dest_path) )
-    {
-        fileinfos.clear();
-        this->current_src_file_name = url.path() ;
-        this->current_dest_file_name = dest_path ;
-        
-        int transfer_ret = fxp_do_ls_dir(  src_sftp ,  this->current_src_file_name+"/" ,  fileinfos);
-        qDebug()<<"ret:"<<transfer_ret<<" file count:"<<fileinfos.size();
-               
-        temp_remote_file_pair = QPair<QString,QString>( this->current_dest_file_name + "/" + this->current_src_file_name.split("/").at(this->current_src_file_name.split("/").count()-1)   ,  this->current_src_file_type  );
-               //为远程建立目录
-        memset(&ssh2_sftp_attrib,0,sizeof(ssh2_sftp_attrib));
-        transfer_ret = libssh2_sftp_mkdir(this->dest_ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode( temp_remote_file_pair.first ).data(), 0755);
-        qDebug()<<" libssh2_sftp_mkdir : "<< transfer_ret <<" :"<< temp_remote_file_pair.first;
 
-               //添加到队列当中
-        for( int i = 0 ; i < fileinfos.size() ; i ++ )
-        {
-            temp_local_file_pair = QPair<QString,QString>( url.scheme() + "://" + url.userName() + ":" + url.password()+"@"+url.host()+QString(":%1").arg(url.port()) +  this->current_src_file_name+"/"+ fileinfos.at(i)['N'] + "#" + url.fragment() , fileinfos.at(i)['T'] ) ;
-                   
-            this->transfer_ready_queue.push_back( QPair<QPair<QString ,QString>,QPair<QString,QString> >( temp_local_file_pair,temp_remote_file_pair ) ); 
-        }
-        libssh2_sftp_shutdown( src_sftp );
-        return 0 ;
-    }
-    else if ( remote_is_reg(src_sftp,url.path()) && remote_is_dir(this->dest_ssh2_sftp,dest_path) )
-    {
-        //can go on
-    }
-    else
-    {
-        libssh2_sftp_shutdown( src_sftp );
-        return 0 ;
-    }
-    src_sftp_handle = libssh2_sftp_open( src_sftp ,GlobalOption::instance()->remote_codec->fromUnicode(  url.path() ).data()  ,LIBSSH2_FXF_READ,0666);
+    //检测传输文件的属性
+
+    src_sftp_handle = libssh2_sftp_open( this->src_ssh2_sftp ,GlobalOption::instance()->remote_codec->fromUnicode(  src_path ).data()  ,LIBSSH2_FXF_READ,0666);
     if( src_sftp_handle == 0 )
     {
-        qDebug()<<"sftp open error: "<< libssh2_session_last_error((LIBSSH2_SESSION*)(url.fragment().toUInt(0,16)),0,0,0) ; 
+        qDebug()<<"sftp open error: "<< libssh2_session_last_error((LIBSSH2_SESSION*)(src_ssh2_sess),0,0,0) ; 
         assert( src_sftp_handle != 0 );
     }
     
     libssh2_sftp_fstat(src_sftp_handle,&ssh2_sftp_attrib);
     file_size = ssh2_sftp_attrib.filesize;
-    qDebug()<<" remote file size :"<< file_size ;
+    qDebug()<<" source file size :"<< file_size ;
     emit this->transfer_got_file_size( file_size ) ;
     
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
     
     assert( this->dest_ssh2_sftp != 0 ) ;
     dest_sftp_handle = libssh2_sftp_open( this->dest_ssh2_sftp ,
-                                          GlobalOption::instance()->remote_codec->fromUnicode( dest_path + "/" + file_base_name ).data() ,
+                                          GlobalOption::instance()->remote_codec->fromUnicode( dest_path  ).data() ,
                                           LIBSSH2_FXF_WRITE | LIBSSH2_FXF_CREAT | LIBSSH2_FXF_TRUNC , 0666 );
-    assert( dest_sftp_handle != 0 );
+    if( src_sftp_handle == 0 )
+    {
+        qDebug()<<"sftp open error: "<< libssh2_session_last_error((LIBSSH2_SESSION*)(dest_ssh2_sess),0,0,0) ; 
+        assert( dest_sftp_handle != 0 );
+    }
     
     //TODO 如果是同一台SSH服务器，可以用libssh2_sftp_copy,不过现在还没这个函数
     for ( ; ; )
@@ -702,7 +709,7 @@ int TransferThread::do_nrsftp_exchange( QString src_url , QString dest_path )
 		rlen = libssh2_sftp_read ( src_sftp_handle,buff,sizeof ( buff ) );
         if( rlen <= 0 )
         {
-            qDebug()<<" may be read end "<< rlen << libssh2_session_last_error((LIBSSH2_SESSION*)(url.fragment().toUInt(0,16)),0,0,0) ;
+            qDebug()<<" may be read end "<< rlen << libssh2_session_last_error((LIBSSH2_SESSION*)(this->src_ssh2_sess),0,0,0) ;
             break;
         }
 		wlen = libssh2_sftp_write ( dest_sftp_handle,buff,rlen );
@@ -718,14 +725,7 @@ int TransferThread::do_nrsftp_exchange( QString src_url , QString dest_path )
             emit this->transfer_percent_changed ( tran_len * 100 / file_size , tran_len ,wlen  );
         }        
     }
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<"close dest sftp handle:"<< 
-    libssh2_sftp_close(dest_sftp_handle);
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<"close src sftp handle:"<< 
-    libssh2_sftp_close(src_sftp_handle);
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<"shutdown sftp handle:"<< 
-    libssh2_sftp_shutdown( src_sftp );
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
-    
+
     return (0);
 }
 

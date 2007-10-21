@@ -613,7 +613,8 @@ QMimeData *RemoteDirModel::mimeData ( const QModelIndexList &indexes ) const
 bool RemoteDirModel::dropMimeData ( const QMimeData *data, Qt::DropAction action,
                                     int row, int column, const QModelIndex &parent )
 {
-    
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    qDebug()<<data->urls();
     emit this->sig_drop_mime_data( data, action,row, column , parent );
     bool ret = true ;
 // 	QStringList local_file_names;

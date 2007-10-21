@@ -176,7 +176,7 @@ void RemoteView::i_init_dir_view( )
                      this,SLOT( slot_dir_tree_item_clicked(const QModelIndex &))) ;
     QObject::connect( this->remoteview.tableView,SIGNAL( doubleClicked ( const QModelIndex &  ) ) , this,SLOT( slot_dir_file_view_double_clicked ( const QModelIndex & ) ) );
     QObject::connect( this->remoteview.tableView,SIGNAL( drag_ready()),this,SLOT(slot_drag_ready()) );
-    
+    //TODO 连接remoteview.treeView 的drag信号
 }
 
 void RemoteView::slot_disconnect_from_remote_host()
@@ -832,12 +832,18 @@ void RemoteView::slot_drag_ready()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     //注意重复信号的处理
-    QAbstractItemView * sender_view = qobject_cast<QAbstractItemView*>(sender());
+    //QAbstractItemView * sender_view = qobject_cast<QAbstractItemView*>(sender());
     QDrag *drag = new QDrag(this);
     QMimeData *mimeData = new QMimeData;
     
+    //这个视图中所选择的目录优先，如果没有则查找左侧目录树是是否有选择的目录，如果再找不到，则使用右侧表视图的根
     QItemSelectionModel * ism = this->remoteview.tableView->selectionModel();
     QModelIndexList mil = ism->selectedIndexes();
+    if( mil.count() == 0 )
+    {
+        ism = this->remoteview.treeView->selectionModel();
+        mil = ism->selectedIndexes();
+    }
     QList<QUrl>  drag_urls;
     //drag_urls<< QUrl("nrsftp://heheh")<<QUrl("nrsftp://hehhefff");
     for(int i = 0 ; i< mil.count() ;i += this->remote_dir_model->columnCount() )
@@ -850,7 +856,8 @@ void RemoteView::slot_drag_ready()
     mimeData->setUrls(drag_urls);
     drag->setMimeData(mimeData);
     
-    Qt::DropAction dropAction = drag->exec(Qt::CopyAction | Qt::MoveAction);    
+    if( mil.count() > 0 )
+        Qt::DropAction dropAction = drag->exec(Qt::CopyAction | Qt::MoveAction);    
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<" drag->exec returned" ;
 }
 
