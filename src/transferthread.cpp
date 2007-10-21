@@ -307,7 +307,7 @@ void TransferThread::run()
            qDebug()<<"connecting to src ssh host:"<<current_src_url.userName()<<":"<<current_src_url.password()<<"@"<<current_src_url.host() <<":"<<current_src_url.port() ;
            if( this->src_ssh2_sess == 0 || this->src_ssh2_sftp == 0 )
            {
-               rhct = new RemoteHostConnectThread ( current_dest_url.userName() , current_dest_url.password() ,current_dest_url.host() );
+               rhct = new RemoteHostConnectThread ( current_src_url.userName() , current_src_url.password() ,current_src_url.host() );
                rhct->run();
                 //TODO get status code and then ...
                this->src_ssh2_sess = (LIBSSH2_SESSION*)rhct->get_ssh2_sess();
@@ -317,41 +317,44 @@ void TransferThread::run()
            }
            
            //将文件下载到目录
-           if(is_dir( GlobalOption::instance()->locale_codec->fromUnicode( this->current_src_file_name ).data() )
-              && remote_is_reg(  this->dest_ssh2_sftp ,  this->current_dest_file_name ) )
+           //if(is_dir( GlobalOption::instance()->locale_codec->fromUnicode( this->current_src_file_name ).data() )
+           //   && remote_is_reg(  this->dest_ssh2_sftp ,  this->current_dest_file_name ) )
+           if( remote_is_reg(this->src_ssh2_sftp, this->current_src_file_name) 
+               && is_dir( GlobalOption::instance()->locale_codec->fromUnicode( this->current_dest_file_name ).data() ) )
            {
-               QString local_full_path = this->current_src_file_name + "/"
-                       + this->current_dest_file_name.split ( "/" ).at ( this->current_dest_file_name.split ( "/" ).count()-1 ) ;
+               QString local_full_path = this->current_dest_file_name + "/"
+                       + this->current_src_file_name.split ( "/" ).at ( this->current_src_file_name.split ( "/" ).count()-1 ) ;
 
                qDebug() << "local file: " << this->current_src_file_name
                        << "remote file:" << this->current_dest_file_name
                        << "local full file path: "<< local_full_path ;
 
-               transfer_ret = this->do_download ( this->current_dest_file_name ,  local_full_path , 0 );
+               transfer_ret = this->do_download ( this->current_src_file_name ,  local_full_path , 0 );
            }
            //将目录下载到目录
-           else if( is_dir( GlobalOption::instance()->locale_codec->fromUnicode( this->current_src_file_name ).data() )
-                    && remote_is_dir(  this->src_ssh2_sftp ,  this->current_dest_file_name ) )
+           else if( is_dir( GlobalOption::instance()->locale_codec->fromUnicode( this->current_dest_file_name ).data() )
+                    && remote_is_dir(  this->src_ssh2_sftp ,  this->current_src_file_name ) )
            {
                qDebug()<<"downloading dir to dir ...";
                //this->sleep(debug_sleep_time);
                //列出本远程目录中的文件，加入到队列中，然后继续。
               
                fileinfos.clear();
-               transfer_ret = fxp_do_ls_dir(  this->src_ssh2_sftp ,  this->current_dest_file_name+"/" ,  fileinfos);
+               transfer_ret = fxp_do_ls_dir(  this->src_ssh2_sftp ,  this->current_src_file_name+"/" ,  fileinfos);
                qDebug()<<"ret:"<<transfer_ret<<" file count:"<<fileinfos.size();
                
                // local dir = curr local dir +  curr remote dir 的最后一层目录
-               temp_local_file_pair = QPair<QString,QString>( QString("file://")+ this->current_src_file_name+"/"+this->current_dest_file_name.split("/").at(this->current_dest_file_name.split("/").count()-1) ,this->current_dest_file_type );
+               temp_local_file_pair = QPair<QString,QString>( QString("file://")+ this->current_dest_file_name+"/"+this->current_src_file_name.split("/").at(this->current_src_file_name.split("/").count()-1) ,this->current_src_file_type );
                //确保本地有这个目录。
-			   transfer_ret = fxp_local_do_mkdir( GlobalOption::instance()->locale_codec->fromUnicode( temp_local_file_pair.first ).data() ) ;
+			   transfer_ret = fxp_local_do_mkdir( GlobalOption::instance()->locale_codec->fromUnicode( QUrl(temp_local_file_pair.first).path() ).data() ) ;
                qDebug()<<" fxp_local_do_mkdir: "<<transfer_ret <<" "<< temp_local_file_pair.first  ;
                //加入到任务队列
                for(int i = 0 ; i < fileinfos.size() ; i ++)
                {
-                   temp_remote_file_pair = QPair<QString,QString>(  QString("nrsftp://%1:%2@%3:%4").arg(current_dest_url.userName()).arg(current_dest_url.password()).arg(current_dest_url.host()).arg(current_dest_url.port())+this->current_dest_file_name+"/"+fileinfos.at(i)['N']  , fileinfos.at(i)['T'] );
+                   temp_remote_file_pair = QPair<QString,QString>(  QString("nrsftp://%1:%2@%3:%4").arg(current_src_url.userName()).arg(current_src_url.password()).arg(current_src_url.host()).arg(current_src_url.port())+this->current_src_file_name+"/"+fileinfos.at(i)['N']  , fileinfos.at(i)['T'] );
 
-                   this->transfer_ready_queue.push_back( QPair<QPair<QString ,QString>,QPair<QString,QString> >(  temp_local_file_pair,temp_remote_file_pair ) ) ;
+                   this->transfer_ready_queue.push_back( QPair<QPair<QString ,QString>,QPair<QString,QString> >(  temp_remote_file_pair, temp_local_file_pair ) ) ;
+                   //romote is source 
                }
            }
            else
@@ -380,6 +383,7 @@ void TransferThread::run()
        }
        else
        {
+           qDebug()<<"src: "<< current_src_url<<" dest:"<< current_dest_url ;
            this->error_code = 2 ;
            assert( 1 == 2 ) ;
        }
@@ -389,7 +393,9 @@ void TransferThread::run()
     }while(this->transfer_ready_queue.size() > 0 ) ;
 
     
-    qDebug() << " transfer_ret :" << transfer_ret << " ssh2 sftp shutdown:"<< libssh2_sftp_shutdown( this->dest_ssh2_sftp );
+    qDebug() << " transfer_ret :" << transfer_ret << " ssh2 sftp shutdown:"<< this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;//libssh2_sftp_shutdown( this->dest_ssh2_sftp );
+    //TODO 选择性关闭 ssh2 会话，有可能是 src  ,也有可能是dest 
+    
 }
 
 // void TransferThread::set_remote_connection ( void* ssh2_sess )

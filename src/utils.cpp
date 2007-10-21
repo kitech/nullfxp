@@ -183,7 +183,7 @@ int     is_dir(char *path)
     /* XXX: report errors? */
     if (stat(path, &sb) == -1)
 	{
-		fprintf(stderr, " is reg : %d %s %s \n" , errno,strerror(errno),path );
+		fprintf(stderr, " is dir : %d %s %s \n" , errno,strerror(errno),path );
 		return(0);
 	}
 

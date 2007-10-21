@@ -121,7 +121,7 @@ void RemoteHostConnectThread::run()
     if( remote_host_ipaddrs == 0 )
     {
     	#ifdef WIN32
-    		emit connect_state_changed( tr( "Resoving host faild :  ") ) ;
+        emit connect_state_changed( tr( "Resoving host faild : (%1),%2  ").arg(errno).arg(strerror(errno)) ) ;
     	#else
         emit connect_state_changed( tr( "Resoving host faild : (%1),%2 ").arg(h_errno).arg(hstrerror(h_errno)) ) ;
       #endif
