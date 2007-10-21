@@ -299,13 +299,14 @@ void TransferThread::run()
                 //TODO return a error value , not only error code
                 this->error_code = 1 ;
                 //assert( 1 == 2 ) ;
+                qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in " << __LINE__ ;
             }
 		}
         else if( current_src_url.scheme() == "nrsftp" && current_dest_url.scheme() == "file")
                 //if( this->transfer_type == TransferThread::TRANSFER_GET )
        {
            //提示开始处理新文件：
-           emit this->transfer_new_file_started(this->current_dest_file_name);
+           emit this->transfer_new_file_started(this->current_src_file_name);
            //连接到目录主机：
            qDebug()<<"connecting to src ssh host:"<<current_src_url.userName()<<":"<<current_src_url.password()<<"@"<<current_src_url.host() <<":"<<current_src_url.port() ;
            if( this->src_ssh2_sess == 0 || this->src_ssh2_sftp == 0 )
@@ -366,10 +367,12 @@ void TransferThread::run()
                //TODO return a error value , not only error code 
                this->error_code = 1 ;
                //assert( 1 == 2 ) ; 
+               qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in " << __LINE__ ;
            }
        }
        else  if( current_src_url.scheme() == "nrsftp" && current_dest_url.scheme() == "nrsftp")
        {
+           emit this->transfer_new_file_started(this->current_src_file_name);
                //处理nrsftp协议
            if( this->src_ssh2_sess == 0 || this->src_ssh2_sftp == 0 )
            {
@@ -430,7 +433,8 @@ void TransferThread::run()
 				//TODO return a error value , not only error code
                 qDebug()<<"src: "<< current_src_url<<" dest:"<< current_dest_url ;
 				this->error_code = 1 ;
-				assert ( 1 == 2 ) ;
+				//assert ( 1 == 2 ) ;
+                qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in " << __LINE__ ;
            }
        }
        else
@@ -447,7 +451,38 @@ void TransferThread::run()
     
     qDebug() << " transfer_ret :" << transfer_ret << " ssh2 sftp shutdown:"<< this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;//libssh2_sftp_shutdown( this->dest_ssh2_sftp );
     //TODO 选择性关闭 ssh2 会话，有可能是 src  ,也有可能是dest 
-    
+    if(this->src_ssh2_sftp != 0 ){
+        libssh2_sftp_shutdown(this->src_ssh2_sftp);
+        this->src_ssh2_sftp = 0 ;
+    }
+    if(this->src_ssh2_sess != 0 ){
+        libssh2_session_free(this->src_ssh2_sess);
+        this->src_ssh2_sess = 0 ;
+    }
+    if(this->src_ssh2_sock > 0 ) {
+#ifdef WIN32
+            ::closesocket(this->src_ssh2_sock);
+#else  
+            ::close(this->src_ssh2_sock);
+#endif
+            this->src_ssh2_sock = -1;
+    }
+    if(this->dest_ssh2_sftp != 0 ){
+        libssh2_sftp_shutdown(this->dest_ssh2_sftp);
+        this->dest_ssh2_sftp = 0 ;
+    }
+    if(this->dest_ssh2_sess != 0 ){
+        libssh2_session_free(this->dest_ssh2_sess);
+        this->dest_ssh2_sess = 0 ;
+    }
+    if(this->dest_ssh2_sock > 0 ) {
+#ifdef WIN32
+            ::closesocket(this->dest_ssh2_sock);
+#else  
+            ::close(this->dest_ssh2_sock);
+#endif
+            this->dest_ssh2_sock = -1;
+    }
 }
 
 // void TransferThread::set_remote_connection ( void* ssh2_sess )

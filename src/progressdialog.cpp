@@ -123,20 +123,20 @@ void ProgressDialog::set_transfer_info(/*int type,*/QStringList local_file_names
 //         assert( local_file_names.count() == 1 ) ;
 //         local_file_name = local_file_names.at(0);
 //         
-//         QString local_full_path ;
+        QString local_full_path ;
 //         this->ui_progress_dialog.lineEdit->setText(tr("Downloading..."));
-//         this->ui_progress_dialog.comboBox->clear();
-//         this->ui_progress_dialog.comboBox_2->clear();
+        this->ui_progress_dialog.comboBox->clear();
+        this->ui_progress_dialog.comboBox_2->clear();
 //         this->ui_progress_dialog.comboBox_2->addItem( local_file_name );
 //         
-//         for( int i = 0 ; i < remote_file_names.count() ; i ++ )
-//         {
-//             remote_file_name = remote_file_names.at(i);
-//             local_full_path = local_file_name + "/"
-//                 + remote_file_name.split ( "/" ).at ( remote_file_name.split ( "/" ).count()-1 ) ;
-//             this->ui_progress_dialog.comboBox->addItem( remote_file_name );
-//     
-//         }
+        for( int i = 0 ; i < remote_file_names.count() ; i ++ )
+        {
+            remote_file_name = remote_file_names.at(i);
+            local_full_path = local_file_name + "/"
+                + remote_file_name.split ( "/" ).at ( remote_file_name.split ( "/" ).count()-1 ) ;
+            this->ui_progress_dialog.comboBox_2->addItem( QUrl(remote_file_name).path() );
+    
+        }
 //     }
 //     else
 //     {

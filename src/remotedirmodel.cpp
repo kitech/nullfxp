@@ -45,7 +45,7 @@ RemoteDirModel::RemoteDirModel (  QObject *parent )
     //keep alive 相关设置
     this->keep_alive = true ;
     this->keep_alive_timer = new QTimer();
-    this->keep_alive_interval = 150 ;
+    this->keep_alive_interval = 50 ;
     this->keep_alive_timer->setInterval( this->keep_alive_interval*1000 );
     QObject::connect(this->keep_alive_timer,SIGNAL(timeout()),
                      this,SLOT( slot_keep_alive_time_out() ) );    
