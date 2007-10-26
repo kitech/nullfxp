@@ -1,6 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2007 by liuguangzhao   *
- *   gzl@localhost   *
+ *   liuguangzhao@users.sourceforge.net  *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -31,8 +31,19 @@
 #include "libssh2_sftp.h"
 
 /**
-	@author liuguangzhao <gzl@localhost>
-*/
+ * @author liuguangzhao <liuguangzhao@users.sourceforge.net>
+ * 
+ * 此类实现不同主机之间的文件传输功能
+ * 由于libssh2协议库的限制，程序无法在一个ssh连接上打开两个或者以上SFTP传输，在此类中选择每次传输
+ * 都会创建一个新的SSH连接会话（注：并不是每个文件创建一个连接），这样就不会与目录操作冲突了。
+ * 引起的问题是连接速度不容乐观，对于小文件及少量文件传输很不合适，大多数时间都用在了创建新的
+ * SSH连接上了。
+ * 另一个选择是使用连接池，预先创建一定数量的SSH连接，在此类中选择空闲的连接即可。如何定义预连接的数目，
+ * 如果管理这些连接，相当的复杂。
+ * 最后，使用最先使用的方式，对某远程主机，同一时刻只准执行一个SSH命令操作，也就是在这个唯一的SSH连接
+ * 上执行同步操作，顺序操作，所有的命令序列及响应都是顺序的，不会发生死锁问题。
+ * 还有其他的方案吗？
+ */
 class TransferThread : public QThread
 {
 Q_OBJECT

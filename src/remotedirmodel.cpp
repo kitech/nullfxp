@@ -706,6 +706,10 @@ void RemoteDirModel::set_keep_alive(bool keep_alive,int time_out)
 {
     //this->keep_alive_interval = time_out ;
     //this->keep_alive = keep_alive ;
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    qDebug()<<keep_alive<<time_out;
+    
+    //assert(1==2);
     if( keep_alive != this->keep_alive )
     {
         if( this->keep_alive == true )
@@ -718,10 +722,10 @@ void RemoteDirModel::set_keep_alive(bool keep_alive,int time_out)
         }
         this->keep_alive = keep_alive ;
     }
-    if( time_out != this->keep_alive_interval)
+    if( time_out != this->keep_alive_interval*1000)
     {
-        this->keep_alive_interval = time_out ;
-        this->keep_alive_timer->setInterval(this->keep_alive_interval);
+        this->keep_alive_interval = time_out *1000 ;
+        this->keep_alive_timer->setInterval(this->keep_alive_interval*1000);
     }
 }
 

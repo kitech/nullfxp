@@ -137,7 +137,7 @@ class RemoteDirModel : public QAbstractItemModel
         void slot_execute_command( directory_tree_item* parent_item , void * parent_model_internal_pointer, int cmd , QString params );
         
         //keep_alive
-        void set_keep_alive(bool keep_alive,int time_out=150);
+        void set_keep_alive(bool keep_alive,int time_out=50);
     private slots:        
         /// time_out 秒                
         void slot_keep_alive_time_out();
