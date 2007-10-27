@@ -66,6 +66,8 @@ ProgressDialog::ProgressDialog(QWidget *parent )
                      this,SLOT(slot_cancel_button_clicked()));
     QObject::connect( this->sftp_transfer_thread,SIGNAL(transfer_got_file_size(int)),
                       this,SLOT(slot_transfer_got_file_size(int )) );
+    QObject::connect(this->sftp_transfer_thread,SIGNAL(transfer_log(QString)),
+                     this,SLOT(slot_transfer_log(QString)) );
     
     this->first_show = 1 ;
     this->ui_progress_dialog.progressBar->setValue(0);
@@ -221,9 +223,18 @@ void ProgressDialog::slot_new_file_transfer_started(QString new_file_name)
 
 void ProgressDialog::closeEvent ( QCloseEvent * event ) 
 {
-    event->ignore();
+    int u_r = 0 ;
+    
     //this->setVisible(false);
-    QMessageBox::information(this,tr("Attemp to close this window?"),tr("Are you sure to stop the transfomition ?"),QMessageBox::Ok | QMessageBox::Cancel );
+    u_r = QMessageBox::information(this,tr("Attemp to close this window?"),tr("Are you sure to stop the transfomition ?"),QMessageBox::Ok | QMessageBox::Cancel );
+    if(u_r == QMessageBox::Ok){
+        this->sftp_transfer_thread->set_user_cancel(true);
+        event->ignore();
+        this->setVisible(false);
+        //emit this->transfer_finished(this->sftp_transfer_thread->get_error_code());
+    }else{
+        event->ignore();
+    }
 }
 
 void ProgressDialog::slot_cancel_button_clicked()
@@ -251,4 +262,7 @@ void ProgressDialog::slot_transfer_got_file_size( int size )
     this->ui_progress_dialog.lineEdit_13->setText(QString("%1").arg(size));
     this->update_transfer_state() ;
 }
-
+void ProgressDialog::slot_transfer_log(QString log)
+{
+    this->ui_progress_dialog.lineEdit_14->setText(log);
+}

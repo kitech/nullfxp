@@ -71,6 +71,7 @@ public:
     int do_nrsftp_exchange( QString src_path , QString dest_path );
     
     int   get_error_code () { return this->error_code ;} 
+    void set_user_cancel( bool cancel );
     
     private :
         int remote_is_dir( LIBSSH2_SFTP * ssh2_sftp, QString path );
@@ -81,6 +82,7 @@ public:
         void  transfer_percent_changed( int percent , int total_transfered ,int transfer_delta );
         void  transfer_new_file_started(QString new_file_name);
         void  transfer_got_file_size( int size );
+        void  transfer_log(QString log);
         
     private:
         
@@ -91,6 +93,8 @@ public:
         LIBSSH2_SESSION * src_ssh2_sess ;
         LIBSSH2_SFTP * src_ssh2_sftp ;
         int src_ssh2_sock ;
+        
+        bool user_canceled ;
         
         //int transfer_type ;
 

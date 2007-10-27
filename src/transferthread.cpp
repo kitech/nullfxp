@@ -54,7 +54,7 @@
 
 
 TransferThread::TransferThread ( QObject *parent )
-		: QThread ( parent )
+		: QThread ( parent ),user_canceled(false)
 {}
 
 
@@ -241,6 +241,7 @@ void TransferThread::run()
            qDebug()<<"connecting to dest ssh host:"<<current_dest_url.userName()<<":"<<current_dest_url.password()<<"@"<<current_dest_url.host() <<":"<<current_dest_url.port() ;
            if( this->dest_ssh2_sess == 0 || this->dest_ssh2_sftp == 0 )
            {
+               emit  transfer_log("Connecting to destination host ...");
                 rhct = new RemoteHostConnectThread ( current_dest_url.userName() , current_dest_url.password() ,current_dest_url.host() );
                 rhct->run();
                 //TODO get status code and then ...
@@ -248,6 +249,7 @@ void TransferThread::run()
                 this->dest_ssh2_sock = rhct->get_ssh2_sock();
                 this->dest_ssh2_sftp = libssh2_sftp_init(this->dest_ssh2_sess);
                 delete rhct ; rhct = 0 ;
+                emit  transfer_log("Connect done.");
            }
            
            //将文件上传到目录
@@ -311,6 +313,7 @@ void TransferThread::run()
            qDebug()<<"connecting to src ssh host:"<<current_src_url.userName()<<":"<<current_src_url.password()<<"@"<<current_src_url.host() <<":"<<current_src_url.port() ;
            if( this->src_ssh2_sess == 0 || this->src_ssh2_sftp == 0 )
            {
+               emit  transfer_log("Connecting to source host ...");
                rhct = new RemoteHostConnectThread ( current_src_url.userName() , current_src_url.password() ,current_src_url.host() );
                rhct->run();
                 //TODO get status code and then ...
@@ -318,6 +321,7 @@ void TransferThread::run()
                this->src_ssh2_sock = rhct->get_ssh2_sock();
                this->src_ssh2_sftp = libssh2_sftp_init(this->src_ssh2_sess);
                delete rhct ; rhct = 0 ;
+               emit  transfer_log("Connect done.");
            }
            
            //将文件下载到目录
@@ -376,6 +380,7 @@ void TransferThread::run()
                //处理nrsftp协议
            if( this->src_ssh2_sess == 0 || this->src_ssh2_sftp == 0 )
            {
+               emit  transfer_log("Connecting to destionation host ...");
                rhct = new RemoteHostConnectThread ( current_src_url.userName() , current_src_url.password() ,current_src_url.host() );
                rhct->run();
                 //TODO get status code and then ...
@@ -383,9 +388,11 @@ void TransferThread::run()
                this->src_ssh2_sock = rhct->get_ssh2_sock();
                this->src_ssh2_sftp = libssh2_sftp_init(this->src_ssh2_sess);
                delete rhct ; rhct = 0 ;
+               emit  transfer_log("Connect done.");
            }
            if( this->dest_ssh2_sess == 0 || this->dest_ssh2_sftp == 0 )
            {
+               emit  transfer_log("Connecting to source host ...");
                rhct = new RemoteHostConnectThread ( current_dest_url.userName() , current_dest_url.password() ,current_dest_url.host() );
                rhct->run();
                 //TODO get status code and then ...
@@ -393,6 +400,7 @@ void TransferThread::run()
                this->dest_ssh2_sock = rhct->get_ssh2_sock();
                this->dest_ssh2_sftp = libssh2_sftp_init(this->dest_ssh2_sess);
                delete rhct ; rhct = 0 ;
+               emit  transfer_log("Connect done.");
            }
            ////////////
            if( remote_is_dir(this->src_ssh2_sftp, this->current_src_file_name) 
@@ -446,7 +454,7 @@ void TransferThread::run()
        
        this->transfer_ready_queue.erase(this->transfer_ready_queue.begin());
        this->transfer_done_queue.push_back( QPair<QPair<QString ,QString>,QPair<QString,QString> >( local_file_pair,remote_file_pair)); 
-    }while(this->transfer_ready_queue.size() > 0 ) ;
+    }while(this->transfer_ready_queue.size() > 0 && user_canceled == false) ;
 
     
     qDebug() << " transfer_ret :" << transfer_ret << " ssh2 sftp shutdown:"<< this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;//libssh2_sftp_shutdown( this->dest_ssh2_sftp );
@@ -482,6 +490,9 @@ void TransferThread::run()
             ::close(this->dest_ssh2_sock);
 #endif
             this->dest_ssh2_sock = -1;
+    }
+    if(user_canceled == true){
+        this->error_code = 3;
     }
 }
 
@@ -593,8 +604,8 @@ int TransferThread::do_download ( QString remote_path, QString local_path,  int 
         //read remote file  and then write to local file
         while( (rlen = libssh2_sftp_read(sftp_handle,buff,sizeof(buff) ) ) > 0 )
         {
-						//wlen = ::write ( local_fd , buff , rlen );
-						wlen = q_file.write( buff, rlen );
+			//wlen = ::write ( local_fd , buff , rlen );
+			wlen = q_file.write( buff, rlen );
             tran_len += wlen ;
 			//qDebug() <<" read len :"<< rlen <<" , write len: "<< wlen                     << " tran len: "<< tran_len ;
 			//my progress signal
@@ -605,6 +616,9 @@ int TransferThread::do_download ( QString remote_path, QString local_path,  int 
             else
             {
                 emit this->transfer_percent_changed ( tran_len * 100 / file_size , tran_len ,wlen );
+            }
+            if(user_canceled == true){
+                break;
             }
         }
         //::close(local_fd);
@@ -693,6 +707,9 @@ int TransferThread::do_upload ( QString local_path, QString remote_path, int pfl
             {
                 emit this->transfer_percent_changed ( tran_len * 100 / file_size , tran_len ,wlen  );
             }
+            if(user_canceled == true){
+                break;
+            }
         }
         q_file.close();
     }
@@ -758,11 +775,17 @@ int TransferThread::do_nrsftp_exchange( QString src_path , QString dest_path )
         else
         {
             emit this->transfer_percent_changed ( tran_len * 100 / file_size , tran_len ,wlen  );
-        }        
+        }
+        if(user_canceled == true){
+            break;
+        }
     }
 
     return (0);
 }
 
-
+void TransferThread::set_user_cancel( bool cancel )
+{
+    this->user_canceled = cancel ;
+}
 

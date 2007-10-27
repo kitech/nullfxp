@@ -761,12 +761,12 @@ void RemoteView::slot_transfer_finished( int status )
     
     ProgressDialog * pdlg = ( ProgressDialog* ) sender();
 
-    if ( status != 0 )
+    if ( status != 0 && status != 3  )
     {
         QMessageBox::critical ( this,QString ( tr ( "Error: " ) ),
                                 QString ( tr ( "Unknown error: %1         " ) ).arg ( status ) );
     }
-    else
+    else if(status == 0 || status ==3 )
     {
 		//TODO 通知UI更新目录结构,在某些情况下会导致左侧树目录变空。
         //int transfer_type = pdlg->get_transfer_type();

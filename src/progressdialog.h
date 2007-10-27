@@ -56,6 +56,8 @@ public:
         void show () ;
         void slot_cancel_button_clicked();
         void slot_transfer_got_file_size( int size );
+        void slot_transfer_log(QString log);
+        
     signals:
         void transfer_finished(int status);
         
