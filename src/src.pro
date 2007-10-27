@@ -16,7 +16,8 @@ SOURCES += main.cpp \
  fileproperties.cpp \
  localdirfilemodel.cpp \
  remotedirsortfiltermodel.cpp \
- remoteviewdirtableview.cpp
+ remoteviewdirtableview.cpp \
+ remotedirtreeview.cpp
 TEMPLATE = app
 CONFIG += warn_on \
 	  thread \
@@ -57,7 +58,8 @@ HEADERS += nullfxp.h \
  fileproperties.h \
  localdirfilemodel.h \
  remotedirsortfiltermodel.h \
- remoteviewdirtableview.h
+ remoteviewdirtableview.h \
+ remotedirtreeview.h
 
 
 DISTFILES += ../CMakeLists.txt \

@@ -45,10 +45,10 @@ RemoteDirModel::RemoteDirModel (  QObject *parent )
     //keep alive 相关设置
     this->keep_alive = true ;
     this->keep_alive_timer = new QTimer();
-    this->keep_alive_interval = 50 ;
+    this->keep_alive_interval = DEFAULT_KEEP_ALIVE_TIMEOUT ;
     this->keep_alive_timer->setInterval( this->keep_alive_interval*1000 );
     QObject::connect(this->keep_alive_timer,SIGNAL(timeout()),
-                     this,SLOT( slot_keep_alive_time_out() ) );    
+                     this,SLOT( slot_keep_alive_time_out() ) );
     //this->keep_alive_timer->start( this->keep_alive_interval * 1000 );
 }
 void RemoteDirModel::set_ssh2_handler( void * ssh2_sess /*, void * ssh2_sftp, int ssh2_sock*/ )
@@ -614,7 +614,7 @@ bool RemoteDirModel::dropMimeData ( const QMimeData *data, Qt::DropAction action
                                     int row, int column, const QModelIndex &parent )
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    qDebug()<<data->urls();
+    qDebug()<<data->urls()<<parent<<sender();
     emit this->sig_drop_mime_data( data, action,row, column , parent );
     bool ret = true ;
 // 	QStringList local_file_names;
@@ -706,13 +706,18 @@ void RemoteDirModel::set_keep_alive(bool keep_alive,int time_out)
 {
     //this->keep_alive_interval = time_out ;
     //this->keep_alive = keep_alive ;
-    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    qDebug()<<keep_alive<<time_out;
+    //qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    //qDebug()<<keep_alive<<time_out;
     
+    if( time_out != this->keep_alive_interval)
+    {
+        this->keep_alive_interval = time_out  ;
+        this->keep_alive_timer->setInterval(this->keep_alive_interval*1000);
+    }
     //assert(1==2);
     if( keep_alive != this->keep_alive )
     {
-        if( this->keep_alive == true )
+        if( keep_alive == false )
         {
             this->keep_alive_timer->stop();
         }
@@ -721,11 +726,6 @@ void RemoteDirModel::set_keep_alive(bool keep_alive,int time_out)
             this->keep_alive_timer->start();
         }
         this->keep_alive = keep_alive ;
-    }
-    if( time_out != this->keep_alive_interval*1000)
-    {
-        this->keep_alive_interval = time_out *1000 ;
-        this->keep_alive_timer->setInterval(this->keep_alive_interval*1000);
     }
 }
 

@@ -23,61 +23,63 @@
 #include <QtGui>
 
 #include "remotedirmodel.h"
-#include "remoteviewdirtableview.h"
+#include "remotedirtreeview.h"
+
+RemoteDirTreeView::RemoteDirTreeView(QWidget* parent): QTreeView(parent)
+{
+}
 
 
-RemoteViewDirTableView::RemoteViewDirTableView ( QWidget* parent ) : QTableView ( parent )
-{}
+RemoteDirTreeView::~RemoteDirTreeView()
+{
+}
 
-
-RemoteViewDirTableView::~RemoteViewDirTableView()
-{}
 /**
  * 当源和目标都是同一主机的时候忽略此事件
  */
-void RemoteViewDirTableView::dragEnterEvent ( QDragEnterEvent * event ) 
+void RemoteDirTreeView::dragEnterEvent ( QDragEnterEvent * event ) 
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     //qDebug()<<event<<event->source()<<this<<this->parentWidget()->parentWidget()->parentWidget()<<event->source()->parentWidget()->parentWidget()->parentWidget();
     if( event->source() == this->parentWidget()->parentWidget()->parentWidget() 
         || event->source()->parentWidget()->parentWidget()->parentWidget() == this->parentWidget()->parentWidget()->parentWidget()){
         event->ignore();
-    }else{
-        QTableView::dragEnterEvent ( event )  ;
-    }
+        }else{
+            QTreeView::dragEnterEvent ( event )  ;
+        }
 }
-void RemoteViewDirTableView::dragLeaveEvent ( QDragLeaveEvent * event ) 
+void RemoteDirTreeView::dragLeaveEvent ( QDragLeaveEvent * event ) 
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    QTableView::dragLeaveEvent ( event ) ;
+    QTreeView::dragLeaveEvent ( event ) ;
 }
-void RemoteViewDirTableView::dragMoveEvent ( QDragMoveEvent * event )
+void RemoteDirTreeView::dragMoveEvent ( QDragMoveEvent * event )
 {
     //qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    QTableView::dragMoveEvent (  event ) ;
+    QTreeView::dragMoveEvent (  event ) ;
 }
 
-void RemoteViewDirTableView::dropEvent ( QDropEvent * event ) 
+void RemoteDirTreeView::dropEvent ( QDropEvent * event ) 
 {
     //qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    QTableView::dropEvent ( event ) ;
+    QTreeView::dropEvent ( event ) ;
 }
-void RemoteViewDirTableView::startDrag ( Qt::DropActions supportedActions )
+void RemoteDirTreeView::startDrag ( Qt::DropActions supportedActions )
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
-    QTableView::startDrag ( supportedActions );
+    QTreeView::startDrag ( supportedActions );
 }
 
-void RemoteViewDirTableView::mousePressEvent ( QMouseEvent * event )
+void RemoteDirTreeView::mousePressEvent ( QMouseEvent * event )
 {
     if(event->button() == Qt::LeftButton )
     {
         this->dragStartPosition = event->pos();
     }
-    QTableView::mousePressEvent ( event );
+    QTreeView::mousePressEvent ( event );
 }
-void RemoteViewDirTableView::mouseMoveEvent ( QMouseEvent * event )
+void RemoteDirTreeView::mouseMoveEvent ( QMouseEvent * event )
 {
     if (!(event->buttons() & Qt::LeftButton))
         return;
@@ -88,16 +90,16 @@ void RemoteViewDirTableView::mouseMoveEvent ( QMouseEvent * event )
     //有效性检查
     QItemSelectionModel * ism = this->selectionModel();
     if( ! this->indexAt( this->dragStartPosition ) .isValid() 
-      || ism == 0 )
+          || ism == 0 )
     {
-        QTableView::mouseMoveEvent ( event );
+        QTreeView::mouseMoveEvent ( event );
         return ;
     }
     emit drag_ready();
     
 //     QDrag *drag = new QDrag(this);
 //     QMimeData *mimeData = new QMimeData;
-// 
+    // 
 //     QModelIndexList mil = ism->selectedIndexes();
 //     QList<QUrl>  drag_urls;
 //     //drag_urls<< QUrl("nrsftp://heheh")<<QUrl("nrsftp://hehhefff");
@@ -106,13 +108,15 @@ void RemoteViewDirTableView::mouseMoveEvent ( QMouseEvent * event )
 //         QModelIndex midx = mil.at(i);
 //         drag_urls<< QUrl( QString("nrsftp://gzl:passwd@sf.net:22") + qobject_cast<RemoteDirModel*>(this->model())->filePath(midx) + "#1234556");
 //     }
-//     
+    //     
 //     //mimeData->setData("text/uri-list" , "data");
 //     mimeData->setUrls(drag_urls);
 //     drag->setMimeData(mimeData);
-// 
+    // 
 //     Qt::DropAction dropAction = drag->exec(Qt::CopyAction | Qt::MoveAction);
     
     //parent_event:
     //QTableView::mouseMoveEvent ( event );
 }
+
+

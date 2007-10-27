@@ -43,10 +43,10 @@ RemoteView::RemoteView(QMdiArea * main_mdi_area ,LocalView * local_view ,QWidget
     status_bar->showMessage(tr("Ready"));
     ////////////
     
-    this->remoteview.treeView->setAcceptDrops(true);
-    this->remoteview.treeView->setDragEnabled(true);
-    this->remoteview.treeView->setDropIndicatorShown(true);
-    this->remoteview.treeView->setDragDropMode(QAbstractItemView::DragDrop);
+//     this->remoteview.treeView->setAcceptDrops(false);
+//     this->remoteview.treeView->setDragEnabled(false);
+//     this->remoteview.treeView->setDropIndicatorShown(false);
+//     this->remoteview.treeView->setDragDropMode(QAbstractItemView::NoDragDrop);
     //this->remoteview.treeView->setSelectionMode(QAbstractItemView::ExtendedSelection);
     
     QObject::connect(this->remoteview.treeView,SIGNAL(customContextMenuRequested(const QPoint &)),
@@ -138,9 +138,9 @@ void RemoteView::i_init_dir_view( )
     //this->remoteview.treeView->setModel(this->remote_dir_model);
     this->remoteview.treeView->setModel( remote_dir_sort_filter_model );
     this->remoteview.treeView->setAcceptDrops(true);
-    this->remoteview.treeView->setDragEnabled(true);
+    this->remoteview.treeView->setDragEnabled(false);
     this->remoteview.treeView->setDropIndicatorShown(true);
-    this->remoteview.treeView->setDragDropMode(QAbstractItemView::DragDrop);            
+    this->remoteview.treeView->setDragDropMode(QAbstractItemView::DropOnly);            
 //     QObject::connect(this->remote_dir_model,SIGNAL(new_transfer_requested(QStringList,QStringList)),
 //                      this,SLOT(slot_new_upload_requested(QStringList,QStringList )) ) ;
     QObject::connect( this->remote_dir_model ,SIGNAL(sig_drop_mime_data(const QMimeData * , Qt::DropAction  ,  int , int , const QModelIndex & ) ),this,SLOT(slot_drop_mime_data(const QMimeData *, Qt::DropAction ,  int , int , const QModelIndex &)));
@@ -624,8 +624,10 @@ void RemoteView::slot_rename()
 void RemoteView::slot_new_upload_requested ( QStringList local_file_names,  QStringList remote_file_names )
 {
     RemoteView * remote_view = this ;
-    if( this->in_remote_dir_retrive_loop )
+    //if( this->in_remote_dir_retrive_loop )
+    if(0)
     {
+        //TODO 这个分支原是用于判断与目录树操作的冲突，当前模式下所有传输都使用新的SSH连接，因而这个不在需要了
         QMessageBox::warning(this,tr("Attentions:"),tr("retriving remote directory tree,wait a minute please.") );
         return ;
     }
@@ -657,8 +659,10 @@ void RemoteView::slot_new_upload_requested ( QStringList local_file_names )
     RemoteView * remote_view = this/*->get_top_most_remote_view()*/ ;
 
     qDebug()<<" window title :" << remote_view->windowTitle() ;
-    if ( remote_view->is_in_remote_dir_retrive_loop() )
+    //if ( remote_view->is_in_remote_dir_retrive_loop() )
+    if(0)
     {
+        //TODO 这个分支原是用于判断与目录树操作的冲突，当前模式下所有传输都使用新的SSH连接，因而这个不在需要了
         QMessageBox::warning ( this,tr ( "attentions:" ),tr ( "retriving remote directory tree,wait a minute please." ) );
         return ;
     }
@@ -764,7 +768,7 @@ void RemoteView::slot_transfer_finished( int status )
     }
     else
     {
-		//TODO 通知UI更新目录结构
+		//TODO 通知UI更新目录结构,在某些情况下会导致左侧树目录变空。
         //int transfer_type = pdlg->get_transfer_type();
         //if ( transfer_type == TransferThread::TRANSFER_GET )
         {

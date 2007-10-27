@@ -242,8 +242,8 @@ void LocalView::slot_refresh_directory_tree()
 void LocalView::update_layout()
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    this->model->refresh(QModelIndex());
     this->dir_file_model->refresh( this->localView.tableView->rootIndex());
+    this->model->refresh(QModelIndex());
 }
 
 void LocalView::closeEvent ( QCloseEvent * event )
