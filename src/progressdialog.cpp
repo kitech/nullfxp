@@ -136,6 +136,10 @@ void ProgressDialog::set_transfer_info(/*int type,*/QStringList local_file_names
             remote_file_name = remote_file_names.at(i);
             local_full_path = local_file_name + "/"
                 + remote_file_name.split ( "/" ).at ( remote_file_name.split ( "/" ).count()-1 ) ;
+            //fixed me: 当用户名或者密码中包含问号的时候 QUrl 类就处理不了了。
+            if(remote_file_name.indexOf("?") != -1){
+                remote_file_name = remote_file_name.replace("?","_whywenhao_");
+            }
             this->ui_progress_dialog.comboBox_2->addItem( QUrl(remote_file_name).path() );
     
         }
