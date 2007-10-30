@@ -215,6 +215,12 @@ void TransferThread::run()
        //file - > nrsftp
        //nrsftp -> nrsftp
        //nrsftp -> file
+       if(this->current_src_file_name.indexOf("?")!= -1){
+          this->current_src_file_name = this->current_src_file_name.replace("?","_whywenhao_");
+       }
+       if(this->current_dest_file_name.indexOf("?") != -1){
+          this->current_dest_file_type = this->current_dest_file_name.replace("?","_whywenhao_");
+       }
        current_src_url = this->current_src_file_name ;
        current_dest_url = this->current_dest_file_name ;
        this->current_src_file_name = current_src_url.path() ;
@@ -242,7 +248,11 @@ void TransferThread::run()
            if( this->dest_ssh2_sess == 0 || this->dest_ssh2_sftp == 0 )
            {
                emit  transfer_log("Connecting to destination host ...");
-                rhct = new RemoteHostConnectThread ( current_dest_url.userName() , current_dest_url.password() ,current_dest_url.host() );
+               QString tmp_passwd = current_dest_url.password();
+               if(tmp_passwd.indexOf("_whywenhao_") != -1){
+                  tmp_passwd = tmp_passwd.replace("_whywenhao_","?");
+               }
+                rhct = new RemoteHostConnectThread ( current_dest_url.userName() , tmp_passwd ,current_dest_url.host() );
                 rhct->run();
                 //TODO get status code and then ...
                 this->dest_ssh2_sess = (LIBSSH2_SESSION*)rhct->get_ssh2_sess();
@@ -314,7 +324,11 @@ void TransferThread::run()
            if( this->src_ssh2_sess == 0 || this->src_ssh2_sftp == 0 )
            {
                emit  transfer_log("Connecting to source host ...");
-               rhct = new RemoteHostConnectThread ( current_src_url.userName() , current_src_url.password() ,current_src_url.host() );
+               QString tmp_passwd = current_src_url.password();
+               if(tmp_passwd.indexOf("_whywenhao_") != -1){
+                  tmp_passwd = tmp_passwd.replace("_whywenhao_","?");
+               }
+               rhct = new RemoteHostConnectThread ( current_src_url.userName() , tmp_passwd ,current_src_url.host() );
                rhct->run();
                 //TODO get status code and then ...
                this->src_ssh2_sess = (LIBSSH2_SESSION*)rhct->get_ssh2_sess();
@@ -381,7 +395,11 @@ void TransferThread::run()
            if( this->src_ssh2_sess == 0 || this->src_ssh2_sftp == 0 )
            {
                emit  transfer_log("Connecting to destionation host ...");
-               rhct = new RemoteHostConnectThread ( current_src_url.userName() , current_src_url.password() ,current_src_url.host() );
+               QString tmp_passwd = current_src_url.password();
+               if(tmp_passwd.indexOf("_whywenhao_") != -1){
+                  tmp_passwd = tmp_passwd.replace("_whywenhao_","?");
+               }
+               rhct = new RemoteHostConnectThread ( current_src_url.userName() , tmp_passwd ,current_src_url.host() );
                rhct->run();
                 //TODO get status code and then ...
                this->src_ssh2_sess = (LIBSSH2_SESSION*)rhct->get_ssh2_sess();
@@ -393,7 +411,11 @@ void TransferThread::run()
            if( this->dest_ssh2_sess == 0 || this->dest_ssh2_sftp == 0 )
            {
                emit  transfer_log("Connecting to source host ...");
-               rhct = new RemoteHostConnectThread ( current_dest_url.userName() , current_dest_url.password() ,current_dest_url.host() );
+               QString tmp_passwd = current_dest_url.password();
+               if(tmp_passwd.indexOf("_whywenhao_") != -1){
+                  tmp_passwd = tmp_passwd.replace("_whywenhao_","?");
+               }
+               rhct = new RemoteHostConnectThread ( current_dest_url.userName() , tmp_passwd ,current_dest_url.host() );
                rhct->run();
                 //TODO get status code and then ...
                this->dest_ssh2_sess = (LIBSSH2_SESSION*)rhct->get_ssh2_sess();
