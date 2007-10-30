@@ -65,5 +65,7 @@ void  RemoteHostConnectingStatusDialog::slot_connect_state_changed(QString state
 
 void RemoteHostConnectingStatusDialog::closeEvent ( QCloseEvent * event ) 
 {
+    emit cancel_connect();
     event->ignore();
+    this->setVisible(false);
 }

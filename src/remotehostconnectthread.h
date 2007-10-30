@@ -46,6 +46,7 @@ public:
     QString get_password () ;
     void * get_ssh2_sess () ;
     int get_ssh2_sock () ;
+    void set_user_canceled();
     
     signals:
         void  connect_state_changed( QString state_desc );
@@ -55,6 +56,7 @@ public:
         std::string password;
         std::string host_name ;
         int connect_status;
+        bool user_canceled;
         
         std::string user_home_path ;
         

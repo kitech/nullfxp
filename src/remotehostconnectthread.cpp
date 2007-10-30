@@ -77,7 +77,7 @@ RemoteHostConnectThread::RemoteHostConnectThread(QString user_name , QString pas
     this->password = password.toStdString();
     this->host_name = host_name.toStdString();
     this->connect_status = 0;
-    
+    this->user_canceled = false;
     ////////////////
     QObject::connect(this,SIGNAL(finished()) ,this , SLOT(slot_finished()) );
     //this->start();
@@ -152,7 +152,11 @@ void RemoteHostConnectThread::run()
     #else
     ret = inet_pton(AF_INET , host_ipaddr ,&serv_addr.sin_addr.s_addr);
     printf(" inet_pton ret: %d \n" , ret );
-    #endif   
+    #endif
+    if( this->user_canceled == true ){
+        this->connect_status = 2 ;
+        return;
+    }   
     
     emit connect_state_changed( tr("Connecting to %1 ( %2 ) ").arg(this->host_name.c_str()).arg(host_ipaddr) );
     this->ssh2_sock = socket(AF_INET,SOCK_STREAM,0);
@@ -164,7 +168,15 @@ void RemoteHostConnectThread::run()
         //assert( ret == 0 );
         return ;
     }
-    
+    if( this->user_canceled == true ){
+        this->connect_status = 2 ;
+#ifdef WIN32
+            ::closesocket(this->ssh2_sock);
+#else
+            ::close(this->ssh2_sock);
+#endif
+        return;
+    }   
     //create session
     ssh2_sess = libssh2_session_init();
     //libssh2_trace((LIBSSH2_SESSION*)ssh2_sess , 64 );    
@@ -179,6 +191,18 @@ void RemoteHostConnectThread::run()
     
     emit connect_state_changed( tr( "User authing (Keyboard Interactive)...") );
     
+    if( this->user_canceled == true ){
+        this->connect_status = 2 ;
+        libssh2_session_disconnect((LIBSSH2_SESSION*)ssh2_sess,"");
+        libssh2_session_free((LIBSSH2_SESSION*)ssh2_sess);
+#ifdef WIN32
+            ::closesocket(this->ssh2_sock);
+#else
+            ::close(this->ssh2_sock);
+#endif
+            return;
+    }   
+    
     ssh2_kbd_cb_mutex.lock();
     strncpy(ssh2_password,this->password.c_str() , sizeof(ssh2_password));
     ret = libssh2_userauth_keyboard_interactive((LIBSSH2_SESSION*)ssh2_sess,this->user_name.c_str(),&kbd_callback) ;
@@ -192,7 +216,17 @@ void RemoteHostConnectThread::run()
         ret = libssh2_userauth_password((LIBSSH2_SESSION*)ssh2_sess,this->user_name.c_str(),this->password.c_str());
         qDebug()<<"auth_password :"<<ret ;
     }
-    
+    if( this->user_canceled == true ){
+        this->connect_status = 2 ;
+        libssh2_session_disconnect((LIBSSH2_SESSION*)ssh2_sess,"");
+        libssh2_session_free((LIBSSH2_SESSION*)ssh2_sess);
+#ifdef WIN32
+            ::closesocket(this->ssh2_sock);
+#else
+            ::close(this->ssh2_sock);
+#endif
+            return;
+    }   
     ret = libssh2_userauth_authenticated((LIBSSH2_SESSION*)ssh2_sess);
     if( ret == 0 )
     {
@@ -201,7 +235,17 @@ void RemoteHostConnectThread::run()
         emit connect_state_changed( tr( "User faild (Keyboard Interactive)(Password ).") );
         return ;
     }
-    
+    if( this->user_canceled == true ){
+        this->connect_status = 2 ;
+        libssh2_session_disconnect((LIBSSH2_SESSION*)ssh2_sess,"");
+        libssh2_session_free((LIBSSH2_SESSION*)ssh2_sess);
+#ifdef WIN32
+            ::closesocket(this->ssh2_sock);
+#else
+            ::close(this->ssh2_sock);
+#endif
+            return;
+    }   
     ssh2_sftp = libssh2_sftp_init((LIBSSH2_SESSION*)ssh2_sess );
     assert( ssh2_sftp != NULL );
 
@@ -218,6 +262,18 @@ void RemoteHostConnectThread::run()
     this->user_home_path = std::string( home_path );
     libssh2_sftp_shutdown( (LIBSSH2_SFTP*) this->ssh2_sftp );
     this->connect_status = 0 ;
+    
+    if( this->user_canceled == true ){
+        this->connect_status = 2 ;
+        libssh2_session_disconnect((LIBSSH2_SESSION*)ssh2_sess,"");
+        libssh2_session_free((LIBSSH2_SESSION*)ssh2_sess);
+#ifdef WIN32
+            ::closesocket(this->ssh2_sock);
+#else
+            ::close(this->ssh2_sock);
+#endif
+            return;
+    }   
 }
 
 void RemoteHostConnectThread::slot_finished()
@@ -262,4 +318,10 @@ int RemoteHostConnectThread::get_ssh2_sock ()
 {
     return this->ssh2_sock ;
 }
+void RemoteHostConnectThread::set_user_canceled()
+{
+    this->user_canceled = true;
+}
+
+
 

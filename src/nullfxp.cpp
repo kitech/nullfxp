@@ -157,6 +157,8 @@ void NullFXP::connect_to_remote_host()
 		delete this->quick_connect_info_dailog;this->quick_connect_info_dailog=0;
 
         this->connect_status_dailog = new RemoteHostConnectingStatusDialog ( username,remoteaddr,this, Qt::Dialog );
+        QObject::connect(this->connect_status_dailog,SIGNAL(cancel_connect()),
+                         this,SLOT(slot_cancel_connect()) );
 		//this->localView->set_sftp_connection ( &theconn );
 		remote_conn_thread = new RemoteHostConnectThread (
 		                         username,  password,remoteaddr ) ;
@@ -165,6 +167,7 @@ void NullFXP::connect_to_remote_host()
 
         QObject::connect(remote_conn_thread , SIGNAL(connect_state_changed(QString)),
                          connect_status_dailog,SLOT(slot_connect_state_changed(QString)));
+        
         this->remote_conn_thread->start();        
 		this->connect_status_dailog->exec();
 	}
@@ -225,7 +228,9 @@ void NullFXP::slot_connect_remote_host_finished ( int status,void * ssh2_sess , 
         //初始化远程目录树        
         remote_view->i_init_dir_view (  );
 	}
-	else
+	else if( status == 2 ) {   //use canceled connection
+        qDebug()<<"user canceled connecting";
+    }else
 	{
 		//assert ( 1==2 );
         //this->connect_status_dailog->setVisible(false);
@@ -236,6 +241,11 @@ void NullFXP::slot_connect_remote_host_finished ( int status,void * ssh2_sess , 
 	this->connect_status_dailog = 0 ;
     delete this->remote_conn_thread ;
     this->remote_conn_thread = 0 ;
+}
+void NullFXP::slot_cancel_connect()
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    this->remote_conn_thread->set_user_canceled();
 }
 
 void NullFXP::slot_new_upload_requested ( QStringList local_file_names )

@@ -41,7 +41,9 @@ public:
         
     private slots:
         void slot_time_out();
-    
+    signals:
+        void cancel_connect();
+        
     private:
         QString host_name;
         QString user_name ;

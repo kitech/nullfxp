@@ -81,7 +81,7 @@ public:
         
         void connect_to_remote_host() ;
         void slot_disconnect_from_remote_host();
-        
+        void slot_cancel_connect();
         void slot_connect_remote_host_finished(int status,void * ssh2_sess , int ssh2_sock /*, void * ssh2_sftp */);
         
         void slot_new_upload_requested(QStringList local_file_names);        
