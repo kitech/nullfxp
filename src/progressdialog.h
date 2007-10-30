@@ -81,6 +81,7 @@ public:
         
     private:
         void update_transfer_state();
+        QString type(QString file_name);
     protected:
         void closeEvent ( QCloseEvent * event ) ;
 };

@@ -643,7 +643,7 @@ void RemoteView::slot_new_upload_requested ( QStringList local_file_names,  QStr
 // 		                   this,SLOT ( slot_transfer_finished ( int ) ) );
         QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
                            remote_view , SLOT ( slot_transfer_finished ( int ) ) );        
-        remote_view->slot_enter_remote_dir_retrive_loop();
+//         remote_view->slot_enter_remote_dir_retrive_loop();
         //pdlg->setWindowModality(Qt::WindowModal);
 //         pdlg->exec();
         this->main_mdi_area->addSubWindow(pdlg);
@@ -714,7 +714,7 @@ void RemoteView::slot_new_download_requested(QStringList local_file_names,   QSt
     pdlg->set_transfer_info ( /*TransferThread::TRANSFER_GET,*/remote_file_names , local_file_names );
 	QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
 	                   this,SLOT ( slot_transfer_finished ( int ) ) );
-    remote_view->slot_enter_remote_dir_retrive_loop();
+//     remote_view->slot_enter_remote_dir_retrive_loop();
 	//pdlg->exec();
     this->main_mdi_area->addSubWindow(pdlg);
     pdlg->show();
@@ -787,7 +787,7 @@ void RemoteView::slot_transfer_finished( int status )
     this->main_mdi_area->removeSubWindow(pdlg->parentWidget());
     delete pdlg ;
     this->own_progress_dialog = 0 ;
-    remote_view->slot_leave_remote_dir_retrive_loop();
+//     remote_view->slot_leave_remote_dir_retrive_loop();
 }
 
 /**
@@ -853,7 +853,7 @@ void RemoteView::slot_drag_ready()
     for(int i = 0 ; i< mil.count() ;i += this->remote_dir_model->columnCount() )
     {
         QModelIndex midx = mil.at(i);
-        drag_urls<< QUrl( QString("nrsftp://%1:%2@%3:22").arg(this->user_name).arg(this->password).arg(this->host_name) + qobject_cast<RemoteDirModel*>(this->remote_dir_model)->filePath(midx)  );
+        drag_urls<< QUrl( QString("nrsftp://%1:%2@%3:22").arg(this->user_name).arg(this->password.indexOf("?") == -1 ? this->password: this->password.replace("?","_whywenhao_")).arg(this->host_name) + qobject_cast<RemoteDirModel*>(this->remote_dir_model)->filePath(midx)  );
     }
     
     //mimeData->setData("text/uri-list" , "data");

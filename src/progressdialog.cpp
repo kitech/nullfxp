@@ -223,6 +223,7 @@ void ProgressDialog::slot_new_file_transfer_started(QString new_file_name)
     this->total_files_count ++ ;
     this->update_transfer_state();
     //this->setToolTip(u_new_file_name);
+    this->ui_progress_dialog.lineEdit_4->setText(this->type(u_new_file_name));
 }
 
 void ProgressDialog::closeEvent ( QCloseEvent * event ) 
@@ -270,3 +271,46 @@ void ProgressDialog::slot_transfer_log(QString log)
 {
     this->ui_progress_dialog.lineEdit_14->setText(log);
 }
+
+QString ProgressDialog::type(QString file_name)
+{
+    QFileInfo info(file_name);
+    
+    if (file_name == "/")
+        return QApplication::translate("QFileDialog", "Drive");
+//     if (info.isFile()) {
+    if (1) {
+        if (!info.suffix().isEmpty())
+            return info.suffix() + QLatin1Char(' ') + QApplication::translate("QFileDialog", "File");
+        return QApplication::translate("QFileDialog", "File");
+    }
+
+    if (info.isDir())
+        return QApplication::translate("QFileDialog",
+#ifdef Q_WS_WIN
+                                       "File Folder", "Match Windows Explorer"
+#else
+                                       "Folder", "All other platforms"
+#endif
+            );
+    // Windows   - "File Folder"
+    // OS X      - "Folder"
+    // Konqueror - "Folder"
+    // Nautilus  - "folder"
+
+    if (info.isSymLink())
+        return QApplication::translate("QFileDialog",
+#ifdef Q_OS_MAC
+                                       "Alias", "Mac OS X Finder"
+#else
+                                       "Shortcut", "All other platforms"
+#endif
+            );
+    // OS X      - "Alias"
+    // Windows   - "Shortcut"
+    // Konqueror - "Folder" or "TXT File" i.e. what it is pointing to
+    // Nautilus  - "link to folder" or "link to object file", same as Konqueror
+
+    return QApplication::translate("QFileDialog", "Unknown");
+}
+
