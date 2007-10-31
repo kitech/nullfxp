@@ -44,6 +44,10 @@
 #include <sys/uio.h>
 #endif
 
+#ifdef WIN32
+#include <winsock2.h>
+#endif
+
 #include <cassert>
 
 #include <QtCore>
@@ -225,6 +229,12 @@ void TransferThread::run()
        current_dest_url = this->current_dest_file_name ;
        this->current_src_file_name = current_src_url.path() ;
        this->current_dest_file_name = current_dest_url.path() ;
+	   if(this->current_src_file_name.at(2) == ':'){
+		   this->current_src_file_name = this->current_src_file_name.right(this->current_src_file_name.length()-1);
+	   }
+	   if(this->current_dest_file_name.at(2) == ':'){
+		   this->current_dest_file_name = this->current_dest_file_name.right(this->current_dest_file_name.length()-1);
+	   }
        //这里有几种情况，全部都列出来
        // 上传:
        // local file type is file               remote file is file     error
@@ -299,7 +309,11 @@ void TransferThread::run()
                //添加到队列当中
                for( int i = 0 ; i < fileinfos.size() ; i ++ )
                {
-                   temp_local_file_pair = QPair<QString,QString>(  "file://"+this->current_src_file_name+"/"+ fileinfos.at(i)['N']  , fileinfos.at(i)['T'] ) ;
+                   temp_local_file_pair = QPair<QString,QString>( "file://"
+#ifdef WIN32
+					   "/"
+#endif					   
+					   +this->current_src_file_name+"/"+ fileinfos.at(i)['N']  , fileinfos.at(i)['T'] ) ;
                    
                   this->transfer_ready_queue.push_back( QPair<QPair<QString ,QString>,QPair<QString,QString> >( temp_local_file_pair,temp_remote_file_pair ) ); 
                }
@@ -366,7 +380,11 @@ void TransferThread::run()
                qDebug()<<"ret:"<<transfer_ret<<" file count:"<<fileinfos.size();
                
                // local dir = curr local dir +  curr remote dir 的最后一层目录
-               temp_local_file_pair = QPair<QString,QString>( QString("file://")+ this->current_dest_file_name+"/"+this->current_src_file_name.split("/").at(this->current_src_file_name.split("/").count()-1) ,this->current_src_file_type );
+               temp_local_file_pair = QPair<QString,QString>( QString("file://"
+#ifdef WIN32
+					   "/"
+#endif	
+				   )+ this->current_dest_file_name+"/"+this->current_src_file_name.split("/").at(this->current_src_file_name.split("/").count()-1) ,this->current_src_file_type );
                //确保本地有这个目录。
 			   transfer_ret = fxp_local_do_mkdir( GlobalOption::instance()->locale_codec->fromUnicode( QUrl(temp_local_file_pair.first).path() ).data() ) ;
                qDebug()<<" fxp_local_do_mkdir: "<<transfer_ret <<" "<< temp_local_file_pair.first  ;
@@ -811,3 +829,6 @@ void TransferThread::set_user_cancel( bool cancel )
     this->user_canceled = cancel ;
 }
 
+// on windows 有一个问题：当两个从本地到同一远程主机的目录上传时，导致下面的错误：
+//Assertion failed: *lock == MUTEX_UNLOCKED, file ath.c, line 184
+//这是mingw32平台上的libgcrypt相关的问题。
