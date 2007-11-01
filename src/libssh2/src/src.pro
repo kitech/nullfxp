@@ -21,7 +21,8 @@ libssh2_priv.h \
 openssl.h
 
 win32{
-	SOURCES += libgcrypt.c
+	#SOURCES += libgcrypt.c
+	SOURCES += openssl.c	
 } else {
 	SOURCES += openssl.c
 }

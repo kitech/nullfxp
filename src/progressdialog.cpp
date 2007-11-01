@@ -92,7 +92,7 @@ void ProgressDialog::set_transfer_info(/*int type,*/QStringList local_file_names
 {
     QString local_file_name ;
     QString remote_file_name ;
-    
+    QString tmp_str ;
     //this->transfer_type = type ;
     
     this->local_file_names = local_file_names;
@@ -140,8 +140,13 @@ void ProgressDialog::set_transfer_info(/*int type,*/QStringList local_file_names
             if(remote_file_name.indexOf("?") != -1){
                 remote_file_name = remote_file_name.replace("?","_whywenhao_");
             }
-            this->ui_progress_dialog.comboBox_2->addItem( QUrl(remote_file_name).path() );
-    
+			tmp_str = QUrl(remote_file_name).path() ;
+			if( tmp_str.at(2) == ':'){
+				//assert it win32	"/G:/path/to/file.zip"
+				this->ui_progress_dialog.comboBox_2->addItem( QUrl(remote_file_name).path().right(QUrl(remote_file_name).path().length()-1) );
+			}else{
+				this->ui_progress_dialog.comboBox_2->addItem( QUrl(remote_file_name).path() );
+			}
         }
 //     }
 //     else

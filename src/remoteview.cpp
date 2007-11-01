@@ -739,7 +739,11 @@ void RemoteView::slot_new_download_requested( QStringList remote_file_names )
 	}
 	else
 	{
-        local_file_path = QString("file://") + local_file_path ;
+        local_file_path = QString("file://"
+#ifdef WIN32
+					   "/"
+#endif
+			) + local_file_path ;
         local_file_names << local_file_path ;
         this->slot_new_download_requested( local_file_names,remote_file_names);
 // 		ProgressDialog *pdlg = new ProgressDialog ( this );

@@ -81,11 +81,14 @@ CONFIG -= release
 win32 {
     debug {
         LIBPATH += ./libssh2/src/debug
+        LIBPATH += E:/librarys/mw-ssl/lib
     }
     release {
-        LIBPATH += ./libssh2/src/release
+        LIBPATH += ./libssh2/src/release 
+        LIBPATH += E:/librarys/mw-ssl/lib
     }
-    LIBS += -lssh2 -lgcrypt -lgpg-error -lws2_32
+    LIBS += -lssh2  -lssl -lcrypto -lws2_32  -lgdi32 
+    #-lgcrypt -lgpg-error 
 }else {
     LIBS += libssh2/src/libssh2.a \
 -lssl

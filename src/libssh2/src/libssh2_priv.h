@@ -81,6 +81,7 @@ struct iovec
     int iov_len;
 };
 #include <winsock2.h>
+#define  socklen_t size_t
 #endif
 #endif
 

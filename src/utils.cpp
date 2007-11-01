@@ -260,9 +260,15 @@ void  fxp_local_do_ls( QString args , QVector<QMap<char, QString> > & fileinfos 
 int     fxp_local_do_mkdir(const char * path )
 {
     int ret = 0 ;
-    
+    const char * ptr =0;
+
     #ifdef WIN32
-    ret = mkdir(path);
+	if(path[2] == ':'){
+		ptr = path + 1;
+		ret = mkdir(ptr);
+	}else{
+		ret = mkdir(path);
+	}
     #else
     ret = mkdir(path,0777);
     #endif

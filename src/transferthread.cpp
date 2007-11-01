@@ -225,6 +225,8 @@ void TransferThread::run()
        if(this->current_dest_file_name.indexOf("?") != -1){
           this->current_dest_file_type = this->current_dest_file_name.replace("?","_whywenhao_");
        }
+	   qDebug()<<this->current_src_file_name;
+	   qDebug()<<this->current_dest_file_name;
        current_src_url = this->current_src_file_name ;
        current_dest_url = this->current_dest_file_name ;
        this->current_src_file_name = current_src_url.path() ;
