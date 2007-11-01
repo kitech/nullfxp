@@ -41,7 +41,7 @@ void FilePropertiesRetriveThread::run()
     LIBSSH2_SFTP_ATTRIBUTES * sftp_attrib = (LIBSSH2_SFTP_ATTRIBUTES*)malloc( sizeof( LIBSSH2_SFTP_ATTRIBUTES));
     memset( sftp_attrib,0,sizeof( LIBSSH2_SFTP_ATTRIBUTES ));
 	libssh2_sftp_stat ( ssh2_sftp , file_path.toAscii().data() ,  sftp_attrib );
-    emit file_attr_abtained( sftp_attrib );
+    emit file_attr_abtained(this->file_path, sftp_attrib );
 }
 
 ///////////////////////////////////////////////////
@@ -92,7 +92,7 @@ void FileProperties::set_file_info_model_list ( QModelIndexList &mil )
     
     QString file_path =  this->ui_file_prop_dialog.lineEdit_3->text() +QString ( "/" ) +this->ui_file_prop_dialog.lineEdit->text() ;
     FilePropertiesRetriveThread * rt = new FilePropertiesRetriveThread(this->ssh2_sftp,file_path , this);
-    QObject::connect( rt ,SIGNAL( file_attr_abtained(void*)),this,SLOT(slot_file_attr_abtained(void*)) );
+    QObject::connect( rt ,SIGNAL( file_attr_abtained(QString , void*)),this,SLOT(slot_file_attr_abtained(QString , void*)) );
     rt->start();
 }
 
@@ -100,7 +100,7 @@ void FileProperties::slot_prop_thread_finished()
 {
 	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 }
-void FileProperties::slot_file_attr_abtained( void * attr )
+void FileProperties::slot_file_attr_abtained(QString file_name,  void * attr )
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
@@ -133,22 +133,22 @@ void FileProperties::slot_file_attr_abtained( void * attr )
         memset(file_size,0,sizeof(file_size )) ;
         snprintf(file_size,sizeof(file_size) , "%llu",sftp_attrib->filesize );
         this->ui_file_prop_dialog.lineEdit_4->setText ( file_size );
-        this->ui_file_prop_dialog.lineEdit_2->setText(tr("directory"));
+        this->ui_file_prop_dialog.lineEdit_2->setText(tr("Folder"));
 	}
 	else if ( this->ui_file_prop_dialog.lineEdit_2->text() == "d" )
 	{
-        this->ui_file_prop_dialog.lineEdit_2->setText(tr("directory"));
+        this->ui_file_prop_dialog.lineEdit_2->setText(tr("Folder"));
 	}
 	else if ( this->ui_file_prop_dialog.lineEdit_2->text() == "l" )
 	{
 		//qDebug() <<" open link , not process now";
         //TODO 写一个更好的，根据文件后缀判断文件类型的类库
-        this->ui_file_prop_dialog.lineEdit_2->setText(tr("symlink"));
+        this->ui_file_prop_dialog.lineEdit_2->setText(tr("Symlink"));
 	}
 	else
 	{
 		// reg file??
-        this->ui_file_prop_dialog.lineEdit_2->setText(tr("regular file"));
+        this->ui_file_prop_dialog.lineEdit_2->setText(this->type(file_name));
 	}
 	strmode ( sftp_attrib->permissions,file_perm );
 	this->update_perm_table ( file_perm );
@@ -186,5 +186,48 @@ void FileProperties::update_perm_table ( QString file_perm )
 		this->ui_file_prop_dialog.checkBox_8->setChecked ( wp=='w' );
 		this->ui_file_prop_dialog.checkBox_9->setChecked ( xp=='x' );
 	}
+}
+
+
+QString FileProperties::type(QString file_name)
+{
+    QFileInfo info(file_name);
+    
+    if (file_name == "/")
+        return QApplication::translate("QFileDialog", "Drive");
+//     if (info.isFile()) {
+    if (1) {
+        if (!info.suffix().isEmpty())
+            return info.suffix() + QLatin1Char(' ') + QApplication::translate("QFileDialog", "File");
+        return QApplication::translate("QFileDialog", "File");
+    }
+
+    if (info.isDir())
+        return QApplication::translate("QFileDialog",
+#ifdef Q_WS_WIN
+                                       "File Folder", "Match Windows Explorer"
+#else
+                                       "Folder", "All other platforms"
+#endif
+            );
+    // Windows   - "File Folder"
+    // OS X      - "Folder"
+    // Konqueror - "Folder"
+    // Nautilus  - "folder"
+
+    if (info.isSymLink())
+        return QApplication::translate("QFileDialog",
+#ifdef Q_OS_MAC
+                                       "Alias", "Mac OS X Finder"
+#else
+                                       "Shortcut", "All other platforms"
+#endif
+            );
+    // OS X      - "Alias"
+    // Windows   - "Shortcut"
+    // Konqueror - "Folder" or "TXT File" i.e. what it is pointing to
+    // Nautilus  - "link to folder" or "link to object file", same as Konqueror
+
+    return QApplication::translate("QFileDialog", "Unknown");
 }
 

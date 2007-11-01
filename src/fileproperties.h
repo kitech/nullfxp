@@ -39,7 +39,7 @@ class FilePropertiesRetriveThread : public QThread
         ~FilePropertiesRetriveThread();
         virtual void run ();
     signals:
-        void file_attr_abtained( void * attr );
+        void file_attr_abtained(QString file_name, void * attr );
     private:
         LIBSSH2_SFTP * ssh2_sftp ;
         QString file_path ;
@@ -61,10 +61,11 @@ public:
 
     public slots:
         void slot_prop_thread_finished();
-        void slot_file_attr_abtained( void * attr );
+        void slot_file_attr_abtained(QString file_name, void * attr );
         
     private:
         void update_perm_table( QString file_perm );
+        QString type(QString file_name);
         Ui::FileProperties ui_file_prop_dialog;
         LIBSSH2_SFTP * ssh2_sftp ;
 };

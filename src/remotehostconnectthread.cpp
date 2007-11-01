@@ -323,5 +323,14 @@ void RemoteHostConnectThread::set_user_canceled()
     this->user_canceled = true;
 }
 
+//TODO 在网张断线时这run中的代码可能导致程序崩溃
+/*
+
+remote_host name is : 60.2.236.22
+host addr: <� -> 60.2.236.22
+inet_pton ret: 1
+
+*/
+
 
 
