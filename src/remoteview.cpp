@@ -604,7 +604,7 @@ void RemoteView::slot_rename()
     
     QString rename_to ;
     rename_to = QInputDialog::getText(this,tr("Rename to:"),  tr("Input new name:"),
-                                         QLineEdit::Normal, tr("Rename to") );
+                                         QLineEdit::Normal, dti->file_name );
      
 	if(  rename_to  == QString::null )
     {
