@@ -73,7 +73,10 @@ nullfxp.cpp
 remotehostquickconnectinfodialog.cpp
 progressdialog.cpp          
 remoteview.cpp
-remotedirmodel.cpp          
+remoteviewdirtableview.cpp
+remotedirmodel.cpp
+remotedirsortfiltermodel.cpp
+localdirfilemodel.cpp
 transferthread.cpp
 remotedirretrivethread.cpp
 globaloptionsdialog.cpp
@@ -89,7 +92,10 @@ nullfxp.h
 remotehostquickconnectinfodialog.h
 progressdialog.h          
 remoteview.h
-remotedirmodel.h          
+remoteviewdirtableview.h
+remotedirmodel.h
+remotedirsortfiltermodel.h
+localdirfilemodel.h
 transferthread.h
 remotedirretrivethread.h
 globaloptionsdialog.h
@@ -139,8 +145,11 @@ ADD_EXECUTABLE(../bin/nullfxp
     remotehostconnectthread.cpp
     remotedirretrivethread.cpp
     remotedirmodel.cpp
+    remotedirsortfiltermodel.cpp
+    localdirfilemodel.cpp
     transferthread.cpp
     remoteview.cpp
+    remoteviewdirtableview.cpp
     localview.cpp
     remotehostquickconnectinfodialog.cpp
     remotehostconnectingstatusdialog.cpp

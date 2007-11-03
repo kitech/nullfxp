@@ -380,7 +380,10 @@ void RemoteView::slot_leave_remote_dir_retrive_loop()
     this->remoteview.splitter->setCursor(this->orginal_cursor);
     this->remote_dir_model->set_keep_alive(true);
     this->in_remote_dir_retrive_loop = false ;
-    
+    for ( int i = 0 ; i < this->remote_dir_model->rowCount ( this->remoteview.tableView->rootIndex() ); i ++ ){
+        this->remoteview.tableView->setRowHeight ( i,this->table_row_height );
+    }
+    this->remoteview.tableView->resizeColumnToContents ( 0 );
 }
 
 void RemoteView::update_layout()
@@ -448,6 +451,10 @@ void RemoteView::slot_show_properties()
     }
     else
         aim_mil = mil ;
+    if( aim_mil.count() == 0 ){
+        qDebug()<<" why???? no QItemSelectionModel??";
+        return;
+    }
     //  文件类型，大小，几个时间，文件权限
     //TODO 从模型中取到这些数据并显示在属性对话框中。
     FileProperties * fp = new FileProperties(this);
