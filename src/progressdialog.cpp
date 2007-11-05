@@ -147,6 +147,7 @@ void ProgressDialog::set_transfer_info(/*int type,*/QStringList local_file_names
 			}else{
 				this->ui_progress_dialog.comboBox_2->addItem( QUrl(remote_file_name).path() );
 			}
+            this->ui_progress_dialog.lineEdit->setText(QUrl(local_file_names.at(0)).scheme()+"-->"+QUrl(remote_file_name).scheme());
         }
 //     }
 //     else
@@ -164,6 +165,18 @@ void ProgressDialog::slot_set_transfer_percent(int percent  , int total_transfer
     if( percent == 100 )
     {
         this->abtained_files_count += 1 ;
+    }
+    if(!start_time.isValid()){
+        start_time = QDateTime::currentDateTime();
+        transfer_speed = 0 ;
+    }else{
+        end_time = QDateTime::currentDateTime();
+        if( (end_time.toTime_t()-start_time.toTime_t()) !=0 )
+            transfer_speed = this->abtained_files_size/(end_time.toTime_t()-start_time.toTime_t());
+        else
+            transfer_speed = this->abtained_files_size/1;
+        
+        transfer_speed /= 1024 ;
     }
     this->update_transfer_state() ;
 }
@@ -253,6 +266,7 @@ void ProgressDialog::slot_cancel_button_clicked()
 }
 void ProgressDialog::update_transfer_state()
 {
+    this->ui_progress_dialog.lineEdit_8->setText(QString("%1").arg(this->transfer_speed));
     this->ui_progress_dialog.lineEdit_9->setText(QString("%1").arg(this->abtained_files_count));
     this->ui_progress_dialog.lineEdit_10->setText(QString("%1").arg(this->total_files_count));
     this->ui_progress_dialog.lineEdit_11->setText(QString("%1").arg(this->abtained_files_size));

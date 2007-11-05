@@ -74,6 +74,9 @@ public:
         quint64 abtained_files_size ;
         int     total_files_count ;
         int     abtained_files_count ;
+        int  transfer_speed ;
+        QDateTime start_time;
+        QDateTime end_time ;
         
     private:    //UI element
         
