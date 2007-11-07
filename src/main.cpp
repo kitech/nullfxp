@@ -28,6 +28,7 @@
 #include <arpa/inet.h>
 #endif
 
+#include <QtCore>
 #include <QCoreApplication>
 #include "nullfxp.h"
 
@@ -126,11 +127,17 @@ int main(int argc, char *argv[])
 // 
 //     
 //     return 0 ;
+    int app_exec_ret = -1;
       QApplication app(argc, argv);
       qDebug("Hello from Qt 4!");
       NullFXP nfxp ;
       nfxp.showNormal ();
       
-      return app.exec();
+      app_exec_ret = app.exec();
+      if( app_exec_ret == 0)
+          qDebug()<<"app exit normally.";
+      else
+          qDebug()<<"app exit with code:"<<app_exec_ret;
+      return app_exec_ret;
 }
 

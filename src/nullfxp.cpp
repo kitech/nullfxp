@@ -129,6 +129,7 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
     //启动连接对话框
     this->show();
     this->connect_to_remote_host();
+    //TODO 根据当前屏幕大小调整界面的大小。
 }
 
 NullFXP::~NullFXP()

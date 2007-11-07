@@ -101,6 +101,9 @@ void LocalView::init_local_dir_tree_context_menu()
 	QObject::connect ( action,SIGNAL ( triggered() ),
 	                   this,SLOT ( slot_refresh_directory_tree() ) );
     
+    action = new QAction ( tr("Rename ..."),0);
+    this->local_dir_tree_context_menu->addAction ( action );
+    
     QObject::connect ( this->localView.treeView,SIGNAL ( customContextMenuRequested ( const QPoint & ) ),
                        this , SLOT ( slot_local_dir_tree_context_menu_request ( const QPoint & ) ) );
     QObject::connect ( this->localView.tableView,SIGNAL ( customContextMenuRequested ( const QPoint & ) ),
