@@ -277,7 +277,7 @@ void ProgressDialog::update_transfer_state()
     }
     else
     {
-        this->ui_progress_dialog.progressBar_2->setValue(100*this->abtained_files_size/this->total_files_size);
+        this->ui_progress_dialog.progressBar_2->setValue(100.0*((double)this->abtained_files_size/(double)this->total_files_size));
     }
 }
 void ProgressDialog::slot_transfer_got_file_size( int size )

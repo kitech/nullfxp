@@ -612,6 +612,7 @@ int TransferThread::do_download ( QString remote_path, QString local_path,  int 
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
     qDebug()<< "remote_path = "<<  remote_path  << " , local_path = " << local_path ;
+    int pcnt = 0 ;
     int  rlen , wlen  ;
     int file_size , tran_len = 0   ;
     LIBSSH2_SFTP_HANDLE * sftp_handle ;
@@ -657,7 +658,8 @@ int TransferThread::do_download ( QString remote_path, QString local_path,  int 
             }
             else
             {
-                emit this->transfer_percent_changed ( tran_len * 100 / file_size , tran_len ,wlen );
+                pcnt = 100.0 *((double)tran_len  / (double)file_size);
+                emit this->transfer_percent_changed ( pcnt , tran_len ,wlen );
             }
             if(user_canceled == true){
                 break;
@@ -679,6 +681,7 @@ int TransferThread::do_upload ( QString local_path, QString remote_path, int pfl
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
     qDebug()<< "remote_path = "<<  remote_path  << " , local_path = " << local_path ;
 
+    int pcnt = 0 ;
     int local_fd , rlen , wlen  ;
     int file_size , tran_len = 0   ;
     LIBSSH2_SFTP_HANDLE * sftp_handle ;
@@ -747,7 +750,9 @@ int TransferThread::do_upload ( QString local_path, QString remote_path, int pfl
             }
             else
             {
-                emit this->transfer_percent_changed ( tran_len * 100 / file_size , tran_len ,wlen  );
+                pcnt = 100.0 *((double)tran_len  / (double)file_size);
+                //qDebug()<< QString("100.0 *((double)%1  / (double)%2)").arg(tran_len).arg(file_size)<<" = "<<pcnt ;
+                emit this->transfer_percent_changed ( pcnt , tran_len ,wlen  );
             }
             if(user_canceled == true){
                 break;
@@ -770,7 +775,8 @@ int TransferThread::do_nrsftp_exchange( QString src_path , QString dest_path )
     char buff[5120] = {0};
     int rlen , wlen , tran_len = 0 ;
     int file_size=0;
-
+    int pcnt = 0 ;
+    
     //检测传输文件的属性
 
     src_sftp_handle = libssh2_sftp_open( this->src_ssh2_sftp ,GlobalOption::instance()->remote_codec->fromUnicode(  src_path ).data()  ,LIBSSH2_FXF_READ,0666);
@@ -816,7 +822,8 @@ int TransferThread::do_nrsftp_exchange( QString src_path , QString dest_path )
         }
         else
         {
-            emit this->transfer_percent_changed ( tran_len * 100 / file_size , tran_len ,wlen  );
+            pcnt = 100.0 *((double)tran_len  / (double)file_size);
+            emit this->transfer_percent_changed ( pcnt , tran_len ,wlen  );
         }
         if(user_canceled == true){
             break;
