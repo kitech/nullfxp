@@ -120,16 +120,21 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
 	this->central_splitter_widget->setStretchFactor ( 0,3 );
 	this->central_splitter_widget->setStretchFactor ( 1,1 );
 
-	//
+    //启动连接对话框
+    this->show();
+    //根据当前屏幕大小调整界面的大小。
+    QDesktopWidget * dw = new QDesktopWidget();
+    //qDebug()<<dw->screenGeometry();
+    this->resize(dw->screenGeometry().width()*4/5, dw->screenGeometry().height()*4/5) ;
+    delete dw ;
+    //调整本地目录树窗口的大小
 	//QList<QMdiSubWindow *> mdiSubWindow = mdiArea->subWindowList();
 	//qDebug()<<" mdi sub window count :"<< mdiSubWindow.count();
     QMdiSubWindow * local_sub_win = mdiArea->subWindowList().at(0);
-    local_sub_win->setGeometry( local_sub_win->x(),local_sub_win->y(), mdiArea->width()/2,  mdiArea->height()*19/19 );
+    local_sub_win->setGeometry( local_sub_win->x(),local_sub_win->y(), mdiArea->width()/2,  mdiArea->height()*18/19 );
     
-    //启动连接对话框
-    this->show();
     this->connect_to_remote_host();
-    //TODO 根据当前屏幕大小调整界面的大小。
+
 }
 
 NullFXP::~NullFXP()
