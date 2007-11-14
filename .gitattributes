@@ -86,6 +86,8 @@ src/libssh2/win32/test/Makefile.win32 -text
 src/libssh2/win32/tests.dsp -text
 src/localdirfilemodel.cpp -text
 src/localdirfilemodel.h -text
+src/localdirsortfiltermodel.cpp -text
+src/localdirsortfiltermodel.h -text
 src/localview.cpp -text
 src/localview.h -text
 src/localview.ui -text

@@ -67,7 +67,8 @@ SET( qtproject_SRCS
 aboutnullfxp.cpp     
 fileproperties.cpp       
 remotehostconnectingstatusdialog.cpp
-localview.cpp               
+localview.cpp
+localdirsortfiltermodel.cpp
 remotehostconnectthread.cpp
 nullfxp.cpp                 
 remotehostquickconnectinfodialog.cpp
@@ -86,7 +87,8 @@ globaloptionsdialog.cpp
 aboutnullfxp.h    
 fileproperties.h        
 remotehostconnectingstatusdialog.h
-localview.h               
+localview.h
+localdirsortfiltermodel.h
 remotehostconnectthread.h
 nullfxp.h                 
 remotehostquickconnectinfodialog.h
@@ -147,6 +149,7 @@ ADD_EXECUTABLE(../bin/nullfxp
     remotedirmodel.cpp
     remotedirsortfiltermodel.cpp
     localdirfilemodel.cpp
+    localdirsortfiltermodel.cpp
     transferthread.cpp
     remoteview.cpp
     remoteviewdirtableview.cpp

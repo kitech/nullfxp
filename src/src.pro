@@ -14,10 +14,11 @@ SOURCES += main.cpp \
  globaloptionsdialog.cpp \
  utils.cpp \
  fileproperties.cpp \
- localdirfilemodel.cpp \
  remotedirsortfiltermodel.cpp \
  remoteviewdirtableview.cpp \
- remotedirtreeview.cpp
+ remotedirtreeview.cpp \
+ localdirsortfiltermodel.cpp \
+ localdirfilemodel.cpp
 TEMPLATE = app
 CONFIG += warn_on \
 	  thread \
@@ -56,10 +57,11 @@ HEADERS += nullfxp.h \
  globaloption.h \
  globaloptionsdialog.h \
  fileproperties.h \
- localdirfilemodel.h \
  remotedirsortfiltermodel.h \
  remoteviewdirtableview.h \
- remotedirtreeview.h
+ remotedirtreeview.h \
+ localdirsortfiltermodel.h \
+ localdirfilemodel.h
 
 
 DISTFILES += ../CMakeLists.txt \

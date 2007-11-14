@@ -186,7 +186,7 @@ void TransferThread::run()
     QUrl current_dest_url ;
     RemoteHostConnectThread * rhct = 0 ;
     
-	int transfer_ret ;
+	int transfer_ret = -1 ;
     int debug_sleep_time = 5 ;
     
     QPair<QString , QString> local_file_pair;
