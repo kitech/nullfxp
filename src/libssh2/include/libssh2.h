@@ -72,19 +72,22 @@ typedef unsigned int uint32_t;
 #if defined(LIBSSH2_WIN32) && defined(_MSC_VER) && (_MSC_VER <= 1400)
 typedef unsigned __int64 libssh2_uint64_t;
 typedef __int64 libssh2_int64_t;
-typedef long ssize_t;
 typedef unsigned int uint32_t;
+#ifndef _SSIZE_T_DEFINED
+typedef int ssize_t;
+#define _SSIZE_T_DEFINED
+#endif
 #else
 typedef unsigned long long libssh2_uint64_t;
 typedef long long libssh2_int64_t;
 #endif
 
-#define LIBSSH2_VERSION "0.17"
+#define LIBSSH2_VERSION "0.18"
 
 /* The numeric version number is also available "in parts" by using these
    defines: */
 #define LIBSSH2_VERSION_MAJOR 0
-#define LIBSSH2_VERSION_MINOR 17
+#define LIBSSH2_VERSION_MINOR 18
 #define LIBSSH2_VERSION_PATCH 
 
 /* This is the numeric version of the libssh2 version number, meant for easier
@@ -102,7 +105,7 @@ typedef long long libssh2_int64_t;
    and it is always a greater number in a more recent release. It makes
    comparisons with greater than and less than work.
 */
-#define LIBSSH2_VERSION_NUM 0x001100
+#define LIBSSH2_VERSION_NUM 0x001200
 
 /*
  * This is the date and time when the full source package was created. The
@@ -113,7 +116,7 @@ typedef long long libssh2_int64_t;
  *
  * "Mon Feb 12 11:35:33 UTC 2007"
  */
-#define LIBSSH2_TIMESTAMP "Mon Aug  6 20:50:42 UTC 2007"
+#define LIBSSH2_TIMESTAMP "Sun Nov 11 10:41:38 UTC 2007"
 
 /* Part of every banner, user specified or not */
 #define LIBSSH2_SSH_BANNER                  "SSH-2.0-libssh2_" LIBSSH2_VERSION
@@ -306,7 +309,7 @@ LIBSSH2_API void **libssh2_session_abstract(LIBSSH2_SESSION *session);
 LIBSSH2_API void *libssh2_session_callback_set(LIBSSH2_SESSION *session, int cbtype, void *callback);
 LIBSSH2_API int libssh2_banner_set(LIBSSH2_SESSION *session, const char *banner);
 
-LIBSSH2_API int libssh2_session_startup(LIBSSH2_SESSION *session, int socket);
+LIBSSH2_API int libssh2_session_startup(LIBSSH2_SESSION *session, int sock);
 LIBSSH2_API int libssh2_session_disconnect_ex(LIBSSH2_SESSION *session, int reason, const char *description, const char *lang);
 #define libssh2_session_disconnect(session, description)    libssh2_session_disconnect_ex((session), SSH_DISCONNECT_BY_APPLICATION, (description), "")
 LIBSSH2_API int libssh2_session_free(LIBSSH2_SESSION *session);
@@ -380,7 +383,7 @@ LIBSSH2_API int libssh2_channel_forward_cancel(LIBSSH2_LISTENER *listener);
 
 LIBSSH2_API LIBSSH2_CHANNEL *libssh2_channel_forward_accept(LIBSSH2_LISTENER *listener);
 
-LIBSSH2_API int libssh2_channel_setenv_ex(LIBSSH2_CHANNEL *channel, char *varname, unsigned int varname_len, const char *value, unsigned int value_len);
+LIBSSH2_API int libssh2_channel_setenv_ex(LIBSSH2_CHANNEL *channel, const char *varname, unsigned int varname_len, const char *value, unsigned int value_len);
 #define libssh2_channel_setenv(channel, varname, value) libssh2_channel_setenv_ex((channel), (varname), strlen(varname), (value), strlen(value))
 
 LIBSSH2_API int libssh2_channel_request_pty_ex(LIBSSH2_CHANNEL *channel, const char *term, unsigned int term_len, const char *modes, unsigned int modes_len, int width, int height, int width_px, int height_px);

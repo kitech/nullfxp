@@ -267,7 +267,6 @@ libssh2_packet_read(LIBSSH2_SESSION * session)
     int numdecrypt;
     unsigned char block[MAX_BLOCKSIZE];
     int blocksize;
-    int minimum;
     int encrypted = 1;
 
     /*
@@ -293,7 +292,6 @@ libssh2_packet_read(LIBSSH2_SESSION * session)
             blocksize = 5;      /* not strictly true, but we can use 5 here to
                                    make the checks below work fine still */
         }
-        minimum = p->total_num ? p->total_num - p->data_num : blocksize;
 
         /* read/use a whole big chunk into a temporary area stored in
            the LIBSSH2_SESSION struct. We will decrypt data from that
@@ -308,8 +306,8 @@ libssh2_packet_read(LIBSSH2_SESSION * session)
         /* if remainbuf turns negative we have a bad internal error */
         assert(remainbuf >= 0);
 
-        if (remainbuf < minimum) {
-            /* If we have less than a minimum left, it is too
+        if (remainbuf < blocksize) {
+            /* If we have less than a blocksize left, it is too
                little data to deal with, read more */
             ssize_t nread;
 
@@ -330,9 +328,28 @@ libssh2_packet_read(LIBSSH2_SESSION * session)
                      PACKETBUFSIZE - remainbuf,
                      LIBSSH2_SOCKET_RECV_FLAGS(session));
             if (nread <= 0) {
-                /* check if this is due to EAGAIN and return
-                   the special return code if so, error out
-                   normally otherwise */
+                /* check if this is due to EAGAIN and return the special
+                   return code if so, error out normally otherwise */
+#ifdef WIN32
+                switch (WSAGetLastError()) {
+                case WSAEWOULDBLOCK:
+                    errno = EAGAIN;
+                    break;
+
+                case WSAENOTSOCK:
+                    errno = EBADF;
+                    break;
+
+                case WSAENOTCONN:
+                case WSAECONNABORTED:
+                    errno = WSAENOTCONN;
+                    break;
+
+                case WSAEINTR:
+                    errno = EINTR;
+                    break;
+                }
+#endif /* WIN32 */
                 if ((nread < 0) && (errno == EAGAIN)) {
                     return PACKET_EAGAIN;
                 }
@@ -350,15 +367,18 @@ libssh2_packet_read(LIBSSH2_SESSION * session)
         /* how much data to deal with from the buffer */
         numbytes = remainbuf;
 
-        if (numbytes < blocksize) {
-            /* we can't act on anything less than blocksize */
-            return PACKET_EAGAIN;
-        }
-
         if (!p->total_num) {
             /* No payload package area allocated yet. To know the
                size of this payload, we need to decrypt the first
                blocksize data. */
+
+            if (numbytes < blocksize) {
+                /* we can't act on anything less than blocksize, but this
+                   check is only done for the initial block since once we have
+                   got the start of a block we can in fact deal with fractions
+                */
+                return PACKET_EAGAIN;
+            }
 
             if (encrypted) {
                 rc = decrypt(session, &p->buf[p->readidx], block, blocksize);

@@ -135,16 +135,18 @@ libssh2_banner_receive(LIBSSH2_SESSION * session)
             if (errno == EAGAIN) {
                 session->banner_TxRx_total_send = banner_len;
                 return PACKET_EAGAIN;
-            } else {
-                /* Some kinda error */
-                session->banner_TxRx_state = libssh2_NB_state_idle;
-                session->banner_TxRx_total_send = 0;
-                return 1;
             }
+
+            /* Some kinda error */
+            session->banner_TxRx_state = libssh2_NB_state_idle;
+            session->banner_TxRx_total_send = 0;
+            return 1;
         }
 
-        if (ret <= 0)
-            continue;
+        if (ret == 0) {
+            session->socket_state = LIBSSH2_SOCKET_DISCONNECTED;
+            return PACKET_FAIL;
+        }
 
         if (c == '\0') {
             /* NULLs are not allowed in SSH banners */
@@ -514,21 +516,21 @@ libssh2_session_callback_set(LIBSSH2_SESSION * session,
  * socket *must* be populated with an opened and connected socket.
  */
 LIBSSH2_API int
-libssh2_session_startup(LIBSSH2_SESSION * session, int socket)
+libssh2_session_startup(LIBSSH2_SESSION * session, int sock)
 {
     int rc;
 
     if (session->startup_state == libssh2_NB_state_idle) {
         _libssh2_debug(session, LIBSSH2_DBG_TRANS,
-                       "session_startup for socket %d", socket);
+                       "session_startup for socket %d", sock);
         /* FIXME: on some platforms (like win32) sockets are unsigned */
-        if (socket < 0) {
+        if (sock < 0) {
             /* Did we forget something? */
             libssh2_error(session, LIBSSH2_ERROR_SOCKET_NONE,
                           "Bad socket provided", 0);
             return LIBSSH2_ERROR_SOCKET_NONE;
         }
-        session->socket_fd = socket;
+        session->socket_fd = sock;
 
         session->socket_block =
             !_libssh2_get_socket_nonblocking(session->socket_fd);
