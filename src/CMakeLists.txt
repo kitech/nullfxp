@@ -77,7 +77,7 @@ remoteview.cpp
 remoteviewdirtableview.cpp
 remotedirmodel.cpp
 remotedirsortfiltermodel.cpp
-localdirfilemodel.cpp
+localdirorginalmodel.cpp
 transferthread.cpp
 remotedirretrivethread.cpp
 globaloptionsdialog.cpp
@@ -97,7 +97,7 @@ remoteview.h
 remoteviewdirtableview.h
 remotedirmodel.h
 remotedirsortfiltermodel.h
-localdirfilemodel.h
+localdirorginalmodel.h
 transferthread.h
 remotedirretrivethread.h
 globaloptionsdialog.h
@@ -148,7 +148,7 @@ ADD_EXECUTABLE(../bin/nullfxp
     remotedirretrivethread.cpp
     remotedirmodel.cpp
     remotedirsortfiltermodel.cpp
-    localdirfilemodel.cpp
+    localdirorginalmodel.cpp
     localdirsortfiltermodel.cpp
     transferthread.cpp
     remoteview.cpp

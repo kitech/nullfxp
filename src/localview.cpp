@@ -49,7 +49,7 @@ LocalView::LocalView ( QWidget *parent )
     
 	this->init_local_dir_tree_context_menu();
     
-    this->dir_file_model = new LocalDirFileModel( this );
+    this->dir_file_model = new LocalDirSortFilterModel( this );
     this->localView.tableView->setModel( this->dir_file_model );
     this->localView.tableView->setRootIndex( this->dir_file_model->index( QDir::homePath() ) );
     this->localView.tableView->verticalHeader()->setVisible(false);

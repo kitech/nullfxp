@@ -27,7 +27,9 @@
 #include <QTreeWidget>
 #include <QDirModel>
 
-#include "localdirfilemodel.h"
+// #include "localdirfilemodel.h"
+#include "localdirsortfiltermodel.h"
+
 #include "ui_localview.h"
 
 class RemoteView ;
@@ -54,7 +56,7 @@ public:
         QStatusBar * status_bar ;
         QDirModel * model ;
         Ui::LocalView localView ;
-        LocalDirFileModel * dir_file_model ;
+        LocalDirSortFilterModel * dir_file_model ;
         int   table_row_height ;
         QAbstractItemView * curr_item_view ;    //
         
