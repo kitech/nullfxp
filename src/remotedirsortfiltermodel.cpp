@@ -27,7 +27,7 @@ RemoteDirSortFilterModel::RemoteDirSortFilterModel(QObject *parent)
     : QSortFilterProxyModel(parent)
 {
     this->setFilterKeyColumn( 2 );
-    this->setFilterRegExp(QRegExp("^(d|l).*",Qt::CaseInsensitive));    
+    this->setFilterRegExp(QRegExp("^(d|l).*",Qt::CaseInsensitive));
 }
 
 

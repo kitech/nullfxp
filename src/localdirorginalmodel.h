@@ -28,7 +28,7 @@
 #include <QDirModel>
 
 /**
-	@author liuguangzhao <gzl@localhost>
+	@author liuguangzhao <liuguangzhao@users.sourceforge.net>
 */
 class LocalDirOrginalModel : public QDirModel
 {

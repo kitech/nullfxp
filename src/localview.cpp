@@ -37,24 +37,27 @@ LocalView::LocalView ( QWidget *parent )
     
     ////
 	model = new QDirModel();
-    model->setFilter(  QDir::AllDirs | QDir::NoDotAndDotDot );
-	this->localView.treeView->setModel ( model );
-	this->localView.treeView->setRootIndex ( model->index ( "/" ) );
-    this->localView.treeView->setColumnHidden( 1, true);
-    this->localView.treeView->setColumnHidden( 2, true);
-    this->localView.treeView->setColumnHidden( 3, true);
+    //model->setFilter(  QDir::AllDirs | QDir::NoDotAndDotDot );
+    this->dir_file_model = new LocalDirSortFilterModel(  );
+    this->dir_file_model->setSourceModel(model);
+    
+    this->localView.treeView->setModel ( this->dir_file_model );
+    this->localView.treeView->setRootIndex (this->dir_file_model->index ( "/" ) );
+//     this->localView.treeView->setColumnHidden( 1, true);
+//     this->localView.treeView->setColumnHidden( 2, true);
+//     this->localView.treeView->setColumnHidden( 3, true);
     //this->localView.treeView->setRootIndex ( model->index ( QDir::homePath() ) );
     this->localView.treeView->setColumnWidth(0,this->localView.treeView->columnWidth(0)*2);    
     this->expand_to_home_directory(this->localView.treeView->rootIndex (),1 );
     
 	this->init_local_dir_tree_context_menu();
-    
-    this->dir_file_model = new LocalDirSortFilterModel( this );
-    this->localView.tableView->setModel( this->dir_file_model );
-    this->localView.tableView->setRootIndex( this->dir_file_model->index( QDir::homePath() ) );
+
+    this->localView.tableView->setModel( this->model );
+    this->localView.tableView->setRootIndex( this->model->index( QDir::homePath() ) );
     this->localView.tableView->verticalHeader()->setVisible(false);
+
     //change row height of table 
-    if( this->dir_file_model->rowCount( this->dir_file_model->index( QDir::homePath() ) ) > 0 )
+    if( this->model->rowCount( this->model->index( QDir::homePath() ) ) > 0 )
     {
         this->table_row_height = this->localView.tableView->rowHeight(0)*2/3;
     }
@@ -62,9 +65,12 @@ LocalView::LocalView ( QWidget *parent )
     {
         this->table_row_height = 20 ;
     }
-    for( int i = 0 ; i < this->dir_file_model->rowCount( this->dir_file_model->index( QDir::homePath() ) ); i ++ )
+    for( int i = 0 ; i < this->model->rowCount( this->model->index( QDir::homePath() ) ); i ++ )
+    {
         this->localView.tableView->setRowHeight( i, this->table_row_height );
-    this->localView.tableView->resizeColumnToContents( 0 );    
+    }
+
+    this->localView.tableView->resizeColumnToContents( 0 );
     /////
     QObject::connect(this->localView.treeView,SIGNAL(clicked(const QModelIndex &)),
                      this,SLOT( slot_dir_tree_item_clicked(const QModelIndex &))) ;
@@ -112,15 +118,16 @@ void LocalView::init_local_dir_tree_context_menu()
 //仅会被调用一次，在该实例的构造函数中
 void LocalView::expand_to_home_directory( QModelIndex parent_model,int level )
 {
-    int row_cnt = this->model->rowCount(parent_model) ;
+    int row_cnt = this->dir_file_model->rowCount(parent_model) ;
     QString home_path = QDir::homePath();
     QStringList home_path_grade = home_path.split('/');
-    //qDebug()<<home_path_grade << level ;
+    //qDebug()<<home_path_grade << level << row_cnt;
     QModelIndex curr_model ;
     for( int i = 0 ; i < row_cnt ; i ++)
     {
-        curr_model = this->model->index(i,0,parent_model) ;
-        QString file_name = this->model->fileName(curr_model);
+        curr_model = this->dir_file_model->index(i,0,parent_model) ;
+        QString file_name = this->dir_file_model->data(curr_model).toString();
+        //qDebug()<<file_name;
         if( file_name == home_path_grade.at(level) )
         {
             this->localView.treeView->expand(curr_model);
@@ -259,7 +266,7 @@ void LocalView::closeEvent ( QCloseEvent * event )
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     event->ignore ();
     //this->setVisible(false); 
-    QMessageBox::information(this,tr("attemp to close this window?"),tr("you cat's close this window."));
+    QMessageBox::information(this,tr("attemp to close this window?"),tr("you can't close this window."));
 }
 
 void LocalView::slot_dir_tree_item_clicked( const QModelIndex & index)
@@ -267,9 +274,9 @@ void LocalView::slot_dir_tree_item_clicked( const QModelIndex & index)
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     QString file_path ;
     
-    file_path = this->model->filePath(index);
-    this->localView.tableView->setRootIndex( this->dir_file_model->index( file_path )) ;
-    for( int i = 0 ; i < this->dir_file_model->rowCount( this->dir_file_model->index( file_path ) ); i ++ )
+    file_path = this->dir_file_model->filePath(index);
+    this->localView.tableView->setRootIndex( this->model->index( file_path )) ;
+    for( int i = 0 ; i < this->model->rowCount( this->model->index( file_path ) ); i ++ )
         this->localView.tableView->setRowHeight(i,this->table_row_height );
     this->localView.tableView->resizeColumnToContents ( 0 );
 }
@@ -285,13 +292,13 @@ void LocalView::slot_dir_file_view_double_clicked( const QModelIndex & index )
     //2。对于远程主机，　如果是目录，则打开这个目录，如果是文件，则提示是否要下载它。
     QString file_path ;
     
-    if( this->dir_file_model->isDir( index ) )
+    if( this->model->isDir( index ) )
     {
-        this->localView.treeView->expand( this->model->index(this->dir_file_model->filePath(index)).parent());        
-        this->localView.treeView->expand( this->model->index(this->dir_file_model->filePath(index)));
-        this->slot_dir_tree_item_clicked(this->model->index(this->dir_file_model->filePath(index)));
+        this->localView.treeView->expand( this->dir_file_model->index(this->model->filePath(index)).parent());        
+        this->localView.treeView->expand( this->dir_file_model->index(this->model->filePath(index)));
+        this->slot_dir_tree_item_clicked(this->dir_file_model->index(this->model->filePath(index)));
         this->localView.treeView->selectionModel()->clearSelection();
-        this->localView.treeView->selectionModel()->select(this->model->index(this->dir_file_model->filePath(index)), QItemSelectionModel::Select ) ;
+        this->localView.treeView->selectionModel()->select(this->dir_file_model->index(this->model->filePath(index)), QItemSelectionModel::Select ) ;
     }
     else
     {

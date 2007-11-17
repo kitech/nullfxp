@@ -23,17 +23,34 @@
 #define LOCALDIRSORTFILTERMODEL_H
 
 #include <QDirModel>
+#include <QSortFilterProxyModel>
 
 /**
-	@author liuguangzhao <gzl@localhost>
+	@author liuguangzhao <liuguangzhao@users.sourceforge.net>
 */
-class LocalDirSortFilterModel : public QDirModel
+class LocalDirSortFilterModel : public QSortFilterProxyModel
 {
 Q_OBJECT
 public:
     LocalDirSortFilterModel(QObject *parent = 0);
 
     ~LocalDirSortFilterModel();
+    
+    QModelIndex index ( const QString & path, int column = 0 ) const;
+    QModelIndex index(int& row, int column, QModelIndex& parent) const;
+    virtual void setSourceModel ( QAbstractItemModel * sourceModel );
+            
+    QString filePath(const QModelIndex &index) const;
+    QString fileName(const QModelIndex &index) const;
+    
+    bool isDir(const QModelIndex &index) const;
+    
+    public slots:
+        void refresh ( const QModelIndex & parent = QModelIndex() );
+    protected:
+        virtual bool filterAcceptsRow ( int source_row, const QModelIndex & source_parent ) const;
+    private:
+        QDirModel * source_model; 
 
 };
 

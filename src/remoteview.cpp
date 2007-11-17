@@ -326,7 +326,7 @@ void RemoteView::closeEvent ( QCloseEvent * event )
         //如果说是在上传或者下载,则强烈建议用户先关闭传输窗口，再关闭连接
         if(  this->own_progress_dialog != 0 )
         {
-            QMessageBox::warning(this,tr("Attentions:"),tr("you can not close connection when transfer file.") );
+            QMessageBox::warning(this,tr("Attentions:"),tr("you can't close connection when transfer file.") );
             return ;
         }
     }

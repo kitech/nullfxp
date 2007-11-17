@@ -27,7 +27,7 @@
 
 class RemoteDirModel ;
 /**
-	@author liuguangzhao <gzl@localhost>
+	@author liuguangzhao <liuguangzhao@users.sourceforge.net>
 */
 class RemoteDirSortFilterModel : public QSortFilterProxyModel
 {

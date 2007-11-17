@@ -35,7 +35,7 @@
 class RemoteView ;
 
 /**
-	@author liuguangzhao <gzl@localhost>
+	@author liuguangzhao <liuguangzhao@users.sourceforge.net>
 */
 class LocalView : public QWidget
 {

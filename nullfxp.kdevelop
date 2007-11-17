@@ -2,8 +2,8 @@
 <kdevelop>
   <general>
     <author>liuguangzhao</author>
-    <email>gzl@localhost</email>
-    <version>0.9.1</version>
+    <email>liuguangzhao@users.sourceforge.net</email>
+    <version>1.5.1</version>
     <projectmanagement>KDevTrollProject</projectmanagement>
     <primarylanguage>C++</primarylanguage>
     <keywords>
@@ -13,8 +13,8 @@
     <projectname>nullfxp</projectname>
     <projectdirectory>.</projectdirectory>
     <absoluteprojectpath>false</absoluteprojectpath>
-    <description/>
-    <defaultencoding/>
+    <description></description>
+    <defaultencoding></defaultencoding>
     <versioncontrol>kdevsubversion</versioncontrol>
   </general>
   <kdevfileview>
@@ -67,7 +67,7 @@
       <includePaths>.;</includePaths>
     </codecompletion>
     <creategettersetter>
-      <prefixGet/>
+      <prefixGet></prefixGet>
       <prefixSet>set</prefixSet>
       <prefixVariable>m_,_</prefixVariable>
       <parameterName>theValue</parameterName>
@@ -121,16 +121,17 @@
   </kdevdoctreeview>
   <kdevdebugger>
     <general>
-      <dbgshell/>
+      <dbgshell></dbgshell>
       <breakpoints/>
       <programargs/>
       <gdbpath>/usr/bin/gdb</gdbpath>
       <breakonloadinglibs>true</breakonloadinglibs>
       <separatetty>false</separatetty>
       <floatingtoolbar>false</floatingtoolbar>
-      <configGdbScript/>
-      <runShellScript/>
-      <runGdbScript/>
+      <configGdbScript></configGdbScript>
+      <runShellScript></runShellScript>
+      <runGdbScript></runGdbScript>
+      <raiseGDBOnStart>false</raiseGDBOnStart>
     </general>
     <display>
       <staticmembers>false</staticmembers>
@@ -142,9 +143,9 @@
   <kdevtrollproject>
     <run>
       <mainprogram>/home/gzl/nullfxp-svn</mainprogram>
-      <programargs/>
+      <programargs></programargs>
       <directoryradio>executable</directoryradio>
-      <globaldebugarguments/>
+      <globaldebugarguments></globaldebugarguments>
       <globalcwd>/home/gzl/nullfxp-svn</globalcwd>
       <useglobalprogram>false</useglobalprogram>
       <terminal>false</terminal>
@@ -185,7 +186,7 @@
       <runmultiplejobs>false</runmultiplejobs>
       <numberofjobs>1</numberofjobs>
       <dontact>false</dontact>
-      <makebin/>
+      <makebin></makebin>
       <prio>0</prio>
       <envvars/>
     </make>
@@ -193,6 +194,7 @@
       <savebehaviour>2</savebehaviour>
       <replacePaths>false</replacePaths>
       <disableDefaultOpts>true</disableDefaultOpts>
+      <enableFilenamesOnly>false</enableFilenamesOnly>
     </qmake>
     <subclassing/>
   </kdevtrollproject>
