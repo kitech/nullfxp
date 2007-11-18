@@ -74,6 +74,8 @@ public:
         
         void slot_refresh_directory_tree();
         
+        void slot_show_hidden(bool show);
+        
     private slots:
         void slot_dir_tree_item_clicked( const QModelIndex & index);
         void slot_dir_file_view_double_clicked( const QModelIndex & index );

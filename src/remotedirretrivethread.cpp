@@ -174,8 +174,8 @@ int  RemoteDirRetriveThread::retrive_dir()
             QMap<char,QString> thefile ;
             if( strlen ( file_name ) == 1 && file_name[0] == '.' ) continue ;
             if( strlen ( file_name ) == 2 && file_name[0] == '.' && file_name[1] == '.') continue ;
-            //不处理隐藏文件? 处理隐藏文件
-            if( file_name[0] == '.' ) continue ;
+            //不处理隐藏文件? 处理隐藏文件,在这要提供隐藏文件，上层使用过滤代理模型提供显示隐藏文件的功能。
+            //if( file_name[0] == '.' ) continue ;
             
             memset(file_size,0,sizeof(file_size )) ;
             snprintf(file_size,sizeof(file_size) , "%llu",ssh2_sftp_attrib.filesize );

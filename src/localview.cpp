@@ -37,7 +37,7 @@ LocalView::LocalView ( QWidget *parent )
     
     ////
 	model = new QDirModel();
-    //model->setFilter(  QDir::AllDirs | QDir::NoDotAndDotDot );
+//     model->setFilter( QDir::AllEntries|QDir::Hidden|QDir::NoDotAndDotDot );
     this->dir_file_model = new LocalDirSortFilterModel(  );
     this->dir_file_model->setSourceModel(model);
     
@@ -109,6 +109,15 @@ void LocalView::init_local_dir_tree_context_menu()
     
     action = new QAction ( tr("Rename ..."),0);
     this->local_dir_tree_context_menu->addAction ( action );
+    
+    //////
+    action = new QAction("",0);
+    action->setSeparator(true);
+    this->local_dir_tree_context_menu->addAction ( action );
+    action = new QAction ( tr("Show Hidden"),0);
+    action->setCheckable(true);
+    this->local_dir_tree_context_menu->addAction ( action );
+    QObject::connect(action, SIGNAL(toggled(bool)), this, SLOT(slot_show_hidden(bool)));
     
     QObject::connect ( this->localView.treeView,SIGNAL ( customContextMenuRequested ( const QPoint & ) ),
                        this , SLOT ( slot_local_dir_tree_context_menu_request ( const QPoint & ) ) );
@@ -306,5 +315,15 @@ void LocalView::slot_dir_file_view_double_clicked( const QModelIndex & index )
     }
 }
 //TODO accept drop 
+
+void LocalView::slot_show_hidden(bool show)
+{
+    if(show){
+        this->model->setFilter(QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot);
+    }
+    else{
+        this->model->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot );
+    }
+}
 
 
