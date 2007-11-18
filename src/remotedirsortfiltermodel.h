@@ -35,17 +35,50 @@ Q_OBJECT
 public:
     RemoteDirSortFilterModel(QObject *parent = 0);
 
-    ~RemoteDirSortFilterModel();
+    virtual ~RemoteDirSortFilterModel();
     
-    QModelIndex index ( const QString & path, int column = 0 ) const;
+    virtual QModelIndex index ( const QString & path, int column = 0 ) const;
     
     virtual void setSourceModel ( QAbstractItemModel * sourceModel );
             
-    QString filePath(const QModelIndex &index) const;
-    bool isDir(const QModelIndex &index) const;
+    virtual QString filePath(const QModelIndex &index) const;
+    virtual bool isDir(const QModelIndex &index) const;
     
-    private:
+    virtual void setFilter ( QDir::Filters filters );
+    
+    protected:
+        virtual bool filterAcceptsRow ( int source_row, const QModelIndex & source_parent ) const;
+    protected:
         RemoteDirModel * source_model; 
+        QDir::Filters filters;
+};
+
+
+/**
+	@author liuguangzhao <liuguangzhao@users.sourceforge.net>
+ */
+class RemoteDirSortFilterModelEX : public RemoteDirSortFilterModel
+{
+    Q_OBJECT
+    public:
+        RemoteDirSortFilterModelEX(QObject *parent = 0);
+
+        virtual ~RemoteDirSortFilterModelEX();
+    
+//         QModelIndex index ( const QString & path, int column = 0 ) const;
+//     
+//         virtual void setSourceModel ( QAbstractItemModel * sourceModel );
+//             
+//         QString filePath(const QModelIndex &index) const;
+//         bool isDir(const QModelIndex &index) const;
+//     
+//         void setFilter ( QDir::Filters filters );
+    
+    protected:
+        virtual bool filterAcceptsRow ( int source_row, const QModelIndex & source_parent ) const;
+//     private:
+//         RemoteDirModel * source_model; 
+//         QDir::Filters filters;
 };
 
 #endif

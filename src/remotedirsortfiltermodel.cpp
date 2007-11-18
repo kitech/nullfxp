@@ -26,8 +26,8 @@
 RemoteDirSortFilterModel::RemoteDirSortFilterModel(QObject *parent)
     : QSortFilterProxyModel(parent)
 {
-    this->setFilterKeyColumn( 2 );
-    this->setFilterRegExp(QRegExp("^(d|l).*",Qt::CaseInsensitive));
+//     this->setFilterKeyColumn( 2 );
+//     this->setFilterRegExp(QRegExp("^(d|l).*",Qt::CaseInsensitive));
 }
 
 
@@ -36,7 +36,7 @@ RemoteDirSortFilterModel::~RemoteDirSortFilterModel()
 }
 QModelIndex RemoteDirSortFilterModel::index ( const QString & path, int column  ) const
 {
-    return this->source_model->index( path , column );
+    return this->mapFromSource(this->source_model->index( path , column ));
 }
 void RemoteDirSortFilterModel::setSourceModel ( QAbstractItemModel * sourceModel )
 {
@@ -52,4 +52,139 @@ bool RemoteDirSortFilterModel::isDir ( const QModelIndex &index ) const
 {
     return this->source_model->isDir( this->mapToSource(index) );
 }
+
+
+bool RemoteDirSortFilterModel::filterAcceptsRow ( int source_row, const QModelIndex & source_parent ) const
+{
+    //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<this->filters;
+    
+    if(this->filters &  QDir::Hidden )
+    {
+        //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+        return true;
+    }else{
+        QString file_name = this->source_model->data(this->source_model->index(source_row, 0, source_parent), Qt::DisplayRole).toString();
+        //qDebug()<<this->source_model->data(this->source_model->index(source_row, 0, source_parent), Qt::DisplayRole).toString();
+        if(file_name.at(0) == '.') return false;
+        else return true;
+        return true;
+    }
+
+    return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
+}
+
+void RemoteDirSortFilterModel::setFilter ( QDir::Filters filters )
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    
+    this->filters = filters;
+    emit layoutAboutToBeChanged();
+    //this->source_model->slot_remote_dir_node_clicked(this->source_model->index(0,0,QModelIndex()) );
+    directory_tree_item * dti = static_cast<directory_tree_item*>(this->source_model->index(0,0,QModelIndex()) .internalPointer());
+    //qDebug()<<dti->file_name<<" "<<dti->file_type<<" "<< dti->strip_path ;
+    //file_path = dti->strip_path ;
+    dti->retrived = 1;
+    dti->prev_retr_flag=9;
+    this->source_model->slot_remote_dir_node_clicked(this->source_model->index(0,0,QModelIndex()) );
+    
+    emit layoutChanged();
+}
+
+//////////////////////
+///////  EX
+//////////////////////////
+
+RemoteDirSortFilterModelEX::RemoteDirSortFilterModelEX(QObject *parent)
+    : RemoteDirSortFilterModel(parent)
+{
+//     this->setFilterKeyColumn( 2 );
+//     this->setFilterRegExp(QRegExp("^(d|l).*",Qt::CaseInsensitive));
+}
+
+
+RemoteDirSortFilterModelEX::~RemoteDirSortFilterModelEX()
+{
+}
+// QModelIndex RemoteDirSortFilterModelEX::index ( const QString & path, int column  ) const
+// {
+//     return this->source_model->index( path , column );
+// }
+// void RemoteDirSortFilterModelEX::setSourceModel ( QAbstractItemModel * sourceModel )
+// {
+//     this->source_model = static_cast<RemoteDirModel*>(sourceModel) ;
+//     RemoteDirSortFilterModel::setSourceModel(sourceModel);
+// }
+// 
+// QString RemoteDirSortFilterModelEX::filePath ( const QModelIndex &index ) const
+// {
+//     return this->source_model->filePath( this->mapToSource(index) );
+// }
+// bool RemoteDirSortFilterModelEX::isDir ( const QModelIndex &index ) const
+// {
+//     return this->source_model->isDir( this->mapToSource(index) );
+// }
+
+
+bool RemoteDirSortFilterModelEX::filterAcceptsRow ( int source_row, const QModelIndex & source_parent ) const
+{
+    //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<this->filters;
+        if( this->source_model->isDir( this->source_model->index(source_row, 0, source_parent)))
+        {
+            //QString file_name = this->source_model->data(this->source_model->index(source_row, 0, source_parent), Qt::DisplayRole).toString();
+        //qDebug()<<this->source_model->data(this->source_model->index(source_row, 0, source_parent), Qt::DisplayRole).toString();
+//             if(file_name.at(0) == '.') return true;
+//             else return false;
+//             return true;
+            return RemoteDirSortFilterModel::filterAcceptsRow(source_row, source_parent);
+        }else{
+            return false;
+        }
+//     if(this->filters &  QDir::Hidden )
+//     {
+//         //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+//         if( this->source_model->isDir( this->source_model->index(source_row, 0, source_parent)))
+//         {
+//             //QString file_name = this->source_model->data(this->source_model->index(source_row, 0, source_parent), Qt::DisplayRole).toString();
+//         //qDebug()<<this->source_model->data(this->source_model->index(source_row, 0, source_parent), Qt::DisplayRole).toString();
+// //             if(file_name.at(0) == '.') return true;
+// //             else return false;
+//             return true;
+//         }else{
+//             return false;
+//         }
+// 
+//     }else{
+//         //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+//         if( this->source_model->isDir( this->source_model->index(source_row, 0, source_parent)))
+//         {
+//             QString file_name = this->source_model->data(this->source_model->index(source_row, 0, source_parent), Qt::DisplayRole).toString();
+//             //qDebug()<<this->source_model->data(this->source_model->index(source_row, 0, source_parent), Qt::DisplayRole).toString();
+//             if(file_name.at(0) == '.') return false;
+//             else return true;
+//         }
+//         else{ 
+//             return false;
+//         }
+//     }
+
+    return RemoteDirSortFilterModel::filterAcceptsRow(source_row, source_parent);
+}
+
+// void RemoteDirSortFilterModelEX::setFilter ( QDir::Filters filters )
+// {
+//     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+//     
+//     this->filters = filters;
+//     emit layoutAboutToBeChanged();
+//     //this->source_model->slot_remote_dir_node_clicked(this->source_model->index(0,0,QModelIndex()) );
+//     directory_tree_item * dti = static_cast<directory_tree_item*>(this->source_model->index(0,0,QModelIndex()) .internalPointer());
+//     //qDebug()<<dti->file_name<<" "<<dti->file_type<<" "<< dti->strip_path ;
+//     //file_path = dti->strip_path ;
+//     dti->retrived = 1;
+//     dti->prev_retr_flag=9;
+//     this->source_model->slot_remote_dir_node_clicked(this->source_model->index(0,0,QModelIndex()) );
+//     
+//     emit layoutChanged();
+// }
+
 

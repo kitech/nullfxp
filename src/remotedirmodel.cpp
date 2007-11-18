@@ -683,6 +683,7 @@ void RemoteDirModel::slot_remote_dir_node_clicked ( const QModelIndex & index )
 	directory_tree_item * clicked_item = 0;
 	clicked_item = static_cast<directory_tree_item*> ( index.internalPointer() );
 
+    if(index.isValid() == false) return;
 	//this->dump_tree_node_item(clicked_item);
 
 	if ( clicked_item->retrived == 1 ) // 半满状态结点

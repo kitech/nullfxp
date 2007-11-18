@@ -27,6 +27,7 @@
 
 class ProgressDialog;
 class RemoteDirSortFilterModel ;
+class RemoteDirSortFilterModelEX ;
 
 #include "ui_remoteview.h"
 
@@ -71,6 +72,7 @@ public:
         RemoteDirModel * remote_dir_model ;
         int   table_row_height ;
         RemoteDirSortFilterModel * remote_dir_sort_filter_model ;
+        RemoteDirSortFilterModelEX * remote_dir_sort_filter_model_ex ;
         QAbstractItemView * curr_item_view ;    //
         
         QMenu * dir_tree_context_menu ;
@@ -124,6 +126,7 @@ public:
         //
         bool slot_drop_mime_data(const QMimeData *data, Qt::DropAction action,
                                  int row, int column, const QModelIndex &parent ) ;
+        void slot_show_hidden(bool show);
         
     signals:
         //void new_transfer_requested( QString file_name,QString file_type ) ;

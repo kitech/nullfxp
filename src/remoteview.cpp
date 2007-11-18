@@ -1,7 +1,9 @@
 /***************************************************************************
  *   Copyright (C) 2007 by liuguangzhao   *
- *   gzl@localhost   *
- *                                                                         *
+ *   liuguangzhao@users.sourceforge.net   *
+ *
+ *   http://www.qtchina.net                                                *
+ *   http://nullget.sourceforge.net                                        *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -84,6 +86,12 @@ void RemoteView::init_popup_context_menu()
     QObject::connect(action,SIGNAL(triggered()),this,SLOT(slot_show_properties()));
     attr_action = action ;
     
+    action = new QAction(tr("Show Hidden"),0);
+    action->setCheckable(true);
+    this->dir_tree_context_menu->addAction(action);
+    QObject::connect(action,SIGNAL(toggled(bool)),this,SLOT(slot_show_hidden(bool)));
+    attr_action = action ;
+    
     action = new QAction("",0);
     action->setSeparator(true);
     this->dir_tree_context_menu->addAction(action);
@@ -133,10 +141,11 @@ void RemoteView::i_init_dir_view( )
     this->remote_dir_model->set_user_home_path(this->user_home_path);
     this->remote_dir_sort_filter_model = new RemoteDirSortFilterModel();
     remote_dir_sort_filter_model->setSourceModel( this->remote_dir_model);
-
+    this->remote_dir_sort_filter_model_ex = new RemoteDirSortFilterModelEX();
+    remote_dir_sort_filter_model_ex->setSourceModel( this->remote_dir_model);
     
     //this->remoteview.treeView->setModel(this->remote_dir_model);
-    this->remoteview.treeView->setModel( remote_dir_sort_filter_model );
+    this->remoteview.treeView->setModel( remote_dir_sort_filter_model_ex );
     this->remoteview.treeView->setAcceptDrops(true);
     this->remoteview.treeView->setDragEnabled(false);
     this->remoteview.treeView->setDropIndicatorShown(true);
@@ -156,10 +165,11 @@ void RemoteView::i_init_dir_view( )
     this->remoteview.treeView->setColumnHidden( 2, true);
     this->remoteview.treeView->setColumnHidden( 3, true);
     
-    this->remoteview.tableView->setModel( this->remote_dir_model);
-    this->remoteview.tableView->setRootIndex( this->remote_dir_model->index( this->user_home_path.c_str() ) );
+    /////tableView
+    this->remoteview.tableView->setModel( this->remote_dir_sort_filter_model);
+    this->remoteview.tableView->setRootIndex( this->remote_dir_sort_filter_model->index( this->user_home_path.c_str() ) );
     //change row height of table 
-    if( this->remote_dir_model->rowCount( this->remote_dir_model->index( this->user_home_path.c_str() ) ) > 0 )
+    if( this->remote_dir_model->rowCount( this->remote_dir_sort_filter_model->index( this->user_home_path.c_str() ) ) > 0 )
     {
         this->table_row_height = this->remoteview.tableView->rowHeight(0)*2/3;
     }
@@ -167,7 +177,7 @@ void RemoteView::i_init_dir_view( )
     {
         this->table_row_height = 20 ;
     }
-    for( int i = 0 ; i < this->remote_dir_model->rowCount( this->remote_dir_model->index( this->user_home_path.c_str() ) ); i ++ )
+    for( int i = 0 ; i < this->remote_dir_model->rowCount( this->remote_dir_sort_filter_model->index( this->user_home_path.c_str() ) ); i ++ )
         this->remoteview.tableView->setRowHeight( i, this->table_row_height );
     this->remoteview.tableView->resizeColumnToContents( 0 );
     
@@ -176,6 +186,7 @@ void RemoteView::i_init_dir_view( )
                      this,SLOT( slot_dir_tree_item_clicked(const QModelIndex &))) ;
     QObject::connect( this->remoteview.tableView,SIGNAL( doubleClicked ( const QModelIndex &  ) ) , this,SLOT( slot_dir_file_view_double_clicked ( const QModelIndex & ) ) );
     QObject::connect( this->remoteview.tableView,SIGNAL( drag_ready()),this,SLOT(slot_drag_ready()) );
+
     //TODO 连接remoteview.treeView 的drag信号
 }
 
@@ -446,11 +457,16 @@ void RemoteView::slot_show_properties()
     {
         for( int i = 0 ; i < mil.count() ; i ++ )
         {
+            aim_mil << this->remote_dir_sort_filter_model_ex->mapToSource( mil.at(i) );
+        }
+    }
+    else{
+//         aim_mil = mil ;
+        for( int i = 0 ; i < mil.count() ; i ++ )
+        {
             aim_mil << this->remote_dir_sort_filter_model->mapToSource( mil.at(i) );
         }
     }
-    else
-        aim_mil = mil ;
     if( aim_mil.count() == 0 ){
         qDebug()<<" why???? no QItemSelectionModel??";
         return;
@@ -604,7 +620,7 @@ void RemoteView::slot_rename()
     }
     
     QModelIndex midx = mil.at(0);
-    QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) ? this->remote_dir_sort_filter_model->mapToSource(midx): midx ;
+    QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) ? this->remote_dir_sort_filter_model_ex->mapToSource(midx): this->remote_dir_sort_filter_model->mapToSource(midx) ;
     directory_tree_item * dti = (directory_tree_item*) aim_midx.internalPointer();
     QModelIndex parent_model =  aim_midx.parent() ;
     directory_tree_item * parent_item = (directory_tree_item*)parent_model.internalPointer();
@@ -810,11 +826,11 @@ void RemoteView::slot_dir_tree_item_clicked ( const QModelIndex & index )
 	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 	QString file_path ;
 
-    remote_dir_model->slot_remote_dir_node_clicked(this->remote_dir_sort_filter_model->mapToSource(index));
+    remote_dir_model->slot_remote_dir_node_clicked(this->remote_dir_sort_filter_model_ex->mapToSource(index));
         
-	file_path = this->remote_dir_sort_filter_model->filePath ( index );
-	this->remoteview.tableView->setRootIndex ( this->remote_dir_model->index ( file_path ) ) ;
-	for ( int i = 0 ; i < this->remote_dir_model->rowCount ( this->remote_dir_model->index ( file_path ) ); i ++ )
+    file_path = this->remote_dir_sort_filter_model_ex->filePath ( index );
+    this->remoteview.tableView->setRootIndex ( this->remote_dir_sort_filter_model->index ( file_path ) ) ;
+    for ( int i = 0 ; i < this->remote_dir_sort_filter_model->rowCount ( this->remote_dir_sort_filter_model->index ( file_path ) ); i ++ )
 		this->remoteview.tableView->setRowHeight ( i,this->table_row_height );
 	this->remoteview.tableView->resizeColumnToContents ( 0 );
 }
@@ -943,3 +959,15 @@ bool RemoteView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction actio
     
     return true ;
 }
+
+void RemoteView::slot_show_hidden(bool show)
+{
+    if(show){
+        remote_dir_sort_filter_model->setFilter(QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot);
+        remote_dir_sort_filter_model_ex->setFilter(QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot);
+    }else{
+        remote_dir_sort_filter_model->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
+        remote_dir_sort_filter_model_ex->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
+    }
+}
+
