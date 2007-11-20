@@ -169,7 +169,7 @@ void RemoteView::i_init_dir_view( )
     this->remoteview.tableView->setModel( this->remote_dir_sort_filter_model);
     this->remoteview.tableView->setRootIndex( this->remote_dir_sort_filter_model->index( this->user_home_path.c_str() ) );
     //change row height of table 
-    if( this->remote_dir_model->rowCount( this->remote_dir_sort_filter_model->index( this->user_home_path.c_str() ) ) > 0 )
+    if( this->remote_dir_sort_filter_model->rowCount( this->remote_dir_sort_filter_model->index( this->user_home_path.c_str() ) ) > 0 )
     {
         this->table_row_height = this->remoteview.tableView->rowHeight(0)*2/3;
     }
@@ -177,7 +177,7 @@ void RemoteView::i_init_dir_view( )
     {
         this->table_row_height = 20 ;
     }
-    for( int i = 0 ; i < this->remote_dir_model->rowCount( this->remote_dir_sort_filter_model->index( this->user_home_path.c_str() ) ); i ++ )
+    for( int i = 0 ; i < this->remote_dir_sort_filter_model->rowCount( this->remote_dir_sort_filter_model->index( this->user_home_path.c_str() ) ); i ++ )
         this->remoteview.tableView->setRowHeight( i, this->table_row_height );
     this->remoteview.tableView->resizeColumnToContents( 0 );
     
@@ -233,9 +233,8 @@ void RemoteView::slot_new_transfer()
     {
         QModelIndex midx = mil.at(i);
         qDebug()<<midx ;
-        directory_tree_item * dti = (directory_tree_item*) ( this->curr_item_view!=this->remoteview.treeView ?   midx.internalPointer() : ( this->remote_dir_sort_filter_model->mapToSource(midx ).internalPointer() )  );
-        qDebug()<<dti->file_name<<" "<<dti->file_type
-                <<" "<< dti->strip_path  ;
+        directory_tree_item * dti = (directory_tree_item*) ( this->curr_item_view!=this->remoteview.treeView ?   this->remote_dir_sort_filter_model->mapToSource(midx).internalPointer() : ( this->remote_dir_sort_filter_model_ex->mapToSource(midx ).internalPointer() )  );
+        qDebug()<<dti->file_name<<" "<<dti->file_type<<" "<< dti->strip_path  ;
         file_path = dti->strip_path;
         //file_type = dti->file_type  ;
         file_path = QString("nrsftp://%1:%2@%3:22").arg(this->user_name).arg(this->password).arg(this->host_name) + file_path;
@@ -745,16 +744,16 @@ void RemoteView::slot_new_download_requested(QStringList local_file_names,   QSt
 }
 void RemoteView::slot_new_download_requested( QStringList remote_file_names ) 
 {
-	QStringList local_file_names ;
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
-	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+	QStringList local_file_names ;
 	QString local_file_path  ;
         
     RemoteView * remote_view = this/*->get_top_most_remote_view() */;
     
 	local_file_path = this->local_view->get_selected_directory();
 	
-    
+    qDebug()<<local_file_path;
 	if ( local_file_path.length() == 0 || ! is_dir( GlobalOption::instance()->locale_codec->fromUnicode( local_file_path  ).data() ) )
 	{
 		qDebug() <<" selected a local file directory  please";

@@ -236,9 +236,9 @@ QString LocalView::get_selected_directory()
 	//qDebug() << model->fileName ( mil.at ( 0 ) );
 	//qDebug() << model->filePath ( mil.at ( 0 ) );
 
-	QString local_file = model->filePath ( mil.at ( 0 ) );
+    QString local_file = this->dir_file_model->filePath ( mil.at ( 0 ) );
 
-	local_path = model->filePath ( mil.at ( 0 ) );
+    local_path = this->dir_file_model->filePath ( mil.at ( 0 ) );
 
     //QByteArray ba = codec->fromUnicode(local_path);
     //qDebug()<<" orginal name:"<< local_path
