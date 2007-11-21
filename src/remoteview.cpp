@@ -844,13 +844,13 @@ void RemoteView::slot_dir_file_view_double_clicked( const QModelIndex & index )
     //1。　本地主机，如果是目录，则打开这个目录，如果是文件，则使用本机的程序打开这个文件
     //2。对于远程主机，　如果是目录，则打开这个目录，如果是文件，则提示是否要下载它(或者也可以直接打开这个文件）。
     QString file_path ;    
-    if( this->remote_dir_model->isDir( index ) )
+    if( this->remote_dir_sort_filter_model->isDir( index ) )
     {
-        this->remoteview.treeView->expand(  this->remote_dir_sort_filter_model->mapFromSource(this->remote_dir_model->index(this->remote_dir_model->filePath(index))).parent());        
-        this->remoteview.treeView->expand(  this->remote_dir_sort_filter_model->mapFromSource(this->remote_dir_model->index(this->remote_dir_model->filePath(index))) );
-        this->slot_dir_tree_item_clicked( this->remote_dir_sort_filter_model->mapFromSource(this->remote_dir_model->index(this->remote_dir_model->filePath(index))));
+        this->remoteview.treeView->expand(  this->remote_dir_sort_filter_model_ex->index(this->remote_dir_sort_filter_model->filePath(index)).parent());
+        this->remoteview.treeView->expand(  this->remote_dir_sort_filter_model_ex->index(this->remote_dir_sort_filter_model->filePath(index)));
+        this->slot_dir_tree_item_clicked( this->remote_dir_sort_filter_model_ex->index(this->remote_dir_sort_filter_model->filePath(index)));
         this->remoteview.treeView->selectionModel()->clearSelection();
-        this->remoteview.treeView->selectionModel()->select( this->remote_dir_sort_filter_model->mapFromSource(this->remote_dir_model->index(this->remote_dir_model->filePath(index))) , QItemSelectionModel::Select ) ;
+        this->remoteview.treeView->selectionModel()->select( this->remote_dir_sort_filter_model_ex->index(this->remote_dir_sort_filter_model->filePath(index)) , QItemSelectionModel::Select ) ;
     }
     else
     {
