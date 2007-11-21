@@ -503,11 +503,15 @@ void RemoteView::slot_mkdir()
     }
     
     QModelIndex midx = mil.at(0);
-    QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) ? this->remote_dir_sort_filter_model->mapToSource(midx): midx ;
+    QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) ? this->remote_dir_sort_filter_model_ex->mapToSource(midx): this->remote_dir_sort_filter_model->mapToSource(midx) ;
     directory_tree_item * dti = (directory_tree_item*)( aim_midx.internalPointer() );
     
     //TODO 检查所选择的项是不是目录
-    
+    if(!this->remote_dir_model->isDir(aim_midx))
+    {
+        QMessageBox::critical(this,tr("waring..."),tr("The selected item is not a directory."));
+        return ;
+    }
     
     dir_name = QInputDialog::getText(this,tr("Create directory:"),
                                       tr("Input directory name:"),
@@ -553,7 +557,7 @@ void RemoteView::slot_rmdir()
     }
     
     QModelIndex midx = mil.at(0);
-    QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) ? this->remote_dir_sort_filter_model->mapToSource(midx): midx ;    
+    QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) ? this->remote_dir_sort_filter_model_ex->mapToSource(midx): this->remote_dir_sort_filter_model->mapToSource(midx) ;    
     directory_tree_item * dti = (directory_tree_item*) aim_midx.internalPointer();
     QModelIndex parent_model =  aim_midx.parent() ;
     directory_tree_item * parent_item = (directory_tree_item*)parent_model.internalPointer();
