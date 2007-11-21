@@ -28,7 +28,7 @@
 
 
 /**
-	@author liuguangzhao <gzl@localhost>
+	@author liuguangzhao <liuguangzhao@users.sourceforge.net >
 
 	这个model必须做成lazy模式的，因为它是远程目录，只有需要显示的时候才去取来远程目录结构
 */

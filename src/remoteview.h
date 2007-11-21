@@ -1,7 +1,9 @@
 /***************************************************************************
  *   Copyright (C) 2007 by liuguangzhao   *
- *   gzl@localhost   *
- *                                                                         *
+ *   liuguangzhao@users.sourceforge.net   *
+ *
+ *   http://www.qtchina.net                                                *
+ *   http://nullget.sourceforge.net                                        *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -39,7 +41,7 @@ class RemoteDirSortFilterModelEX ;
 class LocalView ;
 
 /**
-	@author liuguangzhao <gzl@localhost>
+	@author liuguangzhao <liuguangzhao@users.sourceforge.net >
 */
 class RemoteView : public QWidget
 {

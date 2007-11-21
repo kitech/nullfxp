@@ -390,7 +390,7 @@ void RemoteView::slot_leave_remote_dir_retrive_loop()
     this->remoteview.splitter->setCursor(this->orginal_cursor);
     this->remote_dir_model->set_keep_alive(true);
     this->in_remote_dir_retrive_loop = false ;
-    for ( int i = 0 ; i < this->remote_dir_model->rowCount ( this->remoteview.tableView->rootIndex() ); i ++ ){
+    for ( int i = 0 ; i < this->remote_dir_sort_filter_model->rowCount ( this->remoteview.tableView->rootIndex() ); i ++ ){
         this->remoteview.tableView->setRowHeight ( i,this->table_row_height );
     }
     this->remoteview.tableView->resizeColumnToContents ( 0 );

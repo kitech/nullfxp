@@ -213,7 +213,7 @@
   </kdevfilecreate>
   <kdevdocumentation>
     <projectdoc>
-      <docsystem>Doxygen 文件集</docsystem>
+      <docsystem>Doxygen 文档集</docsystem>
       <docurl>nullfxp.tag</docurl>
       <usermanualurl/>
     </projectdoc>
