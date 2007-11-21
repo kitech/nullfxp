@@ -588,7 +588,7 @@ void RemoteView::rm_file_or_directory_recursively()
     }
     //TODO 处理多选的情况
     QModelIndex midx = mil.at(0);
-    QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) ? this->remote_dir_sort_filter_model->mapToSource(midx): midx ;
+    QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) ? this->remote_dir_sort_filter_model_ex->mapToSource(midx): this->remote_dir_sort_filter_model->mapToSource(midx) ;
     directory_tree_item * dti = (directory_tree_item*) aim_midx.internalPointer();
     QModelIndex parent_model =  aim_midx.parent() ;
     directory_tree_item * parent_item = (directory_tree_item*)parent_model.internalPointer();

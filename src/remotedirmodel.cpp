@@ -746,6 +746,7 @@ bool RemoteDirModel::isDir(const QModelIndex &index) const
     if( node_item->child_items.size() > 0 
         || node_item->file_type.at(0) == QChar('d') 
         || node_item->file_type.at(0) == QChar('D') 
+        || node_item->file_type.at(0) == QChar('l') 
       )
         return true ;
     return false ;
