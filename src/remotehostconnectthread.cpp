@@ -189,7 +189,7 @@ void RemoteHostConnectThread::run()
     char * auth_list = libssh2_userauth_list((LIBSSH2_SESSION*)ssh2_sess,this->user_name.c_str(),strlen(this->user_name.c_str()) );
     printf("user auth list : %s \n" , auth_list ) ;
     
-    emit connect_state_changed( tr( "User authing (Keyboard Interactive)...") );
+    emit connect_state_changed( tr( "User authing (Password)...") );
     
     if( this->user_canceled == true ){
         this->connect_status = 2 ;
@@ -202,19 +202,19 @@ void RemoteHostConnectThread::run()
 #endif
             return;
     }   
-    
-    ssh2_kbd_cb_mutex.lock();
-    strncpy(ssh2_password,this->password.c_str() , sizeof(ssh2_password));
-    ret = libssh2_userauth_keyboard_interactive((LIBSSH2_SESSION*)ssh2_sess,this->user_name.c_str(),&kbd_callback) ;
-    memset( ssh2_password,0,sizeof(ssh2_password));
-    ssh2_kbd_cb_mutex.unlock();
-    
-    qDebug()<<"keyboard interactive :"<<ret ;
+
+    ret = libssh2_userauth_password((LIBSSH2_SESSION*)ssh2_sess,this->user_name.c_str(),this->password.c_str());
+    qDebug()<<"Keyboard Interactive :"<<ret ;
+
     if( ret == -1 )
     {
-        emit connect_state_changed( tr( "User auth faild (Keyboard Interactive). Trying (Password ) ...") );
-        ret = libssh2_userauth_password((LIBSSH2_SESSION*)ssh2_sess,this->user_name.c_str(),this->password.c_str());
-        qDebug()<<"auth_password :"<<ret ;
+        emit connect_state_changed( tr( "User auth faild (Password). Trying (Keyboard Interactive) ...") );
+        ssh2_kbd_cb_mutex.lock();
+        strncpy(ssh2_password,this->password.c_str() , sizeof(ssh2_password));
+        ret = libssh2_userauth_keyboard_interactive((LIBSSH2_SESSION*)ssh2_sess,this->user_name.c_str(),&kbd_callback) ;
+        memset( ssh2_password,0,sizeof(ssh2_password));
+        ssh2_kbd_cb_mutex.unlock();
+        qDebug()<<"keyboard interactive :"<<ret ;
     }
     if( this->user_canceled == true ){
         this->connect_status = 2 ;

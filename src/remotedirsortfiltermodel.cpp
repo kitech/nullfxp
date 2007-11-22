@@ -75,19 +75,37 @@ bool RemoteDirSortFilterModel::filterAcceptsRow ( int source_row, const QModelIn
 
 void RemoteDirSortFilterModel::setFilter ( QDir::Filters filters )
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<this;
+    directory_tree_item * dti = 0;
+
+    //这个函数写的挺奇怪了的，这个persistentIndexList到底是什么东西。在什么时候有用呢。
+    //
     this->filters = filters;
-    emit layoutAboutToBeChanged();
-    //this->source_model->slot_remote_dir_node_clicked(this->source_model->index(0,0,QModelIndex()) );
-    directory_tree_item * dti = static_cast<directory_tree_item*>(this->source_model->index(0,0,QModelIndex()) .internalPointer());
-    //qDebug()<<dti->file_name<<" "<<dti->file_type<<" "<< dti->strip_path ;
-    //file_path = dti->strip_path ;
-    dti->retrived = 1;
-    dti->prev_retr_flag=9;
-    this->source_model->slot_remote_dir_node_clicked(this->source_model->index(0,0,QModelIndex()) );
+    if(strcmp(this->metaObject()->className(),"RemoteDirSortFilterModelEX") == 0)
+    {
+        //qDebug()<<this->persistentIndexList();
+        for(int i=0;i<this->persistentIndexList().count();i++)
+        {
+            //qDebug()<<i;
+            dti = static_cast<directory_tree_item*>(this->mapToSource(this->persistentIndexList().at(i)) .internalPointer());
+            //qDebug()<<dti;
+            qDebug()<<dti->strip_path<<this;
+            if(dti->strip_path.length() > 0)
+            {
+                emit layoutAboutToBeChanged();
+                //this->source_model->slot_remote_dir_node_clicked(this->source_model->index(0,0,QModelIndex()) );
+                //dti = static_cast<directory_tree_item*>(this->source_model->index(0,0,QModelIndex()) .internalPointer());
+                //qDebug()<<dti->file_name<<" "<<dti->file_type<<" "<< dti->strip_path ;
+                //file_path = dti->strip_path ;
+                dti->retrived = 1;
+                dti->prev_retr_flag=9;
+                this->source_model->slot_remote_dir_node_clicked(this->mapToSource(this->persistentIndexList().at(i) ));
     
-    emit layoutChanged();
+                emit layoutChanged();
+                break;
+            }
+        }
+    }
 }
 
 //////////////////////
