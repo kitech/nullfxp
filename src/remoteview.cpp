@@ -90,7 +90,6 @@ void RemoteView::init_popup_context_menu()
     action->setCheckable(true);
     this->dir_tree_context_menu->addAction(action);
     QObject::connect(action,SIGNAL(toggled(bool)),this,SLOT(slot_show_hidden(bool)));
-    attr_action = action ;
     
     action = new QAction("",0);
     action->setSeparator(true);
@@ -363,6 +362,9 @@ void RemoteView::slot_custom_ui_area()
     this->remoteview.splitter_2->setStretchFactor(1,1);
     this->remoteview.listView->setVisible(false);//暂时没有功能在里面先隐藏掉
     //this->remoteview.tableView->setVisible(false);
+    qDebug()<<this->geometry();
+    this->setGeometry(this->x(),this->y(),this->width(),this->height()*2);
+    qDebug()<<this->geometry();
 }
 
 // void RemoteView::slot_dir_item_clicked(const QModelIndex & index)

@@ -222,10 +222,17 @@ void NullFXP::slot_connect_remote_host_finished ( int status,void * ssh2_sess , 
         RemoteView * remote_view = new RemoteView(this->mdiArea , this->localView);
         
         mdiArea->addSubWindow ( remote_view );
+        QMdiSubWindow * local_sub_win = mdiArea->subWindowList(QMdiArea::CreationOrder).at(mdiArea->subWindowList(QMdiArea::CreationOrder).count()-1);
         
         remote_view->slot_custom_ui_area();
-        remote_view->show();
-  
+        //remote_view->show();
+        local_sub_win->show();
+        //调整本地目录树窗口的大小
+        //QList<QMdiSubWindow *> mdiSubWindow = mdiArea->subWindowList();
+        //qDebug()<<" mdi sub window count :"<< mdiSubWindow.count();        
+        //local_sub_win->setGeometry( local_sub_win->x(),local_sub_win->y(), mdiArea->width()/2,  mdiArea->height()*18/19 );
+        local_sub_win->resize(mdiArea->width()/2, mdiArea->height()*18/19) ;
+        
         remote_view->set_ssh2_handler(ssh2_sess/*,ssh2_sftp*/ ,ssh2_sock);
         remote_view->set_user_home_path ( this->remote_conn_thread->get_user_home_path() );
         remote_view->set_host_info(conn_thread->get_host_name(),
