@@ -34,7 +34,8 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#include <wait.h>
+//#include <wait.h>
+#include <netinet/in.h>
 #endif
 
 #include <assert.h>
