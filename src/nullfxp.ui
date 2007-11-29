@@ -19,7 +19,7 @@
      <x>0</x>
      <y>0</y>
      <width>749</width>
-     <height>30</height>
+     <height>28</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFfff" >
@@ -46,6 +46,7 @@
     <addaction name="separator" />
     <addaction name="actionCascade_window" />
     <addaction name="actionTile_window" />
+    <addaction name="separator" />
    </widget>
    <widget class="QMenu" name="menuDsfsdf" >
     <property name="title" >
@@ -60,9 +61,17 @@
     </property>
     <addaction name="actionQuit" />
    </widget>
+   <widget class="QMenu" name="menuTool" >
+    <property name="title" >
+     <string>&amp;Tool</string>
+    </property>
+    <addaction name="action_Forward_connect" />
+    <addaction name="action_Synchronize_file" />
+   </widget>
    <addaction name="menu_File" />
    <addaction name="menuFfff" />
    <addaction name="menuOidfgsdf" />
+   <addaction name="menuTool" />
    <addaction name="menuK" />
    <addaction name="menuDsfsdf" />
   </widget>
@@ -153,6 +162,16 @@
   <action name="actionAbout_Qt" >
    <property name="text" >
     <string>About &amp;Qt</string>
+   </property>
+  </action>
+  <action name="action_Forward_connect" >
+   <property name="text" >
+    <string>&amp;Forward connect</string>
+   </property>
+  </action>
+  <action name="action_Synchronize_file" >
+   <property name="text" >
+    <string>&amp;Synchronize file</string>
    </property>
   </action>
  </widget>

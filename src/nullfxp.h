@@ -95,11 +95,15 @@ public:
         
         void slot_show_local_view();
         void slot_show_remote_view();
-        void slot_cascade_sub_windows();
-        void slot_tile_sub_windows();
+        void slot_cascade_sub_windows(bool triggered);
+        void slot_tile_sub_windows(bool triggered);
         void slot_show_transfer_queue(bool show);
         void slot_show_fxp_command_log(bool show);
-
+        
+    private slots:
+        void slot_forward_connect();
+        void slot_synchronize_file();
+        
     private:
         MdiChild *activeMdiChild();        
 

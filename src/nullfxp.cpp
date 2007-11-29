@@ -67,8 +67,8 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
 	QObject::connect ( this->mUIMain.actionShow_log,SIGNAL ( triggered ( bool ) ),
 	                   this,SLOT ( slot_show_fxp_command_log ( bool ) ) );
 
-	QObject::connect ( this->mUIMain.actionCascade_window,SIGNAL ( triggered() ),this,SLOT ( slot_cascade_sub_windows() ) );
-	QObject::connect ( this->mUIMain.actionTile_window,SIGNAL ( triggered() ),this,SLOT ( slot_tile_sub_windows() ) );
+    QObject::connect ( this->mUIMain.actionCascade_window,SIGNAL ( triggered(bool) ),this,SLOT ( slot_cascade_sub_windows(bool) ) );
+    QObject::connect ( this->mUIMain.actionTile_window,SIGNAL ( triggered(bool) ),this,SLOT ( slot_tile_sub_windows(bool) ) );
 
 	transfer_queue_list_view = new QListView();
 
@@ -114,6 +114,12 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
 	QObject::connect ( this->mUIMain.actionAbout_Qt,SIGNAL ( triggered() ),
 	                   qApp,SLOT ( aboutQt() ) );
 
+    //tool menu
+    QObject::connect(this->mUIMain.action_Forward_connect, SIGNAL(triggered()),
+                     this, SLOT(slot_forward_connect()));
+    QObject::connect(this->mUIMain.action_Synchronize_file, SIGNAL(triggered()),
+                     this, SLOT(slot_synchronize_file()));
+    
 	//启动主界面大小调整
 	//this->slot_tile_sub_windows();
 
@@ -291,12 +297,12 @@ void NullFXP::slot_show_fxp_command_log ( bool show )
             remote_view->slot_show_fxp_command_log ( show )  ;
 }
 
-void NullFXP::slot_cascade_sub_windows()
+void NullFXP::slot_cascade_sub_windows(bool triggered)
 {
 	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 	this->mdiArea->cascadeSubWindows();
 }
-void NullFXP::slot_tile_sub_windows()
+void NullFXP::slot_tile_sub_windows(bool triggered)
 {
 	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     //让本地视图总是显示在左侧,并不改为原来的窗口顺序

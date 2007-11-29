@@ -18,7 +18,8 @@ SOURCES += main.cpp \
  remoteviewdirtableview.cpp \
  remotedirtreeview.cpp \
  localdirsortfiltermodel.cpp \
- localdirorginalmodel.cpp
+ localdirorginalmodel.cpp \
+ nullfxpext.cpp
 TEMPLATE = app
 CONFIG += warn_on \
 	  thread \

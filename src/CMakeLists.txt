@@ -159,7 +159,7 @@ ADD_EXECUTABLE(../bin/nullfxp
     progressdialog.cpp
     aboutnullfxp.cpp
     nullfxp.cpp
-    
+    nullfxpext.cpp
 ##########################
     globaloption.cpp
     globaloptionsdialog.cpp

@@ -99,6 +99,7 @@ src/nullfxp.cpp -text
 src/nullfxp.h -text
 src/nullfxp.qrc -text
 src/nullfxp.ui -text
+src/nullfxpext.cpp -text
 src/progressdialog.cpp -text
 src/progressdialog.h -text
 src/progressdialog.ui -text
