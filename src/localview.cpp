@@ -109,6 +109,7 @@ void LocalView::init_local_dir_tree_context_menu()
     
     action = new QAction ( tr("Rename ..."),0);
     this->local_dir_tree_context_menu->addAction ( action );
+    QObject::connect(action, SIGNAL(triggered()),this,SLOT(slot_rename()));
     
     //////
     action = new QAction("",0);
@@ -324,6 +325,50 @@ void LocalView::slot_show_hidden(bool show)
     else{
         this->model->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot );
     }
+}
+
+void LocalView::slot_rename()
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    QItemSelectionModel * ism = this->curr_item_view->selectionModel();
+    if( ism == 0 )
+    {
+        //TODO alert the invalid situation
+        return ;
+    }
+    QModelIndexList mil = ism->selectedIndexes();
+    if(mil.count() == 0 )
+    {
+        //TODO alert the invalid situation
+        return ;
+    }
+    QString local_file = this->curr_item_view==this->localView.treeView?this->dir_file_model->filePath ( mil.at ( 0 ) ) : this->model->filePath(mil.at(0));
+    QString file_name = this->curr_item_view==this->localView.treeView?this->dir_file_model->fileName ( mil.at ( 0 ) ) : this->model->fileName(mil.at(0));
+    //QByteArray ba = codec->fromUnicode(local_path);
+    //qDebug()<<" orginal name:"<< local_path
+    //        <<" unicode name:"<< QString(ba.data() );
+    //local_path = ba ;
+    QString rename_to ;
+    rename_to = QInputDialog::getText(this,tr("Rename to:"),  tr("Input new name:"),
+                                         QLineEdit::Normal, file_name );
+     
+    if(  rename_to  == QString::null )
+    {
+        //qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+        //QMessageBox::critical(this,tr("Waring..."),tr("No new name supplyed "));
+        return;
+    }
+    if( rename_to.length() == 0 )
+    {
+        QMessageBox::critical(this,tr("Waring..."),tr("No new name supplyed "));
+        return ;
+    }
+    QTextCodec * codec = GlobalOption::instance()->locale_codec;
+    QString file_path = local_file.left(local_file.length()-file_name.length());
+    rename_to = file_path + rename_to;
+    ::rename( codec->fromUnicode(local_file).data(), codec->fromUnicode(rename_to).data());
+    
+    this->slot_refresh_directory_tree();
 }
 
 

@@ -24,7 +24,7 @@
      <item>
       <widget class="QLabel" name="label_13" >
        <property name="text" >
-        <string>TextLabel</string>
+        <string>File Icon</string>
        </property>
       </widget>
      </item>
