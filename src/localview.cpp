@@ -330,18 +330,15 @@ void LocalView::slot_show_hidden(bool show)
 void LocalView::slot_rename()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    QModelIndexList mil;
     QItemSelectionModel * ism = this->curr_item_view->selectionModel();
-    if( ism == 0 )
+    if( ism == 0 || ism->selectedIndexes().count() == 0)
     {
-        //TODO alert the invalid situation
+        QMessageBox::critical(this,tr("Waring..."),tr("No item selected")+"                         ");
         return ;
     }
-    QModelIndexList mil = ism->selectedIndexes();
-    if(mil.count() == 0 )
-    {
-        //TODO alert the invalid situation
-        return ;
-    }
+    mil = ism->selectedIndexes();
+
     QString local_file = this->curr_item_view==this->localView.treeView?this->dir_file_model->filePath ( mil.at ( 0 ) ) : this->model->filePath(mil.at(0));
     QString file_name = this->curr_item_view==this->localView.treeView?this->dir_file_model->fileName ( mil.at ( 0 ) ) : this->model->fileName(mil.at(0));
     //QByteArray ba = codec->fromUnicode(local_path);
@@ -349,7 +346,8 @@ void LocalView::slot_rename()
     //        <<" unicode name:"<< QString(ba.data() );
     //local_path = ba ;
     QString rename_to ;
-    rename_to = QInputDialog::getText(this,tr("Rename to:"),  tr("Input new name:"),
+    rename_to = QInputDialog::getText(this,tr("Rename to:"),  tr("Input new name:")
+            +"                                                        ",
                                          QLineEdit::Normal, file_name );
      
     if(  rename_to  == QString::null )

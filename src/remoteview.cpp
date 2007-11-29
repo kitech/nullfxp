@@ -508,7 +508,7 @@ void RemoteView::slot_mkdir()
     QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) ? this->remote_dir_sort_filter_model_ex->mapToSource(midx): this->remote_dir_sort_filter_model->mapToSource(midx) ;
     directory_tree_item * dti = (directory_tree_item*)( aim_midx.internalPointer() );
     
-    //TODO 检查所选择的项是不是目录
+    //检查所选择的项是不是目录
     if(!this->remote_dir_model->isDir(aim_midx))
     {
         QMessageBox::critical(this,tr("waring..."),tr("The selected item is not a directory."));
@@ -516,7 +516,8 @@ void RemoteView::slot_mkdir()
     }
     
     dir_name = QInputDialog::getText(this,tr("Create directory:"),
-                                      tr("Input directory name:"),
+                                      tr("Input directory name:")
+                                     +"                                                        ",
                                          QLineEdit::Normal,
                                          tr("new_direcotry") );
     if( dir_name == QString::null )
@@ -544,7 +545,7 @@ void RemoteView::slot_rmdir()
     if(ism == 0)
     {
         qDebug()<<" why???? no QItemSelectionModel??";
-        QMessageBox::critical(this,tr("waring..."),tr("maybe you haven't connected"));                
+        QMessageBox::critical(this,tr("Waring..."),tr("Maybe you haven't connected"));                
         return  ;
         return ;
     }
@@ -554,7 +555,7 @@ void RemoteView::slot_rmdir()
     if( mil.count() == 0 )
     {
         qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
-        QMessageBox::critical(this,tr("waring..."),tr("no item selected"));
+        QMessageBox::critical(this,tr("Waring..."),tr("No item selected")+"                         ");
         return ;
     }
     
@@ -579,7 +580,7 @@ void RemoteView::rm_file_or_directory_recursively()
     if(ism == 0)
     {
         qDebug()<<" why???? no QItemSelectionModel??";
-        QMessageBox::critical(this,tr("waring..."),tr("maybe you haven't connected"));                
+        QMessageBox::critical(this,tr("Waring..."),tr("Maybe you haven't connected"));                
         return  ;
         return ;
     }
@@ -589,7 +590,7 @@ void RemoteView::rm_file_or_directory_recursively()
     if( mil.count() == 0 )
     {
         qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
-        QMessageBox::critical(this,tr("waring..."),tr("no item selected"));
+        QMessageBox::critical(this,tr("Waring..."),tr("No item selected"));
         return ;
     }
     //TODO 处理多选的情况
