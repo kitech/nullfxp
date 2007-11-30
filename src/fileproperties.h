@@ -70,4 +70,23 @@ public:
         LIBSSH2_SFTP * ssh2_sftp ;
 };
 
+class LocalFileProperties: public QDialog
+{
+Q_OBJECT
+public:
+    LocalFileProperties(QWidget *parent = 0);
+
+    ~LocalFileProperties();
+    //void set_file_info_model_list(QModelIndexList &mil);
+    void set_file_info_model_list(QString file_name);
+
+    public slots:
+
+    private:
+        void update_perm_table( QString file_name );
+        QString type(QString file_name);
+        Ui::FileProperties ui_file_prop_dialog;
+        QString file_name;
+};
+
 #endif

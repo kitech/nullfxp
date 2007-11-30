@@ -22,6 +22,7 @@
 #include "remoteview.h"
 #include "localview.h"
 #include "globaloption.h"
+#include "fileproperties.h"
 
 //#define REMOTE_CODEC "UTF-8"
 
@@ -106,6 +107,10 @@ void LocalView::init_local_dir_tree_context_menu()
 
 	QObject::connect ( action,SIGNAL ( triggered() ),
 	                   this,SLOT ( slot_refresh_directory_tree() ) );
+                       
+    action = new QAction(tr("Properties..."),0);
+    this->local_dir_tree_context_menu->addAction(action);
+    QObject::connect(action,SIGNAL(triggered()),this,SLOT(slot_show_properties()));
     
     action = new QAction ( tr("Rename ..."),0);
     this->local_dir_tree_context_menu->addAction ( action );
@@ -368,5 +373,31 @@ void LocalView::slot_rename()
     
     this->slot_refresh_directory_tree();
 }
+
+void LocalView::slot_show_properties()
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    QItemSelectionModel *ism = this->curr_item_view->selectionModel();
+    
+    if(ism == 0)
+    {
+        qDebug()<<" why???? no QItemSelectionModel??";        
+        return ;
+    }
+    
+    QModelIndexList mil = ism->selectedIndexes()   ;
+    if( mil.count() == 0 ){
+        qDebug()<<" why???? no QItemSelectionModel??";
+        return;
+    }
+    QString local_file = this->curr_item_view==this->localView.treeView?this->dir_file_model->filePath ( mil.at ( 0 ) ) : this->model->filePath(mil.at(0));
+    //  文件类型，大小，几个时间，文件权限
+    //TODO 从模型中取到这些数据并显示在属性对话框中。
+    LocalFileProperties * fp = new LocalFileProperties(this);
+    fp->set_file_info_model_list(local_file);
+    fp->exec();
+    delete fp ;
+}
+
 
 

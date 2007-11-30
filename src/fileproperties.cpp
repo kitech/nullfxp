@@ -231,3 +231,111 @@ QString FileProperties::type(QString file_name)
     return QApplication::translate("QFileDialog", "Unknown");
 }
 
+///////////////////////////////////////////
+////    
+///////////////////////////////////////////
+
+LocalFileProperties::LocalFileProperties ( QWidget *parent )
+        : QDialog ( parent )
+{
+    this->ui_file_prop_dialog.setupUi ( this );
+
+    //connect(this,SIGNAL(finished()),this,SLOT(slot_this_thread_finished()));
+}
+
+LocalFileProperties::~LocalFileProperties()
+{
+
+}
+
+// void LocalFileProperties::set_file_info_model_list ( QModelIndexList &mil )
+void LocalFileProperties::set_file_info_model_list(QString file_name)
+{
+    QFileInfo fi(file_name);
+    
+    this->file_name = file_name;
+    //directory_tree_item * item_node = static_cast<directory_tree_item*> ( mil.at ( 0 ).internalPointer() );
+    //QString file_name = mil.at ( 0 ).data().toString();
+    QString file_size = "";
+    QString file_modify_time = "";
+    
+    //qDebug()<<item_node->strip_path.c_str();
+    this->ui_file_prop_dialog.lineEdit->setText ( fi.fileName() );
+    this->ui_file_prop_dialog.lineEdit_2->setText ( this->type(file_name) );
+    this->ui_file_prop_dialog.lineEdit_3->setText (  fi.path() );
+    this->ui_file_prop_dialog.lineEdit_4->setText ( QString("%1").arg(fi.size()));
+    this->ui_file_prop_dialog.lineEdit_5->setText ( fi.lastModified().toString("yyyy/MM/dd hh:mm:ss") );   
+    this->ui_file_prop_dialog.lineEdit_6->setText ( fi.lastRead().toString("yyyy/MM/dd hh:mm:ss") ); //2007/11/28 06:53:45
+
+    this->update_perm_table ( file_name );
+}
+
+
+
+
+void LocalFileProperties::update_perm_table ( QString file_name )
+{
+    QFileInfo fi(file_name);
+    QFile::Permissions fp = fi.permissions ();
+
+    {
+        this->ui_file_prop_dialog.checkBox->setChecked ( fp & QFile::ReadOwner/*rp=='r'*/ );
+        this->ui_file_prop_dialog.checkBox_2->setChecked ( fp & QFile::WriteOwner/*wp=='w'*/ );
+        this->ui_file_prop_dialog.checkBox_3->setChecked ( fp & QFile::ExeOwner/*xp=='x'*/ );
+    }
+    {
+        this->ui_file_prop_dialog.checkBox_4->setChecked ( fp & QFile::ReadGroup /*rp=='r'*/ );
+        this->ui_file_prop_dialog.checkBox_5->setChecked (fp & QFile::WriteGroup /*wp=='w'*/ );
+        this->ui_file_prop_dialog.checkBox_6->setChecked (fp & QFile::ExeGroup /*xp=='x'*/ );
+    }
+    {
+
+        this->ui_file_prop_dialog.checkBox_7->setChecked (fp & QFile::ReadOther/*rp=='r'*/ );
+        this->ui_file_prop_dialog.checkBox_8->setChecked (fp & QFile::WriteOther /*wp=='w'*/ );
+        this->ui_file_prop_dialog.checkBox_9->setChecked (fp & QFile::ExeOther /*xp=='x'*/ );
+    }
+}
+
+
+QString LocalFileProperties::type(QString file_name)
+{
+    QFileInfo info(file_name);
+    
+    if (file_name == "/")
+        return QApplication::translate("QFileDialog", "Drive");
+    if (info.isFile()) {
+//     if (1) {
+        if (!info.suffix().isEmpty())
+            return info.suffix() + QLatin1Char(' ') + QApplication::translate("QFileDialog", "File");
+        return QApplication::translate("QFileDialog", "File");
+    }
+
+    if (info.isDir())
+        return QApplication::translate("QFileDialog",
+#ifdef Q_WS_WIN
+                                       "File Folder", "Match Windows Explorer"
+#else
+                                       "Folder", "All other platforms"
+#endif
+            );
+    // Windows   - "File Folder"
+    // OS X      - "Folder"
+    // Konqueror - "Folder"
+    // Nautilus  - "folder"
+
+    if (info.isSymLink())
+        return QApplication::translate("QFileDialog",
+#ifdef Q_OS_MAC
+                                       "Alias", "Mac OS X Finder"
+#else
+                                       "Shortcut", "All other platforms"
+#endif
+            );
+    // OS X      - "Alias"
+    // Windows   - "Shortcut"
+    // Konqueror - "Folder" or "TXT File" i.e. what it is pointing to
+    // Nautilus  - "link to folder" or "link to object file", same as Konqueror
+
+    return QApplication::translate("QFileDialog", "Unknown");
+}
+
