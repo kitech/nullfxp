@@ -58,6 +58,7 @@ localview.ui
 progressdialog.ui  
 remotehostquickconnectfinfodailog.ui
 globaloptionsdialog.ui
+forwardconnectdaemon.ui
 # 
  )
 QT4_WRAP_UI(qtproject_UIS_H ${qtproject_UIS})
@@ -81,6 +82,7 @@ localdirorginalmodel.cpp
 transferthread.cpp
 remotedirretrivethread.cpp
 globaloptionsdialog.cpp
+forwardconnectdaemon.cpp
  )
 
  SET ( qtproject_moc_HDRS 
@@ -101,6 +103,7 @@ localdirorginalmodel.h
 transferthread.h
 remotedirretrivethread.h
 globaloptionsdialog.h
+forwardconnectdaemon.h
  )
 QT4_WRAP_CPP(qtproject_moc_SRCS ${qtproject_moc_HDRS})
 
@@ -164,6 +167,7 @@ ADD_EXECUTABLE(../bin/nullfxp
     globaloption.cpp
     globaloptionsdialog.cpp
     fileproperties.cpp
+    forwardconnectdaemon.cpp
 ############################
     ${qtproject_UIS_H}  ${qtproject_moc_SRCS}
 )

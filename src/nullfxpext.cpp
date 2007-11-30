@@ -73,6 +73,7 @@ void NullFXP::slot_forward_connect(bool show)
 
 void NullFXP::slot_synchronize_file()
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    QMessageBox::warning(this,tr("Infomation:"),tr("This feather will coming soon.") );
 }
 
