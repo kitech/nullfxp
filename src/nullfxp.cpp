@@ -58,6 +58,7 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
     this->setWindowIcon(QIcon(":/icons/nullget-1.png") ); 
     //////////////////////////
 	central_splitter_widget  = new QSplitter ( Qt::Vertical );
+    this->fcd = 0;
 
 	//
 	mdiArea = new QMdiArea;
@@ -115,8 +116,8 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
 	                   qApp,SLOT ( aboutQt() ) );
 
     //tool menu
-    QObject::connect(this->mUIMain.action_Forward_connect, SIGNAL(triggered()),
-                     this, SLOT(slot_forward_connect()));
+    QObject::connect(this->mUIMain.action_Forward_connect, SIGNAL(triggered(bool)),
+                     this, SLOT(slot_forward_connect(bool)));
     QObject::connect(this->mUIMain.action_Synchronize_file, SIGNAL(triggered()),
                      this, SLOT(slot_synchronize_file()));
     

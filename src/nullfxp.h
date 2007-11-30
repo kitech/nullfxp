@@ -57,7 +57,8 @@ class LocalView;
          class RemoteHostConnectingStatusDialog;
          class RemoteHostQuickConnectInfoDialog;
          class RemoteHostConnectThread ;
-                 
+         class ForwardConnectDaemon;
+
 #include "aboutnullfxp.h"
                  
 /**
@@ -101,7 +102,7 @@ public:
         void slot_show_fxp_command_log(bool show);
         
     private slots:
-        void slot_forward_connect();
+        void slot_forward_connect(bool show);
         void slot_synchronize_file();
         
     private:
@@ -127,6 +128,7 @@ public:
         RemoteHostQuickConnectInfoDialog * quick_connect_info_dailog ;
         RemoteHostConnectThread * remote_conn_thread ;
 
+        ForwardConnectDaemon * fcd;
     private:
         //connection can not store here
         //void * ssh2_sess ;

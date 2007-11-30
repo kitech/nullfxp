@@ -165,6 +165,9 @@
    </property>
   </action>
   <action name="action_Forward_connect" >
+   <property name="checkable" >
+    <bool>true</bool>
+   </property>
    <property name="text" >
     <string>&amp;Forward connect</string>
    </property>

@@ -1,7 +1,9 @@
 /***************************************************************************
  *   Copyright (C) 2007 by liuguangzhao   *
  *   liuguangzhao@users.sourceforge.net   *
- *                                                                         *
+ *
+ *   http://www.qtchina.net                                                *
+ *   http://nullget.sourceforge.net                                        *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -17,13 +19,17 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#include "forwardconnectdaemon.h"
 
-#ifndef NULLFXP_VERSION_H
-#define NULLFXP_VERSION_H
+ForwardConnectDaemon::ForwardConnectDaemon(QWidget *parent)
+ : QWidget(parent)
+{
+    this->ui_fcd.setupUi(this);
+}
 
-#define NULLFXP_VERSION	"NullFXP 1.5.2"
 
-#define NULLFXP_PORTABLE	""
-#define NULLFXP_RELEASE	NULLFXP_VERSION NULLFXP_PORTABLE
+ForwardConnectDaemon::~ForwardConnectDaemon()
+{
+}
 
-#endif
+
