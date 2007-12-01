@@ -80,6 +80,7 @@ public:
         void slot_dir_tree_item_clicked( const QModelIndex & index);
         void slot_dir_file_view_double_clicked( const QModelIndex & index );
         void slot_show_properties();
+        void slot_mkdir();
         void slot_rename();
         
     protected:

@@ -111,19 +111,25 @@ void LocalView::init_local_dir_tree_context_menu()
     action = new QAction(tr("Properties..."),0);
     this->local_dir_tree_context_menu->addAction(action);
     QObject::connect(action,SIGNAL(triggered()),this,SLOT(slot_show_properties()));
-    
-    action = new QAction ( tr("Rename ..."),0);
-    this->local_dir_tree_context_menu->addAction ( action );
-    QObject::connect(action, SIGNAL(triggered()),this,SLOT(slot_rename()));
-    
     //////
-    action = new QAction("",0);
-    action->setSeparator(true);
-    this->local_dir_tree_context_menu->addAction ( action );
     action = new QAction ( tr("Show Hidden"),0);
     action->setCheckable(true);
     this->local_dir_tree_context_menu->addAction ( action );
     QObject::connect(action, SIGNAL(toggled(bool)), this, SLOT(slot_show_hidden(bool)));
+    action = new QAction("",0);
+    action->setSeparator(true);
+    this->local_dir_tree_context_menu->addAction ( action );
+    
+    action = new QAction(tr("Create directory..."),0);
+    this->local_dir_tree_context_menu->addAction(action);
+    QObject::connect(action,SIGNAL(triggered()),this,SLOT(slot_mkdir()));
+    action = new QAction ( tr("Rename ..."),0);
+    this->local_dir_tree_context_menu->addAction ( action );
+    QObject::connect(action, SIGNAL(triggered()),this,SLOT(slot_rename()));
+    action = new QAction("",0);
+    action->setSeparator(true);
+    this->local_dir_tree_context_menu->addAction ( action );
+    
     
     QObject::connect ( this->localView.treeView,SIGNAL ( customContextMenuRequested ( const QPoint & ) ),
                        this , SLOT ( slot_local_dir_tree_context_menu_request ( const QPoint & ) ) );
@@ -332,6 +338,55 @@ void LocalView::slot_show_hidden(bool show)
     }
 }
 
+void LocalView::slot_mkdir()
+{
+    QString dir_name ;
+    
+    QItemSelectionModel *ism = this->curr_item_view->selectionModel();
+    QModelIndexList mil;
+    if(ism == 0 || ism->selectedIndexes().count() == 0)
+    {
+        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+        QMessageBox::critical(this,tr("Waring..."),tr("No item selected"));
+        return ;
+    }    
+    mil = ism->selectedIndexes() ;
+
+    QModelIndex midx = mil.at(0);
+    QModelIndex aim_midx = (this->curr_item_view == this->localView.treeView) ? this->dir_file_model->mapToSource(midx): midx ;
+
+    //检查所选择的项是不是目录
+    if(!this->model->isDir(aim_midx))
+    {
+        QMessageBox::critical(this,tr("Waring..."),tr("The selected item is not a directory."));
+        return ;
+    }
+    
+    dir_name = QInputDialog::getText(this,tr("Create directory:"),
+                                     tr("Input directory name:")
+                                             +"                                                        ",
+                                             QLineEdit::Normal,
+                                             tr("new_direcotry") );
+    if( dir_name == QString::null )
+    {
+        return ;
+    } 
+    if(  dir_name.length () == 0 )
+    {
+        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+        QMessageBox::critical(this,tr("Waring..."),tr("No directory name supplyed."));
+        return;
+    }
+    //TODO 将 file_path 转换编码再执行下面的操作
+    if(!QDir().mkdir(this->model->filePath(aim_midx) + "/" + dir_name))
+    {
+        QMessageBox::critical(this,tr("Waring..."),tr("Create directory faild."));
+    }
+    else
+    {
+        this->slot_refresh_directory_tree();
+    }
+}
 void LocalView::slot_rename()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;

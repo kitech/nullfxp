@@ -490,7 +490,7 @@ void RemoteView::slot_mkdir()
     if(ism == 0)
     {
         qDebug()<<" why???? no QItemSelectionModel??";
-        QMessageBox::critical(this,tr("waring..."),tr("maybe you haven't connected"));                
+        QMessageBox::critical(this,tr("Waring..."),tr("Maybe you haven't connected"));                
         return  ;
         return ;
     }
@@ -500,7 +500,7 @@ void RemoteView::slot_mkdir()
     if( mil.count() == 0 )
     {
         qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
-        QMessageBox::critical(this,tr("waring..."),tr("no item selected"));
+        QMessageBox::critical(this,tr("Waring..."),tr("No item selected"));
         return ;
     }
     
