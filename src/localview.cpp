@@ -123,6 +123,9 @@ void LocalView::init_local_dir_tree_context_menu()
     action = new QAction(tr("Create directory..."),0);
     this->local_dir_tree_context_menu->addAction(action);
     QObject::connect(action,SIGNAL(triggered()),this,SLOT(slot_mkdir()));
+    action = new QAction(tr("Delete directory"),0);
+    this->local_dir_tree_context_menu->addAction(action);
+    QObject::connect(action,SIGNAL(triggered()),this,SLOT(slot_rmdir()));
     action = new QAction ( tr("Rename ..."),0);
     this->local_dir_tree_context_menu->addAction ( action );
     QObject::connect(action, SIGNAL(triggered()),this,SLOT(slot_rename()));
@@ -130,6 +133,10 @@ void LocalView::init_local_dir_tree_context_menu()
     action->setSeparator(true);
     this->local_dir_tree_context_menu->addAction ( action );
     
+    //递归删除目录功能，删除文件的用户按钮
+//     action = new QAction(tr("Remove recursively !!!"),0);
+//     this->local_dir_tree_context_menu->addAction(action);
+//     QObject::connect(action,SIGNAL(triggered()),this,SLOT(rm_file_or_directory_recursively()));
     
     QObject::connect ( this->localView.treeView,SIGNAL ( customContextMenuRequested ( const QPoint & ) ),
                        this , SLOT ( slot_local_dir_tree_context_menu_request ( const QPoint & ) ) );
@@ -182,7 +189,7 @@ void LocalView::slot_local_dir_tree_context_menu_request ( const QPoint & pos )
 
 void LocalView::slot_local_new_upload_requested()
 {
-	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+	//qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 	//QTextCodec * codec = QTextCodec::codecForName(REMOTE_CODEC);
     
     QStringList local_file_names ;
@@ -262,7 +269,7 @@ QString LocalView::get_selected_directory()
 
 void LocalView::slot_refresh_directory_tree()
 {
-	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+	//qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
 	QItemSelectionModel * ism = this->localView.treeView->selectionModel();
 
@@ -284,10 +291,10 @@ void LocalView::update_layout()
 
 void LocalView::closeEvent ( QCloseEvent * event )
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     event->ignore ();
     //this->setVisible(false); 
-    QMessageBox::information(this,tr("attemp to close this window?"),tr("you can't close this window."));
+    QMessageBox::information(this,tr("Attemp to close this window?"),tr("You can't close this window."));
 }
 
 void LocalView::slot_dir_tree_item_clicked( const QModelIndex & index)
@@ -377,7 +384,7 @@ void LocalView::slot_mkdir()
         QMessageBox::critical(this,tr("Waring..."),tr("No directory name supplyed."));
         return;
     }
-    //TODO 将 file_path 转换编码再执行下面的操作
+
     if(!QDir().mkdir(this->model->filePath(aim_midx) + "/" + dir_name))
     {
         QMessageBox::critical(this,tr("Waring..."),tr("Create directory faild."));
@@ -387,9 +394,55 @@ void LocalView::slot_mkdir()
         this->slot_refresh_directory_tree();
     }
 }
+
+void LocalView::slot_rmdir()
+{
+    QString dir_name ;
+    
+    QItemSelectionModel *ism = this->curr_item_view->selectionModel();
+    QModelIndexList mil;
+    if(ism == 0 || ism->selectedIndexes().count() == 0)
+    {
+        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+        QMessageBox::critical(this,tr("Waring..."),tr("No item selected"));
+        return ;
+    }    
+    mil = ism->selectedIndexes() ;
+
+    QModelIndex midx = mil.at(0);
+    QModelIndex aim_midx = (this->curr_item_view == this->localView.treeView) ? this->dir_file_model->mapToSource(midx): midx ;
+
+    //检查所选择的项是不是目录
+    if(!this->model->isDir(aim_midx))
+    {
+        QMessageBox::critical(this,tr("Waring..."),tr("The selected item is not a directory."));
+        return ;
+    }
+    
+    if(QDir(this->model->filePath(aim_midx)).count()>
+#ifdef WIN32
+       0
+#else
+       2
+#endif
+      )
+    {
+        QMessageBox::critical(this,tr("Waring..."),tr("Selected director not empty."));
+        return;
+    }
+    if(!QDir().rmdir(this->model->filePath(aim_midx) ))
+    {
+        QMessageBox::critical(this,tr("Waring..."),tr("Delete directory faild."));
+    }
+    else
+    {
+        this->slot_refresh_directory_tree();
+    }
+}
+
 void LocalView::slot_rename()
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     QModelIndexList mil;
     QItemSelectionModel * ism = this->curr_item_view->selectionModel();
     if( ism == 0 || ism->selectedIndexes().count() == 0)
@@ -431,7 +484,7 @@ void LocalView::slot_rename()
 
 void LocalView::slot_show_properties()
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
     if(ism == 0)
@@ -454,5 +507,8 @@ void LocalView::slot_show_properties()
     delete fp ;
 }
 
-
+void LocalView::rm_file_or_directory_recursively()
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+}
 

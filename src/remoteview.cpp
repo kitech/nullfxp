@@ -214,7 +214,7 @@ void RemoteView::slot_new_transfer()
     
     if( this->in_remote_dir_retrive_loop )
     {
-        QMessageBox::warning(this,tr("attentions:"),tr("retriving remote directory tree,wait a minute please.") );
+        QMessageBox::warning(this,tr("Notes:"),tr("Retriving remote directory tree,wait a minute please.") );
         return ;
     }
     
@@ -222,7 +222,7 @@ void RemoteView::slot_new_transfer()
     
     if( ism == 0 )
     {
-        QMessageBox::critical(this,tr("waring..."),tr("maybe you haven't connected"));
+        QMessageBox::critical(this,tr("Waring..."),tr("Maybe you haven't connected"));
         return ;
     }
     
@@ -256,7 +256,7 @@ QString RemoteView::get_selected_directory()
     
     if(ism == 0)
     {
-        QMessageBox::critical(this,tr("waring..."),tr("maybe you haven't connected"));                
+        QMessageBox::critical(this,tr("Waring..."),tr("Maybe you haven't connected"));                
         return file_path ;
     }
     
