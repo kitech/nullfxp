@@ -25,11 +25,23 @@ ForwardConnectDaemon::ForwardConnectDaemon(QWidget *parent)
  : QWidget(parent)
 {
     this->ui_fcd.setupUi(this);
+    
+    QObject::connect ( this,SIGNAL ( customContextMenuRequested ( const QPoint & ) ),
+                       this , SLOT ( slot_custom_ctx_menu ( const QPoint & ) ) );
+    QObject::connect ( this->ui_fcd.comboBox,SIGNAL ( customContextMenuRequested ( const QPoint & ) ),
+                       this , SLOT ( slot_custom_ctx_menu ( const QPoint & ) ) );
+    QObject::connect ( this->ui_fcd.toolButton,SIGNAL ( customContextMenuRequested ( const QPoint & ) ),
+                       this , SLOT ( slot_custom_ctx_menu ( const QPoint & ) ) );
 }
 
 
 ForwardConnectDaemon::~ForwardConnectDaemon()
 {
+}
+
+void ForwardConnectDaemon::slot_custom_ctx_menu(const QPoint & pos)
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 }
 
 

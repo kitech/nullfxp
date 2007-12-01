@@ -22,6 +22,8 @@
 #ifndef FORWARDCONNECTDAEMON_H
 #define FORWARDCONNECTDAEMON_H
 
+#include <QtCore>
+#include <QtGui>
 #include <QWidget>
 
 #include "ui_forwardconnectdaemon.h"
@@ -36,7 +38,9 @@ public:
     ForwardConnectDaemon(QWidget *parent = 0);
 
     ~ForwardConnectDaemon();
-
+    private slots:
+        void slot_custom_ctx_menu(const QPoint & pos);
+        
     private:
         Ui::ForwardConnectDaemon ui_fcd;
 };
