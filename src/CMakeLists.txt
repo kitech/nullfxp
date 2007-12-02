@@ -172,8 +172,18 @@ ADD_EXECUTABLE(../bin/nullfxp
     ${qtproject_UIS_H}  ${qtproject_moc_SRCS}
 )
 
+ IF(WIN32)
+		INCLUDE_DIRECTORIES(E:/librarys/mw-ssl/include)
+		LINK_DIRECTORIES(E:\\librarys\\mw-ssl\\lib E:\\cross\\mingw\\lib)
+		LINK_LIBRARIES( crypto gdi32 ws2_32 ssl ssh2 )
+		#MESSAGE("\twin32...")
+ ELSE(WIN32)
+    #MESSAGE("\tunix...")
+    TARGET_LINK_LIBRARIES(../bin/nullfxp pthread  )
+ ENDIF(WIN32)
 
-TARGET_LINK_LIBRARIES(../bin/nullfxp ${QT_LIBRARIES} pthread ssl  ssh2  )
+
+TARGET_LINK_LIBRARIES(../bin/nullfxp ${QT_LIBRARIES}  ssl  ssh2  )
 
 ADD_DEPENDENCIES(../bin/nullfxp libssh2)
 
