@@ -418,14 +418,8 @@ void LocalView::slot_rmdir()
         QMessageBox::critical(this,tr("Waring..."),tr("The selected item is not a directory."));
         return ;
     }
-    
-    if(QDir(this->model->filePath(aim_midx)).count()>
-#ifdef WIN32
-       0
-#else
-       2
-#endif
-      )
+    qDebug()<<QDir(this->model->filePath(aim_midx)).count();
+    if(QDir(this->model->filePath(aim_midx)).count() > 2)
     {
         QMessageBox::critical(this,tr("Waring..."),tr("Selected director not empty."));
         return;

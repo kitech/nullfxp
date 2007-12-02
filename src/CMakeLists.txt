@@ -173,7 +173,7 @@ ADD_EXECUTABLE(../bin/nullfxp
 )
 
 
-TARGET_LINK_LIBRARIES(../bin/nullfxp ${QT_LIBRARIES} ssl  ssh2  )
+TARGET_LINK_LIBRARIES(../bin/nullfxp ${QT_LIBRARIES} pthread ssl  ssh2  )
 
 ADD_DEPENDENCIES(../bin/nullfxp libssh2)
 
