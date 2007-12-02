@@ -179,7 +179,7 @@ ADD_EXECUTABLE(../bin/nullfxp
 		#MESSAGE("\twin32...")
  ELSE(WIN32)
     #MESSAGE("\tunix...")
-    TARGET_LINK_LIBRARIES(../bin/nullfxp pthread  )
+    LINK_LIBRARIES( pthread )
  ENDIF(WIN32)
 
 
