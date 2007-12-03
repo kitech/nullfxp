@@ -46,6 +46,16 @@ public:
     private:
         Ui::ForwardConnectDaemon ui_fcd;
         QMenu *op_menu;
+        
+        std::string user_name;
+        std::string password;
+        std::string host_name ;
+        std::string user_home_path ;
+        int connect_status;
+        bool user_canceled;
+        void * ssh2_sess;
+        int ssh2_sock;
+        void * ssh2_sftp ;
 };
 
 #endif
