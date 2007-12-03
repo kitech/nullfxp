@@ -40,9 +40,12 @@ public:
     ~ForwardConnectDaemon();
     private slots:
         void slot_custom_ctx_menu(const QPoint & pos);
-        
+        void slot_new_forward();
+    private:
+        void init_custom_menu();
     private:
         Ui::ForwardConnectDaemon ui_fcd;
+        QMenu *op_menu;
 };
 
 #endif

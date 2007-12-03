@@ -25,6 +25,7 @@ ForwardConnectDaemon::ForwardConnectDaemon(QWidget *parent)
  : QWidget(parent)
 {
     this->ui_fcd.setupUi(this);
+    this->init_custom_menu();
     
     QObject::connect ( this,SIGNAL ( customContextMenuRequested ( const QPoint & ) ),
                        this , SLOT ( slot_custom_ctx_menu ( const QPoint & ) ) );
@@ -41,7 +42,25 @@ ForwardConnectDaemon::~ForwardConnectDaemon()
 
 void ForwardConnectDaemon::slot_custom_ctx_menu(const QPoint & pos)
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    this->op_menu->popup(this->mapToGlobal(pos));
 }
 
+//call once olny
+void ForwardConnectDaemon::init_custom_menu()
+{
+    QAction * action ;
+    
+    this->op_menu = new QMenu();
+    
+    action = new QAction ( tr("New forward..."),0 );
+    this->op_menu->addAction ( action );
+    QObject::connect(action, SIGNAL(triggered()),  this, SLOT(slot_new_forward()));
+}
+
+void ForwardConnectDaemon::slot_new_forward()
+{
+    //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    
+}
 
