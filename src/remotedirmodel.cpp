@@ -313,6 +313,14 @@ QVariant RemoteDirModel::data ( const QModelIndex &index, int role ) const
 	QVariant ret_var ;
 	QString unicode_name ;
 
+    if( role == Qt::DecorationRole && index.column()==0)
+    {
+        if(this->isDir(index))
+            return qApp->style()->standardIcon(QStyle::SP_DirIcon);
+        else
+            return qApp->style()->standardIcon(QStyle::SP_FileIcon);
+    }
+    
 	if ( role != Qt::DisplayRole )
 		return QVariant();
 
