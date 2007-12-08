@@ -47,6 +47,8 @@ public:
         void slot_proc_readyReadStandardOutput ();
         void slot_proc_started ();
         void slot_proc_stateChanged ( QProcess::ProcessState newState );
+        void slot_time_out();
+        void slot_stop_port_forward();
         
     private:
         void init_custom_menu();
@@ -72,6 +74,7 @@ public:
         QString listen_ip;
         QString user_name;
         QString password;
+        Q_PID plink_id ;
 };
 
 #endif

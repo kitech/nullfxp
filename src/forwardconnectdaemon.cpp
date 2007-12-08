@@ -83,6 +83,10 @@ ForwardConnectDaemon::ForwardConnectDaemon(QWidget *parent)
                        this , SLOT ( slot_custom_ctx_menu ( const QPoint & ) ) );
     QObject::connect ( this->ui_fcd.toolButton,SIGNAL ( customContextMenuRequested ( const QPoint & ) ),
                        this , SLOT ( slot_custom_ctx_menu ( const QPoint & ) ) );
+    
+    this->user_canceled = false;
+    this->plink_proc = 0;
+    QObject::connect(&this->alive_check_timer, SIGNAL(timeout()),this,SLOT(slot_time_out()));
 }
 
 
@@ -103,39 +107,63 @@ void ForwardConnectDaemon::init_custom_menu()
     
     this->op_menu = new QMenu();
     
-    action = new QAction ( tr("New forward..."),0 );
+    action = new QAction ( tr("&New forward..."),0 );
     this->op_menu->addAction ( action );
     QObject::connect(action, SIGNAL(triggered()),  this, SLOT(slot_new_forward()));
+    
+    action = new QAction ( tr("&Stop forward..."),0 );
+    this->op_menu->addAction ( action );
+    QObject::connect(action, SIGNAL(triggered()),  this, SLOT(slot_stop_port_forward()));
+}
+void ForwardConnectDaemon::slot_stop_port_forward()
+{
+    this->user_canceled = true;
+    this->alive_check_timer.stop();    
+    this->plink_id = 0;
+    this->plink_proc->kill();
+    delete this->plink_proc;
+    this->plink_proc = 0;
 }
 
 void ForwardConnectDaemon::slot_new_forward()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    plink_proc = new QProcess();
-    QString  program_name = "/home/gzl/nullfxp-svn/src/plink/plink";
+    if(plink_proc == 0)
+    {
+        plink_proc = new QProcess(this);
+        QObject::connect(plink_proc, SIGNAL(error(QProcess::ProcessError)),this,SLOT(slot_proc_error(QProcess::ProcessError)));
+
+        QObject::connect(plink_proc, SIGNAL(finished ( int , QProcess::ExitStatus  )),this,SLOT(slot_proc_finished ( int , QProcess::ExitStatus  )));
+        QObject::connect(plink_proc, SIGNAL(readyReadStandardError ()),this,SLOT(slot_proc_readyReadStandardError ()));
+        QObject::connect(plink_proc, SIGNAL(readyReadStandardOutput ()),this,SLOT(slot_proc_readyReadStandardOutput ()));
+        QObject::connect(plink_proc, SIGNAL(started ()),this,SLOT(slot_proc_started ()));
+        QObject::connect(plink_proc, SIGNAL(stateChanged ( QProcess::ProcessState  )),this,SLOT(slot_proc_stateChanged ( QProcess::ProcessState  )));
+    }
+    
+    QString  program_name = QApplication::applicationDirPath ()+"/plink";//"/home/gzl/nullfxp-svn/src/plink/plink";
     QStringList arg_list ;
     
+    //此进程在正常情况下将不断检测，如没有检测到进程存在则重新启动。除非手工停止
+    //use kill -SIGINT  , the process can exit normal
     ///plink -ssh -batch -N -v -l webroot -pw xxxxxx -R 8000:0.0.0.0:22 218.244.130.188
     arg_list<<"-ssh";
     arg_list<<"-N";
     arg_list<<"-v";
-    arg_list<<"-l";
+    arg_list<<"-l"; 
     arg_list<<"webroot";
     arg_list<<"-pw";
-    arg_list<<"xxxxxxxx";
+    arg_list<<"xxxxxx";
     arg_list<<"-R";
     arg_list<<"8000:0.0.0.0:22";
     arg_list<<"218.244.130.188";
-    QObject::connect(plink_proc, SIGNAL(error(QProcess::ProcessError)),this,SLOT(slot_proc_error(QProcess::ProcessError)));
 
-    QObject::connect(plink_proc, SIGNAL(finished ( int , QProcess::ExitStatus  )),this,SLOT(slot_proc_finished ( int , QProcess::ExitStatus  )));
-    QObject::connect(plink_proc, SIGNAL(readyReadStandardError ()),this,SLOT(slot_proc_readyReadStandardError ()));
-    QObject::connect(plink_proc, SIGNAL(readyReadStandardOutput ()),this,SLOT(slot_proc_readyReadStandardOutput ()));
-    QObject::connect(plink_proc, SIGNAL(started ()),this,SLOT(slot_proc_started ()));
-    QObject::connect(plink_proc, SIGNAL(stateChanged ( QProcess::ProcessState  )),this,SLOT(slot_proc_stateChanged ( QProcess::ProcessState  )));
-    
+    this->plink_id = 0;
     plink_proc->start(program_name,arg_list);
-    
+    if(!this->alive_check_timer.isActive())
+    {
+        this->alive_check_timer.setInterval(1000*60*10);
+        this->alive_check_timer.start();
+    }
 }
 
 void ForwardConnectDaemon::slot_proc_error ( QProcess::ProcessError error )
@@ -146,36 +174,55 @@ void ForwardConnectDaemon::slot_proc_error ( QProcess::ProcessError error )
 	ba = plink_proc->readAllStandardError();
 	ba += plink_proc->readAllStandardOutput();
 	qDebug() <<ba;
+    if(error == QProcess::FailedToStart)
+    {
+        qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+        this->alive_check_timer.stop();
+        this->plink_id = 0;
+    }
 }
 
 void ForwardConnectDaemon::slot_proc_finished ( int exitCode, QProcess::ExitStatus exitStatus )
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    qDebug()<<exitCode<<" "<<exitStatus;
     QByteArray ba ;
     ba = plink_proc->readAllStandardError();
     ba += plink_proc->readAllStandardOutput();
     qDebug() <<ba;
+    this->plink_id = 0;
 }
 void ForwardConnectDaemon::slot_proc_readyReadStandardError ()
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+//     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     QByteArray ba ;
     ba = plink_proc->readAllStandardError();
-    qDebug() <<ba;
+//     qDebug() <<ba;
 }
 void ForwardConnectDaemon::slot_proc_readyReadStandardOutput ()
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+//     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     QByteArray ba ;
     ba = plink_proc->readAllStandardOutput();
-    qDebug() <<ba;
+//     qDebug() <<ba;
 }
 void ForwardConnectDaemon::slot_proc_started ()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    this->plink_id = this->plink_proc->pid();
 }
 void ForwardConnectDaemon::slot_proc_stateChanged ( QProcess::ProcessState newState )
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+//     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 }
-
+void ForwardConnectDaemon::slot_time_out()
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    qDebug()<<this->plink_id<<" "<<this->user_canceled;
+    if(this->plink_id == 0 && ! this->user_canceled)
+    {
+        qDebug()<<"plink process disappeared, restart...";
+        this->slot_new_forward();
+    }
+    if(this->user_canceled) this->alive_check_timer.stop();
+}
