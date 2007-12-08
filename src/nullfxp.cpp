@@ -143,7 +143,7 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
     this->connect_to_remote_host();
 
     //////////////////////
-    this->mUIMain.action_Forward_connect->setVisible(false);
+    //this->mUIMain.action_Forward_connect->setVisible(false);
     this->mUIMain.action_Synchronize_file->setVisible(false);
 }
 

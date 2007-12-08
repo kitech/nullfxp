@@ -39,23 +39,39 @@ public:
 
     ~ForwardConnectDaemon();
     private slots:
-        void slot_custom_ctx_menu(const QPoint & pos);
-        void slot_new_forward();
+		void slot_custom_ctx_menu ( const QPoint & pos );
+		void slot_new_forward();
+		void slot_proc_error ( QProcess::ProcessError error );
+        void slot_proc_finished ( int exitCode, QProcess::ExitStatus exitStatus );
+        void slot_proc_readyReadStandardError ();
+        void slot_proc_readyReadStandardOutput ();
+        void slot_proc_started ();
+        void slot_proc_stateChanged ( QProcess::ProcessState newState );
+        
     private:
         void init_custom_menu();
     private:
         Ui::ForwardConnectDaemon ui_fcd;
         QMenu *op_menu;
+        QTimer alive_check_timer;
         
-        std::string user_name;
-        std::string password;
-        std::string host_name ;
-        std::string user_home_path ;
+//         std::string user_name;
+//         std::string password;
+//         std::string host_name ;
+//         std::string user_home_path ;
         int connect_status;
         bool user_canceled;
         void * ssh2_sess;
         int ssh2_sock;
         void * ssh2_sftp ;
+        
+        QProcess * plink_proc;
+        int listen_port;
+        int forward_port;
+        QString server_ip;
+        QString listen_ip;
+        QString user_name;
+        QString password;
 };
 
 #endif
