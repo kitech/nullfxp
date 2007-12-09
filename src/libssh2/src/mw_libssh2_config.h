@@ -47,7 +47,7 @@
 /* #undef HAVE_IOCTLSOCKET_CASE */
 
 /* Define if you have the gcrypt library. */
-#define HAVE_LIBGCRYPT 1
+/* #undef HAVE_LIBGCRYPT */
 
 /* Define to 1 if you have the <memory.h> header file. */
 #define HAVE_MEMORY_H 1
@@ -116,7 +116,7 @@
 /* #undef LIBSSH2_HAVE_ZLIB */
 
 /* Use libgcrypt */
-#define LIBSSH2_LIBGCRYPT 1
+/* #undef LIBSSH2_LIBGCRYPT */
 
 /* Enable "none" MAC -- NOT RECOMMENDED */
 /* #undef LIBSSH2_MAC_NONE */
@@ -151,7 +151,7 @@
 #define STDC_HEADERS 1
 
 /* Version number of package */
-#define VERSION "0.17"
+#define VERSION "0.18"
 
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */
