@@ -105,3 +105,23 @@ win32 {
 INCLUDEPATH += ./libssh2/include
 
 RESOURCES = nullfxp.qrc
+win32{
+    target.path = "C:/Program Files/nullfxp"
+    target.path += "C:/Program Files/nullfxp/share"
+    target.path += "C:/Program Files/nullfxp/bin"
+    documentation.path = target.path
+}else {
+    target.path = /opt/nullfxp/
+    target.path += /opt/nullfxp/share
+    target.path += /opt/nullfxp/bin
+    documentation.path = target.path
+}
+documentation.files = ../README    
+documentation.files += ../INSTALL
+documentation.files += ../AUTHORS
+documentation.files += ../COPYING
+documentation.files += ../ChangeLog
+
+
+INSTALLS += target documentation
+

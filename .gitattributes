@@ -1,4 +1,5 @@
 * text=auto !eol
+/AUTHORS -text
 /CMakeLists.txt -text
 /COPYING -text
 /ChangeLog -text
@@ -7,6 +8,9 @@
 /README -text
 /nullfxp.kdevelop -text
 /nullfxp.pro -text
+packages/gentoo/nullfxp/Manifest -text
+packages/gentoo/nullfxp/files/digest-nullfxp-1.5.2 -text
+packages/gentoo/nullfxp/nullfxp-1.5.2.ebuild -text
 src/CMakeLists.txt -text
 src/ReadMe -text
 src/aboutnullfxp.cpp -text
