@@ -109,12 +109,13 @@ win32{
     target.path = "C:/Program Files/nullfxp"
     target.path += "C:/Program Files/nullfxp/share"
     target.path += "C:/Program Files/nullfxp/bin"
-    documentation.path = target.path
+    documentation.path = "C:/Program Files/nullfxp"
 }else {
     target.path = /opt/nullfxp/
     target.path += /opt/nullfxp/share
     target.path += /opt/nullfxp/bin
-    documentation.path = target.path
+    target.path += /opt/nullfxp/docs
+    documentation.path =/opt/nullfxp/ 
 }
 documentation.files = ../README    
 documentation.files += ../INSTALL
