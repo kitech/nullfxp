@@ -152,7 +152,7 @@ void ForwardConnectDaemon::slot_new_forward()
     arg_list<<"-l"; 
     arg_list<<"webroot";
     arg_list<<"-pw";
-    arg_list<<"xxxxxx";
+    	arg_list<<"xxxxxx";
     arg_list<<"-R";
     arg_list<<"8000:0.0.0.0:22";
     arg_list<<"218.244.130.188";
@@ -161,7 +161,7 @@ void ForwardConnectDaemon::slot_new_forward()
     plink_proc->start(program_name,arg_list);
     if(!this->alive_check_timer.isActive())
     {
-        this->alive_check_timer.setInterval(1000*60*10);
+        this->alive_check_timer.setInterval(1000*60*1);
         this->alive_check_timer.start();
     }
 }
@@ -191,6 +191,13 @@ void ForwardConnectDaemon::slot_proc_finished ( int exitCode, QProcess::ExitStat
     ba += plink_proc->readAllStandardOutput();
     qDebug() <<ba;
     this->plink_id = 0;
+    if(! this->user_canceled)
+    {
+    	qDebug()<<"plink process finished, but not user canceled, restart after 2 second...";
+    	this->alive_check_timer.stop();
+    	//this->slot_new_forward();
+    	QTimer::singleShot(1000*2,this,SLOT(slot_new_forward()) );
+	}
 }
 void ForwardConnectDaemon::slot_proc_readyReadStandardError ()
 {
@@ -218,11 +225,12 @@ void ForwardConnectDaemon::slot_proc_stateChanged ( QProcess::ProcessState newSt
 void ForwardConnectDaemon::slot_time_out()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    qDebug()<<this->plink_id<<" "<<this->user_canceled;
+    qDebug()<<this->plink_id<<" "<<this->user_canceled<<" "<<QDateTime::currentDateTime();
     if(this->plink_id == 0 && ! this->user_canceled)
     {
         qDebug()<<"plink process disappeared, restart...";
         this->slot_new_forward();
     }
     if(this->user_canceled) this->alive_check_timer.stop();
+    else if(!this->alive_check_timer.isActive()) this->alive_check_timer.start();
 }
