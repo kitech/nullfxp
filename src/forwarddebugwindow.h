@@ -19,67 +19,28 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#ifndef FORWARDCONNECTDAEMON_H
-#define FORWARDCONNECTDAEMON_H
+#ifndef FORWARDDEBUGWINDOW_H
+#define FORWARDDEBUGWINDOW_H
 
 #include <QtCore>
 #include <QtGui>
-#include <QWidget>
 
-#include "ui_forwardconnectdaemon.h"
-
-class ForwardDebugWindow;
+#include "ui_forwarddebugwindow.h"
 
 /**
+Port Forward Connection Debug Message Window Class
+
 	@author liuguangzhao <liuguangzhao@users.sourceforge.net>
 */
-class ForwardConnectDaemon : public QWidget
+class ForwardDebugWindow : public QWidget
 {
 Q_OBJECT
 public:
-    ForwardConnectDaemon(QWidget *parent = 0);
+    ForwardDebugWindow(QWidget *parent = 0);
 
-    ~ForwardConnectDaemon();
-    private slots:
-		void slot_custom_ctx_menu ( const QPoint & pos );
-		void slot_new_forward();
-		void slot_proc_error ( QProcess::ProcessError error );
-        void slot_proc_finished ( int exitCode, QProcess::ExitStatus exitStatus );
-        void slot_proc_readyReadStandardError ();
-        void slot_proc_readyReadStandardOutput ();
-        void slot_proc_started ();
-        void slot_proc_stateChanged ( QProcess::ProcessState newState );
-        void slot_time_out();
-        void slot_stop_port_forward();
-        void slot_show_debug_window();
-        
-        
+    ~ForwardDebugWindow();
     private:
-        void init_custom_menu();
-    private:
-        Ui::ForwardConnectDaemon ui_fcd;
-        QMenu *op_menu;
-        QTimer alive_check_timer;
-        ForwardDebugWindow * fdw ;
-        
-//         std::string user_name;
-//         std::string password;
-//         std::string host_name ;
-//         std::string user_home_path ;
-        int connect_status;
-        bool user_canceled;
-        void * ssh2_sess;
-        int ssh2_sock;
-        void * ssh2_sftp ;
-        
-        QProcess * plink_proc;
-        int listen_port;
-        int forward_port;
-        QString server_ip;
-        QString listen_ip;
-        QString user_name;
-        QString password;
-        Q_PID plink_id ;
+        Ui::ForwardDebugWindow fdw;
 };
 
 #endif

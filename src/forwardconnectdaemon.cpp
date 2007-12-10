@@ -46,7 +46,7 @@
 #include "libssh2_sftp.h"
 
 #include "forwardconnectdaemon.h"
-
+#include "forwarddebugwindow.h"
 
 //static char ssh2_user_name[60];
 static QMutex ssh2_kbd_cb_mutex ;
@@ -87,6 +87,7 @@ ForwardConnectDaemon::ForwardConnectDaemon(QWidget *parent)
     this->user_canceled = false;
     this->plink_proc = 0;
     QObject::connect(&this->alive_check_timer, SIGNAL(timeout()),this,SLOT(slot_time_out()));
+    fdw = 0;
 }
 
 
@@ -114,6 +115,15 @@ void ForwardConnectDaemon::init_custom_menu()
     action = new QAction ( tr("&Stop forward..."),0 );
     this->op_menu->addAction ( action );
     QObject::connect(action, SIGNAL(triggered()),  this, SLOT(slot_stop_port_forward()));
+    
+    action = new QAction("",0);
+    action->setSeparator(true);
+    this->op_menu->addAction ( action );
+    
+    action = new QAction ( tr("Show &Debug Window"),0 );
+    this->op_menu->addAction ( action );
+    QObject::connect(action, SIGNAL(triggered()),  this, SLOT(slot_show_debug_window()));
+    
 }
 void ForwardConnectDaemon::slot_stop_port_forward()
 {
@@ -234,3 +244,13 @@ void ForwardConnectDaemon::slot_time_out()
     if(this->user_canceled) this->alive_check_timer.stop();
     else if(!this->alive_check_timer.isActive()) this->alive_check_timer.start();
 }
+void ForwardConnectDaemon::slot_show_debug_window()
+{
+    if(this->fdw == 0)
+    {
+        this->fdw = new ForwardDebugWindow();
+    }
+    if(!this->fdw->isVisible())
+        this->fdw->show();
+}
+

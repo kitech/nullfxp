@@ -20,7 +20,8 @@ SOURCES += main.cpp \
  localdirsortfiltermodel.cpp \
  localdirorginalmodel.cpp \
  nullfxpext.cpp \
- forwardconnectdaemon.cpp
+ forwardconnectdaemon.cpp \
+ forwarddebugwindow.cpp
 TEMPLATE = app
 CONFIG += warn_on \
 	  thread \
@@ -44,7 +45,8 @@ FORMS += nullfxp.ui \
  fileproperties.ui \
  synchronizeoptiondialog.ui \
  synchronizewindow.ui \
- forwardconnectdaemon.ui
+ forwardconnectdaemon.ui \
+ forwarddebugwindow.ui
 
 HEADERS += nullfxp.h \
  localview.h \
@@ -65,7 +67,8 @@ HEADERS += nullfxp.h \
  remotedirtreeview.h \
  localdirsortfiltermodel.h \
  localdirorginalmodel.h \
- forwardconnectdaemon.h
+ forwardconnectdaemon.h \
+ forwarddebugwindow.h
 
 
 DISTFILES += ../CMakeLists.txt \

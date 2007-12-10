@@ -18,6 +18,9 @@ src/fileproperties.ui -text
 src/forwardconnectdaemon.cpp -text
 src/forwardconnectdaemon.h -text
 src/forwardconnectdaemon.ui -text
+src/forwarddebugwindow.cpp -text
+src/forwarddebugwindow.h -text
+src/forwarddebugwindow.ui -text
 src/globaloption.cpp -text
 src/globaloption.h -text
 src/globaloptionsdialog.cpp -text
