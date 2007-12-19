@@ -162,7 +162,7 @@ void ForwardConnectDaemon::slot_new_forward()
     arg_list<<"-l"; 
     arg_list<<"webroot";
     arg_list<<"-pw";
-    	arg_list<<"xxxxxx";
+    	arg_list<<"webadmin";
     arg_list<<"-R";
     arg_list<<"8000:0.0.0.0:22";
     arg_list<<"218.244.130.188";
@@ -236,6 +236,7 @@ void ForwardConnectDaemon::slot_time_out()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     qDebug()<<this->plink_id<<" "<<this->user_canceled<<" "<<QDateTime::currentDateTime();
+    //TODO 这种检测不够，还要使用plink连接到远程服务器查看相关端口是否能用
     if(this->plink_id == 0 && ! this->user_canceled)
     {
         qDebug()<<"plink process disappeared, restart...";
