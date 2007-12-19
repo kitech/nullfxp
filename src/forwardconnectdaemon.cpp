@@ -86,6 +86,7 @@ ForwardConnectDaemon::ForwardConnectDaemon(QWidget *parent)
     
     this->user_canceled = false;
     this->plink_proc = 0;
+    this->plink_proc_cmd = 0;
     QObject::connect(&this->alive_check_timer, SIGNAL(timeout()),this,SLOT(slot_time_out()));
     fdw = 0;
 }
@@ -237,11 +238,15 @@ void ForwardConnectDaemon::slot_time_out()
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     qDebug()<<this->plink_id<<" "<<this->user_canceled<<" "<<QDateTime::currentDateTime();
     //TODO 这种检测不够，还要使用plink连接到远程服务器查看相关端口是否能用
+    //like this : plink -l webroot -pw xxxxxxx xxx.xxx.xxx.xxx netstat -ant|grep 8000
     if(this->plink_id == 0 && ! this->user_canceled)
     {
         qDebug()<<"plink process disappeared, restart...";
         this->slot_new_forward();
-    }
+    }else{
+    	//执行远程端口检测命令,使用新进程方式
+    	//有两种方式，第一种使用plink进程实现此功能; 第二种使用libssh2库执行远程命令
+	}
     if(this->user_canceled) this->alive_check_timer.stop();
     else if(!this->alive_check_timer.isActive()) this->alive_check_timer.start();
 }

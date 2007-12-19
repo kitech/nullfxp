@@ -73,6 +73,7 @@ public:
         void * ssh2_sftp ;
         
         QProcess * plink_proc;
+        QProcess * plink_proc_cmd;
         int listen_port;
         int forward_port;
         QString server_ip;
