@@ -29,6 +29,27 @@
 #include "ui_forwardconnectdaemon.h"
 
 class ForwardDebugWindow;
+class ForwardConnectInfoDialog;
+
+class ForwardList
+{
+    public:
+        QString host;
+        QString passwd;
+        QString remote_listen_port;
+        QString forward_local_port;
+        int status; 
+        QProcess * link_proc;
+        QProcess * ps_proc;
+};
+
+class ForwardProcessDaemon: public QThread
+{
+    public:
+        void run();
+        int type;
+        QString response; 
+};
 
 /**
 	@author liuguangzhao <liuguangzhao@users.sourceforge.net>
@@ -81,6 +102,8 @@ public:
         QString user_name;
         QString password;
         Q_PID plink_id ;
+        
+        QVector<ForwardList*> forward_list;
 };
 
 #endif
