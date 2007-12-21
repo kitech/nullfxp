@@ -31,25 +31,46 @@
 class ForwardDebugWindow;
 class ForwardConnectInfoDialog;
 
-class ForwardList
-{
-    public:
-        QString host;
-        QString passwd;
-        QString remote_listen_port;
-        QString forward_local_port;
-        int status; 
-        QProcess * link_proc;
-        QProcess * ps_proc;
-};
-
 class ForwardProcessDaemon: public QThread
 {
+    Q_OBJECT
     public:
+        ForwardProcessDaemon(QObject * parent = 0):QThread(parent)
+        {
+        }
+        ~ForwardProcessDaemon(){};
         void run();
         int type;
         QString response; 
 };
+
+class ForwardList: public QObject
+{
+    Q_OBJECT
+    public:
+        ForwardList(){
+            this->fp_thread = new ForwardProcessDaemon();
+            this->link_proc = new QProcess();
+            this->ps_proc = new QProcess();
+        }
+        ~ForwardList(){
+            delete this->fp_thread;
+            delete this->link_proc;
+            delete this->ps_proc;
+        }
+        
+        ////////////////////////
+        QString host;
+        QString passwd;
+        QString remote_listen_port;
+        QString forward_local_port;
+        QString remote_home_path;
+        int status; 
+        QProcess * link_proc;
+        QProcess * ps_proc;
+        ForwardProcessDaemon * fp_thread;
+};
+
 
 /**
 	@author liuguangzhao <liuguangzhao@users.sourceforge.net>
@@ -82,6 +103,7 @@ public:
         QMenu *op_menu;
         QTimer alive_check_timer;
         ForwardDebugWindow * fdw ;
+        ForwardConnectInfoDialog * info_dlg;
         
 //         std::string user_name;
 //         std::string password;

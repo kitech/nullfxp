@@ -47,6 +47,7 @@
 
 #include "forwardconnectdaemon.h"
 #include "forwarddebugwindow.h"
+#include "forwardconnectinfodialog.h"
 
 //static char ssh2_user_name[60];
 static QMutex ssh2_kbd_cb_mutex ;
@@ -139,6 +140,19 @@ void ForwardConnectDaemon::slot_stop_port_forward()
 void ForwardConnectDaemon::slot_new_forward()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    
+    int dlg_res = 0 ;
+    ForwardConnectInfoDialog * info_dlg;
+    info_dlg = new ForwardConnectInfoDialog();
+    dlg_res = info_dlg->exec();
+    if(dlg_res == QDialog::Accepted)
+    {
+        //
+        ForwardList *fl = new ForwardList();
+        this->forward_list.append(fl);
+    }
+    delete info_dlg;
+    return;
     if(plink_proc == 0)
     {
         plink_proc = new QProcess(this);
@@ -258,5 +272,10 @@ void ForwardConnectDaemon::slot_show_debug_window()
     }
     if(!this->fdw->isVisible())
         this->fdw->show();
+}
+
+void ForwardProcessDaemon::run()
+{
+    
 }
 

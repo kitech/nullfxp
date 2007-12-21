@@ -113,5 +113,38 @@
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>pushButton</sender>
+   <signal>clicked()</signal>
+   <receiver>ForwardConnectInfoDialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>147</x>
+     <y>211</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>98</x>
+     <y>184</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_2</sender>
+   <signal>clicked()</signal>
+   <receiver>ForwardConnectInfoDialog</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>247</x>
+     <y>200</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>274</x>
+     <y>197</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
