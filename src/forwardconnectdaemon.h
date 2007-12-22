@@ -98,7 +98,7 @@ public:
         void slot_time_out();
         void slot_stop_port_forward();
         void slot_show_debug_window();
-        
+        void slot_forward_index_changed(int index);
         
     private:
         void init_custom_menu();
@@ -117,17 +117,19 @@ public:
         int ssh2_sock;
         void * ssh2_sftp ;
         
-        QProcess * plink_proc;
-        QProcess * plink_proc_cmd;
+        //QProcess * plink_proc;
+        //QProcess * plink_proc_cmd;
         int listen_port;
         int forward_port;
         QString server_ip;
         QString listen_ip;
         QString user_name;
         QString password;
-        Q_PID plink_id ;
+        //Q_PID plink_id ;
         
         QVector<ForwardList*> forward_list;
+        
+        QStringListModel * host_model;
 };
 
 #endif

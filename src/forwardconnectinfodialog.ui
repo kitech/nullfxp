@@ -27,7 +27,11 @@
        </widget>
       </item>
       <item row="0" column="1" >
-       <widget class="QLineEdit" name="lineEdit" />
+       <widget class="QLineEdit" name="lineEdit" >
+        <property name="text" >
+         <string>218.244.130.188</string>
+        </property>
+       </widget>
       </item>
       <item row="1" column="0" >
        <widget class="QLabel" name="label_2" >
@@ -37,7 +41,11 @@
        </widget>
       </item>
       <item row="1" column="1" >
-       <widget class="QLineEdit" name="lineEdit_2" />
+       <widget class="QLineEdit" name="lineEdit_2" >
+        <property name="text" >
+         <string>webroot</string>
+        </property>
+       </widget>
       </item>
       <item row="2" column="0" >
        <widget class="QLabel" name="label_3" >
@@ -57,7 +65,11 @@
        </widget>
       </item>
       <item row="3" column="1" >
-       <widget class="QLineEdit" name="lineEdit_4" />
+       <widget class="QLineEdit" name="lineEdit_4" >
+        <property name="text" >
+         <string>6000</string>
+        </property>
+       </widget>
       </item>
       <item row="4" column="0" >
        <widget class="QLabel" name="label_5" >
@@ -67,7 +79,11 @@
        </widget>
       </item>
       <item row="4" column="1" >
-       <widget class="QLineEdit" name="lineEdit_5" />
+       <widget class="QLineEdit" name="lineEdit_5" >
+        <property name="text" >
+         <string>22</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -112,6 +128,16 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>pushButton</tabstop>
+  <tabstop>lineEdit_2</tabstop>
+  <tabstop>lineEdit_3</tabstop>
+  <tabstop>lineEdit_4</tabstop>
+  <tabstop>lineEdit_5</tabstop>
+  <tabstop>pushButton_3</tabstop>
+  <tabstop>lineEdit</tabstop>
+  <tabstop>pushButton_2</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>
