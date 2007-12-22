@@ -32,4 +32,12 @@ ForwardConnectInfoDialog::~ForwardConnectInfoDialog()
 {
 }
 
+void ForwardConnectInfoDialog::get_forward_info(QString &host,  QString &user_name, QString &passwd, QString &listen_port, QString &local_port)
+{
+    host = this->fcid.lineEdit->text();
+    user_name = this->fcid.lineEdit_2->text();
+    passwd = this->fcid.lineEdit_3->text();
+    listen_port = this->fcid.lineEdit_4->text();
+    local_port = this->fcid.lineEdit_5->text();
+}
 

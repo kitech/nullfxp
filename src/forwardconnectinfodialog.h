@@ -36,6 +36,8 @@ public:
     ForwardConnectInfoDialog(QWidget *parent = 0);
 
     ~ForwardConnectInfoDialog();
+    void get_forward_info(QString &host, QString &user_name, QString &passwd, QString &listen_port, QString &local_port);
+    
     private:
         Ui::ForwardConnectInfoDialog fcid;
 };

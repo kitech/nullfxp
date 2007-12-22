@@ -88,7 +88,7 @@ ForwardConnectDaemon::ForwardConnectDaemon(QWidget *parent)
     this->user_canceled = false;
     this->plink_proc = 0;
     this->plink_proc_cmd = 0;
-    QObject::connect(&this->alive_check_timer, SIGNAL(timeout()),this,SLOT(slot_time_out()));
+    //QObject::connect(&this->alive_check_timer, SIGNAL(timeout()),this,SLOT(slot_time_out()));
     fdw = 0;
 }
 
@@ -130,7 +130,7 @@ void ForwardConnectDaemon::init_custom_menu()
 void ForwardConnectDaemon::slot_stop_port_forward()
 {
     this->user_canceled = true;
-    this->alive_check_timer.stop();    
+//     this->alive_check_timer.stop();    
     this->plink_id = 0;
     this->plink_proc->kill();
     delete this->plink_proc;
@@ -145,25 +145,26 @@ void ForwardConnectDaemon::slot_new_forward()
     ForwardConnectInfoDialog * info_dlg;
     info_dlg = new ForwardConnectInfoDialog();
     dlg_res = info_dlg->exec();
-    if(dlg_res == QDialog::Accepted)
+    if(dlg_res == QDialog::Rejected)
     {
         //
-        ForwardList *fl = new ForwardList();
-        this->forward_list.append(fl);
+        delete info_dlg ;
+        return;
     }
+    ForwardList *fl = new ForwardList();
+    this->forward_list.append(fl);
+    info_dlg->get_forward_info(fl->host, fl->user_name, fl->passwd, fl->remote_listen_port,fl->forward_local_port);
     delete info_dlg;
-    return;
-    if(plink_proc == 0)
-    {
-        plink_proc = new QProcess(this);
-        QObject::connect(plink_proc, SIGNAL(error(QProcess::ProcessError)),this,SLOT(slot_proc_error(QProcess::ProcessError)));
+    
+    //
+    QObject::connect(fl->plink_proc, SIGNAL(error(QProcess::ProcessError)),this,SLOT(slot_proc_error(QProcess::ProcessError)));
 
-        QObject::connect(plink_proc, SIGNAL(finished ( int , QProcess::ExitStatus  )),this,SLOT(slot_proc_finished ( int , QProcess::ExitStatus  )));
-        QObject::connect(plink_proc, SIGNAL(readyReadStandardError ()),this,SLOT(slot_proc_readyReadStandardError ()));
-        QObject::connect(plink_proc, SIGNAL(readyReadStandardOutput ()),this,SLOT(slot_proc_readyReadStandardOutput ()));
-        QObject::connect(plink_proc, SIGNAL(started ()),this,SLOT(slot_proc_started ()));
-        QObject::connect(plink_proc, SIGNAL(stateChanged ( QProcess::ProcessState  )),this,SLOT(slot_proc_stateChanged ( QProcess::ProcessState  )));
-    }
+    QObject::connect(fl->plink_proc, SIGNAL(finished ( int , QProcess::ExitStatus  )),this,SLOT(slot_proc_finished ( int , QProcess::ExitStatus  )));
+    QObject::connect(fl->plink_proc, SIGNAL(readyReadStandardError ()),this,SLOT(slot_proc_readyReadStandardError ()));
+    QObject::connect(fl->plink_proc, SIGNAL(readyReadStandardOutput ()),this,SLOT(slot_proc_readyReadStandardOutput ()));
+    QObject::connect(fl->plink_proc, SIGNAL(started ()),this,SLOT(slot_proc_started ()));
+    QObject::connect(fl->plink_proc, SIGNAL(stateChanged ( QProcess::ProcessState  )),this,SLOT(slot_proc_stateChanged ( QProcess::ProcessState  )));
+    QObject::connect(&fl->alive_check_timer,SIGNAL(timeout()), this, SLOT(slot_time_out()));
     
     QString  program_name = QApplication::applicationDirPath ()+"/plink";//"/home/gzl/nullfxp-svn/src/plink/plink";
     QStringList arg_list ;
@@ -177,18 +178,56 @@ void ForwardConnectDaemon::slot_new_forward()
     arg_list<<"-l"; 
     arg_list<<"webroot";
     arg_list<<"-pw";
-    	arg_list<<"webadmin";
+    arg_list<<"webadmin";
     arg_list<<"-R";
     arg_list<<"8000:0.0.0.0:22";
     arg_list<<"218.244.130.188";
 
-    this->plink_id = 0;
-    plink_proc->start(program_name,arg_list);
-    if(!this->alive_check_timer.isActive())
+    fl->plink_id = 0;
+    fl->plink_proc->start(program_name,arg_list);
+    if(!fl->alive_check_timer.isActive())
     {
-        this->alive_check_timer.setInterval(1000*60*1);
-        this->alive_check_timer.start();
+        fl->alive_check_timer.setInterval(1000*60*1);
+        fl->alive_check_timer.start();
     }
+    
+    return; //depcrated code
+    if(plink_proc == 0)
+    {
+        plink_proc = new QProcess(this);
+        QObject::connect(plink_proc, SIGNAL(error(QProcess::ProcessError)),this,SLOT(slot_proc_error(QProcess::ProcessError)));
+
+        QObject::connect(plink_proc, SIGNAL(finished ( int , QProcess::ExitStatus  )),this,SLOT(slot_proc_finished ( int , QProcess::ExitStatus  )));
+        QObject::connect(plink_proc, SIGNAL(readyReadStandardError ()),this,SLOT(slot_proc_readyReadStandardError ()));
+        QObject::connect(plink_proc, SIGNAL(readyReadStandardOutput ()),this,SLOT(slot_proc_readyReadStandardOutput ()));
+        QObject::connect(plink_proc, SIGNAL(started ()),this,SLOT(slot_proc_started ()));
+        QObject::connect(plink_proc, SIGNAL(stateChanged ( QProcess::ProcessState  )),this,SLOT(slot_proc_stateChanged ( QProcess::ProcessState  )));
+    }
+    
+//     QString  program_name = QApplication::applicationDirPath ()+"/plink";//"/home/gzl/nullfxp-svn/src/plink/plink";
+//     QStringList arg_list ;
+//     
+//     //此进程在正常情况下将不断检测，如没有检测到进程存在则重新启动。除非手工停止
+//     //use kill -SIGINT  , the process can exit normal
+//     ///plink -ssh -batch -N -v -l webroot -pw xxxxxx -R 8000:0.0.0.0:22 218.244.130.188
+//     arg_list<<"-ssh";
+//     arg_list<<"-N";
+//     arg_list<<"-v";
+//     arg_list<<"-l"; 
+//     arg_list<<"webroot";
+//     arg_list<<"-pw";
+//     	arg_list<<"webadmin";
+//     arg_list<<"-R";
+//     arg_list<<"8000:0.0.0.0:22";
+//     arg_list<<"218.244.130.188";
+// 
+//     this->plink_id = 0;
+//     plink_proc->start(program_name,arg_list);
+//     if(!this->alive_check_timer.isActive())
+//     {
+//         this->alive_check_timer.setInterval(1000*60*1);
+//         this->alive_check_timer.start();
+//     }
 }
 
 void ForwardConnectDaemon::slot_proc_error ( QProcess::ProcessError error )
@@ -202,7 +241,7 @@ void ForwardConnectDaemon::slot_proc_error ( QProcess::ProcessError error )
     if(error == QProcess::FailedToStart)
     {
         qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-        this->alive_check_timer.stop();
+        //this->alive_check_timer.stop();
         this->plink_id = 0;
     }
 }
@@ -219,7 +258,7 @@ void ForwardConnectDaemon::slot_proc_finished ( int exitCode, QProcess::ExitStat
     if(! this->user_canceled)
     {
     	qDebug()<<"plink process finished, but not user canceled, restart after 2 second...";
-    	this->alive_check_timer.stop();
+    	//this->alive_check_timer.stop();
     	//this->slot_new_forward();
     	QTimer::singleShot(1000*2,this,SLOT(slot_new_forward()) );
 	}
@@ -261,8 +300,8 @@ void ForwardConnectDaemon::slot_time_out()
     	//执行远程端口检测命令,使用新进程方式
     	//有两种方式，第一种使用plink进程实现此功能; 第二种使用libssh2库执行远程命令
 	}
-    if(this->user_canceled) this->alive_check_timer.stop();
-    else if(!this->alive_check_timer.isActive()) this->alive_check_timer.start();
+    //if(this->user_canceled) this->alive_check_timer.stop();
+    //else if(!this->alive_check_timer.isActive()) this->alive_check_timer.start();
 }
 void ForwardConnectDaemon::slot_show_debug_window()
 {
@@ -273,6 +312,16 @@ void ForwardConnectDaemon::slot_show_debug_window()
     if(!this->fdw->isVisible())
         this->fdw->show();
 }
+
+ForwardList * ForwardConnectDaemon::get_forward_list_by_proc(int which)
+{
+    ForwardList * fl = 0;
+    
+    
+    
+    return fl;
+}
+
 
 void ForwardProcessDaemon::run()
 {

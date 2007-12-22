@@ -50,24 +50,28 @@ class ForwardList: public QObject
     public:
         ForwardList(){
             this->fp_thread = new ForwardProcessDaemon();
-            this->link_proc = new QProcess();
+            this->plink_proc = new QProcess();
             this->ps_proc = new QProcess();
         }
         ~ForwardList(){
             delete this->fp_thread;
-            delete this->link_proc;
+            delete this->plink_proc;
             delete this->ps_proc;
         }
         
         ////////////////////////
         QString host;
+        QString user_name;
         QString passwd;
         QString remote_listen_port;
         QString forward_local_port;
         QString remote_home_path;
         int status; 
-        QProcess * link_proc;
+        QTimer alive_check_timer;
+        QProcess * plink_proc;
+        Q_PID plink_id ;
         QProcess * ps_proc;
+        Q_PID ps_id ;
         ForwardProcessDaemon * fp_thread;
 };
 
@@ -98,17 +102,15 @@ public:
         
     private:
         void init_custom_menu();
+        ForwardList * get_forward_list_by_proc(int which);
+        
     private:
         Ui::ForwardConnectDaemon ui_fcd;
         QMenu *op_menu;
-        QTimer alive_check_timer;
+        //QTimer alive_check_timer;
         ForwardDebugWindow * fdw ;
         ForwardConnectInfoDialog * info_dlg;
-        
-//         std::string user_name;
-//         std::string password;
-//         std::string host_name ;
-//         std::string user_home_path ;
+
         int connect_status;
         bool user_canceled;
         void * ssh2_sess;
