@@ -87,10 +87,6 @@ ForwardConnectDaemon::ForwardConnectDaemon(QWidget *parent)
     
     QObject::connect(this->ui_fcd.comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(slot_forward_index_changed(int)));
     
-    this->user_canceled = false;
-    //this->plink_proc = 0;
-    //this->plink_proc_cmd = 0;
-    //QObject::connect(&this->alive_check_timer, SIGNAL(timeout()),this,SLOT(slot_time_out()));
     fdw = 0;
     this->host_model = new QStringListModel();
 }
@@ -103,6 +99,9 @@ ForwardConnectDaemon::~ForwardConnectDaemon()
 void ForwardConnectDaemon::slot_custom_ctx_menu(const QPoint & pos)
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    //TODO 按情况让某些菜单变灰色
+    //if(this->ui_fcd.comboBox.count() == 0) 
+        
     this->op_menu->popup(this->mapToGlobal(pos));
 }
 
@@ -132,12 +131,20 @@ void ForwardConnectDaemon::init_custom_menu()
 }
 void ForwardConnectDaemon::slot_stop_port_forward()
 {
-    this->user_canceled = true;
-//     this->alive_check_timer.stop();    
-   // this->plink_id = 0;
-    //this->plink_proc->kill();
-    //delete this->plink_proc;
-    //this->plink_proc = 0;
+    //算法说明：
+    //通过下拉框的内容，找到它所对应的ForwardList 对象
+    ForwardList * fl = 0;
+    
+    fl = this->get_forward_list_by_serv_info();
+    fl->user_canceled = true;
+    fl->alive_check_timer.stop();
+    fl->plink_id = 0;
+    fl->plink_proc->kill();
+    fl->ps_id = 0;
+    fl->ps_proc->kill();
+    
+    //从下拉框中删掉这一条
+    this->ui_fcd.comboBox->removeItem(this->ui_fcd.comboBox->currentIndex());
 }
 
 void ForwardConnectDaemon::slot_new_forward()
@@ -264,13 +271,13 @@ void ForwardConnectDaemon::slot_proc_finished ( int exitCode, QProcess::ExitStat
     //ba += plink_proc->readAllStandardOutput();
     qDebug() <<ba;
     //this->plink_id = 0;
-    if(! this->user_canceled)
-    {
-    	qDebug()<<"plink process finished, but not user canceled, restart after 2 second...";
-    	//this->alive_check_timer.stop();
-    	//this->slot_new_forward();
-    	QTimer::singleShot(1000*2,this,SLOT(slot_new_forward()) );
-	}
+//     if(! this->user_canceled)
+//     {
+//     	qDebug()<<"plink process finished, but not user canceled, restart after 2 second...";
+//     	//this->alive_check_timer.stop();
+//     	//this->slot_new_forward();
+//     	QTimer::singleShot(1000*2,this,SLOT(slot_new_forward()) );
+// 	}
 }
 void ForwardConnectDaemon::slot_proc_readyReadStandardError ()
 {
@@ -322,12 +329,38 @@ void ForwardConnectDaemon::slot_show_debug_window()
         this->fdw->show();
 }
 
-ForwardList * ForwardConnectDaemon::get_forward_list_by_proc(int which)
+ForwardList * ForwardConnectDaemon::get_forward_list_by_proc(QObject *proc_obj)
 {
     ForwardList * fl = 0;
     
+    for(int i = 0 ; i < this->forward_list.count(); i ++)
+    {
+        fl = this->forward_list.at(i);
+        if( fl->ps_proc == proc_obj || fl->plink_proc == proc_obj)
+            break;
+        fl = 0;
+    }
+    assert(fl != 0);
+    return fl;
+}
+ForwardList * ForwardConnectDaemon::get_forward_list_by_serv_info()
+{
+    ForwardList * fl = 0;
     
+    QString item_text;
+    QString fl_serv_digest;
     
+    item_text = this->ui_fcd.comboBox->currentText();
+    
+    for(int i = 0 ; i < this->forward_list.count(); i ++)
+    {
+        fl = this->forward_list.at(i);
+        fl_serv_digest = fl->host+ fl->user_name+ fl->passwd+ fl->remote_listen_port+fl->forward_local_port;
+        if(fl_serv_digest == item_text)
+            break;
+        fl = 0;
+    }
+    assert(fl != 0);
     return fl;
 }
 
@@ -338,7 +371,6 @@ void ForwardConnectDaemon::slot_forward_index_changed(int index)
     item_text = this->ui_fcd.comboBox->itemText(index);
     this->ui_fcd.comboBox->setToolTip(item_text);
 }
-
 
 void ForwardProcessDaemon::run()
 {
