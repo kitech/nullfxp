@@ -104,7 +104,7 @@ public:
         
     private:
         void init_custom_menu();
-        ForwardList * get_forward_list_by_proc(QObject *proc_obj);
+        ForwardList * get_forward_list_by_proc(QObject *proc_obj, int *which);
         ForwardList * get_forward_list_by_timer(QObject *proc_obj);
         ForwardList * get_forward_list_by_serv_info();
         
