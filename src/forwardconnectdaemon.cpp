@@ -282,16 +282,26 @@ void ForwardConnectDaemon::slot_proc_finished ( int exitCode, QProcess::ExitStat
 void ForwardConnectDaemon::slot_proc_readyReadStandardError ()
 {
 //     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    ForwardList * fl = 0;
     QByteArray ba ;
-    //ba = plink_proc->readAllStandardError();
-//     qDebug() <<ba;
+    QProcess *proc ;
+    
+    fl = this->get_forward_list_by_proc(sender());
+    proc = (QProcess*)sender();
+    ba = proc->readAllStandardError();
+    qDebug() <<ba;
 }
 void ForwardConnectDaemon::slot_proc_readyReadStandardOutput ()
 {
 //     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    ForwardList * fl = 0;
     QByteArray ba ;
-    //ba = plink_proc->readAllStandardOutput();
-//     qDebug() <<ba;
+    QProcess *proc ;
+    
+    fl = this->get_forward_list_by_proc(sender());
+    proc = (QProcess*)sender();
+    ba = proc->readAllStandardOutput();
+    qDebug() <<ba;
 }
 void ForwardConnectDaemon::slot_proc_started ()
 {
@@ -310,7 +320,7 @@ void ForwardConnectDaemon::slot_time_out()
     //like this : plink -l webroot -pw xxxxxxx xxx.xxx.xxx.xxx netstat -ant|grep 8000
     //if(this->plink_id == 0 && ! this->user_canceled)
     {
-        qDebug()<<"plink process disappeared, restart...";
+        //qDebug()<<"plink process disappeared, restart...";
         //this->slot_new_forward();
     }{
     	//执行远程端口检测命令,使用新进程方式
@@ -357,6 +367,25 @@ ForwardList * ForwardConnectDaemon::get_forward_list_by_serv_info()
         fl = this->forward_list.at(i);
         fl_serv_digest = fl->host+ fl->user_name+ fl->passwd+ fl->remote_listen_port+fl->forward_local_port;
         if(fl_serv_digest == item_text)
+            break;
+        fl = 0;
+    }
+    assert(fl != 0);
+    return fl;
+}
+ForwardList * ForwardConnectDaemon::get_forward_list_by_timer(QObject *timer_obj)
+{
+    ForwardList * fl = 0;
+    
+    QString item_text;
+    QString fl_serv_digest;
+    
+    item_text = this->ui_fcd.comboBox->currentText();
+    
+    for(int i = 0 ; i < this->forward_list.count(); i ++)
+    {
+        fl = this->forward_list.at(i);
+        if(timer_obj == &fl->alive_check_timer)
             break;
         fl = 0;
     }
