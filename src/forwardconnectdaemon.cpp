@@ -153,7 +153,7 @@ void ForwardConnectDaemon::slot_new_forward()
     
     int dlg_res = 0 ;
     ForwardConnectInfoDialog * info_dlg;
-    info_dlg = new ForwardConnectInfoDialog();
+    info_dlg = new ForwardConnectInfoDialog(this);
     dlg_res = info_dlg->exec();
     if(dlg_res == QDialog::Rejected)
     {
