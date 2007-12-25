@@ -53,6 +53,7 @@ class ForwardList: public QObject
             this->plink_proc = new QProcess();
             this->ps_proc = new QProcess();
             this->user_canceled = false;
+            this->ps_exist = 0;
         }
         ~ForwardList(){
             delete this->fp_thread;
@@ -67,7 +68,8 @@ class ForwardList: public QObject
         QString remote_listen_port;
         QString forward_local_port;
         QString remote_home_path;
-        int status; 
+        int status;
+        int ps_exist;
         QTimer alive_check_timer;
         QProcess * plink_proc;
         Q_PID plink_id ;
@@ -91,6 +93,7 @@ public:
     private slots:
 		void slot_custom_ctx_menu ( const QPoint & pos );
 		void slot_new_forward();
+        void slot_start_forward(ForwardList *fl);
 		void slot_proc_error ( QProcess::ProcessError error );
         void slot_proc_finished ( int exitCode, QProcess::ExitStatus exitStatus );
         void slot_proc_readyReadStandardError ();

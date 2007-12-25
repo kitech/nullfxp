@@ -178,35 +178,15 @@ void ForwardConnectDaemon::slot_new_forward()
     QObject::connect(fl->plink_proc, SIGNAL(stateChanged ( QProcess::ProcessState  )),this,SLOT(slot_proc_stateChanged ( QProcess::ProcessState  )));
     QObject::connect(&fl->alive_check_timer,SIGNAL(timeout()), this, SLOT(slot_time_out()));
     
-    QString  program_name = QApplication::applicationDirPath ()+"/plink";//"/home/gzl/nullfxp-svn/src/plink/plink";
-    QStringList arg_list ;
+    QObject::connect(fl->ps_proc, SIGNAL(error(QProcess::ProcessError)),this,SLOT(slot_proc_error(QProcess::ProcessError)));
+    QObject::connect(fl->ps_proc, SIGNAL(finished ( int , QProcess::ExitStatus  )),this,SLOT(slot_proc_finished ( int , QProcess::ExitStatus  )));
+    QObject::connect(fl->ps_proc, SIGNAL(readyReadStandardError ()),this,SLOT(slot_proc_readyReadStandardError ()));
+    QObject::connect(fl->ps_proc, SIGNAL(readyReadStandardOutput ()),this,SLOT(slot_proc_readyReadStandardOutput ()));
+    QObject::connect(fl->ps_proc, SIGNAL(started ()),this,SLOT(slot_proc_started ()));
+    QObject::connect(fl->ps_proc, SIGNAL(stateChanged ( QProcess::ProcessState  )),this,SLOT(slot_proc_stateChanged ( QProcess::ProcessState  )));
     
-    //此进程在正常情况下将不断检测，如没有检测到进程存在则重新启动。除非手工停止
-    //use kill -SIGINT  , the process can exit normal
-    ///plink -ssh -batch -N -v -l webroot -pw xxxxxx -R 8000:0.0.0.0:22 218.244.130.188
-    arg_list<<"-ssh";
-    arg_list<<"-N";
-    arg_list<<"-v";
-    arg_list<<"-l"; 
-//     arg_list<<"webroot";
-    arg_list<<fl->user_name;
-    arg_list<<"-pw";
-//     arg_list<<"webadmin";
-    arg_list<<fl->passwd;
-    arg_list<<"-R";
-//     arg_list<<"6000:0.0.0.0:22";
-    arg_list<<(fl->remote_listen_port+":0.0.0.0:"+fl->forward_local_port);
-//     arg_list<<"218.244.130.188";
-    arg_list<<fl->host;
+    this->slot_start_forward(fl);
 
-    fl->plink_id = 0;
-    fl->plink_proc->start(program_name,arg_list);
-    if(!fl->alive_check_timer.isActive())
-    {
-        fl->alive_check_timer.setInterval(1000*60*1);
-        fl->alive_check_timer.start();
-    }
-    
     return; //depcrated code
 //     if(plink_proc == 0)
 //     {
@@ -246,17 +226,49 @@ void ForwardConnectDaemon::slot_new_forward()
 //     }
 }
 
+void ForwardConnectDaemon::slot_start_forward(ForwardList * fl)
+{
+    QString  program_name = QApplication::applicationDirPath ()+"/plink";//"/home/gzl/nullfxp-svn/src/plink/plink";
+    QStringList arg_list ;
+    
+    //此进程在正常情况下将不断检测，如没有检测到进程存在则重新启动。除非手工停止
+    //use kill -SIGINT  , the process can exit normal
+    ///plink -ssh -batch -N -v -l webroot -pw xxxxxx -R 8000:0.0.0.0:22 218.244.130.188
+    arg_list<<"-ssh";
+    arg_list<<"-N";
+    arg_list<<"-v";
+    arg_list<<"-l"; 
+//     arg_list<<"webroot";
+    arg_list<<fl->user_name;
+    arg_list<<"-pw";
+//     arg_list<<"webadmin";
+    arg_list<<fl->passwd;
+    arg_list<<"-R";
+//     arg_list<<"6000:0.0.0.0:22";
+    arg_list<<(fl->remote_listen_port+":0.0.0.0:"+fl->forward_local_port);
+//     arg_list<<"218.244.130.188";
+    arg_list<<fl->host;
+
+    fl->plink_id = 0;
+    fl->plink_proc->start(program_name,arg_list);
+    fl->alive_check_timer.setInterval(1000*20*1);
+    if(!fl->alive_check_timer.isActive())
+    {
+        fl->alive_check_timer.start();
+    }
+}
+
 void ForwardConnectDaemon::slot_proc_error ( QProcess::ProcessError error )
 {
-	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-	qDebug() <<error;
+// 	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+// 	qDebug() <<error;
 	QByteArray ba ;
 	//ba = plink_proc->readAllStandardError();
 	//ba += plink_proc->readAllStandardOutput();
-	qDebug() <<ba;
+// 	qDebug() <<ba;
     if(error == QProcess::FailedToStart)
     {
-        qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+//         qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
         //this->alive_check_timer.stop();
         //this->plink_id = 0;
     }
@@ -265,11 +277,36 @@ void ForwardConnectDaemon::slot_proc_error ( QProcess::ProcessError error )
 void ForwardConnectDaemon::slot_proc_finished ( int exitCode, QProcess::ExitStatus exitStatus )
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    qDebug()<<exitCode<<" "<<exitStatus;
+//     qDebug()<<exitCode<<" "<<exitStatus;
     QByteArray ba ;
+    ForwardList * fl = 0;
+    int which = 0 ;
+
+    fl = this->get_forward_list_by_proc(sender(), &which);
+    fl->plink_id = fl->plink_proc->pid();
+    if(which == 2)
+    {
+        if(fl->ps_exist == 1)//没有找到相关端口, 重新启动
+        {
+            fl->alive_check_timer.stop();
+            fl->plink_id = 0;
+            fl->plink_proc->kill();
+        }
+    }
+    if(which == 1)
+    {
+        fl->plink_id = 0;
+        if(! fl->user_canceled)
+        {
+            qDebug()<<"plink process finished, but not user canceled, restart after 2 second...";
+            fl->alive_check_timer.stop();
+            fl->alive_check_timer.setInterval(1000*2*1);
+            fl->alive_check_timer.start();
+        }
+    }
     //ba = plink_proc->readAllStandardError();
     //ba += plink_proc->readAllStandardOutput();
-    qDebug() <<ba;
+//     qDebug() <<ba;
     //this->plink_id = 0;
 //     if(! this->user_canceled)
 //     {
@@ -290,20 +327,38 @@ void ForwardConnectDaemon::slot_proc_readyReadStandardError ()
     fl = this->get_forward_list_by_proc(sender(), &which);
     proc = (QProcess*)sender();
     ba = proc->readAllStandardError();
-    qDebug() <<ba;
+    //qDebug() <<ba;
 }
 void ForwardConnectDaemon::slot_proc_readyReadStandardOutput ()
 {
-//     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     ForwardList * fl = 0;
     int which = 0 ;
     QProcess *proc ;
     QByteArray ba ;
+    QStringList lines;
+    QStringList fields;
 
     fl = this->get_forward_list_by_proc(sender(),&which);
     proc = (QProcess*)sender();
     ba = proc->readAllStandardOutput();
-    qDebug() <<ba;
+    //qDebug() <<ba;
+    if(which == 2)
+    {
+        //解析输出结果
+        lines = QString(ba.data()).split("\n");
+        //qDebug()<<lines;
+        for(int i=0;i<lines.count();i++)
+        {
+            fields = lines.at(i).split(" ", QString::SkipEmptyParts);
+            //qDebug()<<fields;
+            if(fields.count() > 0 && fields.at(fields.count()-1) == QString("LISTEN"))
+            {
+                qDebug()<<"found expected listen port.";
+                fl->ps_exist = 2;
+            }
+        }
+    }
 }
 void ForwardConnectDaemon::slot_proc_started ()
 {
@@ -313,6 +368,10 @@ void ForwardConnectDaemon::slot_proc_started ()
 
     fl = this->get_forward_list_by_proc(sender(), &which);
     fl->plink_id = fl->plink_proc->pid();
+    if(which == 2)
+    {
+        fl->ps_exist = 1;
+    }
 }
 void ForwardConnectDaemon::slot_proc_stateChanged ( QProcess::ProcessState newState )
 {
@@ -322,7 +381,7 @@ void ForwardConnectDaemon::slot_time_out()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     //qDebug()<<this->plink_id<<" "<<this->user_canceled<<" "<<QDateTime::currentDateTime();
-    //TODO 这种检测不够，还要使用plink连接到远程服务器查看相关端口是否能用
+    //这种检测不够，还要使用plink连接到远程服务器查看相关端口是否能用
     //like this : plink -l webroot -pw xxxxxxx xxx.xxx.xxx.xxx netstat -ant|grep 8000
     ForwardList * fl = 0;
     QProcess *plink_proc ;
@@ -339,6 +398,7 @@ void ForwardConnectDaemon::slot_time_out()
         qDebug()<<"plink process disappeared, restart...";
         this->slot_new_forward();
     }else{
+        qDebug()<<"plink process exist, checking port status...";
     	//执行远程端口检测命令,使用新进程方式
     	//有两种方式，第一种使用plink进程实现此功能; 第二种使用libssh2库执行远程命令
         QString  program_name = QApplication::applicationDirPath ()+"/plink";//"/home/gzl/nullfxp-svn/src/plink/plink";
@@ -351,13 +411,16 @@ void ForwardConnectDaemon::slot_time_out()
 //         arg_list<<"-N";
         arg_list<<"-v";
         arg_list<<"-l"; 
-        arg_list<<"webroot";
+//         arg_list<<"webroot";
+        arg_list<<fl->user_name;
         arg_list<<"-pw";
             arg_list<<fl->passwd;
 //         arg_list<<"-R";
 //         arg_list<<"8000:0.0.0.0:22";
-        arg_list<<"218.244.130.188";
-        arg_list<<"netstat -ant";
+//         arg_list<<"218.244.130.188";
+        arg_list<<fl->host;
+        arg_list<<"netstat -ant|grep \"127.0.0.1:\""+fl->remote_listen_port;
+        fl->ps_proc->start(program_name, arg_list);
 	}
     //if(this->user_canceled) this->alive_check_timer.stop();
     //else if(!this->alive_check_timer.isActive()) this->alive_check_timer.start();
@@ -375,12 +438,21 @@ void ForwardConnectDaemon::slot_show_debug_window()
 ForwardList * ForwardConnectDaemon::get_forward_list_by_proc(QObject *proc_obj, int *which)
 {
     ForwardList * fl = 0;
+    *which = 0;
     
     for(int i = 0 ; i < this->forward_list.count(); i ++)
     {
         fl = this->forward_list.at(i);
-        if( fl->ps_proc == proc_obj || fl->plink_proc == proc_obj)
+        if( fl->ps_proc == proc_obj )
+        {
+            *which = 2;
             break;
+        }
+        else if(fl->plink_proc == proc_obj)
+        {
+            *which = 1;
+            break;
+        }
         fl = 0;
     }
     assert(fl != 0);
