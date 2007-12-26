@@ -396,7 +396,8 @@ void ForwardConnectDaemon::slot_time_out()
     if(fl->plink_id == 0 && ! fl->user_canceled)
     {
         qDebug()<<"plink process disappeared, restart...";
-        this->slot_new_forward();
+        //this->slot_new_forward();
+        this->slot_start_forward(fl);
     }else{
         qDebug()<<"plink process exist, checking port status...";
     	//执行远程端口检测命令,使用新进程方式
