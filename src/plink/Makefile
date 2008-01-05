@@ -114,7 +114,7 @@ man1dir=$(mandir)/man1
 .SUFFIXES: .c .h
 
 
-all: plink
+all: plink pscp
 #pscp psftp puttygen
 #all-gtk: pterm putty puttytel
 
@@ -135,7 +135,24 @@ plink: be_all_s.o cmdline.o cproxy.o ldisc.o logging.o misc.o pinger.o \
 		uxmisc.o uxnet.o uxnoise.o uxplink.o uxproxy.o uxsel.o \
 		uxser.o uxsignal.o uxstore.o version.o wildcard.o x11fwd.o \
 		$(ULDFLAGS) 
-
+		
+pscp: be_none.o cmdline.o cproxy.o int64.o logging.o misc.o pinger.o \
+		portfwd.o proxy.o pscp.o settings.o sftp.o ssh.o sshaes.o \
+		ssharcf.o sshblowf.o sshbn.o sshcrc.o sshcrcda.o sshdes.o \
+		sshdh.o sshdss.o sshmd5.o sshpubk.o sshrand.o sshrsa.o \
+		sshsh256.o sshsh512.o sshsha.o sshzlib.o time.o timing.o \
+		tree234.o uxagentc.o uxcons.o uxmisc.o uxnet.o uxnoise.o \
+		uxproxy.o uxsel.o uxsftp.o uxstore.o version.o wildcard.o \
+		x11fwd.o
+	$(CC) -o $@ be_none.o cmdline.o cproxy.o int64.o logging.o misc.o \
+		pinger.o portfwd.o proxy.o pscp.o settings.o sftp.o ssh.o \
+		sshaes.o ssharcf.o sshblowf.o sshbn.o sshcrc.o sshcrcda.o \
+		sshdes.o sshdh.o sshdss.o sshmd5.o sshpubk.o sshrand.o \
+		sshrsa.o sshsh256.o sshsh512.o sshsha.o sshzlib.o time.o \
+		timing.o tree234.o uxagentc.o uxcons.o uxmisc.o uxnet.o \
+		uxnoise.o uxproxy.o uxsel.o uxsftp.o uxstore.o version.o \
+		wildcard.o x11fwd.o $(ULDFLAGS) 
+		
 version.o: FORCE
 	if test -z "$(VER)" && (cd .; md5sum -c manifest); then \
 		$(CC) $(COMPAT) $(XFLAGS) $(CFLAGS) `cat ./version.def` -c ./version.c; \
@@ -169,7 +186,8 @@ uxsignal.o: unix/uxsignal.c
 	$(CC) $(COMPAT) $(XFLAGS) $(CFLAGS) $(VER) -c $^
 uxstore.o: unix/uxstore.c
 	$(CC) $(COMPAT) $(XFLAGS) $(CFLAGS) $(VER) -c $^
-
+uxsftp.o: unix/uxsftp.c
+	$(CC) $(COMPAT) $(XFLAGS) $(CFLAGS) $(VER) -c $^
 
 install:
 	$(INSTALL_PROGRAM) -m 755 plink $(DESTDIR)$(bindir)/plink

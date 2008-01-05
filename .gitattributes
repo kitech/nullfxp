@@ -115,6 +115,7 @@ src/nullfxp.ui -text
 src/nullfxpext.cpp -text
 src/plink/Makefile -text
 src/plink/be_all_s.c -text
+src/plink/be_none.c -text
 src/plink/charset/README -text
 src/plink/charset/charset.h -text
 src/plink/charset/enum.c -text
@@ -134,6 +135,7 @@ src/plink/charset/xenc.c -text
 src/plink/cmdgen.c -text
 src/plink/cmdline.c -text
 src/plink/cproxy.c -text
+src/plink/int64.c -text
 src/plink/int64.h -text
 src/plink/ldisc.c -text
 src/plink/ldisc.h -text
@@ -146,12 +148,16 @@ src/plink/pinger.c -text
 src/plink/portfwd.c -text
 src/plink/proxy.c -text
 src/plink/proxy.h -text
+src/plink/pscp.c -text
+src/plink/psftp.h -text
 src/plink/putty.h -text
 src/plink/puttymem.h -text
 src/plink/puttyps.h -text
 src/plink/raw.c -text
 src/plink/rlogin.c -text
 src/plink/settings.c -text
+src/plink/sftp.c -text
+src/plink/sftp.h -text
 src/plink/ssh.c -text
 src/plink/ssh.h -text
 src/plink/sshaes.c -text
@@ -194,6 +200,7 @@ src/plink/unix/uxplink.c -text
 src/plink/unix/uxproxy.c -text
 src/plink/unix/uxsel.c -text
 src/plink/unix/uxser.c -text
+src/plink/unix/uxsftp.c -text
 src/plink/unix/uxsignal.c -text
 src/plink/unix/uxstore.c -text
 src/plink/version.c -text
