@@ -1,0 +1,92 @@
+<ui version="4.0" >
+ <class>ForwardDebugWindow</class>
+ <widget class="QWidget" name="ForwardDebugWindow" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>379</width>
+    <height>439</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Forward Debug Window</string>
+  </property>
+  <layout class="QVBoxLayout" >
+   <item>
+    <layout class="QHBoxLayout" >
+     <item>
+      <widget class="QComboBox" name="comboBox_2" />
+     </item>
+     <item>
+      <widget class="QComboBox" name="comboBox" >
+       <item>
+        <property name="text" >
+         <string>ALL</string>
+        </property>
+       </item>
+       <item>
+        <property name="text" >
+         <string>ERROR</string>
+        </property>
+       </item>
+       <item>
+        <property name="text" >
+         <string>DEBUG</string>
+        </property>
+       </item>
+       <item>
+        <property name="text" >
+         <string>INFO</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QTextEdit" name="textEdit" />
+   </item>
+   <item>
+    <layout class="QHBoxLayout" >
+     <item>
+      <widget class="QPushButton" name="pushButton_3" >
+       <property name="text" >
+        <string>&amp;Help</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer>
+       <property name="orientation" >
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" >
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton" >
+       <property name="text" >
+        <string>&amp;Clear</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_2" >
+       <property name="text" >
+        <string>&amp;Close</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

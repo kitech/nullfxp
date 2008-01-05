@@ -20,7 +20,9 @@ SOURCES += main.cpp \
  localdirsortfiltermodel.cpp \
  localdirorginalmodel.cpp \
  nullfxpext.cpp \
- forwardconnectdaemon.cpp
+ forwardconnectdaemon.cpp \
+ forwarddebugwindow.cpp \
+ forwardconnectinfodialog.cpp
 TEMPLATE = app
 CONFIG += warn_on \
 	  thread \
@@ -44,7 +46,9 @@ FORMS += nullfxp.ui \
  fileproperties.ui \
  synchronizeoptiondialog.ui \
  synchronizewindow.ui \
- forwardconnectdaemon.ui
+ forwardconnectdaemon.ui \
+ forwarddebugwindow.ui \
+ forwardconnectinfodialog.ui
 
 HEADERS += nullfxp.h \
  localview.h \
@@ -65,7 +69,9 @@ HEADERS += nullfxp.h \
  remotedirtreeview.h \
  localdirsortfiltermodel.h \
  localdirorginalmodel.h \
- forwardconnectdaemon.h
+ forwardconnectdaemon.h \
+ forwarddebugwindow.h \
+ forwardconnectinfodialog.h
 
 
 DISTFILES += ../CMakeLists.txt \
@@ -105,24 +111,3 @@ win32 {
 INCLUDEPATH += ./libssh2/include
 
 RESOURCES = nullfxp.qrc
-win32{
-    target.path = "C:/Program Files/nullfxp"
-    target.path += "C:/Program Files/nullfxp/share"
-    target.path += "C:/Program Files/nullfxp/bin"
-    documentation.path = "C:/Program Files/nullfxp"
-}else {
-    target.path = /opt/nullfxp/
-    target.path += /opt/nullfxp/share
-    target.path += /opt/nullfxp/bin
-    target.path += /opt/nullfxp/docs
-    documentation.path =/opt/nullfxp/ 
-}
-documentation.files = ../README    
-documentation.files += ../INSTALL
-documentation.files += ../AUTHORS
-documentation.files += ../COPYING
-documentation.files += ../ChangeLog
-
-
-INSTALLS += target documentation
-

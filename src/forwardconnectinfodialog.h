@@ -1,7 +1,9 @@
 /***************************************************************************
  *   Copyright (C) 2007 by liuguangzhao   *
  *   liuguangzhao@users.sourceforge.net   *
- *                                                                         *
+ *
+ *   http://www.qtchina.net                                                *
+ *   http://nullget.sourceforge.net                                        *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -17,13 +19,27 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#ifndef FORWARDCONNECTINFODIALOG_H
+#define FORWARDCONNECTINFODIALOG_H
 
-#ifndef NULLFXP_VERSION_H
-#define NULLFXP_VERSION_H
+#include <QtCore>
+#include <QtGui>
 
-#define NULLFXP_VERSION	"NullFXP 1.6.0"
+#include "ui_forwardconnectinfodialog.h"
+/**
+	@author liuguangzhao <liuguangzhao@users.sourceforge.net>
+*/
+class ForwardConnectInfoDialog : public QDialog
+{
+Q_OBJECT
+public:
+    ForwardConnectInfoDialog(QWidget *parent = 0);
 
-#define NULLFXP_PORTABLE	""
-#define NULLFXP_RELEASE	NULLFXP_VERSION NULLFXP_PORTABLE
+    ~ForwardConnectInfoDialog();
+    void get_forward_info(QString &host, QString &user_name, QString &passwd, QString &listen_port, QString &local_port);
+    
+    private:
+        Ui::ForwardConnectInfoDialog fcid;
+};
 
 #endif
