@@ -136,10 +136,7 @@ void ProgressDialog::set_transfer_info(/*int type,*/QStringList local_file_names
             remote_file_name = remote_file_names.at(i);
             local_full_path = local_file_name + "/"
                 + remote_file_name.split ( "/" ).at ( remote_file_name.split ( "/" ).count()-1 ) ;
-            //fixed me: 当用户名或者密码中包含问号的时候 QUrl 类就处理不了了。
-            if(remote_file_name.indexOf("?") != -1){
-                remote_file_name = remote_file_name.replace("?","_whywenhao_");
-            }
+            //fixed: 当用户名或者密码中包含问号或者#号的时候 QUrl 类就处理不了了。 传递过来的密码都是urlencoded
 			tmp_str = QUrl(remote_file_name).path() ;
 			if( tmp_str.at(2) == ':'){
 				//assert it win32	"/G:/path/to/file.zip"

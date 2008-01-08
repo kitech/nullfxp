@@ -886,7 +886,7 @@ void RemoteView::slot_drag_ready()
     for(int i = 0 ; i< mil.count() ;i += this->remote_dir_model->columnCount() )
     {
         QModelIndex midx = mil.at(i);
-        drag_urls<< QUrl( QString("nrsftp://%1:%2@%3:22").arg(this->user_name).arg(this->password.indexOf("?") == -1 ? this->password: this->password.replace("?","_whywenhao_")).arg(this->host_name) + qobject_cast<RemoteDirModel*>(this->remote_dir_model)->filePath(midx)  );
+        drag_urls<< QUrl( QString("nrsftp://%1:%2@%3:22").arg(this->user_name).arg(this->password).arg(this->host_name) + qobject_cast<RemoteDirModel*>(this->remote_dir_model)->filePath(midx)  );
     }
     
     //mimeData->setData("text/uri-list" , "data");

@@ -219,13 +219,8 @@ void TransferThread::run()
        //file - > nrsftp
        //nrsftp -> nrsftp
        //nrsftp -> file
-       if(this->current_src_file_name.indexOf("?")!= -1){
-          this->current_src_file_name = this->current_src_file_name.replace("?","_whywenhao_");
-       }
-       if(this->current_dest_file_name.indexOf("?") != -1){
-          this->current_dest_file_type = this->current_dest_file_name.replace("?","_whywenhao_");
-       }
-	   qDebug()<<this->current_src_file_name;
+	   
+       qDebug()<<this->current_src_file_name;
 	   qDebug()<<this->current_dest_file_name;
        current_src_url = this->current_src_file_name ;
        current_dest_url = this->current_dest_file_name ;
@@ -261,9 +256,7 @@ void TransferThread::run()
            {
                emit  transfer_log("Connecting to destination host ...");
                QString tmp_passwd = current_dest_url.password();
-               if(tmp_passwd.indexOf("_whywenhao_") != -1){
-                  tmp_passwd = tmp_passwd.replace("_whywenhao_","?");
-               }
+
                 rhct = new RemoteHostConnectThread ( current_dest_url.userName() , tmp_passwd ,current_dest_url.host() );
                 rhct->run();
                 //TODO get status code and then ...
@@ -341,9 +334,7 @@ void TransferThread::run()
            {
                emit  transfer_log("Connecting to source host ...");
                QString tmp_passwd = current_src_url.password();
-               if(tmp_passwd.indexOf("_whywenhao_") != -1){
-                  tmp_passwd = tmp_passwd.replace("_whywenhao_","?");
-               }
+
                rhct = new RemoteHostConnectThread ( current_src_url.userName() , tmp_passwd ,current_src_url.host() );
                rhct->run();
                 //TODO get status code and then ...
@@ -416,9 +407,7 @@ void TransferThread::run()
            {
                emit  transfer_log("Connecting to destionation host ...");
                QString tmp_passwd = current_src_url.password();
-               if(tmp_passwd.indexOf("_whywenhao_") != -1){
-                  tmp_passwd = tmp_passwd.replace("_whywenhao_","?");
-               }
+
                rhct = new RemoteHostConnectThread ( current_src_url.userName() , tmp_passwd ,current_src_url.host() );
                rhct->run();
                 //TODO get status code and then ...
@@ -432,9 +421,7 @@ void TransferThread::run()
            {
                emit  transfer_log("Connecting to source host ...");
                QString tmp_passwd = current_dest_url.password();
-               if(tmp_passwd.indexOf("_whywenhao_") != -1){
-                  tmp_passwd = tmp_passwd.replace("_whywenhao_","?");
-               }
+
                rhct = new RemoteHostConnectThread ( current_dest_url.userName() , tmp_passwd ,current_dest_url.host() );
                rhct->run();
                 //TODO get status code and then ...

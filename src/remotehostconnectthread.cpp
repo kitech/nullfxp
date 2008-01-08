@@ -74,9 +74,10 @@ static void kbd_callback(const char *name, int name_len,
 
 RemoteHostConnectThread::RemoteHostConnectThread(QString user_name , QString password , QString host_name ,QObject* parent): QThread(parent)
 {
-    this->user_name = user_name.toStdString();
-    this->password = password.toStdString();
-    this->host_name = host_name.toStdString();
+    this->user_name = user_name;
+    this->password = password;
+    this->decoded_password = QUrl::fromPercentEncoding(this->password.toAscii());
+    this->host_name = host_name;
     this->connect_status = 0;
     this->user_canceled = false;
     ////////////////
@@ -115,8 +116,8 @@ void RemoteHostConnectThread::run()
     serv_addr.sin_port = htons( 22 );
     //serv_addr.sin_addr.s_addr = 
     
-    emit connect_state_changed(tr("Resoving %1 ...").arg(this->host_name.c_str()));
-    struct hostent * remote_host_ipaddrs = ::gethostbyname(this->host_name.c_str());
+    emit connect_state_changed(tr("Resoving %1 ...").arg(this->host_name));
+    struct hostent * remote_host_ipaddrs = ::gethostbyname(this->host_name.toAscii().data());
     char * ent_pos_c = 0 ;
     int counter = 0 ;
     if( remote_host_ipaddrs == 0 )
@@ -159,7 +160,7 @@ void RemoteHostConnectThread::run()
         return;
     }   
     
-    emit connect_state_changed( tr("Connecting to %1 ( %2 ) ").arg(this->host_name.c_str()).arg(host_ipaddr) );
+    emit connect_state_changed( tr("Connecting to %1 ( %2 ) ").arg(this->host_name).arg(host_ipaddr) );
     this->ssh2_sock = socket(AF_INET,SOCK_STREAM,0);
     ret = ::connect( this->ssh2_sock,(struct sockaddr*)&serv_addr,sizeof(serv_addr));
     if( ret != 0 )
@@ -187,7 +188,7 @@ void RemoteHostConnectThread::run()
     
     ///////////
     //auth
-    char * auth_list = libssh2_userauth_list((LIBSSH2_SESSION*)ssh2_sess,this->user_name.c_str(),strlen(this->user_name.c_str()) );
+    char * auth_list = libssh2_userauth_list((LIBSSH2_SESSION*)ssh2_sess,this->user_name.toAscii().data(),strlen(this->user_name.toAscii().data()) );
     printf("user auth list : %s \n" , auth_list ) ;
     
     emit connect_state_changed( tr( "User authing (Password)...") );
@@ -204,15 +205,15 @@ void RemoteHostConnectThread::run()
             return;
     }   
 
-    ret = libssh2_userauth_password((LIBSSH2_SESSION*)ssh2_sess,this->user_name.c_str(),this->password.c_str());
+    ret = libssh2_userauth_password((LIBSSH2_SESSION*)ssh2_sess,this->user_name.toAscii().data(),this->decoded_password.toAscii().data());
     qDebug()<<"Keyboard Interactive :"<<ret ;
 
     if( ret == -1 )
     {
         emit connect_state_changed( tr( "User auth faild (Password). Trying (Keyboard Interactive) ...") );
         ssh2_kbd_cb_mutex.lock();
-        strncpy(ssh2_password,this->password.c_str() , sizeof(ssh2_password));
-        ret = libssh2_userauth_keyboard_interactive((LIBSSH2_SESSION*)ssh2_sess,this->user_name.c_str(),&kbd_callback) ;
+        strncpy(ssh2_password,this->decoded_password.toAscii().data() , sizeof(ssh2_password));
+        ret = libssh2_userauth_keyboard_interactive((LIBSSH2_SESSION*)ssh2_sess,this->user_name.toAscii().data(),&kbd_callback) ;
         memset( ssh2_password,0,sizeof(ssh2_password));
         ssh2_kbd_cb_mutex.unlock();
         qDebug()<<"keyboard interactive :"<<ret ;
@@ -299,16 +300,16 @@ std::string RemoteHostConnectThread::get_user_home_path ()
 
 QString RemoteHostConnectThread::get_host_name()
 {
-    return QString(this->host_name.c_str());
+    return this->host_name;
 }
 
 QString RemoteHostConnectThread::get_user_name()
 {
-    return this->user_name.c_str() ;
+    return this->user_name ;
 }
 QString RemoteHostConnectThread::get_password ()
 {
-    return this->password.c_str()  ;
+    return this->password  ;
 }
 
 void * RemoteHostConnectThread::get_ssh2_sess () 

@@ -52,9 +52,10 @@ public:
         void  connect_state_changed( QString state_desc );
         
     private:
-        std::string user_name;
-        std::string password;
-        std::string host_name ;
+        QString user_name;
+        QString password;   //存储的密码为url编码过的
+        QString decoded_password;
+        QString host_name ;
         int connect_status;
         bool user_canceled;
         
