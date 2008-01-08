@@ -45,7 +45,13 @@ QString RemoteHostQuickConnectInfoDialog::get_password()
 {
     return this->quick_connect_info_dialog.lineEdit_4->text();
 }
-
+short  RemoteHostQuickConnectInfoDialog::get_port()
+{
+    QString str_port = this->quick_connect_info_dialog.lineEdit_2->text();
+    int port = str_port.toShort();
+    
+    return port;
+}
 void RemoteHostQuickConnectInfoDialog::slot_test_remote_host_changed(int value)
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;

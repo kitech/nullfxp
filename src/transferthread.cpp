@@ -257,7 +257,7 @@ void TransferThread::run()
                emit  transfer_log("Connecting to destination host ...");
                QString tmp_passwd = current_dest_url.password();
 
-                rhct = new RemoteHostConnectThread ( current_dest_url.userName() , tmp_passwd ,current_dest_url.host() );
+               rhct = new RemoteHostConnectThread ( current_dest_url.userName() , tmp_passwd ,current_dest_url.host(), current_dest_url.port(22));
                 rhct->run();
                 //TODO get status code and then ...
                 this->dest_ssh2_sess = (LIBSSH2_SESSION*)rhct->get_ssh2_sess();
@@ -335,7 +335,7 @@ void TransferThread::run()
                emit  transfer_log("Connecting to source host ...");
                QString tmp_passwd = current_src_url.password();
 
-               rhct = new RemoteHostConnectThread ( current_src_url.userName() , tmp_passwd ,current_src_url.host() );
+               rhct = new RemoteHostConnectThread ( current_src_url.userName() , tmp_passwd ,current_src_url.host() , current_src_url.port(22));
                rhct->run();
                 //TODO get status code and then ...
                this->src_ssh2_sess = (LIBSSH2_SESSION*)rhct->get_ssh2_sess();
@@ -408,7 +408,7 @@ void TransferThread::run()
                emit  transfer_log("Connecting to destionation host ...");
                QString tmp_passwd = current_src_url.password();
 
-               rhct = new RemoteHostConnectThread ( current_src_url.userName() , tmp_passwd ,current_src_url.host() );
+               rhct = new RemoteHostConnectThread ( current_src_url.userName() , tmp_passwd ,current_src_url.host() , current_src_url.port(22));
                rhct->run();
                 //TODO get status code and then ...
                this->src_ssh2_sess = (LIBSSH2_SESSION*)rhct->get_ssh2_sess();
@@ -422,7 +422,7 @@ void TransferThread::run()
                emit  transfer_log("Connecting to source host ...");
                QString tmp_passwd = current_dest_url.password();
 
-               rhct = new RemoteHostConnectThread ( current_dest_url.userName() , tmp_passwd ,current_dest_url.host() );
+               rhct = new RemoteHostConnectThread ( current_dest_url.userName() , tmp_passwd ,current_dest_url.host(), current_dest_url.port(22) );
                rhct->run();
                 //TODO get status code and then ...
                this->dest_ssh2_sess = (LIBSSH2_SESSION*)rhct->get_ssh2_sess();

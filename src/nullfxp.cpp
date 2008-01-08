@@ -161,6 +161,7 @@ void NullFXP::connect_to_remote_host()
 	QString username ;
 	QString password ;
 	QString remoteaddr ;
+        short   port;
 
 	//提示输入远程主机信息
 	this->quick_connect_info_dailog = new RemoteHostQuickConnectInfoDialog ( this );
@@ -170,6 +171,7 @@ void NullFXP::connect_to_remote_host()
 		password = this->quick_connect_info_dailog->get_password();
                 password = QUrl::toPercentEncoding(password);
 		remoteaddr = this->quick_connect_info_dailog->get_host_name();
+                port = this->quick_connect_info_dailog->get_port();
 
 		delete this->quick_connect_info_dailog;this->quick_connect_info_dailog=0;
 
@@ -178,7 +180,7 @@ void NullFXP::connect_to_remote_host()
                          this,SLOT(slot_cancel_connect()) );
 		//this->localView->set_sftp_connection ( &theconn );
 		remote_conn_thread = new RemoteHostConnectThread (
-		                         username,  password,remoteaddr ) ;
+                        username,  password, remoteaddr, port ) ;
 		QObject::connect ( this->remote_conn_thread , SIGNAL ( connect_finished ( int,void * , int /* , void **/ ) ),
 		                   this, SLOT ( slot_connect_remote_host_finished ( int ,void * ,int /* , void **/ ) ) );
 
@@ -248,7 +250,8 @@ void NullFXP::slot_connect_remote_host_finished ( int status,void * ssh2_sess , 
         remote_view->set_user_home_path ( this->remote_conn_thread->get_user_home_path() );
         remote_view->set_host_info(conn_thread->get_host_name(),
                                    conn_thread->get_user_name(),
-                                           conn_thread->get_password() );
+                                           conn_thread->get_password(),
+                                  conn_thread->get_port());
         //初始化远程目录树        
         remote_view->i_init_dir_view (  );
 	}

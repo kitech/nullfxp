@@ -72,12 +72,14 @@ static void kbd_callback(const char *name, int name_len,
     (void)abstract;
 } /* kbd_callback */
 
-RemoteHostConnectThread::RemoteHostConnectThread(QString user_name , QString password , QString host_name ,QObject* parent): QThread(parent)
+RemoteHostConnectThread::RemoteHostConnectThread(QString user_name , QString password , QString host_name, short port, QObject* parent): QThread(parent)
 {
     this->user_name = user_name;
     this->password = password;
     this->decoded_password = QUrl::fromPercentEncoding(this->password.toAscii());
     this->host_name = host_name;
+    this->port = port;
+    
     this->connect_status = 0;
     this->user_canceled = false;
     ////////////////
@@ -113,7 +115,7 @@ void RemoteHostConnectThread::run()
     struct sockaddr_in serv_addr ;
     memset( & serv_addr , 0 , sizeof( serv_addr )) ;
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons( 22 );
+    serv_addr.sin_port = htons(this->port);
     //serv_addr.sin_addr.s_addr = 
     
     emit connect_state_changed(tr("Resoving %1 ...").arg(this->host_name));
@@ -159,8 +161,8 @@ void RemoteHostConnectThread::run()
         this->connect_status = 2 ;
         return;
     }   
-    
-    emit connect_state_changed( tr("Connecting to %1 ( %2 ) ").arg(this->host_name).arg(host_ipaddr) );
+
+    emit connect_state_changed( tr("Connecting to %1 ( %2:%3 ) ").arg(this->host_name).arg(host_ipaddr).arg(this->port) );
     this->ssh2_sock = socket(AF_INET,SOCK_STREAM,0);
     ret = ::connect( this->ssh2_sock,(struct sockaddr*)&serv_addr,sizeof(serv_addr));
     if( ret != 0 )
@@ -311,7 +313,10 @@ QString RemoteHostConnectThread::get_password ()
 {
     return this->password  ;
 }
-
+short   RemoteHostConnectThread::get_port()
+{
+    return this->port;
+}
 void * RemoteHostConnectThread::get_ssh2_sess () 
 {
     return this->ssh2_sess ;

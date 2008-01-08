@@ -236,7 +236,7 @@ void RemoteView::slot_new_transfer()
         qDebug()<<dti->file_name<<" "<<dti->file_type<<" "<< dti->strip_path  ;
         file_path = dti->strip_path;
         //file_type = dti->file_type  ;
-        file_path = QString("nrsftp://%1:%2@%3:22").arg(this->user_name).arg(this->password).arg(this->host_name) + file_path;
+        file_path = QString("nrsftp://%1:%2@%3:%4").arg(this->user_name).arg(this->password).arg(this->host_name).arg(this->port) + file_path;
         remote_file_names << file_path ;
     }
     
@@ -308,12 +308,13 @@ void RemoteView::set_ssh2_handler( void * ssh2_sess /*, void * ssh2_sftp*/ , int
 //     return this->ssh2_sock ;
 // }
 
-void RemoteView::set_host_info( QString host_name , QString   user_name , QString password )
+void RemoteView::set_host_info( QString host_name , QString   user_name , QString password, short port )
 {
 
     this->host_name = host_name ;
     this->user_name = user_name ;
     this->password = password ;
+    this->port = port;
 
     this->setWindowTitle(this->windowTitle() + ": " + this->user_name + "@" + this->host_name );
 }
@@ -706,7 +707,7 @@ void RemoteView::slot_new_upload_requested ( QStringList local_file_names )
     }
     else
     {
-        remote_file_name = QString("nrsftp://%1:%2@%3:22").arg(this->user_name).arg(this->password).arg(this->host_name) + remote_file_name ;
+        remote_file_name = QString("nrsftp://%1:%2@%3:%4").arg(this->user_name).arg(this->password).arg(this->host_name).arg(this->port) + remote_file_name ;
         remote_file_names << remote_file_name ;
         this->slot_new_upload_requested( local_file_names , remote_file_names );
 //         ProgressDialog * pdlg = new ProgressDialog (  );
@@ -886,7 +887,7 @@ void RemoteView::slot_drag_ready()
     for(int i = 0 ; i< mil.count() ;i += this->remote_dir_model->columnCount() )
     {
         QModelIndex midx = mil.at(i);
-        drag_urls<< QUrl( QString("nrsftp://%1:%2@%3:22").arg(this->user_name).arg(this->password).arg(this->host_name) + qobject_cast<RemoteDirModel*>(this->remote_dir_model)->filePath(midx)  );
+        drag_urls<< QUrl( QString("nrsftp://%1:%2@%3:%4").arg(this->user_name).arg(this->password).arg(this->host_name).arg(this->port) + qobject_cast<RemoteDirModel*>(this->remote_dir_model)->filePath(midx)  );
     }
     
     //mimeData->setData("text/uri-list" , "data");
@@ -914,7 +915,7 @@ bool RemoteView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction actio
         
 	QString remote_file_name = aim_item->strip_path ;
 	//QString remote_file_type = aim_item->file_type.c_str();
-    remote_file_name = QString("nrsftp://%1:%2@%3:22").arg(this->user_name).arg(this->password).arg(this->host_name) + remote_file_name ;
+        remote_file_name = QString("nrsftp://%1:%2@%3:%4").arg(this->user_name).arg(this->password).arg(this->host_name).arg(this->port) + remote_file_name ;
 	remote_file_names << remote_file_name ;
     
 	QList<QUrl> urls = data->urls( ) ;

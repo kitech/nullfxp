@@ -40,6 +40,7 @@ public:
     QString get_user_name ();
     QString get_host_name ();
     QString get_password();
+    short  get_port();
     
     public slots:
         void slot_test_remote_host_changed(int value);

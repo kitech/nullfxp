@@ -31,7 +31,7 @@ class RemoteHostConnectThread : public QThread
 {
 Q_OBJECT
 public:
-    RemoteHostConnectThread(QString user_name , QString password , QString host_name ,QObject* parent=0);
+    RemoteHostConnectThread(QString user_name, QString password, QString host_name, short port, QObject* parent=0);
 
     ~RemoteHostConnectThread();
 
@@ -44,6 +44,7 @@ public:
     QString get_host_name () ;
     QString get_user_name () ;
     QString get_password () ;
+    short   get_port();
     void * get_ssh2_sess () ;
     int get_ssh2_sock () ;
     void set_user_canceled();
@@ -56,6 +57,7 @@ public:
         QString password;   //存储的密码为url编码过的
         QString decoded_password;
         QString host_name ;
+        short   port;
         int connect_status;
         bool user_canceled;
         

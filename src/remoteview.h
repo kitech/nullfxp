@@ -52,7 +52,7 @@ public:
     ~RemoteView();
     QString get_selected_directory();
     //
-    void set_host_info ( QString host_name ,QString user_name, QString password );
+    void set_host_info ( QString host_name ,QString user_name, QString password, short port );
     void set_ssh2_handler( void * ssh2_sess /*, void * ssh2_sftp*/, int ssh2_sock );
     void set_user_home_path(std::string user_home_path);
     
@@ -96,6 +96,7 @@ public:
         QString host_name ;
         QString user_name ;
         QString password ;
+        short  port;
         
         //menu item
         QAction * attr_action;
