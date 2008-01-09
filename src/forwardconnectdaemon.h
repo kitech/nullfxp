@@ -90,6 +90,9 @@ public:
     ForwardConnectDaemon(QWidget *parent = 0);
 
     ~ForwardConnectDaemon();
+    
+    enum {DBG_ALL, DBG_INFO, DBG_DEBUG, DBG_ERROR};
+    
     private slots:
 		void slot_custom_ctx_menu ( const QPoint & pos );
 		void slot_new_forward();
@@ -125,6 +128,9 @@ public:
         QVector<ForwardList*> forward_list;
         
         QStringListModel * host_model;
+
+    signals:
+        void log_debug_message(QString key, int level, QString msg);
 };
 
 #endif

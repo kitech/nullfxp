@@ -25,11 +25,48 @@ ForwardDebugWindow::ForwardDebugWindow(QWidget *parent)
  : QWidget(parent)
 {
     fdw.setupUi(this);
+    curr_show_level = 0;
 }
 
 
 ForwardDebugWindow::~ForwardDebugWindow()
 {
+}
+
+void ForwardDebugWindow::slot_log_debug_message(QString key, int level, QString msg)
+{
+    QMap<int, QStringList> debug_msg;
+    QStringList sl;
+    if(!this->msg_vec.contains(key))
+    {
+        sl<< msg;
+        debug_msg.insert(level, sl);
+        this->msg_vec[key] = debug_msg;
+    }
+    else
+    {
+        debug_msg = this->msg_vec[key];
+        if(debug_msg.contains(level))
+        {
+            debug_msg[level]<<msg;
+        }
+        else
+        {
+            sl<<msg;
+            debug_msg[level] = sl;
+        }
+    }
+    if(-1 == this->fdw.comboBox_2->findText(key))
+    {
+        this->fdw.comboBox_2->addItem(key);
+        this->curr_show_key = this->fdw.comboBox_2->currentText();
+    }
+    if(curr_show_key==key 
+       && (curr_show_level == level || curr_show_level == 0))
+    {
+        this->fdw.textEdit->insertPlainText(msg+"\n");
+    }
+    qDebug()<<key<<":"<<level<<":"<<msg<<"\n";
 }
 
 

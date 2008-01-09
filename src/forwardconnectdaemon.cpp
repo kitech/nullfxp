@@ -359,6 +359,7 @@ void ForwardConnectDaemon::slot_proc_readyReadStandardOutput ()
             }
         }
     }
+    emit log_debug_message(fl->host, DBG_INFO, QString(ba));
 }
 void ForwardConnectDaemon::slot_proc_started ()
 {
@@ -431,6 +432,8 @@ void ForwardConnectDaemon::slot_show_debug_window()
     if(this->fdw == 0)
     {
         this->fdw = new ForwardDebugWindow();
+        QObject::connect(this, SIGNAL(log_debug_message(QString, int , QString)),
+                         this->fdw, SLOT(slot_log_debug_message(QString, int, QString)));
     }
     if(!this->fdw->isVisible())
         this->fdw->show();

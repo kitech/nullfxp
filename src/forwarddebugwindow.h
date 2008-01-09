@@ -41,6 +41,12 @@ public:
     ~ForwardDebugWindow();
     private:
         Ui::ForwardDebugWindow fdw;
+        char curr_show_level;
+        QString curr_show_key;
+        QMap<QString, QMap<int, QStringList > > msg_vec;
+
+    public slots:
+        void slot_log_debug_message(QString key, int level, QString msg);
 };
 
 #endif
