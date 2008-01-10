@@ -229,11 +229,15 @@ void ForwardConnectDaemon::slot_new_forward()
 void ForwardConnectDaemon::slot_start_forward(ForwardList * fl)
 {
     QString  program_name = QApplication::applicationDirPath ()+"/plink";//"/home/gzl/nullfxp-svn/src/plink/plink";
+    	#ifdef WIN32
+    	program_name += ".exe";
+    	#endif
     QStringList arg_list ;
     
     //此进程在正常情况下将不断检测，如没有检测到进程存在则重新启动。除非手工停止
     //use kill -SIGINT  , the process can exit normal
     ///plink -ssh -batch -N -v -l webroot -pw xxxxxx -R 8000:0.0.0.0:22 218.244.130.188
+    //>plink -v -N -C -l webroot -R 8081:localhost:80 qtchina.3322.org
     arg_list<<"-ssh";
     arg_list<<"-N";
     arg_list<<"-v";
@@ -245,9 +249,15 @@ void ForwardConnectDaemon::slot_start_forward(ForwardList * fl)
     arg_list<<fl->passwd;
     arg_list<<"-R";
 //     arg_list<<"6000:0.0.0.0:22";
+		#ifdef WIN32
+    arg_list<<(fl->remote_listen_port+":localhost:"+fl->forward_local_port);
+    #else
     arg_list<<(fl->remote_listen_port+":0.0.0.0:"+fl->forward_local_port);
+    #endif
 //     arg_list<<"218.244.130.188";
     arg_list<<fl->host;
+
+		//qDebug()<<arg_list;
 
     fl->plink_id = 0;
     fl->plink_proc->start(program_name,arg_list);
@@ -265,7 +275,7 @@ void ForwardConnectDaemon::slot_proc_error ( QProcess::ProcessError error )
 	QByteArray ba ;
 	//ba = plink_proc->readAllStandardError();
 	//ba += plink_proc->readAllStandardOutput();
-// 	qDebug() <<ba;
+ 	//qDebug() <<ba;
     if(error == QProcess::FailedToStart)
     {
 //         qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
