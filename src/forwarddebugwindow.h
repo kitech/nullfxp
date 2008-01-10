@@ -32,7 +32,7 @@ Port Forward Connection Debug Message Window Class
 
 	@author liuguangzhao <liuguangzhao@users.sourceforge.net>
 */
-class ForwardDebugWindow : public QWidget
+class ForwardDebugWindow : public QDialog
 {
 Q_OBJECT
 public:
@@ -47,6 +47,7 @@ public:
 
     public slots:
         void slot_log_debug_message(QString key, int level, QString msg);
+        void slot_reload_message();
 };
 
 #endif

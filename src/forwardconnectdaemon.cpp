@@ -229,9 +229,9 @@ void ForwardConnectDaemon::slot_new_forward()
 void ForwardConnectDaemon::slot_start_forward(ForwardList * fl)
 {
     QString  program_name = QApplication::applicationDirPath ()+"/plink";//"/home/gzl/nullfxp-svn/src/plink/plink";
-    	#ifdef WIN32
-    	program_name += ".exe";
-    	#endif
+    #ifdef WIN32
+    program_name += ".exe";
+    #endif
     QStringList arg_list ;
     
     //此进程在正常情况下将不断检测，如没有检测到进程存在则重新启动。除非手工停止
@@ -249,7 +249,7 @@ void ForwardConnectDaemon::slot_start_forward(ForwardList * fl)
     arg_list<<fl->passwd;
     arg_list<<"-R";
 //     arg_list<<"6000:0.0.0.0:22";
-		#ifdef WIN32
+    #ifdef WIN32
     arg_list<<(fl->remote_listen_port+":localhost:"+fl->forward_local_port);
     #else
     arg_list<<(fl->remote_listen_port+":0.0.0.0:"+fl->forward_local_port);
@@ -369,7 +369,7 @@ void ForwardConnectDaemon::slot_proc_readyReadStandardOutput ()
             }
         }
     }
-    emit log_debug_message(fl->host, DBG_INFO, QString(ba));
+    emit log_debug_message(QString("%1:%2").arg(fl->host).arg(fl->remote_listen_port), DBG_INFO, QString(ba));
 }
 void ForwardConnectDaemon::slot_proc_started ()
 {
@@ -441,7 +441,7 @@ void ForwardConnectDaemon::slot_show_debug_window()
 {
     if(this->fdw == 0)
     {
-        this->fdw = new ForwardDebugWindow();
+        this->fdw = new ForwardDebugWindow(this);
         QObject::connect(this, SIGNAL(log_debug_message(QString, int , QString)),
                          this->fdw, SLOT(slot_log_debug_message(QString, int, QString)));
     }

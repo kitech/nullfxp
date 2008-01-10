@@ -22,10 +22,11 @@
 #include "forwarddebugwindow.h"
 
 ForwardDebugWindow::ForwardDebugWindow(QWidget *parent)
- : QWidget(parent)
+    : QDialog(parent)
 {
     fdw.setupUi(this);
     curr_show_level = 0;
+    this->fdw.textEdit->setUndoRedoEnabled(false);
 }
 
 
@@ -48,12 +49,12 @@ void ForwardDebugWindow::slot_log_debug_message(QString key, int level, QString 
         debug_msg = this->msg_vec[key];
         if(debug_msg.contains(level))
         {
-            debug_msg[level]<<msg;
+            this->msg_vec[key][level]<<msg;
         }
         else
         {
             sl<<msg;
-            debug_msg[level] = sl;
+            this->msg_vec[key][level] = sl;
         }
     }
     if(-1 == this->fdw.comboBox_2->findText(key))
@@ -62,11 +63,30 @@ void ForwardDebugWindow::slot_log_debug_message(QString key, int level, QString 
         this->curr_show_key = this->fdw.comboBox_2->currentText();
     }
     if(curr_show_key==key 
-       && (curr_show_level == level || curr_show_level == 0))
+       && (curr_show_level == level || curr_show_level == 0)
+       && this->isVisible())
     {
         this->fdw.textEdit->insertPlainText(msg+"\n");
     }
-    qDebug()<<key<<":"<<level<<":"<<msg<<"\n";
+    if(this->msg_vec[key][level].count() > 10)
+    {
+        for(int i=0; i < 5; i ++)
+        {
+            this->msg_vec[key][level].pop_front ();
+        }
+        if(curr_show_key==key 
+           && (curr_show_level == level || curr_show_level == 0)
+           && this->isVisible())
+        {
+            this->slot_reload_message();
+        }
+    }
+    //qDebug()<<key<<":"<<level<<":"<<msg<<this->msg_vec[key][level]<<"\n";
+}
+
+void ForwardDebugWindow::slot_reload_message()
+{
+    this->fdw.textEdit->clear();
 }
 
 
