@@ -27,6 +27,20 @@
 
 #include "ui_forwarddebugwindow.h"
 
+class DebugMessage
+{
+    public:
+        DebugMessage(){}
+        DebugMessage(QString key, int level, QString msg)
+        {
+            this->key = key;
+            this->level = level;
+            this->msg = msg;
+        }
+        QString key;
+        int  level;
+        QString msg;
+};
 /**
 Port Forward Connection Debug Message Window Class
 
@@ -43,11 +57,13 @@ public:
         Ui::ForwardDebugWindow fdw;
         char curr_show_level;
         QString curr_show_key;
-        QMap<QString, QMap<int, QStringList > > msg_vec;
+        //QMap<QString, QVector<QPair<int, QStringList> > > msg_vec;
+        QVector<DebugMessage> msg_vec;
 
     public slots:
         void slot_log_debug_message(QString key, int level, QString msg);
-        void slot_reload_message();
+        void slot_reload_message(QString key, int level);
+        void slot_currentIndexChanged ( int index );
 };
 
 #endif

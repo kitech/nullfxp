@@ -27,7 +27,7 @@
        </item>
        <item>
         <property name="text" >
-         <string>ERROR</string>
+         <string>INFO</string>
         </property>
        </item>
        <item>
@@ -37,7 +37,7 @@
        </item>
        <item>
         <property name="text" >
-         <string>INFO</string>
+         <string>ERROR</string>
         </property>
        </item>
       </widget>

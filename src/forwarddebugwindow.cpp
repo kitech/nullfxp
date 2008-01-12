@@ -27,6 +27,11 @@ ForwardDebugWindow::ForwardDebugWindow(QWidget *parent)
     fdw.setupUi(this);
     curr_show_level = 0;
     this->fdw.textEdit->setUndoRedoEnabled(false);
+    
+    QObject::connect(this->fdw.comboBox, SIGNAL(currentIndexChanged(int)),
+                     this, SLOT(slot_currentIndexChanged(int)));
+    QObject::connect(this->fdw.comboBox_2, SIGNAL(currentIndexChanged(int)),
+                     this, SLOT(slot_currentIndexChanged(int)));
 }
 
 
@@ -36,27 +41,8 @@ ForwardDebugWindow::~ForwardDebugWindow()
 
 void ForwardDebugWindow::slot_log_debug_message(QString key, int level, QString msg)
 {
-    QMap<int, QStringList> debug_msg;
-    QStringList sl;
-    if(!this->msg_vec.contains(key))
-    {
-        sl<< msg;
-        debug_msg.insert(level, sl);
-        this->msg_vec[key] = debug_msg;
-    }
-    else
-    {
-        debug_msg = this->msg_vec[key];
-        if(debug_msg.contains(level))
-        {
-            this->msg_vec[key][level]<<msg;
-        }
-        else
-        {
-            sl<<msg;
-            this->msg_vec[key][level] = sl;
-        }
-    }
+    this->msg_vec.append(DebugMessage(key,level,msg));
+
     if(-1 == this->fdw.comboBox_2->findText(key))
     {
         this->fdw.comboBox_2->addItem(key);
@@ -68,25 +54,40 @@ void ForwardDebugWindow::slot_log_debug_message(QString key, int level, QString 
     {
         this->fdw.textEdit->insertPlainText(msg+"\n");
     }
-    if(this->msg_vec[key][level].count() > 10)
+    if(this->msg_vec.count() > 10)
     {
-        for(int i=0; i < 5; i ++)
-        {
-            this->msg_vec[key][level].pop_front ();
-        }
+        this->msg_vec.remove(0,10);
         if(curr_show_key==key 
            && (curr_show_level == level || curr_show_level == 0)
            && this->isVisible())
         {
-            this->slot_reload_message();
+            this->slot_reload_message(key, level);
         }
     }
     //qDebug()<<key<<":"<<level<<":"<<msg<<this->msg_vec[key][level]<<"\n";
 }
 
-void ForwardDebugWindow::slot_reload_message()
+void ForwardDebugWindow::slot_reload_message(QString key, int level)
 {
     this->fdw.textEdit->clear();
+
+    for(int i =0 ; i < this->msg_vec.count() ;i ++)
+    {
+        if(key == this->msg_vec.at(i).key
+           && (level == 0 || level == this->msg_vec.at(i).level)){
+            this->fdw.textEdit->insertPlainText(QString("%1: %2").arg(this->msg_vec.at(i).level).arg(this->msg_vec.at(i).msg));
+        }
+    }
+}
+
+void ForwardDebugWindow::slot_currentIndexChanged ( int index )
+{
+    //qDebug()<<__FILE__<<__LINE__;
+    
+    QString key = this->fdw.comboBox_2->currentText();
+    int level = this->fdw.comboBox->currentIndex();
+    if(key.length() == 0) return;
+    this->slot_reload_message(key, level);
 }
 
 
