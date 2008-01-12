@@ -868,9 +868,10 @@ void RemoteView::slot_dir_file_view_double_clicked( const QModelIndex & index )
 
 void RemoteView::slot_drag_ready()
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    //注意重复信号的处理
+    //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    //TODO 处理从树目录及文件列表视图中的情况
     //QAbstractItemView * sender_view = qobject_cast<QAbstractItemView*>(sender());
+    QString  temp_file_path;
     QDrag *drag = new QDrag(this);
     QMimeData *mimeData = new QMimeData;
     
@@ -887,7 +888,8 @@ void RemoteView::slot_drag_ready()
     for(int i = 0 ; i< mil.count() ;i += this->remote_dir_model->columnCount() )
     {
         QModelIndex midx = mil.at(i);
-        drag_urls<< QUrl( QString("nrsftp://%1:%2@%3:%4").arg(this->user_name).arg(this->password).arg(this->host_name).arg(this->port) + qobject_cast<RemoteDirModel*>(this->remote_dir_model)->filePath(midx)  );
+        temp_file_path = (qobject_cast<RemoteDirModel*>(this->remote_dir_model))->filePath(this->remote_dir_sort_filter_model->mapToSource(midx) );
+        drag_urls<< QUrl( QString("nrsftp://%1:%2@%3:%4").arg(this->user_name).arg(this->password).arg(this->host_name).arg(this->port) + temp_file_path);
     }
     
     //mimeData->setData("text/uri-list" , "data");
@@ -895,7 +897,7 @@ void RemoteView::slot_drag_ready()
     drag->setMimeData(mimeData);
     
     if( mil.count() > 0 )
-        Qt::DropAction dropAction = drag->exec(Qt::CopyAction | Qt::MoveAction);    
+        Qt::DropAction dropAction = drag->exec(Qt::CopyAction | Qt::MoveAction);
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<" drag->exec returned" ;
 }
 
