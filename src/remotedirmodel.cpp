@@ -217,7 +217,7 @@ QModelIndex RemoteDirModel::index ( const QString & path, int column  ) const
 
     QString absolutePath = QDir(path).absolutePath();
 #ifdef Q_OS_WIN
-    absolutePath = absolutePath.toLower();
+    //absolutePath = absolutePath.toLower();
     // On Windows, "filename......." and "filename" are equivalent
     if (absolutePath.endsWith(QLatin1Char('.'))) {
         int i;
