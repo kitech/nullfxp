@@ -108,6 +108,7 @@ src/localview.h -text
 src/localview.ui -text
 src/lunar.bitmap -text
 src/lunar.c -text
+src/lunar.h -text
 src/main.cpp -text
 src/nullfxp-version.h -text
 src/nullfxp.cpp -text

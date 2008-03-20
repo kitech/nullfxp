@@ -19,6 +19,9 @@
 # Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 # 
 ----------------------------------------------------------------------------*/
+#ifndef LUNAR_TABELS_H
+#define LUNAR_TABLES_H
+
 /* 
  * tables.h: contains tables and parameters for lunar.c
  */
@@ -260,4 +263,6 @@ static byte fest[Nyear][12] = {
 {4, 5, 4, 5, 5, 6, 7, 7, 7, 7, 6, 5},	/* 2048 */
 {3, 5, 4, 5, 5, 6, 7, 7, 8, 7, 7, 5}	/* 2049 */
 };
+
+#endif
 

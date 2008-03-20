@@ -53,6 +53,8 @@ CCDOS on IBM PC compatibles, ChineseTalk 6.0 (GB version) on Macintosh,
 and cxterm on UNIX and X window.  Hence, one may need to transfer this 
 document as a **binary** file.
 
+Or you can edit this file using emacs, maybe emacs-22 or later.
+
 References:
 1. "Zhong1guo2 yin1yang2 ri4yue4 dui4zhao4 wan4nian2li4" by Lin2 Qi3yuan2.
    ¡¶ÖĞ¹úÒõÑôÈÕÔÂ¶ÔÕÕÍòÄêÀú¡·£®ÁÖ
@@ -62,10 +64,12 @@ References:
    ¡¶´óÖÚÍòÄêÀú¡·
 */ 
 
-
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "lunar.h"
 
 /* "Bitmap" constants */
 #define	BMRow	7	/* number of rows for each bitmap */
@@ -198,9 +202,10 @@ int	CmpDate(), JieDate();
 void    readBM(), display3();
 void	Report(), ReportE(), ReportBM(), ReportUTF8(), ReportGB(), ReportB5();
 void	usage(), Error();
+void usage2(char *buff);
 
 
-int main(argc, argv)
+int lunar_main(argc, argv)
 int argc;
 char *argv[];
 {
@@ -283,6 +288,136 @@ char *argv[];
     Report();
     exit(0);
 }
+int lunar_cacl(int argc, char **argv, char ** cacl_res)
+{
+  int year, month, day, hour, i, k, option, inverse=0, leap=0;
+  int dateInfo[4];
+  char * inner_res ;
+
+  progname = "lunar";
+  printf("%s\n\n", version);
+
+  inner_res = calloc(1, 1024);
+  *cacl_res = inner_res;
+  memset(inner_res,0,1024);
+
+  for (k=1; k<argc && argv[k][0]=='-'; k++)
+    {
+      option = argv[k][1];
+      switch(option)
+        {
+	case 'i': inverse = 1; break;
+	case 'l': 
+	  if (inverse) leap=1; 
+	  else
+	    {
+	      usage2(inner_res);
+	      return -1;
+	    } 
+	  break;
+	case 'h': showHZ = 1; break;
+	case 'b': showBM = 1; break;
+	case '-':
+	  if (strncmp(argv[k], "--utf8", 7) == 0) {
+	    showHZ = showHZ_UTF8 = 1;
+	    showHZ_B5 = 0;
+	    showHZ_GB = 0;
+	  } else if (strncmp(argv[k], "--big5", 7) == 0) {
+	    showHZ = showHZ_B5 = 1;
+	    showHZ_UTF8 = 0;
+	    showHZ_GB = 0;
+	  } else if (strncmp(argv[k], "--gb", 5) == 0) {
+	    showHZ = showHZ_GB = 1;
+	    showHZ_UTF8 = 0;
+	    showHZ_B5 = 0;
+	  } else
+	    {
+	      usage2(inner_res);
+	      return -1;
+	    }
+	  break;
+	default:  
+	  {
+	    usage2(inner_res); 
+	    return -1;
+	  }
+	  break;
+        }
+    }
+  if (showBM) readBM();
+  if (!((argc - k >= 3) && (argc - k <= 4)))
+    {
+      usage2(inner_res);
+      return -1;
+    }
+  dateInfo[3] = 0;
+  for (i=0; k<argc && i<4; k++, i++)
+    {
+      if (sscanf(argv[k], "%d", &dateInfo[i]) != 1)
+	{
+	  usage2(inner_res);
+	  return -1;
+	}
+    }
+  year = dateInfo[0];
+  month = dateInfo[1];
+  day = dateInfo[2];
+  hour = dateInfo[3];
+  if (!(year>=Cyear && year<Cyear+Nyear))
+    {
+      //Error("Year out of range.");
+      strcpy(inner_res,"Year out of range");
+      return -1;
+    }
+  if (!(month>=1 && month<=12))
+    {
+      //Error("Month out of range.");
+      strcpy(inner_res,"Month out of range");
+      return -1;
+    }
+  if (!(day>=1 && day<=31) || (inverse && day>30))
+    {
+      //Error("Day out of range.");
+      strcpy(inner_res,"Day out of range");
+      return -1;
+    }
+
+  if (!(hour>=0 && hour<=23))
+    {
+      //Error("Hour out of range.");
+      strcpy(inner_res,"Hour out of range");
+      return -1;
+    }
+
+  if (!inverse && year==SolarFirstDate.year &&
+      CmpDate(month, day, SolarFirstDate.month, SolarFirstDate.day)<0)
+    {
+      //Error("Date out of range.");
+      strcpy(inner_res,"Date out of range");
+      return -1;
+    }
+
+  if (inverse)
+    {
+      lunar.year = year;
+      lunar.month = month;
+      lunar.day = day;
+      lunar.hour = hour;
+      lunar.leap = leap;
+      Lunar2Solar();
+    }
+  else
+    {
+      solar.year = year;
+      solar.month = month;
+      solar.day = day;
+      solar.hour = hour;
+      Solar2Lunar();
+    }
+  Report(inner_res);
+  //exit(0);
+  return 0;
+}
  
 void usage()
 {
@@ -300,7 +435,26 @@ void usage()
     printf("\t\t--big5 means output in hanzi (Big5)\n\n");
     printf("Date range: about %d years from the Solar Date %d.%d.%d\n", Nyear,
 	   SolarFirstDate.year, SolarFirstDate.month, SolarFirstDate.day);
-    exit(1);
+    //    exit(1);
+}
+
+void usage2(char * buff)
+{
+  sprintf(buff+strlen(buff),"Usage:\n\n");
+  sprintf(buff+strlen(buff),"Solar->Lunar:\t%s [-h] [-b] year month day [hour]\n", progname);
+  sprintf(buff+strlen(buff),"\t\t(in Solar Calendar, 24 hour clock)\n\n");
+  sprintf(buff+strlen(buff),"Lunar->Solar:\t%s [-h] [-b] -i [-l] year month day [hour]\n",
+	 progname);
+  sprintf(buff+strlen(buff),"\t\t(in Lunar Calendar, 24 hour clock)\n");
+  sprintf(buff+strlen(buff),"\t\t-l means the month is a leap month (\"run4 yue4\")\n\n");
+  sprintf(buff+strlen(buff),"\t\t-h means output in hanzi (GB)\n");
+  sprintf(buff+strlen(buff),"\t\t-b means output in \"bitmap\"\n");
+  sprintf(buff+strlen(buff),"\t\t--utf8 means output in hanzi (UTF-8)\n");
+  sprintf(buff+strlen(buff),"\t\t--gb   means output in hanzi (GB)\n");
+  sprintf(buff+strlen(buff),"\t\t--big5 means output in hanzi (Big5)\n\n");
+  sprintf(buff+strlen(buff),"Date range: about %d years from the Solar Date %d.%d.%d\n", Nyear,
+	 SolarFirstDate.year, SolarFirstDate.month, SolarFirstDate.day);
+  //    exit(1);
 }
 
 
@@ -647,39 +801,39 @@ int year;
 }
 
 
-void Report()
+void Report(char *buff)
 {
     if (showHZ)
 	if (showHZ_UTF8)
-	    ReportUTF8();
+	    ReportUTF8(buff);
 	else if (showHZ_B5)
-	    ReportB5();
+	    ReportB5(buff);
 	else 
-	    ReportGB();
+	    ReportGB(buff);
     else if (showBM)
-	ReportBM();
+	ReportBM(buff);
     else
-	ReportE();
+	ReportE(buff);
 }
 
 
-void ReportUTF8()
+void ReportUTF8(char * buff)
 {
-    printf("%s%d%s%2d%s%2d%s%2d%s%s%s\n", "é˜³å†ï¼šã€€",
+  sprintf(buff, "%s%d%s%2d%s%2d%s%2d%s%s%s\n", "é˜³å†ï¼šã€€",
 	   solar.year, "å¹´", solar.month, "æœˆ", solar.day,
 	   "æ—¥", solar.hour, "æ—¶ã€€",
 	   "æ˜ŸæœŸ", weekdayUTF8[solar.weekday]); 
-    printf("%s%d%s%s%2d%s%2d%s%s%s%s%s\n", "é˜´å†ï¼šã€€",
+  sprintf(buff+strlen(buff),"%s%d%s%s%2d%s%2d%s%s%s%s%s\n", "é˜´å†ï¼šã€€",
 	   lunar.year, "å¹´", (lunar.leap? "é—°":""),
 	   lunar.month, "æœˆ", lunar.day, "æ—¥", 
 	   ZhiUTF8[zhi.hour], "æ—¶ã€€",
 	   "ç”Ÿè‚–å±", ShengXiaoUTF8[zhi.year]);
-    printf("%s%s%s%s%s%s%s%s%s%s%s%s%s\n", "å¹²æ”¯ï¼šã€€",
+  sprintf(buff+strlen(buff),"%s%s%s%s%s%s%s%s%s%s%s%s%s\n", "å¹²æ”¯ï¼šã€€",
 	   GanUTF8[gan.year], ZhiUTF8[zhi.year], "å¹´ã€€",
 	   GanUTF8[gan.month], ZhiUTF8[zhi.month], "æœˆã€€",
 	   GanUTF8[gan.day], ZhiUTF8[zhi.day], "æ—¥ã€€",
 	   GanUTF8[gan.hour], ZhiUTF8[zhi.hour], "æ—¶ã€€");
-    printf("%s%s%s%s%s%s%s%s%s%s%s%s%s\n",
+  sprintf(buff+strlen(buff),"%s%s%s%s%s%s%s%s%s%s%s%s%s\n",
 	   "ç”¨å››æŸ±ç¥ç®—æ¨ç®—ä¹‹æ—¶è¾°å…«å­—ï¼šã€€",
 	   GanUTF8[gan2.year], ZhiUTF8[zhi2.year], "å¹´ã€€",
 	   GanUTF8[gan2.month], ZhiUTF8[zhi2.month], "æœˆã€€",
@@ -687,32 +841,32 @@ void ReportUTF8()
 	   GanUTF8[gan2.hour], ZhiUTF8[zhi2.hour], "æ—¶ã€€");
     if (jieAlert)
     {
-	printf("* %s, %s\n", "æ˜¯æ—¥ä¸ºèŠ‚",
+      sprintf(buff+strlen(buff),"* %s, %s\n", "æ˜¯æ—¥ä¸ºèŠ‚",
 	       "æœˆæŸ±å¯èƒ½è¦ä¿®æ”¹");
 	if (lunar2.month==1)
 	    printf("* %s\n", "å¹´æŸ±äº¦å¯èƒ½è¦ä¿®æ”¹");
-	printf("* %s\n", "è¯·æŸ¥æœ‰èŠ‚æ°”æ—¶é—´ä¹‹ä¸‡å¹´å†");
+	sprintf(buff+strlen(buff),"* %s\n", "è¯·æŸ¥æœ‰èŠ‚æ°”æ—¶é—´ä¹‹ä¸‡å¹´å†");
     }
 }
 
 
-void ReportGB()
+void ReportGB(char * buff)
 {
-    printf("%s%d%s%2d%s%2d%s%2d%s%s%s\n", "ÑôÀú£º¡¡",
+  sprintf(buff+strlen(buff),"%s%d%s%2d%s%2d%s%2d%s%s%s\n", "ÑôÀú£º¡¡",
 	   solar.year, "Äê", solar.month, "ÔÂ", solar.day,
 	   "ÈÕ", solar.hour, "Ê±¡¡",
 	   "ĞÇÆÚ", weekdayGB[solar.weekday]); 
-    printf("%s%d%s%s%2d%s%2d%s%s%s%s%s\n", "ÒõÀú£º¡¡",
+  sprintf(buff+strlen(buff),"%s%d%s%s%2d%s%2d%s%s%s%s%s\n", "ÒõÀú£º¡¡",
 	   lunar.year, "Äê", (lunar.leap? "Èò":""),
 	   lunar.month, "ÔÂ", lunar.day, "ÈÕ", 
 	   ZhiGB[zhi.hour], "Ê±¡¡",
 	   "ÉúĞ¤Êô", ShengXiaoGB[zhi.year]);
-    printf("%s%s%s%s%s%s%s%s%s%s%s%s%s\n", "¸ÉÖ§£º¡¡",
+  sprintf(buff+strlen(buff),"%s%s%s%s%s%s%s%s%s%s%s%s%s\n", "¸ÉÖ§£º¡¡",
 	   GanGB[gan.year], ZhiGB[zhi.year], "Äê¡¡",
 	   GanGB[gan.month], ZhiGB[zhi.month], "ÔÂ¡¡",
 	   GanGB[gan.day], ZhiGB[zhi.day], "ÈÕ¡¡",
 	   GanGB[gan.hour], ZhiGB[zhi.hour], "Ê±¡¡");
-    printf("%s%s%s%s%s%s%s%s%s%s%s%s%s\n",
+  sprintf(buff+strlen(buff),"%s%s%s%s%s%s%s%s%s%s%s%s%s\n",
 	   "ÓÃËÄÖùÉñËãÍÆËãÖ®Ê±³½°Ë×Ö£º¡¡",
 	   GanGB[gan2.year], ZhiGB[zhi2.year], "Äê¡¡",
 	   GanGB[gan2.month], ZhiGB[zhi2.month], "ÔÂ¡¡",
@@ -720,32 +874,32 @@ void ReportGB()
 	   GanGB[gan2.hour], ZhiGB[zhi2.hour], "Ê±¡¡");
     if (jieAlert)
     {
-	printf("* %s, %s\n", "ÊÇÈÕÎª½Ú",
+      sprintf(buff+strlen(buff),"* %s, %s\n", "ÊÇÈÕÎª½Ú",
 	       "ÔÂÖù¿ÉÄÜÒªĞŞ¸Ä");
 	if (lunar2.month==1)
-	    printf("* %s\n", "ÄêÖùÒà¿ÉÄÜÒªĞŞ¸Ä");
-	printf("* %s\n", "Çë²éÓĞ½ÚÆøÊ±¼äÖ®ÍòÄêÀú");
+	  sprintf(buff+strlen(buff),"* %s\n", "ÄêÖùÒà¿ÉÄÜÒªĞŞ¸Ä");
+	sprintf(buff+strlen(buff),"* %s\n", "Çë²éÓĞ½ÚÆøÊ±¼äÖ®ÍòÄêÀú");
     }
 }
 
 
-void ReportB5()
+void ReportB5(char * buff)
 {
-    printf("%s%d%s%2d%s%2d%s%2d%s%s%s\n", "¶§¾ä¡G¡@",
+  sprintf(buff+strlen(buff),"%s%d%s%2d%s%2d%s%2d%s%s%s\n", "¶§¾ä¡G¡@",
 	   solar.year, "¦~", solar.month, "¤ë", solar.day,
 	   "¤é", solar.hour, "®É¡@",
 	   "¬P´Á", weekdayB5[solar.weekday]); 
-    printf("%s%d%s%s%2d%s%2d%s%s%s%s%s\n", "³±¾ä¡G¡@",
+  sprintf(buff+strlen(buff),"%s%d%s%s%2d%s%2d%s%s%s%s%s\n", "³±¾ä¡G¡@",
 	   lunar.year, "¦~", (lunar.leap? "¶|":""),
 	   lunar.month, "¤ë", lunar.day, "¤é", 
 	   ZhiB5[zhi.hour], "®É¡@",
 	   "¥Í¨vÄİ", ShengXiaoB5[zhi.year]);
-    printf("%s%s%s%s%s%s%s%s%s%s%s%s%s\n", "¤z¤ä¡G¡@",
+  sprintf(buff+strlen(buff),"%s%s%s%s%s%s%s%s%s%s%s%s%s\n", "¤z¤ä¡G¡@",
 	   GanB5[gan.year], ZhiB5[zhi.year], "¦~¡@",
 	   GanB5[gan.month], ZhiB5[zhi.month], "¤ë¡@",
 	   GanB5[gan.day], ZhiB5[zhi.day], "¤é¡@",
 	   GanB5[gan.hour], ZhiB5[zhi.hour], "®É¡@");
-    printf("%s%s%s%s%s%s%s%s%s%s%s%s%s\n",
+  sprintf(buff+strlen(buff),"%s%s%s%s%s%s%s%s%s%s%s%s%s\n",
 	   "¥Î¥|¬W¯«ºâ±Àºâ¤§®É¨°¤K¦r¡G¡@",
 	   GanB5[gan2.year], ZhiB5[zhi2.year], "¦~¡@",
 	   GanB5[gan2.month], ZhiB5[zhi2.month], "¤ë¡@",
@@ -753,87 +907,89 @@ void ReportB5()
 	   GanB5[gan2.hour], ZhiB5[zhi2.hour], "®É¡@");
     if (jieAlert)
     {
-	printf("* %s, %s\n", "¬O¤é¬°¸`",
+      sprintf(buff+strlen(buff),"* %s, %s\n", "¬O¤é¬°¸`",
 	       "¤ë¬W¥i¯à­n­×§ï");
 	if (lunar2.month==1)
-	    printf("* %s\n", "¦~¬W¥ç¥i¯à­n­×§ï");
-	printf("* %s\n", "½Ğ¬d¦³¸`®ğ®É¶¡¤§¸U¦~¾ä");
+	  sprintf(buff+strlen(buff),"* %s\n", "¦~¬W¥ç¥i¯à­n­×§ï");
+	sprintf(buff+strlen(buff),"* %s\n", "½Ğ¬d¦³¸`®ğ®É¶¡¤§¸U¦~¾ä");
     }
 }
 
 
-void ReportE()
+void ReportE(char * buff)
 {
-    printf("Solar : %d.%d.%d.%d\t%s\n", solar.year, solar.month, solar.day,
+  sprintf(buff+strlen(buff),"Solar : %d.%d.%d.%d\t%s\n", solar.year, solar.month, solar.day,
 	   solar.hour, weekday[solar.weekday]);
-    printf("Lunar : %d.%d%s.%d.%d\tShengXiao: %s\n",
+  sprintf(buff+strlen(buff),"Lunar : %d.%d%s.%d.%d\tShengXiao: %s\n",
 	   lunar.year, lunar.month, (lunar.leap?"Leap":""), lunar.day,
 	   lunar.hour, ShengXiao[zhi.year] );
-    printf("GanZhi: %s-%s.%s-%s.%s-%s.%s-%s\n",
+  sprintf(buff+strlen(buff),"GanZhi: %s-%s.%s-%s.%s-%s.%s-%s\n",
 	   Gan[gan.year], Zhi[zhi.year], Gan[gan.month], Zhi[zhi.month],
 	   Gan[gan.day], Zhi[zhi.day], Gan[gan.hour], Zhi[zhi.hour]);
-    printf("        (GanZhi Order)\t%d-%d.%d-%d.%d-%d.%d-%d\n",
+  sprintf(buff+strlen(buff),"        (GanZhi Order)\t%d-%d.%d-%d.%d-%d.%d-%d\n",
 	   gan.year+1, zhi.year+1, gan.month+1, zhi.month+1,
 	   gan.day+1, zhi.day+1, gan.hour+1, zhi.hour+1);
-    printf("        (JiaZi Cycle)\t%d.%d.%d.%d\n\n",
+  sprintf(buff+strlen(buff),"        (JiaZi Cycle)\t%d.%d.%d.%d\n\n",
 	   GZcycle(gan.year, zhi.year), GZcycle(gan.month, zhi.month),
 	   GZcycle(gan.day, zhi.day), GZcycle(gan.hour, zhi.hour));
-    printf("BaZi (8-characters) according to 'Four Column Calculation':\n");
-    printf("        %s-%s.%s-%s.%s-%s.%s-%s\n",
+  sprintf(buff+strlen(buff),"BaZi (8-characters) according to 'Four Column Calculation':\n");
+  sprintf(buff+strlen(buff),"        %s-%s.%s-%s.%s-%s.%s-%s\n",
 	   Gan[gan2.year], Zhi[zhi2.year], Gan[gan2.month], Zhi[zhi2.month],
 	   Gan[gan2.day], Zhi[zhi2.day], Gan[gan2.hour], Zhi[zhi2.hour]);
-    printf("        (GanZhi Order)\t%d-%d.%d-%d.%d-%d.%d-%d\n",
+  sprintf(buff+strlen(buff),"        (GanZhi Order)\t%d-%d.%d-%d.%d-%d.%d-%d\n",
 	   gan2.year+1, zhi2.year+1, gan2.month+1, zhi2.month+1,
 	   gan2.day+1, zhi2.day+1, gan2.hour+1, zhi2.hour+1);
-    printf("        (JiaZi Cycle)\t%d.%d.%d.%d\n\n",
+  sprintf(buff+strlen(buff),"        (JiaZi Cycle)\t%d.%d.%d.%d\n\n",
 	   GZcycle(gan2.year, zhi2.year), GZcycle(gan2.month, zhi2.month),
 	   GZcycle(gan2.day, zhi2.day), GZcycle(gan2.hour, zhi2.hour));
     if (jieAlert)
     {
-	printf("* The month column may need adjustment because the date falls on a jie.\n");
+      sprintf(buff+strlen(buff),"* The month column may need adjustment because the date falls on a jie.\n");
 	if (lunar2.month==1)
-	    printf("* The day column may need adjustment, too.\n");
-	printf("* Please consult a detailed conversion table.\n");
+	  sprintf(buff+strlen(buff),"* The day column may need adjustment, too.\n");
+	sprintf(buff+strlen(buff),"* Please consult a detailed conversion table.\n");
     }
 }
 
 
-void ReportBM()
+void ReportBM(char * buff)
 {
-    printf("Solar : %d.%d.%d.%d\t%s\n", solar.year, solar.month, solar.day,
+  sprintf(buff+strlen(buff),"Solar : %d.%d.%d.%d\t%s\n", solar.year, solar.month, solar.day,
 	   solar.hour, weekday[solar.weekday]);
-    printf("Lunar : %d.%d%s.%d.%d\tShengXiao: %s\n",
+  sprintf(buff+strlen(buff),"Lunar : %d.%d%s.%d.%d\tShengXiao: %s\n",
 	   lunar.year, lunar.month, (lunar.leap?"Leap":""), lunar.day,
 	   lunar.hour, ShengXiao[zhi.year] );
-    printf("GanZhi: \n\n");
+  sprintf(buff+strlen(buff),"GanZhi: \n\n");
     display3(gan.year+GanBM, zhi.year+ZhiBM, NianBM);
     display3(gan.month+GanBM, zhi.month+ZhiBM, YueBM);
     display3(gan.day+GanBM, zhi.day+ZhiBM, RiBM);
     display3(gan.hour+GanBM, zhi.hour+ZhiBM, ShiBM);
-    printf("\nBaZi  : \n\n");
+    sprintf(buff+strlen(buff),"\nBaZi  : \n\n");
     display3(gan2.year+GanBM, zhi2.year+ZhiBM, NianBM);
     display3(gan2.month+GanBM, zhi2.month+ZhiBM, YueBM);
     display3(gan2.day+GanBM, zhi2.day+ZhiBM, RiBM);
     display3(gan2.hour+GanBM, zhi2.hour+ZhiBM, ShiBM);
     if (jieAlert)
     {
-	printf("* The month column may need adjustment because the date falls on a jie.\n");
+      sprintf(buff+strlen(buff),"* The month column may need adjustment because the date falls on a jie.\n");
 	if (lunar2.month==1)
-	    printf("* The day column may need adjustment, too.\n");
-	printf("* Please consult a detailed conversion table.\n");
+	  sprintf(buff+strlen(buff),"* The day column may need adjustment, too.\n");
+	sprintf(buff+strlen(buff),"* Please consult a detailed conversion table.\n");
     }
 }
 
 
-void readBM()
+void readBM(char * buff)
 {
     int	i, j, k, m, c;
     FILE *fp;
 
     if ((fp=fopen(BMfile,"r"))==NULL)
     {
-	printf("Bitmap file '%s' not found.\n",BMfile);
-	exit(1);
+      sprintf(buff+strlen(buff),"Bitmap file '%s' not found.\n",BMfile);
+      //	exit(1);
+      return ;
+	
     }
     for (i=0; i<NBM; i++)
       for (j=0; j<BMRow; j++)
