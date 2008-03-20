@@ -106,6 +106,8 @@ src/localdirsortfiltermodel.h -text
 src/localview.cpp -text
 src/localview.h -text
 src/localview.ui -text
+src/lunar.bitmap -text
+src/lunar.c -text
 src/main.cpp -text
 src/nullfxp-version.h -text
 src/nullfxp.cpp -text
@@ -556,6 +558,7 @@ src/sftp.h -text
 src/src.pro -text
 src/synchronizeoptiondialog.ui -text
 src/synchronizewindow.ui -text
+src/tables.h -text
 src/tmpmain.cpp -text
 src/transferthread.cpp -text
 src/transferthread.h -text
