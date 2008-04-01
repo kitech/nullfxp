@@ -143,14 +143,12 @@ void RemoteView::i_init_dir_view( )
     this->remote_dir_sort_filter_model_ex = new RemoteDirSortFilterModelEX();
     remote_dir_sort_filter_model_ex->setSourceModel( this->remote_dir_model);
     
-    //this->remoteview.treeView->setModel(this->remote_dir_model);
     this->remoteview.treeView->setModel( remote_dir_sort_filter_model_ex );
     this->remoteview.treeView->setAcceptDrops(true);
     this->remoteview.treeView->setDragEnabled(false);
     this->remoteview.treeView->setDropIndicatorShown(true);
-    this->remoteview.treeView->setDragDropMode(QAbstractItemView::DropOnly);            
-//     QObject::connect(this->remote_dir_model,SIGNAL(new_transfer_requested(QStringList,QStringList)),
-//                      this,SLOT(slot_new_upload_requested(QStringList,QStringList )) ) ;
+    this->remoteview.treeView->setDragDropMode(QAbstractItemView::DropOnly);
+
     QObject::connect( this->remote_dir_model ,SIGNAL(sig_drop_mime_data(const QMimeData * , Qt::DropAction  ,  int , int , const QModelIndex & ) ),this,SLOT(slot_drop_mime_data(const QMimeData *, Qt::DropAction ,  int , int , const QModelIndex &)));
     
     QObject::connect( this->remote_dir_model,SIGNAL(enter_remote_dir_retrive_loop()),
@@ -160,7 +158,9 @@ void RemoteView::i_init_dir_view( )
     
     this->remoteview.treeView->expandAll();
     this->remoteview.treeView->setColumnWidth(0,this->remoteview.treeView->columnWidth(0)*2);
-    this->remoteview.treeView->setColumnHidden( 1, true);
+    //这里设置为true时，导致这个treeView不能正确显示滚动条了，为什么呢?
+    //this->remoteview.treeView->setColumnHidden( 1, false);
+    this->remoteview.treeView->setColumnWidth(1,0);//使用这种方法隐藏看上去就正常了。
     this->remoteview.treeView->setColumnHidden( 2, true);
     this->remoteview.treeView->setColumnHidden( 3, true);
     

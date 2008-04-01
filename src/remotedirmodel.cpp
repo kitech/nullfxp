@@ -625,61 +625,6 @@ bool RemoteDirModel::dropMimeData ( const QMimeData *data, Qt::DropAction action
     qDebug()<<data->urls()<<parent<<sender();
     emit this->sig_drop_mime_data( data, action,row, column , parent );
     bool ret = true ;
-// 	QStringList local_file_names;
-// 	QStringList remote_file_names ;
-// 
-// 	//QTextCodec * codec = QTextCodec::codecForName ( REMOTE_CODEC );
-//     
-// 	QByteArray ba ;
-// 
-// 	directory_tree_item * aim_item = static_cast<directory_tree_item*> ( parent.internalPointer() );
-//     
-// 	QString remote_file_name = aim_item->strip_path ;
-// 	//QString remote_file_type = aim_item->file_type.c_str();
-// 	remote_file_names << remote_file_name ;
-// 
-// 	QList<QUrl> urls = data->urls( ) ;
-// 
-//     qDebug() << urls << " action: " << action <<" "<< parent << data->text() ;
-// 
-// 	if ( urls.count() == 0 )
-// 	{
-// 		qDebug() <<" no url droped";
-// 		return false ;
-// 	}
-// 
-// 	QString file_name;
-// 	for ( int i = 0 ; i < urls.count() ; i ++ )
-// 	{
-//         qDebug()<<urls.at(i).toString()<<urls.at(i).scheme();
-//         if( urls.at(i).scheme() == "nrsftp")
-//         {
-//             qDebug()<<" my shemem";
-//             local_file_names << urls.at(i).toString() ;
-//         }
-//         else if( urls.at(i).scheme() == "file")
-//         {
-//             file_name = urls.at(i).toString().right(urls.at(i).toString().length()-7 );	
-//             #ifdef WIN32
-//                 //在windows上Qt获取的路径URL带着 file:///前缀 , 如 file:///E:/xxx/bbb.txt , 而在　unix上这个路径为 file:///home/aaa.txt , 前缀为 file:// , 所以两个值还是差1的，需要下面的语句
-//                 file_name = file_name.right( file_name.length() - 1 );
-//                 //qDebug()<< file_name << strlen( "file:///") ;
-//             #endif
-//             //if ( file_name.trimmed().length() == 0 ) continue ;
-//             //从 Qt 内部编码到本地编码
-//             //ba = codec->fromUnicode ( file_name );
-//             //qDebug()<< file_name <<" ---> :" REMOTE_CODEC << ba ;
-//             //file_name = ba ;
-//             local_file_names << file_name ;
-//         }
-//         else
-//         {
-//             qDebug()<<" not support shemem";
-//         }
-// 	}
-//     if( local_file_names.count() > 0 )
-// 	   emit this->new_transfer_requested ( local_file_names,remote_file_names );
-// 
 // 	qDebug() <<"signals emited";
 	return true ;
 	return ret ;
@@ -740,7 +685,7 @@ void RemoteDirModel::set_keep_alive(bool keep_alive,int time_out)
 
 void RemoteDirModel::slot_keep_alive_time_out()
 {
-    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    //qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     this->remote_dir_retrive_thread->slot_execute_command(0,0,SSH2_FXP_KEEP_ALIVE,"");
     
 }

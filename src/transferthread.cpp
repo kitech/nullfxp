@@ -675,8 +675,19 @@ int TransferThread::do_upload ( QString local_path, QString remote_path, int pfl
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
     struct stat     file_stat ;
     char buff[5120] = {0};
-
+    int ret = 0;
+    
     //char native_path [PATH_MAX+1] = {0};
+    //TODO 检测文件是否存在
+    memset(&ssh2_sftp_attrib, 0, sizeof(LIBSSH2_SFTP_ATTRIBUTES));
+    ret = libssh2_sftp_stat(this->dest_ssh2_sftp,
+                             GlobalOption::instance()->remote_codec->fromUnicode( remote_path ),
+                                     &ssh2_sftp_attrib);
+    if(ret == 0)
+    {
+        //TODO 通知用户远程文件已经存在，再做处理。
+        qDebug()<<"Remote file exists, cover it.";
+    }
     
     sftp_handle = libssh2_sftp_open( this->dest_ssh2_sftp,
 		GlobalOption::instance()->remote_codec->fromUnicode( remote_path ) ,
