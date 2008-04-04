@@ -1,6 +1,7 @@
 SUBDIRS +=  \
  src/libssh2 \
-  src
+ src \
+ src/unitest
 
 TEMPLATE = subdirs 
 CONFIG += warn_on \

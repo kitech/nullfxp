@@ -24,6 +24,7 @@ SOURCES += main.cpp \
  forwarddebugwindow.cpp \
  forwardconnectinfodialog.cpp
 TEMPLATE = app
+VERSION = 1.5.3_2
 CONFIG += warn_on \
 	  thread \
           qt \
@@ -33,7 +34,11 @@ TARGET = ../bin/nullfxp
 
 QT += network
 
+UI_DIR = obj
+MOC_DIR = obj
+OBJECTS_DIR = obj
 DESTDIR = .
+
 
 FORMS += nullfxp.ui \
  localview.ui \
