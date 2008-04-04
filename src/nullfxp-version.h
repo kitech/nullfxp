@@ -21,9 +21,12 @@
 #ifndef NULLFXP_VERSION_H
 #define NULLFXP_VERSION_H
 
-#define NULLFXP_VERSION	"NullFXP 1.6.0"
+#define NULLFXP_VERSION	"NullFXP 1.5.4 rc"
 
 #define NULLFXP_PORTABLE	""
 #define NULLFXP_RELEASE	NULLFXP_VERSION NULLFXP_PORTABLE
 
+#define NULLFXP_HOMEPAGE "http://www.qtchina.net"
+
 #endif
+

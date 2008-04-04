@@ -55,7 +55,8 @@ FORMS += nullfxp.ui \
  synchronizewindow.ui \
  forwardconnectdaemon.ui \
  forwarddebugwindow.ui \
- forwardconnectinfodialog.ui
+ forwardconnectinfodialog.ui \
+ ui/hostlistdialog.ui
 
 HEADERS += nullfxp.h \
  localview.h \
