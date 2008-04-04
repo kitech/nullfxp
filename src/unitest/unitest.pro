@@ -4,10 +4,15 @@
 
 TEMPLATE = app
 TARGET = 
+DESTDIR = ../../bin
 DEPENDPATH += .
 INCLUDEPATH += .
+INCLUDEPATH += ..
 
 QT += testlib
+
 # Input
 HEADERS += testnullfxp.h
 SOURCES += testmain.cpp testnullfxp.cpp
+
+SOURCES += ../basestorage.cpp

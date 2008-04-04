@@ -22,9 +22,11 @@ SOURCES += main.cpp \
  nullfxpext.cpp \
  forwardconnectdaemon.cpp \
  forwarddebugwindow.cpp \
- forwardconnectinfodialog.cpp
+ forwardconnectinfodialog.cpp \
+ basestorage.cpp
+
 TEMPLATE = app
-VERSION = 1.5.3_2
+VERSION = 1.5.5
 CONFIG += warn_on \
 	  thread \
           qt \
@@ -76,24 +78,17 @@ HEADERS += nullfxp.h \
  localdirorginalmodel.h \
  forwardconnectdaemon.h \
  forwarddebugwindow.h \
- forwardconnectinfodialog.h
+ forwardconnectinfodialog.h \
+ basestorage.h
 
 
 DISTFILES += ../CMakeLists.txt \
 CMakeLists.txt \
- libssh2/CMakeLists.txt
-
-
-
-
-
+libssh2/CMakeLists.txt
 
 DEFINES += LIBSSH2DEBUG
 
 CONFIG -= release
-
-
-
 
 win32 {
     debug {

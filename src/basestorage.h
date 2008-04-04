@@ -1,12 +1,12 @@
-/* testnullfxp.h --- 
+/* basestorage.h --- 
  * 
- * Filename: testnullfxp.h
+ * Filename: basestorage.h
  * Description: 
  * Author: liuguangzhao
  * Maintainer: 
- * Created: 五  4月  4 12:53:06 2008 (CST)
+ * Created: 五  4月  4 14:46:49 2008 (CST)
  * Version: 
- * Last-Updated: 五  4月  4 12:57:38 2008 (CST)
+ * Last-Updated: 五  4月  4 14:47:37 2008 (CST)
  *           By: liuguangzhao
  *     Update #: 1
  * URL: 
@@ -45,23 +45,35 @@
 
 /* Code: */
 
-#include <QtTest/QtTest>
 
-class TestNullfxp : public QObject
+
+
+#include <QtCore>
+#include <QDataStream>
+
+class BaseStorage
 {
-  Q_OBJECT
-private slots:
-  void initTestCase();
+ public:
+  BaseStorage();
+  ~BaseStorage();
+  bool open();
+  bool close();
+  bool save();
 
-  void myFirstTest();
+  bool addHost(QMap<QString,QString> host);
+  bool removeHost(QString show_name);
+  bool updateHost(QMap<QString,QString> host);
 
-  void mySecondTest();
+  bool containsHost(QString show_name);
 
-  void cleanupTestCase();
+  QMap<QString, QMap<QString,QString> > & getAllHost();
+  QMap<QString,QString> getHost(QString show_name);
 
-  void storageTest();
+ private:
+  QMap<QString,QMap<QString,QString> >  hosts;
+  bool opened;
+  bool changed;
+  QDataStream  ioStream;
 };
 
-
-
-/* testnullfxp.h ends here */
+/* basestorage.h ends here */

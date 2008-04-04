@@ -47,23 +47,51 @@
 
 #include "testnullfxp.h"
 
+#include "basestorage.h"
+
 void TestNullfxp::initTestCase()
 {
-  qDebug()<<__FILE__<<__LINE__;
+  QVERIFY(1 == 1);
 }
 
 void TestNullfxp::myFirstTest()
 {
+  QVERIFY(1 == 1);
 }
 
 void TestNullfxp::mySecondTest()
 {
+  QVERIFY(1 == 1);
+}
 
+void TestNullfxp::storageTest()
+{
+  BaseStorage * storage = new BaseStorage;
+  QVERIFY(storage->open()==true);
+  QMap<QString, QString> host;
+  host["show_name"] = "hahaha";
+  host["host_name"] = "www.qtchina.net";
+  host["user_name"] = "liuguangzhao";
+  if(storage->containsHost(host["show_name"]))
+    QVERIFY(storage->addHost(host) == false);
+  else
+    QVERIFY(storage->addHost(host) == true);
+
+  host.clear();
+  host["show_name"] = "hahahatttt";
+  host["host_name"] = "shell.sf.net";
+  host["user_name"] = "liuguangzhao6566";
+
+  QVERIFY(storage->updateHost(host) == true);
+
+  QVERIFY(storage->save() == true);
+  
+  QVERIFY(storage->close() == true);
 }
 
 void TestNullfxp::cleanupTestCase()
 {
-  qDebug()<<__FILE__<<__LINE__;
+  QVERIFY(1 == 1);
 }
 
 

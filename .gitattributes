@@ -16,6 +16,8 @@ src/ReadMe -text
 src/aboutnullfxp.cpp -text
 src/aboutnullfxp.h -text
 src/aboutnullfxp.ui -text
+src/basestorage.cpp -text
+src/basestorage.h -text
 src/fileproperties.cpp -text
 src/fileproperties.h -text
 src/fileproperties.ui -text
