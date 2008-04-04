@@ -238,6 +238,10 @@ src/synchronizewindow.ui -text
 src/tmpmain.cpp -text
 src/transferthread.cpp -text
 src/transferthread.h -text
+src/unitest/testmain.cpp -text
+src/unitest/testnullfxp.cpp -text
+src/unitest/testnullfxp.h -text
+src/unitest/unitest.pro -text
 src/utils.cpp -text
 src/utils.h -text
 templates/cpp -text
