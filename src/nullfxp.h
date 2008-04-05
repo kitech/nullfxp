@@ -104,7 +104,8 @@ public:
     private slots:
         void slot_forward_connect(bool show);
         void slot_synchronize_file();
-        
+	void slot_show_session_dialog();
+
     private:
         MdiChild *activeMdiChild();        
 

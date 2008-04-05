@@ -12,14 +12,23 @@
   <property name="windowTitle" >
    <string>NullFXP</string>
   </property>
-  <widget class="QWidget" name="centralwidget" />
+  <widget class="QWidget" name="centralwidget" >
+   <property name="geometry" >
+    <rect>
+     <x>0</x>
+     <y>24</y>
+     <width>749</width>
+     <height>524</height>
+    </rect>
+   </property>
+  </widget>
   <widget class="QMenuBar" name="menubar" >
    <property name="geometry" >
     <rect>
      <x>0</x>
      <y>0</y>
      <width>749</width>
-     <height>28</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFfff" >
@@ -29,6 +38,7 @@
     <addaction name="actionConnect" />
     <addaction name="actionDisconnect" />
     <addaction name="separator" />
+    <addaction name="actionSession" />
    </widget>
    <widget class="QMenu" name="menuOidfgsdf" >
     <property name="title" >
@@ -75,7 +85,16 @@
    <addaction name="menuK" />
    <addaction name="menuDsfsdf" />
   </widget>
-  <widget class="QStatusBar" name="statusbar" />
+  <widget class="QStatusBar" name="statusbar" >
+   <property name="geometry" >
+    <rect>
+     <x>0</x>
+     <y>548</y>
+     <width>749</width>
+     <height>21</height>
+    </rect>
+   </property>
+  </widget>
   <action name="actionInit_dir_view" >
    <property name="text" >
     <string>init dir view</string>
@@ -175,6 +194,11 @@
   <action name="action_Synchronize_file" >
    <property name="text" >
     <string>&amp;Synchronize file</string>
+   </property>
+  </action>
+  <action name="actionSession" >
+   <property name="text" >
+    <string>Session ...</string>
    </property>
   </action>
  </widget>

@@ -147,6 +147,8 @@ bool BaseStorage::containsHost(QString show_name)
 
 QMap<QString, QMap<QString,QString> > & BaseStorage::getAllHost()
 {
+  if(!this->opened) 
+    this->open();
   return this->hosts;
 }
 

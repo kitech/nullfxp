@@ -47,6 +47,7 @@
 #include "remotehostconnectingstatusdialog.h"
 #include "remotehostquickconnectinfodialog.h"
 #include "remotehostconnectthread.h"
+#include "sessiondialog.h"
 
 
 //////////////////////////
@@ -85,15 +86,12 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
 	windowMapper = new QSignalMapper ( this );
 
 	///////////////////////
-	//QObject::connect(this->mUIMain.pushButton,SIGNAL(clicked()),this,SLOT(test()));
-	//QObject::connect(this->mUIMain.pushButton_do_init,SIGNAL(clicked()),this,SLOT(do_init()));
-	//QObject::connect(this->mUIMain.pushButton_do_ls,SIGNAL(clicked()),this,SLOT(do_ls()));
-	//QObject::connect ( this->mUIMain.actionInit_dir_view, SIGNAL ( triggered() ) ,
-	//                   this, SLOT ( local_init_dir_view() ) );
 	QObject::connect ( this->mUIMain.actionConnect, SIGNAL ( triggered() ) ,
 	                   this, SLOT ( connect_to_remote_host() ) );
 	QObject::connect ( this->mUIMain.actionDisconnect,SIGNAL ( triggered() ),
 	                   this,SLOT ( slot_disconnect_from_remote_host() ) );
+	QObject::connect( this->mUIMain.actionSession, SIGNAL(triggered()),
+			  this, SLOT(slot_show_session_dialog()));
 
 	localView = new LocalView();
 
@@ -223,6 +221,12 @@ void NullFXP::slot_disconnect_from_remote_host()
             }
         }
     }
+}
+
+void NullFXP::slot_show_session_dialog()
+{
+  SessionDialog * sess_dlg = new SessionDialog(this);
+  sess_dlg->exec();
 }
 
 void NullFXP::slot_connect_remote_host_finished ( int status,void * ssh2_sess , int ssh2_sock /* , void * ssh2_sftp*/ )

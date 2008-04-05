@@ -60,6 +60,7 @@ src/libssh2/missing -text
 src/libssh2/src/Makefile.am -text
 src/libssh2/src/Makefile.in -text
 src/libssh2/src/NMakefile -text
+src/libssh2/src/alloca.h -text
 src/libssh2/src/channel.c -text
 src/libssh2/src/comp.c -text
 src/libssh2/src/crypt.c -text
@@ -233,6 +234,8 @@ src/remoteview.h -text
 src/remoteview.ui -text
 src/remoteviewdirtableview.cpp -text
 src/remoteviewdirtableview.h -text
+src/sessiondialog.cpp -text
+src/sessiondialog.h -text
 src/sftp.h -text
 src/src.pro -text
 src/synchronizeoptiondialog.ui -text

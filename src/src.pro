@@ -23,7 +23,8 @@ SOURCES += main.cpp \
  forwardconnectdaemon.cpp \
  forwarddebugwindow.cpp \
  forwardconnectinfodialog.cpp \
- basestorage.cpp
+ basestorage.cpp \
+ sessiondialog.cpp
 
 TEMPLATE = app
 VERSION = 1.5.5
@@ -79,7 +80,8 @@ HEADERS += nullfxp.h \
  forwardconnectdaemon.h \
  forwarddebugwindow.h \
  forwardconnectinfodialog.h \
- basestorage.h
+ basestorage.h \
+ sessiondialog.h
 
 
 DISTFILES += ../CMakeLists.txt \
