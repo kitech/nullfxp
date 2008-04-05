@@ -16,3 +16,5 @@ HEADERS += testnullfxp.h
 SOURCES += testmain.cpp testnullfxp.cpp
 
 SOURCES += ../basestorage.cpp
+
+win32:LIBS += -lQtTest

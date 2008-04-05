@@ -37,10 +37,11 @@ int main(int argc, char *argv[])
 {
     int app_exec_ret = -1;
       QApplication app(argc, argv);
+#if QT_VERSION >= 0x040400
       app.setApplicationVersion(NULLFXP_RELEASE);
       app.setOrganizationDomain(NULLFXP_HOMEPAGE);
       app.setOrganizationName("kitsoft");
-
+#endif
       NullFXP nfxp ;
       nfxp.showNormal ();
       

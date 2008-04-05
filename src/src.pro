@@ -32,15 +32,14 @@ CONFIG += warn_on \
           qt \
  debug \
  console
-TARGET = ../bin/nullfxp
+TARGET = nullfxp
+DESTDIR = ../bin
 
 QT += network
 
 UI_DIR = obj
 MOC_DIR = obj
 OBJECTS_DIR = obj
-DESTDIR = .
-
 
 FORMS += nullfxp.ui \
  localview.ui \
@@ -109,6 +108,6 @@ win32 {
     TARGETDEPS += libssh2/src/libssh2.a
 }
 
-INCLUDEPATH += ./libssh2/include
+INCLUDEPATH += . ./libssh2/include
 
 RESOURCES = nullfxp.qrc
