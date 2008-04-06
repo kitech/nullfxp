@@ -52,6 +52,36 @@ short  RemoteHostQuickConnectInfoDialog::get_port()
     
     return port;
 }
+
+void RemoteHostQuickConnectInfoDialog::set_active_host(QMap<QString,QString> host)
+{
+  QString show_name = host["show_name"];
+  QString host_name = host["host_name"];
+  QString user_name = host["user_name"];
+  QString password = host["password"];
+
+  this->quick_connect_info_dialog.lineEdit->setText(host_name);
+  this->quick_connect_info_dialog.lineEdit_3->setText(user_name);
+
+  this->quick_connect_info_dialog.lineEdit_4->setFocus();
+  this->quick_connect_info_dialog.lineEdit_4->setText(password);
+
+  this->quick_connect_info_dialog.groupBox->setTitle(QString(tr("Host Infomation: %1")).arg(show_name));
+  this->show_name = show_name;
+}
+QMap<QString,QString> RemoteHostQuickConnectInfoDialog::get_host_map()
+{
+  QMap<QString,QString> host;
+
+  host["show_name"] = this->show_name;
+  host["host_name"] = this->quick_connect_info_dialog.lineEdit->text();
+  host["user_name"] = this->quick_connect_info_dialog.lineEdit_3->text();
+  host["password"] = this->quick_connect_info_dialog.lineEdit_4->text();
+  host["port"] = this->quick_connect_info_dialog.lineEdit_2->text();
+
+  return host;
+}
+
 void RemoteHostQuickConnectInfoDialog::slot_test_remote_host_changed(int value)
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;

@@ -65,7 +65,12 @@ public:
 
 public slots:
     void slot_conntect_selected_host();
+    void slot_conntect_selected_host(const QModelIndex & index);
     void slot_edit_selected_host();
+    QMap<QString,QString>  get_host_map();
+
+ signals:
+    void connect_remote_host_requested(QMap<QString,QString> host);
 
 private slots:
     bool loadHost();
@@ -77,6 +82,7 @@ private:
     QMenu * host_list_ctx_menu;
     QAction * action_connect;
     QAction * action_edit;
+    void * info_dlg;
 };
 
 

@@ -137,8 +137,15 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
 	//qDebug()<<" mdi sub window count :"<< mdiSubWindow.count();
     QMdiSubWindow * local_sub_win = mdiArea->subWindowList().at(0);
     local_sub_win->setGeometry( local_sub_win->x(),local_sub_win->y(), mdiArea->width()/2,  mdiArea->height()*18/19 );
-    
-    this->connect_to_remote_host();
+
+    BaseStorage * storage = new BaseStorage();
+    storage->open();
+    int host_count = storage->hostCount();
+    delete storage ;
+    if(host_count > 0)
+      this->slot_show_session_dialog();
+    else
+      this->connect_to_remote_host();
 
     //////////////////////
     //this->mUIMain.action_Forward_connect->setVisible(false);
@@ -160,7 +167,7 @@ void NullFXP::connect_to_remote_host()
 	QString password ;
 	QString remoteaddr ;
         short   port;
-
+	QMap<QString,QString> host;
 	//提示输入远程主机信息
 	this->quick_connect_info_dailog = new RemoteHostQuickConnectInfoDialog ( this );
 	if ( this->quick_connect_info_dailog->exec() == QDialog::Accepted )
@@ -173,6 +180,46 @@ void NullFXP::connect_to_remote_host()
 
 		delete this->quick_connect_info_dailog;this->quick_connect_info_dailog=0;
 
+		host["show_name"] = remoteaddr;
+		host["host_name"] = remoteaddr;
+		host["user_name"] = username;
+		host["password"] = password;
+		host["port"] = QString("%1").arg(port);
+		
+		BaseStorage * storage = new BaseStorage();
+		storage->open();
+		if(storage->containsHost(remoteaddr))
+		  {
+		    storage->updateHost(host);
+		  }
+		else
+		  {
+		    storage->addHost(host);
+		  }
+		storage->save();
+		delete storage;
+		this->connect_to_remote_host(host);
+	}
+	else
+	{
+		qDebug() <<"user canceled ...";
+	}
+
+}
+
+void NullFXP::connect_to_remote_host(QMap<QString,QString> host) 
+{
+  QString username ;
+  QString password ;
+  QString remoteaddr ;
+  short   port;
+
+  username = host["user_name"];
+  password = host["password"];
+  remoteaddr = host["host_name"];
+  port = (host["port"].length() == 0) ? 22 : host["port"].toShort();
+
+  qDebug()<< host;
         this->connect_status_dailog = new RemoteHostConnectingStatusDialog ( username,remoteaddr,this, Qt::Dialog );
         QObject::connect(this->connect_status_dailog,SIGNAL(cancel_connect()),
                          this,SLOT(slot_cancel_connect()) );
@@ -187,11 +234,6 @@ void NullFXP::connect_to_remote_host()
         
         this->remote_conn_thread->start();        
 		this->connect_status_dailog->exec();
-	}
-	else
-	{
-		qDebug() <<"user canceled ...";
-	}
 
 }
 
@@ -226,7 +268,15 @@ void NullFXP::slot_disconnect_from_remote_host()
 void NullFXP::slot_show_session_dialog()
 {
   SessionDialog * sess_dlg = new SessionDialog(this);
-  sess_dlg->exec();
+  if(sess_dlg->exec() == QDialog::Accepted)
+    {
+      QMap<QString,QString> host ;
+
+      host = sess_dlg->get_host_map();
+
+      this->connect_to_remote_host(host);
+    }
+  delete sess_dlg;
 }
 
 void NullFXP::slot_connect_remote_host_finished ( int status,void * ssh2_sess , int ssh2_sock /* , void * ssh2_sftp*/ )

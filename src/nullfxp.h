@@ -81,6 +81,7 @@ public:
         //void local_init_dir_view();
         
         void connect_to_remote_host() ;
+        void connect_to_remote_host(QMap<QString,QString> host) ;
         void slot_disconnect_from_remote_host();
         void slot_cancel_connect();
         void slot_connect_remote_host_finished(int status,void * ssh2_sess , int ssh2_sock /*, void * ssh2_sftp */);

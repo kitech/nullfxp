@@ -46,6 +46,7 @@
 
 // Code:
 
+#include "remotehostquickconnectinfodialog.h"
 
 #include "sessiondialog.h"
 
@@ -61,7 +62,10 @@ SessionDialog::SessionDialog(QWidget * parent)
   }
   QObject::connect(this->sess_dlg.treeView,SIGNAL(customContextMenuRequested(const QPoint&)),
 		   this, SLOT(slot_ctx_menu_requested(const QPoint &)));
+  QObject::connect(this->sess_dlg.treeView,SIGNAL(doubleClicked(const QModelIndex&)),
+		   this,SLOT(slot_conntect_selected_host(const QModelIndex&)));
   this->host_list_ctx_menu = 0;
+  this->info_dlg = 0;
 }
 
 SessionDialog::~SessionDialog()
@@ -105,18 +109,97 @@ void SessionDialog::slot_ctx_menu_requested(const QPoint & pos)
       this->host_list_ctx_menu->addAction(this->action_connect);
       this->action_edit = new QAction(tr("View host info ..."),this);
       this->host_list_ctx_menu->addAction(this->action_edit);
+      QObject::connect(this->action_connect,SIGNAL(triggered()),this,SLOT(slot_conntect_selected_host()));
+      QObject::connect(this->action_edit,SIGNAL(triggered()),this,SLOT(slot_edit_selected_host()));
     }
   this->host_list_ctx_menu->popup(this->sess_dlg.treeView->mapToGlobal(pos));
 }
 
-void SessionDialog::slot_conntect_selected_host()
+void  SessionDialog::slot_conntect_selected_host(const QModelIndex & index)
 {
 
+  if(index.isValid())
+    {
+      //qDebug()<<index;
+      QString show_name = index.data().toString();
+      //qDebug()<<show_name;
+      QMap<QString,QString> host = this->storage->getHost(show_name);
+      QMap<QString,QString> host_new;
+      //qDebug()<<host;
+      RemoteHostQuickConnectInfoDialog * info_dlg = new RemoteHostQuickConnectInfoDialog(this);
+      info_dlg->set_active_host(host);
+      if(info_dlg->exec() == QDialog::Accepted)
+	{
+	  host_new = info_dlg->get_host_map();
+	  if(host_new != host)
+	    {
+	      this->storage->updateHost(host_new);
+	      this->storage->save();
+	    }
+	  emit this->connect_remote_host_requested(host_new);
+	  this->setVisible(false);
+	  this->info_dlg = info_dlg;
+	  this->accept();
+	}
+      else
+	{
+
+	}
+    }
+}
+QMap<QString,QString>  SessionDialog::get_host_map()
+{
+  QMap<QString,QString> host;
+  if(this->info_dlg != 0)
+    host = ((RemoteHostQuickConnectInfoDialog*)this->info_dlg)->get_host_map();
+  return host;
+}
+
+void SessionDialog::slot_conntect_selected_host()
+{
+  QItemSelectionModel * ism = 0;
+  QModelIndexList mil ;
+
+  ism = this->sess_dlg.treeView->selectionModel();
+  mil = ism->selectedIndexes();
+  //qDebug()<<mil;
+
+  if(mil.count() > 0)
+    {
+      //qDebug()<<mil.at(0).data();
+      this->slot_conntect_selected_host(mil.at(0));
+    }
 }
 
 void SessionDialog::slot_edit_selected_host()
 {
+  QItemSelectionModel * ism = 0;
+  QModelIndexList mil;
 
+  ism = this->sess_dlg.treeView->selectionModel();
+  mil = ism->selectedIndexes();
+  //qDebug()<<mil;
+  if(mil.count() > 0)
+    {
+      //qDebug()<<mil.at(0).data();
+      QString show_name = mil.at(0).data().toString();
+      //qDebug()<<show_name;
+      QMap<QString,QString> host = this->storage->getHost(show_name);
+      QMap<QString,QString> host_new;
+      //qDebug()<<host;
+      RemoteHostQuickConnectInfoDialog * info_dlg = new RemoteHostQuickConnectInfoDialog(this);
+      info_dlg->set_active_host(host);
+      if(info_dlg->exec() == QDialog::Accepted)
+	{
+	  host_new = info_dlg->get_host_map();
+	  if(host_new != host)
+	    {
+	      this->storage->updateHost(host_new);
+	      this->storage->save();
+	    }
+	}
+      delete info_dlg;
+    }
 }
 
 

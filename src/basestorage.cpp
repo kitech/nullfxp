@@ -133,6 +133,12 @@ bool BaseStorage::updateHost(QMap<QString,QString> host)
   this->changed = true;
   return true;
 }
+bool BaseStorage::clearHost()
+{
+  this->hosts.clear();
+  this->save();
+  return true;
+}
 
 bool BaseStorage::containsHost(QString show_name)
 {
@@ -160,6 +166,11 @@ QMap<QString,QString> BaseStorage::getHost(QString show_name)
     return this->hosts[show_name];
   else
     return host;
+}
+
+int BaseStorage::hostCount()
+{
+  return this->hosts.count();
 }
 
 // 

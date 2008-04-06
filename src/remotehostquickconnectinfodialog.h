@@ -41,13 +41,14 @@ public:
     QString get_host_name ();
     QString get_password();
     short  get_port();
+    QMap<QString,QString> get_host_map();
     
     public slots:
         void slot_test_remote_host_changed(int value);
-        
+	void set_active_host(QMap<QString,QString> host);
     private:
         Ui::RemoteHostQuickConnectInfoDialog quick_connect_info_dialog;
-        
+        QString show_name;
 };
 
 #endif

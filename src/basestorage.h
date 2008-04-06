@@ -63,12 +63,17 @@ class BaseStorage
   bool addHost(QMap<QString,QString> host);
   bool removeHost(QString show_name);
   bool updateHost(QMap<QString,QString> host);
+  bool clearHost();
 
   bool containsHost(QString show_name);
 
   QMap<QString, QMap<QString,QString> > & getAllHost();
   QMap<QString,QString> getHost(QString show_name);
-
+  int hostCount();
+  
+ signals:
+  void hostListChanged();
+  void hostLIstChanged(QString show_name);
  private:
   QMap<QString,QMap<QString,QString> >  hosts;
   bool opened;

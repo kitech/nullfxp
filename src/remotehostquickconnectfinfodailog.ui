@@ -231,7 +231,7 @@ p, li { white-space: pre-wrap; }
           <property name="orientation" >
            <enum>Qt::Vertical</enum>
           </property>
-          <property name="sizeHint" >
+          <property name="sizeHint" stdset="0" >
            <size>
             <width>20</width>
             <height>40</height>
@@ -249,16 +249,7 @@ p, li { white-space: pre-wrap; }
      <property name="spacing" >
       <number>6</number>
      </property>
-     <property name="leftMargin" >
-      <number>0</number>
-     </property>
-     <property name="topMargin" >
-      <number>0</number>
-     </property>
-     <property name="rightMargin" >
-      <number>0</number>
-     </property>
-     <property name="bottomMargin" >
+     <property name="margin" >
       <number>0</number>
      </property>
      <item>
@@ -276,7 +267,7 @@ p, li { white-space: pre-wrap; }
        <property name="orientation" >
         <enum>Qt::Horizontal</enum>
        </property>
-       <property name="sizeHint" >
+       <property name="sizeHint" stdset="0" >
         <size>
          <width>131</width>
          <height>31</height>
@@ -328,8 +319,8 @@ p, li { white-space: pre-wrap; }
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>278</x>
-     <y>253</y>
+     <x>250</x>
+     <y>424</y>
     </hint>
     <hint type="destinationlabel" >
      <x>96</x>
@@ -344,12 +335,28 @@ p, li { white-space: pre-wrap; }
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>369</x>
-     <y>253</y>
+     <x>338</x>
+     <y>424</y>
     </hint>
     <hint type="destinationlabel" >
      <x>179</x>
      <y>282</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>okButton</sender>
+   <signal>clicked()</signal>
+   <receiver>RemoteHostQuickConnectInfoDialog</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>206</x>
+     <y>401</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>160</x>
+     <y>403</y>
     </hint>
    </hints>
   </connection>
