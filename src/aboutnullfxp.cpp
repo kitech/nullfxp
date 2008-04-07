@@ -26,7 +26,7 @@
 AboutNullFXP::AboutNullFXP(QWidget* parent, Qt::WindowFlags f): QDialog(parent, f)
 {
     ui_about_nullfxp.setupUi(this);
-    QString NULLFXP_RELEASE_AND_QT_VERION = QString("%1 (Using Qt %2)").arg(NULLFXP_RELEASE).arg(QT_VERSION_STR);
+    QString NULLFXP_RELEASE_AND_QT_VERION = QString("%1 (Using Qt %2)").arg(NULLFXP_RELEASE).arg(qVersion());//.arg(QT_VERSION_STR);
     this->ui_about_nullfxp.label_2->setText( NULLFXP_RELEASE_AND_QT_VERION );
     
     QString about_info = ""
