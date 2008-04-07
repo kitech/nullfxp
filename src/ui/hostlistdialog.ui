@@ -12,11 +12,17 @@
   <property name="windowTitle" >
    <string>Session Dialog</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" >
+  <layout class="QVBoxLayout" >
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2" >
+    <layout class="QHBoxLayout" >
      <item>
       <widget class="QToolButton" name="toolButton" >
+       <property name="toolTip" >
+        <string>&lt;html>&lt;head>&lt;meta name="qrichtext" content="1" />&lt;style type="text/css">
+p, li { white-space: pre-wrap; }
+&lt;/style>&lt;/head>&lt;body style=" font-family:'宋体'; font-size:9pt; font-weight:400; font-style:normal;">
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Connect&lt;/p>&lt;/body>&lt;/html></string>
+       </property>
        <property name="text" >
         <string>...</string>
        </property>
@@ -24,6 +30,12 @@
      </item>
      <item>
       <widget class="QToolButton" name="toolButton_2" >
+       <property name="toolTip" >
+        <string>&lt;html>&lt;head>&lt;meta name="qrichtext" content="1" />&lt;style type="text/css">
+p, li { white-space: pre-wrap; }
+&lt;/style>&lt;/head>&lt;body style=" font-family:'宋体'; font-size:9pt; font-weight:400; font-style:normal;">
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Quick Connect&lt;/p>&lt;/body>&lt;/html></string>
+       </property>
        <property name="text" >
         <string>...</string>
        </property>
@@ -31,6 +43,12 @@
      </item>
      <item>
       <widget class="QToolButton" name="toolButton_3" >
+       <property name="toolTip" >
+        <string>&lt;html>&lt;head>&lt;meta name="qrichtext" content="1" />&lt;style type="text/css">
+p, li { white-space: pre-wrap; }
+&lt;/style>&lt;/head>&lt;body style=" font-family:'宋体'; font-size:9pt; font-weight:400; font-style:normal;">
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Remove&lt;/p>&lt;/body>&lt;/html></string>
+       </property>
        <property name="text" >
         <string>...</string>
        </property>
@@ -38,17 +56,23 @@
      </item>
      <item>
       <widget class="QToolButton" name="toolButton_4" >
+       <property name="toolTip" >
+        <string>&lt;html>&lt;head>&lt;meta name="qrichtext" content="1" />&lt;style type="text/css">
+p, li { white-space: pre-wrap; }
+&lt;/style>&lt;/head>&lt;body style=" font-family:'宋体'; font-size:9pt; font-weight:400; font-style:normal;">
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Property&lt;/p>&lt;/body>&lt;/html></string>
+       </property>
        <property name="text" >
         <string>...</string>
        </property>
       </widget>
      </item>
      <item>
-      <spacer name="horizontalSpacer_2" >
+      <spacer>
        <property name="orientation" >
         <enum>Qt::Horizontal</enum>
        </property>
-       <property name="sizeHint" stdset="0" >
+       <property name="sizeHint" >
         <size>
          <width>40</width>
          <height>20</height>
@@ -69,7 +93,7 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout" >
+    <layout class="QHBoxLayout" >
      <item>
       <widget class="QPushButton" name="pushButton_3" >
        <property name="text" >
@@ -78,11 +102,11 @@
       </widget>
      </item>
      <item>
-      <spacer name="horizontalSpacer" >
+      <spacer>
        <property name="orientation" >
         <enum>Qt::Horizontal</enum>
        </property>
-       <property name="sizeHint" stdset="0" >
+       <property name="sizeHint" >
         <size>
          <width>40</width>
          <height>20</height>

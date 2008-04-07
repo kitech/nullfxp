@@ -55,7 +55,11 @@ SessionDialog::SessionDialog(QWidget * parent)
 {
   this->sess_dlg.setupUi(this);
   this->sess_dlg.treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+#if QT_VERTION >= 0x0404000
   this->sess_dlg.treeView->setHeaderHidden(true);
+#else
+	this->sess_dlg.treeView->header()->setVisible(false);
+#endif
 
   this->host_list_model = new QStringListModel();
   this->storage = 0;
@@ -66,6 +70,12 @@ SessionDialog::SessionDialog(QWidget * parent)
 		   this, SLOT(slot_ctx_menu_requested(const QPoint &)));
   QObject::connect(this->sess_dlg.treeView,SIGNAL(doubleClicked(const QModelIndex&)),
 		   this,SLOT(slot_conntect_selected_host(const QModelIndex&)));
+	QObject::connect(this->sess_dlg.toolButton,SIGNAL(clicked()),
+			this,SLOT(slot_conntect_selected_host()));
+	QObject::connect(this->sess_dlg.toolButton_2,SIGNAL(clicked()),
+			this,SLOT(slot_conntect_selected_host()));
+	QObject::connect(this->sess_dlg.toolButton_3,SIGNAL(clicked()),
+			this,SLOT(slot_remove_selected_host()));
   this->host_list_ctx_menu = 0;
   this->info_dlg = 0;
 }
