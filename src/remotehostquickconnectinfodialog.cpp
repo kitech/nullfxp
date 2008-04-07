@@ -59,8 +59,10 @@ void RemoteHostQuickConnectInfoDialog::set_active_host(QMap<QString,QString> hos
   QString host_name = host["host_name"];
   QString user_name = host["user_name"];
   QString password = host["password"];
+  QString port = host["port"];
 
   this->quick_connect_info_dialog.lineEdit->setText(host_name);
+  this->quick_connect_info_dialog.lineEdit_2->setText(port);
   this->quick_connect_info_dialog.lineEdit_3->setText(user_name);
 
   this->quick_connect_info_dialog.lineEdit_4->setFocus();

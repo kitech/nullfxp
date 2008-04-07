@@ -55,6 +55,8 @@ SessionDialog::SessionDialog(QWidget * parent)
 {
   this->sess_dlg.setupUi(this);
   this->sess_dlg.treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  this->sess_dlg.treeView->setHeaderHidden(true);
+
   this->host_list_model = new QStringListModel();
   this->storage = 0;
   {
@@ -105,12 +107,16 @@ void SessionDialog::slot_ctx_menu_requested(const QPoint & pos)
   if(this->host_list_ctx_menu == 0)
     {
       this->host_list_ctx_menu = new QMenu(this);
-      this->action_connect = new QAction(tr("Connect to host"),this);
+      this->action_connect = new QAction(tr("&Connect to host"),this);
       this->host_list_ctx_menu->addAction(this->action_connect);
-      this->action_edit = new QAction(tr("View host info ..."),this);
+      this->action_edit = new QAction(tr("&View host info ..."),this);
       this->host_list_ctx_menu->addAction(this->action_edit);
+      this->action_remove = new QAction(tr("&Remove host ..."), this);
+      this->host_list_ctx_menu->addAction(this->action_remove);
+
       QObject::connect(this->action_connect,SIGNAL(triggered()),this,SLOT(slot_conntect_selected_host()));
       QObject::connect(this->action_edit,SIGNAL(triggered()),this,SLOT(slot_edit_selected_host()));
+      QObject::connect(this->action_remove,SIGNAL(triggered()),this,SLOT(slot_remove_selected_host()));
     }
   this->host_list_ctx_menu->popup(this->sess_dlg.treeView->mapToGlobal(pos));
 }
@@ -202,6 +208,26 @@ void SessionDialog::slot_edit_selected_host()
     }
 }
 
+void SessionDialog::slot_remove_selected_host()
+{
+  QItemSelectionModel * ism = 0;
+  QModelIndexList mil;
+
+  ism = this->sess_dlg.treeView->selectionModel();
+  mil = ism->selectedIndexes();
+  //qDebug()<<mil;
+  if(mil.count() > 0)
+    {
+      //waning user
+      //
+      int ret = QMessageBox::question(this,tr("Remote host:") ,tr("Are you sure remote it ?"), QMessageBox::Yes,QMessageBox::No );
+      if(ret == QMessageBox::Yes)
+	{
+	  this->storage->removeHost(mil.at(0).data().toString());
+	  this->host_list_model->removeRows(mil.at(0).row(),1,QModelIndex());
+	}
+    }
+}
 
 //
 // sessiondialog.cpp ends here

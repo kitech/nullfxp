@@ -67,6 +67,8 @@ public slots:
     void slot_conntect_selected_host();
     void slot_conntect_selected_host(const QModelIndex & index);
     void slot_edit_selected_host();
+    void slot_remove_selected_host();
+
     QMap<QString,QString>  get_host_map();
 
  signals:
@@ -82,6 +84,7 @@ private:
     QMenu * host_list_ctx_menu;
     QAction * action_connect;
     QAction * action_edit;
+    QAction * action_remove;
     void * info_dlg;
 };
 
