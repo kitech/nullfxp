@@ -24,6 +24,9 @@ RemoteHostQuickConnectInfoDialog::RemoteHostQuickConnectInfoDialog(QWidget* pare
     this->quick_connect_info_dialog.setupUi(this);
     QObject::connect(this->quick_connect_info_dialog.comboBox_3,SIGNAL( currentIndexChanged(int)),
                      this,SLOT(slot_test_remote_host_changed(int)) );
+
+    //
+    this->quick_connect_info_dialog.comboBox_3->setVisible(false);
 }
 
 

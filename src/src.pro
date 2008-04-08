@@ -36,7 +36,9 @@ CONFIG += warn_on \
 TARGET = nullfxp
 DESTDIR = ../bin
 
-QT += network
+QT += network 
+
+QT += webkit
 
 UI_DIR = obj
 MOC_DIR = obj
