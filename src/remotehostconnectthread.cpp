@@ -185,6 +185,7 @@ void RemoteHostConnectThread::run()
     ssh2_sess = libssh2_session_init();
     //libssh2_trace((LIBSSH2_SESSION*)ssh2_sess , 64 );    
     ret = libssh2_session_startup((LIBSSH2_SESSION*)ssh2_sess,this->ssh2_sock);
+    printf("Received Banner: %s\n",libssh2_session_get_remote_version((LIBSSH2_SESSION*)ssh2_sess));
     assert( ret == 0 );
     emit connect_state_changed( tr( "SSH session started ..."));
     
@@ -250,10 +251,13 @@ void RemoteHostConnectThread::run()
 #endif
             return;
     }   
+    
+    emit connect_state_changed(tr("User auth successfully"));
+    
     ssh2_sftp = libssh2_sftp_init((LIBSSH2_SESSION*)ssh2_sess );
     assert( ssh2_sftp != NULL );
-
-    emit connect_state_changed(tr("User auth successfully"));
+    printf("Received SFTP Version: %d %s\n",libssh2_sftp_get_version((LIBSSH2_SFTP*)ssh2_sftp), libssh2_session_get_remote_info((LIBSSH2_SESSION*)ssh2_sess));	
+    
     ret = libssh2_sftp_realpath((LIBSSH2_SFTP*)ssh2_sftp,".",home_path,PATH_MAX);
     if(ret != 0 )
     {

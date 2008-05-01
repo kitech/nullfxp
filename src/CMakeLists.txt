@@ -2,15 +2,16 @@
 ADD_DEFINITIONS(-g -DHAVE_CONFIG_H -O2 -Wall -Wpointer-arith -Wuninitialized -Wsign-compare     )
 
 #SUBDIRS(plinker)
-SUBDIRS(libssh2)
+SUBDIRS(libssh2 unitest)
 
 ###################
+INCLUDE (CheckIncludeFile)
 INCLUDE (CheckIncludeFiles)
 INCLUDE (CheckFunctionExists)
 INCLUDE (CheckLibraryExists)
 INCLUDE (CheckVariableExists)
 INCLUDE (CheckTypeSize)
-
+INCLUDE (CheckSymbolExists)
 
 INCLUDE (${CMAKE_ROOT}/Modules/FindTCL.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/FindQt4.cmake)
@@ -28,12 +29,12 @@ CHECK_TYPE_SIZE( "short int" SIZEOF_SHORT_INT )
 include(${QT_USE_FILE})
 
 
-SET ( QT_USE_QT3SUPPORT true)
+SET (QT_USE_QT3SUPPORT true)
 SET (QT_USE_QTASSISTANT true)
 SET( QT_USE_QTDESIGNER true)
 SET ( QT_USE_QTMOTIF true )
 SET ( QT_USE_QTMAIN true)
-SET ( QT_USE_QTNETWORK on)
+SET ( QT_USE_QTNETWORK true)
 SET ( QT_USE_QTNSPLUGIN true )
 SET ( QT_USE_QTOPENGL true)
 SET ( QT_USE_QTSQL true)
@@ -59,6 +60,9 @@ progressdialog.ui
 remotehostquickconnectfinfodailog.ui
 globaloptionsdialog.ui
 forwardconnectdaemon.ui
+forwarddebugwindow.ui
+forwardconnectinfodialog.ui
+ui/hostlistdialog.ui
 # 
  )
 QT4_WRAP_UI(qtproject_UIS_H ${qtproject_UIS})
@@ -104,46 +108,20 @@ transferthread.h
 remotedirretrivethread.h
 globaloptionsdialog.h
 forwardconnectdaemon.h
+forwardconnectinfodialog.h
+forwarddebugwindow.h
+sessiondialog.h
+
  )
 QT4_WRAP_CPP(qtproject_moc_SRCS ${qtproject_moc_HDRS})
 
 
 ###############
-# ADD_EXECUTABLE(../bin/nullfxp 
-# 
-# aboutnullfxp.cpp                          
-# atomicio.cpp                              
-# bufaux.cpp                                nullfxp.cpp
-# bufbn.cpp                                 progressdialog.cpp
-# buffer.cpp                                plinker/progressmeter.c
-# plinker/openbsd-compat/glob.c           remotedirmodel.cpp
-# localview.cpp                             remotedirretrivethread.cpp
-# main.cpp                                  remotehostconnectingstatusdialog.cpp
-# misc.c                                  remotehostconnectthread.cpp
-# remotehostquickconnectinfodialog.cpp
-# remoteview.cpp
-# sftp-client.cpp
-# sftp-common.cpp
-# sftp.cpp
-# sftp-glob.cpp
-# sftp-wrapper.cpp
-# transferthread.cpp
-# xmalloc.cpp
-# 
-# ${qtproject_UIS_H}  ${qtproject_moc_SRCS}
-# 
-# )
 
 ADD_EXECUTABLE(../bin/nullfxp 
 #     tmpmain.cpp 
     main.cpp
 ####################
-#    sftp-common.cpp
-#    sftp-glob.cpp
-#    sftp-client.cpp
-#    progressmeter.cpp
-#    sftp.cpp
-#    sftp-wrapper.cpp    
     utils.cpp
 ########
 
@@ -168,6 +146,10 @@ ADD_EXECUTABLE(../bin/nullfxp
     globaloptionsdialog.cpp
     fileproperties.cpp
     forwardconnectdaemon.cpp
+    forwardconnectinfodialog.cpp
+    forwarddebugwindow.cpp
+    sessiondialog.cpp
+    basestorage.cpp
 ############################
     ${qtproject_UIS_H}  ${qtproject_moc_SRCS}
 )
@@ -181,7 +163,6 @@ ADD_EXECUTABLE(../bin/nullfxp
     #MESSAGE("\tunix...")
     LINK_LIBRARIES( pthread )
  ENDIF(WIN32)
-
 
 TARGET_LINK_LIBRARIES(../bin/nullfxp ${QT_LIBRARIES}  ssl  ssh2  )
 

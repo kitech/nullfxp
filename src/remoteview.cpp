@@ -42,7 +42,7 @@ RemoteView::RemoteView(QMdiArea * main_mdi_area ,LocalView * local_view ,QWidget
     ///////
     status_bar = new QStatusBar(  );    
     this->layout()->addWidget(status_bar);
-    status_bar->showMessage(tr("Ready"));
+
     ////////////
     
 //     this->remoteview.treeView->setAcceptDrops(false);
@@ -116,7 +116,13 @@ void RemoteView::init_popup_context_menu()
     this->dir_tree_context_menu->addAction(action);
     QObject::connect(action,SIGNAL(triggered()),this,SLOT(rm_file_or_directory_recursively()));
     
-    
+    action = new QAction("", 0);
+    action->setSeparator(true);
+    this->dir_tree_context_menu->addAction(action);
+
+    action = new QAction(tr("SSH Server Info ..."), 0);
+    this->dir_tree_context_menu->addAction(action);
+    QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_ssh_server_info()));
 }
 
 RemoteView::~RemoteView()
@@ -187,6 +193,12 @@ void RemoteView::i_init_dir_view( )
     QObject::connect( this->remoteview.tableView,SIGNAL( drag_ready()),this,SLOT(slot_drag_ready()) );
 
     //TODO 连接remoteview.treeView 的drag信号
+    
+    //显示SSH服务器信息
+    QString ssh_server_version = libssh2_session_get_remote_version(this->ssh2_sess);
+    int ssh_sftp_version = libssh2_sftp_get_version(this->ssh2_sftp);
+    QString status_msg = QString("Ready. (%1  SFTP: V%2)").arg(ssh_server_version).arg(ssh_sftp_version); 
+    status_bar->showMessage(status_msg);
 }
 
 void RemoteView::slot_disconnect_from_remote_host()
@@ -979,4 +991,13 @@ void RemoteView::slot_show_hidden(bool show)
         remote_dir_sort_filter_model_ex->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
     }
 }
+void RemoteView::slot_ssh_server_info()
+{
+  char * server_info ;
+  int sftp_version ;
 
+  server_info = libssh2_session_get_remote_info(this->ssh2_sess);
+  sftp_version = libssh2_sftp_get_version(this->ssh2_sftp);
+  QMessageBox::warning(this,tr("SSH Server Info:"),QString("%1\nSFTP Version: %2").arg(server_info).arg(sftp_version));
+  if(server_info != NULL) free(server_info);
+}

@@ -130,6 +130,8 @@ public:
         bool slot_drop_mime_data(const QMimeData *data, Qt::DropAction action,
                                  int row, int column, const QModelIndex &parent ) ;
         void slot_show_hidden(bool show);
+	
+	void slot_ssh_server_info();
         
     signals:
         //void new_transfer_requested( QString file_name,QString file_type ) ;

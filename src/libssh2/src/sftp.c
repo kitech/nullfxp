@@ -2321,5 +2321,9 @@ libssh2_sftp_last_error(LIBSSH2_SFTP * sftp)
 {
     return sftp->last_errno;
 }
-
+LIBSSH2_API 
+int libssh2_sftp_get_version(LIBSSH2_SFTP * sftp)
+{
+	return sftp->version;	
+}
 /* }}} */

@@ -183,6 +183,39 @@ libssh2_banner_receive(LIBSSH2_SESSION * session)
                    session->remote.banner);
     return 0;
 }
+LIBSSH2_API char * libssh2_session_get_remote_version(LIBSSH2_SESSION *session)
+{
+	return session->banner_TxRx_banner;
+}
+LIBSSH2_API char * libssh2_session_get_remote_info(LIBSSH2_SESSION *session)
+{
+	char *info_buff;
+	const LIBSSH2_KEX_METHOD *kex;
+	const LIBSSH2_HOSTKEY_METHOD *hostkey;
+	libssh2_endpoint_data *remote;
+	
+	kex = session->kex;
+	hostkey = session->hostkey;
+	remote = &session->remote;
+	
+	info_buff = malloc(256);
+	memset(info_buff,0,256);
+	snprintf(info_buff,255, 
+	"SSH Server: %s\n"
+	"Key exchange method: %s\n"
+	"Host key method: %s , Hash length: %ld\n"
+	"Crypt name: %s, secret length: %d\n"
+	"Mac name: %s, Key length: %d\n"
+	"Comp name: %s\n"
+	, remote->banner, kex->name, hostkey->name, hostkey->hash_len,
+	remote->crypt->name, remote->crypt->secret_len,
+	remote->mac->name, remote->mac->key_len,
+	remote->comp->name);
+
+	return info_buff;
+	
+	return NULL;
+}
 
 /* }}} */
 
