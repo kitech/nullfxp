@@ -49,6 +49,9 @@ INCLUDE_DIRECTORIES( .
     ${CMAKE_CURRENT_SOURCE_DIR}/libssh2/include
 )
 
+SET(qtproject_QRCS nullfxp.qrc )
+QT4_ADD_RESOURCES(qtproject_QRC_SRCS ${qtproject_QRCS})
+
 SET(qtproject_UIS
 aboutnullfxp.ui  
 fileproperties.ui
@@ -120,6 +123,7 @@ QT4_WRAP_CPP(qtproject_moc_SRCS ${qtproject_moc_HDRS})
 
 ADD_EXECUTABLE(../bin/nullfxp 
 #     tmpmain.cpp 
+${qtproject_QRC_SRCS}
     main.cpp
 ####################
     utils.cpp

@@ -39,6 +39,7 @@ AboutNullFXP::AboutNullFXP(QWidget* parent, Qt::WindowFlags f): QDialog(parent, 
             
             "";
     
+    this->ui_about_nullfxp.label->setPixmap(QPixmap(":/icons/nullget-1.png").scaledToHeight(50));
     this->ui_about_nullfxp.textBrowser_2->setHtml(about_info);
     this->ui_about_nullfxp.textBrowser->setHtml(about_author);
 }
