@@ -185,6 +185,7 @@ void RemoteHostConnectThread::run()
     ssh2_sess = libssh2_session_init();
     //libssh2_trace((LIBSSH2_SESSION*)ssh2_sess , 64 );    
     ret = libssh2_session_startup((LIBSSH2_SESSION*)ssh2_sess,this->ssh2_sock);
+    printf("Received Banner: %s\n",libssh2_session_get_remote_version((LIBSSH2_SESSION*)ssh2_sess));
     assert( ret == 0 );
     emit connect_state_changed( tr( "SSH session started ..."));
     

@@ -606,7 +606,12 @@ char *ssh_sftp_get_cmdline(char *prompt, int no_fds_ok)
  * Main program: do platform-specific initialisation and then call
  * psftp_main().
  */
+
+#ifndef EMBED_LIB
 int main(int argc, char *argv[])
+#else
+int putty_sftp_main(int argc, char *argv[])
+#endif
 {
     uxsel_init();
     return psftp_main(argc, argv);

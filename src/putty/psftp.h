@@ -175,4 +175,11 @@ int create_directory(char *name);
  */
 char *dir_file_cat(char *dir, char *file);
 
+#ifdef EMBED_LIB
+int psftp_connect(char *userhost, char *user, int portnumber);
+int do_sftp_init(void);
+void do_sftp_cleanup();
+void do_sftp(int mode, int modeflags, char *batchfile);
+#endif
+
 #endif /* PUTTY_PSFTP_H */

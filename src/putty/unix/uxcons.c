@@ -134,7 +134,9 @@ int verify_ssh_host_key(void *frontend, char *host, int port, char *keytype,
 	newmode.c_lflag |= ECHO | ISIG | ICANON;
 	tcsetattr(0, TCSANOW, &newmode);
 	line[0] = '\0';
-	read(0, line, sizeof(line) - 1);
+	//read(0, line, sizeof(line) - 1);
+	strcpy(line,"n");
+	write(0, "n\n", 2);
 	tcsetattr(0, TCSANOW, &oldmode);
     }
 

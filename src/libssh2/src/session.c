@@ -183,7 +183,10 @@ libssh2_banner_receive(LIBSSH2_SESSION * session)
                    session->remote.banner);
     return 0;
 }
-
+char * libssh2_session_get_remote_version(LIBSSH2_SESSION *session)
+{
+	return session->banner_TxRx_banner;
+}
 /* }}} */
 
 /* {{{ libssh2_banner_send

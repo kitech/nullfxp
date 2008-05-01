@@ -215,6 +215,7 @@ src/progressdialog.h -text
 src/progressdialog.ui -text
 src/putty/Buildscr -text
 src/putty/CHECKLST.txt -text
+src/putty/CMakeLists.txt -text
 src/putty/LATEST.VER -text
 src/putty/LICENCE -text
 src/putty/README -text
@@ -364,6 +365,7 @@ src/putty/mkauto.sh -text
 src/putty/mkfiles.pl -text
 src/putty/mksrcarc.sh -text
 src/putty/mkunxarc.sh -text
+src/putty/mysftp.c -text
 src/putty/network.h -text
 src/putty/nocproxy.c -text
 src/putty/noprint.c -text

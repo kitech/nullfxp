@@ -23,9 +23,11 @@
  * send buffer.
  */
 
+#ifndef EMBED_LIB
 static int psftp_connect(char *userhost, char *user, int portnumber);
 static int do_sftp_init(void);
 void do_sftp_cleanup();
+#endif
 
 /* ----------------------------------------------------------------------
  * sftp client state.
@@ -34,7 +36,10 @@ void do_sftp_cleanup();
 char *pwd, *homedir;
 static Backend *back;
 static void *backhandle;
-static Config cfg;
+#ifndef EMBED_LIB
+static 
+#endif
+Config cfg;
 
 /* ----------------------------------------------------------------------
  * Higher-level helper functions used in commands.
@@ -2301,8 +2306,10 @@ struct sftp_command *sftp_getcmd(FILE *fp, int mode, int modeflags)
 
     return cmd;
 }
-
-static int do_sftp_init(void)
+#ifndef EMBED_LIB
+static 
+#endif
+int do_sftp_init(void)
 {
     struct sftp_packet *pktin;
     struct sftp_request *req, *rreq;
@@ -2626,7 +2633,10 @@ static void version(void)
 /*
  * Connect to a host.
  */
-static int psftp_connect(char *userhost, char *user, int portnumber)
+#ifndef EMBED_LIB
+static 
+#endif
+int psftp_connect(char *userhost, char *user, int portnumber)
 {
     char *host, *realhost;
     const char *err;

@@ -68,7 +68,10 @@ void cmdline_cleanup(void)
     if (need_save) { cmdline_save_param(p, value, pri); return ret; } \
 } while (0)
 
-static char *cmdline_password = NULL;
+#ifndef EMBED_LIB
+static
+#endif
+char *cmdline_password = NULL;
 
 /*
  * Similar interface to get_userpass_input(), except that here a -1
