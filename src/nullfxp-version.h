@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2007 by liuguangzhao   *
+ *   Copyright (C) 2007-2008 by liuguangzhao   *
  *   liuguangzhao@users.sourceforge.net   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -21,7 +21,7 @@
 #ifndef NULLFXP_VERSION_H
 #define NULLFXP_VERSION_H
 
-#define NULLFXP_VERSION	"NullFXP 1.5.5 rc"
+#define NULLFXP_VERSION	"NullFXP 1.5.5"
 
 #define NULLFXP_PORTABLE	""
 #define NULLFXP_RELEASE	NULLFXP_VERSION NULLFXP_PORTABLE

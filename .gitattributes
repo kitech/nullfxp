@@ -243,6 +243,7 @@ src/synchronizewindow.ui -text
 src/tmpmain.cpp -text
 src/transferthread.cpp -text
 src/transferthread.h -text
+src/ui/encryptiondetaildialog.ui -text
 src/ui/hostlistdialog.ui -text
 src/unitest/CMakeLists.txt -text
 src/unitest/testmain.cpp -text
