@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2007 by liuguangzhao   *
+ *   Copyright (C) 2007-2008 by liuguangzhao   *
  *   liuguangzhao@users.sourceforge.net   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -68,6 +68,8 @@ ProgressDialog::ProgressDialog(QWidget *parent )
                       this,SLOT(slot_transfer_got_file_size(int )) );
     QObject::connect(this->sftp_transfer_thread,SIGNAL(transfer_log(QString)),
                      this,SLOT(slot_transfer_log(QString)) );
+    QObject::connect(this->sftp_transfer_thread, SIGNAL(dest_file_exists(QString, QString)),
+		     this,SLOT(slot_dest_file_exists(QString,QString)));
     
     this->first_show = 1 ;
     this->ui_progress_dialog.progressBar->setValue(0);
@@ -328,5 +330,11 @@ QString ProgressDialog::type(QString file_name)
     // Nautilus  - "link to folder" or "link to object file", same as Konqueror
 
     return QApplication::translate("QFileDialog", "Unknown");
+}
+
+void ProgressDialog::slot_dest_file_exists(QString src_path, QString dest_path)
+{
+  qDebug()<<"Dest file exists: "<<dest_path;
+
 }
 

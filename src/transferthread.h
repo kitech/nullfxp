@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2007 by liuguangzhao   *
+ *   Copyright (C) 2007-2008 by liuguangzhao   *
  *   liuguangzhao@users.sourceforge.net  *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -72,17 +72,22 @@ public:
     
     int   get_error_code () { return this->error_code ;} 
     void set_user_cancel( bool cancel );
-    
+
+    void user_response_result(int result);
+
     private :
         int remote_is_dir( LIBSSH2_SFTP * ssh2_sftp, QString path );
         int remote_is_reg( LIBSSH2_SFTP * ssh2_sftp, QString path ); 
         int fxp_do_ls_dir (LIBSSH2_SFTP * ssh2_sftp, QString parent_path  , QVector<QMap<char, QString> > & fileinfos    );
-          
+
+	void wait_user_response();
+
     signals:
         void  transfer_percent_changed( int percent , int total_transfered ,int transfer_delta );
         void  transfer_new_file_started(QString new_file_name);
         void  transfer_got_file_size( int size );
         void  transfer_log(QString log);
+	void dest_file_exists(QString src_file, QString dest_file);
         
     private:
         
@@ -98,8 +103,6 @@ public:
         
         //int transfer_type ;
 
-//         QStringList local_file_names ;
-//         QStringList remote_file_names;
         QStringList src_file_names ;
         QStringList dest_file_names;
         
@@ -109,21 +112,19 @@ public:
         uint32_t total_transfered_file_count ;
         uint64_t current_file_size ;
         uint64_t current_file_transfered_length ;
-//         QString  current_local_file_name;
-//         QString  current_local_file_type;
-//         QString  current_remote_file_name;
-//         QString  current_remote_file_type;
         QString  current_src_file_name;
         QString  current_src_file_type;
         QString  current_dest_file_name;
         QString  current_dest_file_type;
 
-		QVector<QPair<QPair<QString,QString> , QPair<QString,QString> > > transfer_ready_queue;
+	QVector<QPair<QPair<QString,QString> , QPair<QString,QString> > > transfer_ready_queue;
         QVector<QPair<QPair<QString,QString> , QPair<QString,QString> > > transfer_done_queue;
-		QVector<QPair<QPair<QString,QString> , QPair<QString,QString> > > transfer_error_queue;
+	QVector<QPair<QPair<QString,QString> , QPair<QString,QString> > > transfer_error_queue;
         //
         int error_code ;
-        
+	//
+	QWaitCondition  wait_user_response_cond;
+	QMutex     wait_user_response_mutex;
 };
 
 #endif

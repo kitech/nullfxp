@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2007 by liuguangzhao   *
+ *   Copyright (C) 2007-2008 by liuguangzhao   *
  *   liuguangzhao@users.sourceforge.net   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -125,9 +125,8 @@ int TransferThread::fxp_do_ls_dir ( LIBSSH2_SFTP * ssh2_sftp, QString path  , QV
     char file_size[PATH_MAX+1];
     char file_type[PATH_MAX+1];
     char file_date[PATH_MAX+1];
-    int file_count = 0 ;
     
-	sftp_handle = libssh2_sftp_opendir(ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(path).data() );
+    sftp_handle = libssh2_sftp_opendir(ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(path).data());
     if( sftp_handle == 0 )
     {
         return 0;
@@ -186,7 +185,7 @@ void TransferThread::run()
     QUrl current_dest_url ;
     RemoteHostConnectThread * rhct = 0 ;
     
-	int transfer_ret = -1 ;
+    int transfer_ret = -1 ;
     int debug_sleep_time = 5 ;
     
     QPair<QString , QString> local_file_pair;
@@ -221,16 +220,16 @@ void TransferThread::run()
        //nrsftp -> file
 	   
        qDebug()<<this->current_src_file_name;
-	   qDebug()<<this->current_dest_file_name;
+       qDebug()<<this->current_dest_file_name;
        current_src_url = this->current_src_file_name ;
        current_dest_url = this->current_dest_file_name ;
        this->current_src_file_name = current_src_url.path() ;
        this->current_dest_file_name = current_dest_url.path() ;
-	   if(this->current_src_file_name.at(2) == ':'){
-		   this->current_src_file_name = this->current_src_file_name.right(this->current_src_file_name.length()-1);
-	   }
+       if(this->current_src_file_name.at(2) == ':'){
+	 this->current_src_file_name = this->current_src_file_name.right(this->current_src_file_name.length()-1);
+       }
 	   if(this->current_dest_file_name.at(2) == ':'){
-		   this->current_dest_file_name = this->current_dest_file_name.right(this->current_dest_file_name.length()-1);
+	     this->current_dest_file_name = this->current_dest_file_name.right(this->current_dest_file_name.length()-1);
 	   }
        //这里有几种情况，全部都列出来
        // 上传:
@@ -268,7 +267,7 @@ void TransferThread::run()
            }
            
            //将文件上传到目录
-		   if( is_reg( GlobalOption::instance()->locale_codec->fromUnicode( this->current_src_file_name ).data() )
+	   if( is_reg( GlobalOption::instance()->locale_codec->fromUnicode( this->current_src_file_name ).data() )
               && remote_is_dir( this->dest_ssh2_sftp , this->current_dest_file_name ) )
            {
                QString remote_full_path = this->current_dest_file_name + "/"
@@ -322,7 +321,7 @@ void TransferThread::run()
                 //assert( 1 == 2 ) ;
                 qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in " << __LINE__ ;
             }
-		}
+       }
         else if( current_src_url.scheme() == "nrsftp" && current_dest_url.scheme() == "file")
                 //if( this->transfer_type == TransferThread::TRANSFER_GET )
        {
@@ -399,7 +398,7 @@ void TransferThread::run()
                qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in " << __LINE__ ;
            }
        }
-       else  if( current_src_url.scheme() == "nrsftp" && current_dest_url.scheme() == "nrsftp")
+	else  if( current_src_url.scheme() == "nrsftp" && current_dest_url.scheme() == "nrsftp")
        {
            emit this->transfer_new_file_started(this->current_src_file_name);
                //处理nrsftp协议
@@ -669,7 +668,7 @@ int TransferThread::do_upload ( QString local_path, QString remote_path, int pfl
     qDebug()<< "remote_path = "<<  remote_path  << " , local_path = " << local_path ;
 
     int pcnt = 0 ;
-    int local_fd , rlen , wlen  ;
+    int rlen , wlen  ;
     int file_size , tran_len = 0   ;
     LIBSSH2_SFTP_HANDLE * sftp_handle ;
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
@@ -685,8 +684,9 @@ int TransferThread::do_upload ( QString local_path, QString remote_path, int pfl
                                      &ssh2_sftp_attrib);
     if(ret == 0)
     {
-        //TODO 通知用户远程文件已经存在，再做处理。
-        qDebug()<<"Remote file exists, cover it.";
+      //TODO 通知用户远程文件已经存在，再做处理。
+      emit this->dest_file_exists(local_path, remote_path);
+      qDebug()<<"Remote file exists, cover it.";
     }
     
     sftp_handle = libssh2_sftp_open( this->dest_ssh2_sftp,
@@ -834,6 +834,17 @@ int TransferThread::do_nrsftp_exchange( QString src_path , QString dest_path )
 void TransferThread::set_user_cancel( bool cancel )
 {
     this->user_canceled = cancel ;
+}
+
+void TransferThread::wait_user_response()
+{
+  this->wait_user_response_mutex.lock();
+  this->wait_user_response_cond.wait(&this->wait_user_response_mutex);
+}
+void TransferThread::user_response_result(int result)
+{
+  this->wait_user_response_cond.wakeAll();
+  this->wait_user_response_mutex.unlock();
 }
 
 // on windows 有一个问题：当两个从本地到同一远程主机的目录上传时，导致下面的错误：

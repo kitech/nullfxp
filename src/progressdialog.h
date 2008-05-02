@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2007 by liuguangzhao   *
+ *   Copyright (C) 2007-2008 by liuguangzhao   *
  *   liuguangzhao@users.sourceforge.net   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -57,7 +57,8 @@ public:
         void slot_cancel_button_clicked();
         void slot_transfer_got_file_size( int size );
         void slot_transfer_log(QString log);
-        
+	void slot_dest_file_exists(QString src_path, QString dest_path);
+
     signals:
         void transfer_finished(int status);
         
