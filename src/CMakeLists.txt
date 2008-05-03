@@ -124,6 +124,16 @@ QT4_WRAP_CPP(qtproject_moc_SRCS ${qtproject_moc_HDRS})
 
 ###############
 
+ IF(WIN32)
+		INCLUDE_DIRECTORIES(Z:/librarys/mw-ssl/include)
+		LINK_DIRECTORIES(Z:/librarys/mw-ssl/lib Z:/cross/mingw/lib)
+		LINK_LIBRARIES( crypto gdi32 ws2_32 ssl ssh2 )
+		#MESSAGE("\twin32...")
+ ELSE(WIN32)
+    #MESSAGE("\tunix...")
+    LINK_LIBRARIES( pthread )
+ ENDIF(WIN32)
+ 
 ADD_EXECUTABLE(../bin/nullfxp 
 #     tmpmain.cpp 
 ${qtproject_QRC_SRCS}
@@ -162,15 +172,7 @@ ${qtproject_QRC_SRCS}
     ${qtproject_UIS_H}  ${qtproject_moc_SRCS}
 )
 
- IF(WIN32)
-		INCLUDE_DIRECTORIES(E:/librarys/mw-ssl/include)
-		LINK_DIRECTORIES(E:\\librarys\\mw-ssl\\lib E:\\cross\\mingw\\lib)
-		LINK_LIBRARIES( crypto gdi32 ws2_32 ssl ssh2 )
-		#MESSAGE("\twin32...")
- ELSE(WIN32)
-    #MESSAGE("\tunix...")
-    LINK_LIBRARIES( pthread )
- ENDIF(WIN32)
+
 
 TARGET_LINK_LIBRARIES(../bin/nullfxp ${QT_LIBRARIES}  ssl  ssh2  )
 
