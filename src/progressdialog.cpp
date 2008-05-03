@@ -45,6 +45,7 @@
 
 #include "globaloption.h"
 #include "progressdialog.h"
+#include "fileexistaskdialog.h"
 
 //#define REMOTE_CODEC "UTF-8"
 
@@ -334,7 +335,13 @@ QString ProgressDialog::type(QString file_name)
 
 void ProgressDialog::slot_dest_file_exists(QString src_path, QString dest_path)
 {
-  qDebug()<<"Dest file exists: "<<dest_path;
+  qDebug()<<"Dest file exists: "<<dest_path<<". src path:"<<src_path;
+  FileExistAskDialog * ask_dlg;
 
+  ask_dlg = new FileExistAskDialog(this);
+  ask_dlg->exec();
+
+  delete ask_dlg;
+  this->sftp_transfer_thread->user_response_result(5);
 }
 

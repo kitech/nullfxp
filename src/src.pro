@@ -24,10 +24,11 @@ SOURCES += main.cpp \
  forwarddebugwindow.cpp \
  forwardconnectinfodialog.cpp \
  basestorage.cpp \
- sessiondialog.cpp
+ sessiondialog.cpp \
+ fileexistaskdialog.cpp
 
 TEMPLATE = app
-VERSION = 1.5.5
+VERSION = 1.5.6
 CONFIG += warn_on \
 	  thread \
           qt \
@@ -37,7 +38,6 @@ TARGET = nullfxp
 DESTDIR = ../bin
 
 QT += network 
-
 QT += webkit
 
 UI_DIR = obj
@@ -58,7 +58,9 @@ FORMS += nullfxp.ui \
  forwardconnectdaemon.ui \
  forwarddebugwindow.ui \
  forwardconnectinfodialog.ui \
- ui/hostlistdialog.ui
+ ui/hostlistdialog.ui \
+ ui/encryptiondetaildialog.ui \
+ ui/fileexistaskdialog.ui
 
 HEADERS += nullfxp.h \
  localview.h \
@@ -83,8 +85,8 @@ HEADERS += nullfxp.h \
  forwarddebugwindow.h \
  forwardconnectinfodialog.h \
  basestorage.h \
- sessiondialog.h
-
+ sessiondialog.h \
+ fileexistaskdialog.h
 
 DISTFILES += ../CMakeLists.txt \
 CMakeLists.txt \

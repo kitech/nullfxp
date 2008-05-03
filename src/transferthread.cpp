@@ -686,6 +686,7 @@ int TransferThread::do_upload ( QString local_path, QString remote_path, int pfl
     {
       //TODO 通知用户远程文件已经存在，再做处理。
       emit this->dest_file_exists(local_path, remote_path);
+      this->wait_user_response();
       qDebug()<<"Remote file exists, cover it.";
     }
     

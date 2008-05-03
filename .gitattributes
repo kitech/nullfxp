@@ -18,6 +18,8 @@ src/aboutnullfxp.h -text
 src/aboutnullfxp.ui -text
 src/basestorage.cpp -text
 src/basestorage.h -text
+src/fileexistaskdialog.cpp -text
+src/fileexistaskdialog.h -text
 src/fileproperties.cpp -text
 src/fileproperties.h -text
 src/fileproperties.ui -text
@@ -244,6 +246,7 @@ src/tmpmain.cpp -text
 src/transferthread.cpp -text
 src/transferthread.h -text
 src/ui/encryptiondetaildialog.ui -text
+src/ui/fileexistaskdialog.ui -text
 src/ui/hostlistdialog.ui -text
 src/unitest/CMakeLists.txt -text
 src/unitest/testmain.cpp -text

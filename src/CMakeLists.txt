@@ -66,6 +66,8 @@ forwardconnectdaemon.ui
 forwarddebugwindow.ui
 forwardconnectinfodialog.ui
 ui/hostlistdialog.ui
+ui/fileexistaskdialog.ui
+ui/encryptiondetaildialog.ui
 # 
  )
 QT4_WRAP_UI(qtproject_UIS_H ${qtproject_UIS})
@@ -90,6 +92,7 @@ transferthread.cpp
 remotedirretrivethread.cpp
 globaloptionsdialog.cpp
 forwardconnectdaemon.cpp
+fileexistaskdialog.cpp
  )
 
  SET ( qtproject_moc_HDRS 
@@ -114,7 +117,7 @@ forwardconnectdaemon.h
 forwardconnectinfodialog.h
 forwarddebugwindow.h
 sessiondialog.h
-
+fileexistaskdialog.h
  )
 QT4_WRAP_CPP(qtproject_moc_SRCS ${qtproject_moc_HDRS})
 
@@ -154,6 +157,7 @@ ${qtproject_QRC_SRCS}
     forwarddebugwindow.cpp
     sessiondialog.cpp
     basestorage.cpp
+    fileexistaskdialog.cpp
 ############################
     ${qtproject_UIS_H}  ${qtproject_moc_SRCS}
 )
