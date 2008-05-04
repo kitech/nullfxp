@@ -42,6 +42,7 @@ RemoteView::RemoteView(QMdiArea * main_mdi_area ,LocalView * local_view ,QWidget
     ///////
     status_bar = new QStatusBar(  );    
     this->layout()->addWidget(status_bar);
+    this->status_bar->addPermanentWidget(new QLabel("ENC", this));
 
     ////////////
     
