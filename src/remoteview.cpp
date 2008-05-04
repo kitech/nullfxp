@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2007 by liuguangzhao   *
+ *   Copyright (C) 2007-2008 by liuguangzhao   *
  *   liuguangzhao@users.sourceforge.net   *
  *
  *   http://www.qtchina.net                                                *
@@ -31,26 +31,29 @@
 #include "remotedirsortfiltermodel.h"
 
 #include "fileproperties.h"
+#include "encryptiondetailfocuslabel.h"
 
 RemoteView::RemoteView(QMdiArea * main_mdi_area ,LocalView * local_view ,QWidget *parent)
  : QWidget(parent)
 {
-    this->remoteview.setupUi(this);
-    this->local_view = local_view ;
-    this->main_mdi_area = main_mdi_area ;
-    this->setObjectName("rv");
-    ///////
-    status_bar = new QStatusBar(  );    
-    this->layout()->addWidget(status_bar);
-    this->status_bar->addPermanentWidget(new QLabel("ENC", this));
+  this->remoteview.setupUi(this);
+  this->local_view = local_view ;
+  this->main_mdi_area = main_mdi_area ;
+  this->setObjectName("rv");
+  ///////
+  status_bar = new QStatusBar(  );    
+  this->layout()->addWidget(status_bar);
+  this->status_bar->addPermanentWidget(this->enc_label = new EncryptionDetailFocusLabel("ENC", this));
+  QObject::connect(this->enc_label, SIGNAL(mouseDoubleClick()),
+		   this, SLOT(encryption_focus_label_double_clicked()));
 
     ////////////
     
-//     this->remoteview.treeView->setAcceptDrops(false);
-//     this->remoteview.treeView->setDragEnabled(false);
-//     this->remoteview.treeView->setDropIndicatorShown(false);
-//     this->remoteview.treeView->setDragDropMode(QAbstractItemView::NoDragDrop);
-    //this->remoteview.treeView->setSelectionMode(QAbstractItemView::ExtendedSelection);
+  //     this->remoteview.treeView->setAcceptDrops(false);
+  //     this->remoteview.treeView->setDragEnabled(false);
+  //     this->remoteview.treeView->setDropIndicatorShown(false);
+  //     this->remoteview.treeView->setDragDropMode(QAbstractItemView::NoDragDrop);
+  //this->remoteview.treeView->setSelectionMode(QAbstractItemView::ExtendedSelection);
     
     QObject::connect(this->remoteview.treeView,SIGNAL(customContextMenuRequested(const QPoint &)),
                      this,SLOT(slot_dir_tree_customContextMenuRequested (const QPoint & )) );
@@ -1002,3 +1005,10 @@ void RemoteView::slot_ssh_server_info()
   QMessageBox::warning(this,tr("SSH Server Info:"),QString("%1\nSFTP Version: %2").arg(server_info).arg(sftp_version));
   if(server_info != NULL) free(server_info);
 }
+
+void RemoteView::encryption_focus_label_double_clicked()
+{
+  //qDebug()<<__FILE__<<":"<<__LINE__;
+  
+}
+

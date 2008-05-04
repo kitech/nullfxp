@@ -25,7 +25,8 @@ SOURCES += main.cpp \
  forwardconnectinfodialog.cpp \
  basestorage.cpp \
  sessiondialog.cpp \
- fileexistaskdialog.cpp
+ fileexistaskdialog.cpp \
+ encryptiondetailfocuslabel.cpp
 
 TEMPLATE = app
 VERSION = 1.5.6
@@ -86,7 +87,8 @@ HEADERS += nullfxp.h \
  forwardconnectinfodialog.h \
  basestorage.h \
  sessiondialog.h \
- fileexistaskdialog.h
+ fileexistaskdialog.h \
+ encryptiondetailfocuslabel.h
 
 DISTFILES += ../CMakeLists.txt \
 CMakeLists.txt \
@@ -99,18 +101,16 @@ CONFIG -= release
 win32 {
     debug {
         LIBPATH += ./libssh2/src/debug
-        LIBPATH += E:/librarys/mw-ssl/lib
+        LIBPATH += Z:/librarys/mw-ssl/lib
     }
     release {
         LIBPATH += ./libssh2/src/release 
-        LIBPATH += E:/librarys/mw-ssl/lib
+        LIBPATH += Z:/librarys/mw-ssl/lib
     }
     LIBS += -lssh2  -lssl -lcrypto -lws2_32  -lgdi32 
     #-lgcrypt -lgpg-error 
 }else {
-    LIBS += libssh2/src/libssh2.a \
--lssl
-
+    LIBS += libssh2/src/libssh2.a -lssl
     TARGETDEPS += libssh2/src/libssh2.a
 }
 

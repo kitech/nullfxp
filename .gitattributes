@@ -18,6 +18,8 @@ src/aboutnullfxp.h -text
 src/aboutnullfxp.ui -text
 src/basestorage.cpp -text
 src/basestorage.h -text
+src/encryptiondetailfocuslabel.cpp -text
+src/encryptiondetailfocuslabel.h -text
 src/fileexistaskdialog.cpp -text
 src/fileexistaskdialog.h -text
 src/fileproperties.cpp -text

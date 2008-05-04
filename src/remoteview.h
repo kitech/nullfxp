@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2007 by liuguangzhao   *
+ *   Copyright (C) 2007-2008 by liuguangzhao   *
  *   liuguangzhao@users.sourceforge.net   *
  *
  *   http://www.qtchina.net                                                *
@@ -39,6 +39,7 @@ class RemoteDirSortFilterModelEX ;
 #include "libssh2_sftp.h"
 
 class LocalView ;
+class EncryptionDetailFocusLabel;
 
 /**
 	@author liuguangzhao <liuguangzhao@users.sourceforge.net >
@@ -100,6 +101,7 @@ public:
         
         //menu item
         QAction * attr_action;
+	EncryptionDetailFocusLabel * enc_label;
         
     public slots:
         void i_init_dir_view( );
@@ -156,6 +158,8 @@ public:
 
         void slot_dir_tree_item_clicked( const QModelIndex & index);
         void slot_dir_file_view_double_clicked( const QModelIndex & index );
+
+	void encryption_focus_label_double_clicked();
         
     protected:
         virtual void closeEvent ( QCloseEvent * event ) ;
