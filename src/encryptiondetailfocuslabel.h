@@ -1,3 +1,33 @@
+/* encryptiondetailfocuslabel.h --- 
+ * 
+ * Filename: encryptiondetailfocuslabel.h
+ * Description: 
+ * Author: liuguangzhao
+ * Maintainer: 
+ * Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sourceforge.net>
+ * http://www.qtchina.net
+ * http://nullget.sourceforge.net
+ * Created: 一  5月  5 21:23:13 2008 (CST)
+ * Version: 
+ * Last-Updated: 
+ *           By: 
+ *     Update #: 0
+ * URL: 
+ * Keywords: 
+ * Compatibility: 
+ * 
+ */
+
+/* Commentary: 
+ * 
+ * 
+ * 
+ */
+
+/* Change log:
+ * 
+ * 
+ */
 
 #ifndef ENCRYPTIONDETAILFOCUSLABEL_H
 #define ENCRYPTIONDETAILFOCUSLABEL_H

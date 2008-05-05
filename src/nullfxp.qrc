@@ -1,6 +1,7 @@
 <RCC>
-    <qresource prefix="/" >
-        <file>icons/nullget-1.png</file>
-        <file>icons/nullget-2.png</file>
-    </qresource>
+  <qresource prefix="/" >
+    <file>icons/nullget-1.png</file>
+    <file>icons/nullget-2.png</file>
+    <file>icons/document-encrypt.png</file>
+  </qresource>
 </RCC>

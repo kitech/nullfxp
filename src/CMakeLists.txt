@@ -1,3 +1,33 @@
+### CMakeLists.txt --- 
+## 
+## Filename: CMakeLists.txt
+## Description: 
+## Author: liuguangzhao
+## Maintainer: 
+## Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sourceforge.net>
+## http://www.qtchina.net
+## http://nullget.sourceforge.net
+## Created: 一  5月  5 21:50:26 2008 (CST)
+## Version: 
+## Last-Updated: 
+##           By: 
+##     Update #: 0
+## URL: 
+## Keywords: 
+## Compatibility: 
+## 
+######################################################################
+## 
+### Commentary: 
+## 
+## 
+## 
+######################################################################
+## 
+### Change log:
+## 
+## 
+######################################################################
 
 ADD_DEFINITIONS(-g -DHAVE_CONFIG_H -O2 -Wall -Wpointer-arith -Wuninitialized -Wsign-compare     )
 
@@ -93,6 +123,8 @@ remotedirretrivethread.cpp
 globaloptionsdialog.cpp
 forwardconnectdaemon.cpp
 fileexistaskdialog.cpp
+encryptiondetaildialog.cpp
+encryptiondetailfocuslabel.cpp
  )
 
  SET ( qtproject_moc_HDRS 
@@ -118,6 +150,8 @@ forwardconnectinfodialog.h
 forwarddebugwindow.h
 sessiondialog.h
 fileexistaskdialog.h
+encryptiondetaildialog.h
+encryptiondetailfocuslabel.h
  )
 QT4_WRAP_CPP(qtproject_moc_SRCS ${qtproject_moc_HDRS})
 
@@ -168,6 +202,8 @@ ${qtproject_QRC_SRCS}
     sessiondialog.cpp
     basestorage.cpp
     fileexistaskdialog.cpp
+    encryptiondetailfocuslabel.cpp
+    encryptiondetaildialog.cpp
 ############################
     ${qtproject_UIS_H}  ${qtproject_moc_SRCS}
 )

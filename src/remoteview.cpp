@@ -1,24 +1,33 @@
-/***************************************************************************
- *   Copyright (C) 2007-2008 by liuguangzhao   *
- *   liuguangzhao@users.sourceforge.net   *
- *
- *   http://www.qtchina.net                                                *
- *   http://nullget.sourceforge.net                                        *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+// remoteview.cpp --- 
+// 
+// Filename: remoteview.cpp
+// Description: 
+// Author: liuguangzhao
+// Maintainer: 
+// Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sourceforge.net>
+// http://www.qtchina.net
+// http://nullget.sourceforge.net
+// Created: 一  5月  5 21:04:45 2008 (CST)
+// Version: 
+// Last-Updated: 
+//           By: 
+//     Update #: 0
+// URL: 
+// Keywords: 
+// Compatibility: 
+// 
+// 
+
+// Commentary: 
+// 
+// 
+// 
+// 
+
+// Change log:
+// 
+// 
+// 
 
 #include <QtCore>
 
@@ -32,6 +41,7 @@
 
 #include "fileproperties.h"
 #include "encryptiondetailfocuslabel.h"
+#include "encryptiondetaildialog.h"
 
 RemoteView::RemoteView(QMdiArea * main_mdi_area ,LocalView * local_view ,QWidget *parent)
  : QWidget(parent)
@@ -1009,6 +1019,9 @@ void RemoteView::slot_ssh_server_info()
 void RemoteView::encryption_focus_label_double_clicked()
 {
   //qDebug()<<__FILE__<<":"<<__LINE__;
-  
+  EncryptionDetailDialog * enc_dlg = 0;
+
+  enc_dlg = new EncryptionDetailDialog(this);
+  enc_dlg->exec();
 }
 
