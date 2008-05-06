@@ -1,22 +1,34 @@
-/***************************************************************************
- *   Copyright (C) 2007-2008 by liuguangzhao   *
- *   liuguangzhao@users.sourceforge.net   *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+// transferthread.cpp --- 
+// 
+// Filename: transferthread.cpp
+// Description: 
+// Author: liuguangzhao
+// Maintainer: 
+// Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sourceforge.net>
+// http://www.qtchina.net
+// http://nullget.sourceforge.net
+// Created: 二  5月  6 21:58:08 2008 (CST)
+// Version: 
+// Last-Updated: 
+//           By: 
+//     Update #: 0
+// URL: 
+// Keywords: 
+// Compatibility: 
+// 
+// 
+
+// Commentary: 
+// 
+// 
+// 
+// 
+
+// Change log:
+// 
+// 
+// 
+
  
 
 #include <unistd.h>
@@ -74,14 +86,12 @@ int TransferThread::remote_is_dir( LIBSSH2_SFTP * ssh2_sftp, QString path )
     
     memset(&ssh2_sftp_attrib,0,sizeof(ssh2_sftp_attrib));
     
-	sftp_handle = libssh2_sftp_opendir( ssh2_sftp ,GlobalOption::instance()->remote_codec->fromUnicode( path ) .data() );
+    sftp_handle = libssh2_sftp_opendir( ssh2_sftp ,GlobalOption::instance()->remote_codec->fromUnicode( path ) .data() );
     
-    if( sftp_handle != NULL )
-    {
+    if( sftp_handle != NULL ){
         libssh2_sftp_closedir(sftp_handle);
         return 1 ;
-    }
-    else    // == NULL 
+    }else    // == NULL 
     {
         //TODO 可能是一个没有打开权限的目录，这里没有处理这种情况。
         return 0;
@@ -127,12 +137,9 @@ int TransferThread::fxp_do_ls_dir ( LIBSSH2_SFTP * ssh2_sftp, QString path  , QV
     char file_date[PATH_MAX+1];
     
     sftp_handle = libssh2_sftp_opendir(ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(path).data());
-    if( sftp_handle == 0 )
-    {
+    if( sftp_handle == 0 ){
         return 0;
-    }
-    else
-    {
+    }else{
         fileinfos.clear();
         memset(&ssh2_sftp_attrib,0,sizeof(LIBSSH2_SFTP_ATTRIBUTES));
         while( libssh2_sftp_readdir( sftp_handle , file_name , PATH_MAX , & ssh2_sftp_attrib ) > 0 )
@@ -178,7 +185,7 @@ int TransferThread::fxp_do_ls_dir ( LIBSSH2_SFTP * ssh2_sftp, QString path  , QV
 void TransferThread::run()
 {
 
-	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+  qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib ;
     QUrl current_src_url ;
@@ -682,10 +689,18 @@ int TransferThread::do_upload ( QString local_path, QString remote_path, int pfl
     ret = libssh2_sftp_stat(this->dest_ssh2_sftp,
                              GlobalOption::instance()->remote_codec->fromUnicode( remote_path ),
                                      &ssh2_sftp_attrib);
-    if(ret == 0)
-    {
+    if(ret == 0){
       //TODO 通知用户远程文件已经存在，再做处理。
-      emit this->dest_file_exists(local_path, remote_path);
+      QString local_file_size, local_file_date;
+      QString remote_file_size, remote_file_date;
+      QFileInfo fi(local_path);
+      local_file_size = QString("%1").arg(fi.size());
+      local_file_date = fi.lastModified ().toString();
+      remote_file_size = QString("%1").arg(ssh2_sftp_attrib.filesize);
+      QDateTime remote_mtime ;
+      remote_mtime.setTime_t(ssh2_sftp_attrib.mtime);
+      remote_file_date = remote_mtime.toString();
+      emit this->dest_file_exists(local_path,local_file_size,local_file_date, remote_path, remote_file_size, remote_file_date);
       this->wait_user_response();
       qDebug()<<"Remote file exists, cover it.";
     }

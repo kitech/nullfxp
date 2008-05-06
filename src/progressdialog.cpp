@@ -1,22 +1,35 @@
-/***************************************************************************
- *   Copyright (C) 2007-2008 by liuguangzhao   *
- *   liuguangzhao@users.sourceforge.net   *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+// progressdialog.cpp --- 
+// 
+// Filename: progressdialog.cpp
+// Description: 
+// Author: liuguangzhao
+// Maintainer: 
+// Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sourceforge.net>
+// http://www.qtchina.net
+// http://nullget.sourceforge.net
+// Created: 二  5月  6 21:59:14 2008 (CST)
+// Version: 
+// Last-Updated: 
+//           By: 
+//     Update #: 0
+// URL: 
+// Keywords: 
+// Compatibility: 
+// 
+// 
+
+// Commentary: 
+// 
+// 
+// 
+// 
+
+// Change log:
+// 
+// 
+// 
+
+
 #include <cassert>
 #include <stdint.h>
 
@@ -29,7 +42,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/param.h>
-//#include "openbsd-compat/sys-queue.h"
+
 #ifdef HAVE_SYS_STAT_H
 # include <sys/stat.h>
 #endif
@@ -69,8 +82,9 @@ ProgressDialog::ProgressDialog(QWidget *parent )
                       this,SLOT(slot_transfer_got_file_size(int )) );
     QObject::connect(this->sftp_transfer_thread,SIGNAL(transfer_log(QString)),
                      this,SLOT(slot_transfer_log(QString)) );
-    QObject::connect(this->sftp_transfer_thread, SIGNAL(dest_file_exists(QString, QString)),
-		     this,SLOT(slot_dest_file_exists(QString,QString)));
+
+    QObject::connect(this->sftp_transfer_thread, SIGNAL(dest_file_exists(QString, QString, QString, QString, QString, QString)),
+		     this,SLOT(slot_dest_file_exists(QString,QString, QString, QString, QString, QString)));
     
     this->first_show = 1 ;
     this->ui_progress_dialog.progressBar->setValue(0);
@@ -333,13 +347,15 @@ QString ProgressDialog::type(QString file_name)
     return QApplication::translate("QFileDialog", "Unknown");
 }
 
-void ProgressDialog::slot_dest_file_exists(QString src_path, QString dest_path)
+void ProgressDialog::slot_dest_file_exists(QString src_path, QString src_file_size, QString src_file_date, QString dest_path, QString dest_file_size, QString dest_file_date)
 {
   qDebug()<<"Dest file exists: "<<dest_path<<". src path:"<<src_path;
   FileExistAskDialog * ask_dlg;
+  int rv = 0;
 
   ask_dlg = new FileExistAskDialog(this);
-  ask_dlg->exec();
+  ask_dlg->set_files(src_path, src_file_size, src_file_date, dest_path, dest_file_size, dest_file_date);
+  rv = ask_dlg->exec();
 
   delete ask_dlg;
   this->sftp_transfer_thread->user_response_result(5);

@@ -1,22 +1,35 @@
-/***************************************************************************
- *   Copyright (C) 2007-2008 by liuguangzhao   *
- *   liuguangzhao@users.sourceforge.net   *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+/* progressdialog.h --- 
+ * 
+ * Filename: progressdialog.h
+ * Description: 
+ * Author: liuguangzhao
+ * Maintainer: 
+ * Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sourceforge.net>
+ * http://www.qtchina.net
+ * http://nullget.sourceforge.net
+ * Created: 二  5月  6 21:59:33 2008 (CST)
+ * Version: 
+ * Last-Updated: 
+ *           By: 
+ *     Update #: 0
+ * URL: 
+ * Keywords: 
+ * Compatibility: 
+ * 
+ */
+
+/* Commentary: 
+ * 
+ * 
+ * 
+ */
+
+/* Change log:
+ * 
+ * 
+ */
+
+
 #ifndef PROGRESSDIALOG_H
 #define PROGRESSDIALOG_H
 
@@ -57,7 +70,7 @@ public:
         void slot_cancel_button_clicked();
         void slot_transfer_got_file_size( int size );
         void slot_transfer_log(QString log);
-	void slot_dest_file_exists(QString src_path, QString dest_path);
+	void slot_dest_file_exists(QString src_path, QString src_file_size, QString src_file_date,QString dest_path, QString dest_file_size, QString dest_file_date);
 
     signals:
         void transfer_finished(int status);
