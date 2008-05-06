@@ -9,9 +9,9 @@
 // http://nullget.sourceforge.net
 // Created: 一  5月  5 21:22:01 2008 (CST)
 // Version: 
-// Last-Updated: 
-//           By: 
-//     Update #: 0
+// Last-Updated: 二  5月  6 09:16:05 2008 (UTC)
+//           By: 刘光照<liuguangzhao@comsenz.com>
+//     Update #: 1
 // URL: 
 // Keywords: 
 // Compatibility: 
@@ -36,6 +36,7 @@ EncryptionDetailFocusLabel::EncryptionDetailFocusLabel ( const QString & text, Q
   :QLabel(text, parent, f)
 {
   this->setPixmap(QPixmap(":/icons/document-encrypt.png").scaledToHeight(20));
+  this->setToolTip(tr("Show encryption detail."));
 }
 EncryptionDetailFocusLabel::~EncryptionDetailFocusLabel()
 {

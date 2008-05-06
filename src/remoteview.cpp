@@ -9,9 +9,9 @@
 // http://nullget.sourceforge.net
 // Created: 一  5月  5 21:04:45 2008 (CST)
 // Version: 
-// Last-Updated: 
-//           By: 
-//     Update #: 0
+// Last-Updated: 二  5月  6 09:17:38 2008 (UTC)
+//           By: 刘光照<liuguangzhao@comsenz.com>
+//     Update #: 1
 // URL: 
 // Keywords: 
 // Compatibility: 
@@ -1020,8 +1020,16 @@ void RemoteView::encryption_focus_label_double_clicked()
 {
   //qDebug()<<__FILE__<<":"<<__LINE__;
   EncryptionDetailDialog * enc_dlg = 0;
+  char * server_info;
+  int sftp_version;
+
+  server_info = libssh2_session_get_remote_info(this->ssh2_sess);
+  sftp_version = libssh2_sftp_get_version(this->ssh2_sftp); 
 
   enc_dlg = new EncryptionDetailDialog(this);
   enc_dlg->exec();
+
+  if(server_info != NULL) free(server_info);
+  delete enc_dlg;
 }
 
