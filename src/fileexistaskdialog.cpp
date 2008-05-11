@@ -36,6 +36,13 @@ FileExistAskDialog::FileExistAskDialog(QWidget *parent)
   :QDialog(parent)
 {
   this->ui_dlg.setupUi(this);
+
+  QObject::connect(this->ui_dlg.pushButton, SIGNAL(clicked()), this, SLOT(slot_reponse_button_clicked()));
+  QObject::connect(this->ui_dlg.pushButton_2, SIGNAL(clicked()), this, SLOT(slot_reponse_button_clicked()));
+  QObject::connect(this->ui_dlg.pushButton_3, SIGNAL(clicked()), this, SLOT(slot_reponse_button_clicked()));
+  QObject::connect(this->ui_dlg.pushButton_4, SIGNAL(clicked()), this, SLOT(slot_reponse_button_clicked()));
+  QObject::connect(this->ui_dlg.pushButton_5, SIGNAL(clicked()), this, SLOT(slot_reponse_button_clicked()));
+  QObject::connect(this->ui_dlg.pushButton_6, SIGNAL(clicked()), this, SLOT(slot_reponse_button_clicked()));
 }
 
 FileExistAskDialog::~FileExistAskDialog()
@@ -56,3 +63,27 @@ void FileExistAskDialog::set_files(QString src_path, QString src_file_size, QStr
   
 }
   
+void FileExistAskDialog::slot_reponse_button_clicked()
+{
+  QWidget * sender_widget = (QWidget*)sender();
+  if(sender_widget == this->ui_dlg.pushButton){
+    emit this->acceptedOne(1);
+  }else if(sender_widget == this->ui_dlg.pushButton_2){
+    emit this->acceptedOne(2); 
+  }else if(sender_widget == this->ui_dlg.pushButton_3){
+    emit this->acceptedOne(3); 
+  }else if(sender_widget == this->ui_dlg.pushButton_4){
+    emit this->acceptedOne(4);
+  }else if(sender_widget == this->ui_dlg.pushButton_5){
+    emit    this->acceptedOne(5);
+  }else if(sender_widget == this->ui_dlg.pushButton_6){
+    emit this->acceptedOne(6);
+  }else{
+    emit this->acceptedOne(0);
+  }
+}
+
+void FileExistAskDialog::close()
+{
+  emit  this->acceptedOne(0);
+}

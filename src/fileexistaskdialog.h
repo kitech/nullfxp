@@ -46,7 +46,17 @@ Q_OBJECT
   ~FileExistAskDialog();
 
   void set_files(QString src_path, QString src_file_size, QString src_file_date, QString dest_path, QString dest_file_size, QString dest_file_date);
-  private:
+
+ signals:
+  void acceptedOne(int which);
+
+ protected:
+  void close();
+
+ private slots:
+  void slot_reponse_button_clicked();
+
+ private:
   Ui::FileExistAskDialog ui_dlg;
 };
 

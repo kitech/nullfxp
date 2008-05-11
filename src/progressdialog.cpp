@@ -355,9 +355,22 @@ void ProgressDialog::slot_dest_file_exists(QString src_path, QString src_file_si
 
   ask_dlg = new FileExistAskDialog(this);
   ask_dlg->set_files(src_path, src_file_size, src_file_date, dest_path, dest_file_size, dest_file_date);
+
+  QObject::connect(ask_dlg, SIGNAL(acceptedOne(int)), this, SLOT(slot_ask_accepted(int)));
+
   rv = ask_dlg->exec();
 
-  delete ask_dlg;
-  this->sftp_transfer_thread->user_response_result(5);
+  //delete ask_dlg;
+  //this->sftp_transfer_thread->user_response_result(5);
 }
 
+void ProgressDialog::slot_ask_accepted(int which)
+{
+  FileExistAskDialog *ask_dlg = (FileExistAskDialog*)sender();
+  delete ask_dlg;
+  
+  if(which >=1 and which <=6)
+    this->sftp_transfer_thread->user_response_result(which);
+  else
+    qDebug()<<"No care response";
+}

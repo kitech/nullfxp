@@ -58,8 +58,6 @@ public:
     //type 可以是 TANSFER_GET,TRANSFER_PUT
     void set_transfer_info(/*int type,*/QStringList local_file_names,QStringList remote_file_names  ) ;
     
-    //int get_transfer_type() { return this->transfer_type ; }
-    
     public slots:
         void slot_set_transfer_percent(int percent , int total_transfered ,int transfer_delta );
         void slot_transfer_thread_finished() ;
@@ -71,6 +69,7 @@ public:
         void slot_transfer_got_file_size( int size );
         void slot_transfer_log(QString log);
 	void slot_dest_file_exists(QString src_path, QString src_file_size, QString src_file_date,QString dest_path, QString dest_file_size, QString dest_file_date);
+	void slot_ask_accepted(int which);
 
     signals:
         void transfer_finished(int status);
