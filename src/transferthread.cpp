@@ -71,7 +71,9 @@
 
 TransferThread::TransferThread ( QObject *parent )
 		: QThread ( parent ),user_canceled(false)
-{}
+{
+  this->file_exist_over_write_method = OW_UNKNOWN;
+}
 
 
 TransferThread::~TransferThread()
@@ -690,18 +692,31 @@ int TransferThread::do_upload ( QString local_path, QString remote_path, int pfl
                              GlobalOption::instance()->remote_codec->fromUnicode( remote_path ),
                                      &ssh2_sftp_attrib);
     if(ret == 0){
-      //TODO 通知用户远程文件已经存在，再做处理。
-      QString local_file_size, local_file_date;
-      QString remote_file_size, remote_file_date;
-      QFileInfo fi(local_path);
-      local_file_size = QString("%1").arg(fi.size());
-      local_file_date = fi.lastModified ().toString();
-      remote_file_size = QString("%1").arg(ssh2_sftp_attrib.filesize);
-      QDateTime remote_mtime ;
-      remote_mtime.setTime_t(ssh2_sftp_attrib.mtime);
-      remote_file_date = remote_mtime.toString();
-      emit this->dest_file_exists(local_path,local_file_size,local_file_date, remote_path, remote_file_size, remote_file_date);
-      this->wait_user_response();
+      if(this->user_canceled) return 1;
+      if(this->file_exist_over_write_method == OW_UNKNOWN 
+	 || this->file_exist_over_write_method == OW_YES
+	 || this->file_exist_over_write_method == OW_RESUME
+	 || this->file_exist_over_write_method == OW_NO){
+	//TODO 通知用户远程文件已经存在，再做处理。
+	QString local_file_size, local_file_date;
+	QString remote_file_size, remote_file_date;
+	QFileInfo fi(local_path);
+	local_file_size = QString("%1").arg(fi.size());
+	local_file_date = fi.lastModified ().toString();
+	remote_file_size = QString("%1").arg(ssh2_sftp_attrib.filesize);
+	QDateTime remote_mtime ;
+	remote_mtime.setTime_t(ssh2_sftp_attrib.mtime);
+	remote_file_date = remote_mtime.toString();
+	emit this->dest_file_exists(local_path,local_file_size,local_file_date, remote_path, remote_file_size, remote_file_date);
+	this->wait_user_response();
+      }
+      if(this->user_canceled) return 1;
+      if(this->file_exist_over_write_method == OW_YES);//go on
+      if(this->file_exist_over_write_method == OW_NO) return 1;
+      if(this->file_exist_over_write_method == OW_NO_ALL){
+	this->user_canceled = true;
+	return 1;
+      }
       qDebug()<<"Remote file exists, cover it.";
     }
     
@@ -859,6 +874,12 @@ void TransferThread::wait_user_response()
 }
 void TransferThread::user_response_result(int result)
 {
+  if(result >= OW_CANCEL && result <= OW_NO_ALL){
+    this->file_exist_over_write_method = result;
+  }else{
+    //未知处理方式的情况下，不覆盖原有文件，所以就取消传输任务
+    this->set_user_cancel(true);
+  }
   this->wait_user_response_cond.wakeAll();
   this->wait_user_response_mutex.unlock();
 }

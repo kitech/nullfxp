@@ -369,7 +369,7 @@ void ProgressDialog::slot_ask_accepted(int which)
   FileExistAskDialog *ask_dlg = (FileExistAskDialog*)sender();
   delete ask_dlg;
   
-  if(which >=1 and which <=6)
+  if(which >=TransferThread::OW_CANCEL && which <=TransferThread::OW_NO_ALL)
     this->sftp_transfer_thread->user_response_result(which);
   else
     qDebug()<<"No care response";

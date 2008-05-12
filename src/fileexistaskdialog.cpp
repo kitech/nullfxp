@@ -29,7 +29,7 @@
 // 
 // 
 
-
+#include "transferthread.h"
 #include "fileexistaskdialog.h"
 
 FileExistAskDialog::FileExistAskDialog(QWidget *parent)
@@ -67,23 +67,23 @@ void FileExistAskDialog::slot_reponse_button_clicked()
 {
   QWidget * sender_widget = (QWidget*)sender();
   if(sender_widget == this->ui_dlg.pushButton){
-    emit this->acceptedOne(1);
+    emit this->acceptedOne(TransferThread::OW_YES);
   }else if(sender_widget == this->ui_dlg.pushButton_2){
-    emit this->acceptedOne(2); 
+    emit this->acceptedOne(TransferThread::OW_YES_ALL); 
   }else if(sender_widget == this->ui_dlg.pushButton_3){
-    emit this->acceptedOne(3); 
+    emit this->acceptedOne(TransferThread::OW_RESUME); 
   }else if(sender_widget == this->ui_dlg.pushButton_4){
-    emit this->acceptedOne(4);
+    emit this->acceptedOne(TransferThread::OW_NO);
   }else if(sender_widget == this->ui_dlg.pushButton_5){
-    emit    this->acceptedOne(5);
+    emit    this->acceptedOne(TransferThread::OW_NO_ALL);
   }else if(sender_widget == this->ui_dlg.pushButton_6){
-    emit this->acceptedOne(6);
+    emit this->acceptedOne(TransferThread::OW_CANCEL);
   }else{
-    emit this->acceptedOne(0);
+    emit this->acceptedOne(TransferThread::OW_CANCEL);
   }
 }
 
 void FileExistAskDialog::close()
 {
-  emit  this->acceptedOne(0);
+  emit  this->acceptedOne(TransferThread::OW_CANCEL);
 }

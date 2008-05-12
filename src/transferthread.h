@@ -64,7 +64,7 @@ public:
     
     enum { TRANSFER_MIN, TRANSFER_GET,TRANSFER_PUT,TRANSFER_EXCHANGE,TRANSFER_RETRIVE_TO_LOCAL,TRANSFER_RETRIVE_TO_REMOTE ,TRANSFER_MAX };
     enum { PROTO_MIN, PROTO_FILE , PROTO_NRSFTP , PROTO_NRFTP , PROTO_HTTP, PROTO_HTTPS,PROTO_FTP,PROTO_RSTP,PROTO_MMS , PROTO_MAX } ;
-    
+    enum {OW_UNKNOWN,OW_CANCEL, OW_YES,OW_YES_ALL,OW_RESUME,OW_NO, OW_NO_ALL};
     
     TransferThread(QObject *parent = 0);
 
@@ -113,6 +113,7 @@ public:
         int src_ssh2_sock ;
         
         bool user_canceled ;
+	int file_exist_over_write_method;
         
         //int transfer_type ;
 
