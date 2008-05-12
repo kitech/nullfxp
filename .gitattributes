@@ -11,6 +11,8 @@
 packages/gentoo/nullfxp/Manifest -text
 packages/gentoo/nullfxp/files/digest-nullfxp-1.5.2 -text
 packages/gentoo/nullfxp/nullfxp-1.5.2.ebuild -text
+packages/mkpkg.sh -text
+packages/nullfxp -text
 src/CMakeLists.txt -text
 src/ReadMe -text
 src/aboutnullfxp.cpp -text
