@@ -9,9 +9,9 @@
 // http://nullget.sourceforge.net
 // Created: 二  5月  6 21:59:14 2008 (CST)
 // Version: 
-// Last-Updated: 
-//           By: 
-//     Update #: 0
+// Last-Updated: 一  5月 12 21:21:57 2008 (CST)
+//           By: liuguangzhao
+//     Update #: 1
 // URL: 
 // Keywords: 
 // Compatibility: 
@@ -359,16 +359,11 @@ void ProgressDialog::slot_dest_file_exists(QString src_path, QString src_file_si
   QObject::connect(ask_dlg, SIGNAL(acceptedOne(int)), this, SLOT(slot_ask_accepted(int)));
 
   rv = ask_dlg->exec();
-
-  //delete ask_dlg;
-  //this->sftp_transfer_thread->user_response_result(5);
+  delete ask_dlg;
 }
 
 void ProgressDialog::slot_ask_accepted(int which)
 {
-  FileExistAskDialog *ask_dlg = (FileExistAskDialog*)sender();
-  delete ask_dlg;
-  
   if(which >=TransferThread::OW_CANCEL && which <=TransferThread::OW_NO_ALL)
     this->sftp_transfer_thread->user_response_result(which);
   else

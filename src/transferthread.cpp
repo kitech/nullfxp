@@ -9,9 +9,9 @@
 // http://nullget.sourceforge.net
 // Created: 二  5月  6 21:58:08 2008 (CST)
 // Version: 
-// Last-Updated: 
-//           By: 
-//     Update #: 0
+// Last-Updated: 一  5月 12 21:22:27 2008 (CST)
+//           By: liuguangzhao
+//     Update #: 1
 // URL: 
 // Keywords: 
 // Compatibility: 
@@ -627,6 +627,40 @@ int TransferThread::do_download ( QString remote_path, QString local_path,  int 
     file_size = ssh2_sftp_attrib.filesize;
     qDebug()<<" remote file size :"<< file_size ;
     emit this->transfer_got_file_size( file_size );
+
+    //文件冲突检测
+
+    if(QFile(local_path).exists()){
+      if(this->user_canceled) return 1;
+      if(this->user_canceled) return 1;
+      if(this->file_exist_over_write_method == OW_UNKNOWN
+         || this->file_exist_over_write_method == OW_YES
+         || this->file_exist_over_write_method == OW_RESUME
+         || this->file_exist_over_write_method == OW_NO){
+	//TODO 通知用户远程文件已经存在，再做处理。                                                                          
+        QString local_file_size, local_file_date;
+	QString remote_file_size, remote_file_date;
+        QFileInfo fi(local_path);
+        local_file_size = QString("%1").arg(fi.size());
+	local_file_date = fi.lastModified ().toString();
+	remote_file_size = QString("%1").arg(ssh2_sftp_attrib.filesize);
+        QDateTime remote_mtime ;
+        remote_mtime.setTime_t(ssh2_sftp_attrib.mtime);
+        remote_file_date = remote_mtime.toString();
+        emit this->dest_file_exists(remote_path, remote_file_size, remote_file_date, local_path,local_file_size,local_file_date);
+        this->wait_user_response();
+      }
+
+      if(this->user_canceled || this->file_exist_over_write_method== OW_CANCEL) return 1;
+      if(this->file_exist_over_write_method == OW_YES);//go on                                                               
+      if(this->file_exist_over_write_method == OW_NO) return 1;
+      if(this->file_exist_over_write_method == OW_NO_ALL){
+        this->user_canceled = true;
+	return 1;
+      }
+
+    }
+
     
     // 本地编码 --> Qt 内部编码
     QFile q_file (  local_path  ) ;
@@ -710,7 +744,7 @@ int TransferThread::do_upload ( QString local_path, QString remote_path, int pfl
 	emit this->dest_file_exists(local_path,local_file_size,local_file_date, remote_path, remote_file_size, remote_file_date);
 	this->wait_user_response();
       }
-      if(this->user_canceled) return 1;
+      if(this->user_canceled || this->file_exist_over_write_method == OW_CANCEL) return 1;
       if(this->file_exist_over_write_method == OW_YES);//go on
       if(this->file_exist_over_write_method == OW_NO) return 1;
       if(this->file_exist_over_write_method == OW_NO_ALL){

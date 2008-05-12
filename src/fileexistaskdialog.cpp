@@ -9,9 +9,9 @@
 // http://nullget.sourceforge.net
 // Created: 二  5月  6 21:59:50 2008 (CST)
 // Version: 
-// Last-Updated: 
-//           By: 
-//     Update #: 0
+// Last-Updated: 一  5月 12 21:22:38 2008 (CST)
+//           By: liuguangzhao
+//     Update #: 1
 // URL: 
 // Keywords: 
 // Compatibility: 
@@ -81,9 +81,11 @@ void FileExistAskDialog::slot_reponse_button_clicked()
   }else{
     emit this->acceptedOne(TransferThread::OW_CANCEL);
   }
+  this->reject();
 }
 
 void FileExistAskDialog::close()
 {
   emit  this->acceptedOne(TransferThread::OW_CANCEL);
+  this->reject();
 }
