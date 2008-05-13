@@ -1,22 +1,32 @@
-/***************************************************************************
- *   Copyright (C) 2007 by liuguangzhao   *
- *   gzl@localhost   *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+// remotehostconnectingstatusdialog.cpp --- 
+// 
+// Filename: remotehostconnectingstatusdialog.cpp
+// Description: 
+// Author: 刘光照<liuguangzhao@comsenz.com>
+// Maintainer: 
+// Copyright (C) 2000-2008 www.comsenz.com
+// Created: 二  5月 13 09:49:23 2008 (UTC)
+// Version: 
+// Last-Updated: 
+//           By: 
+//     Update #: 0
+// URL: 
+// Keywords: 
+// Compatibility: 
+// 
+// 
+
+// Commentary: 
+// 
+// 
+// 
+// 
+
+// Change log:
+// 
+// 
+// 
+
 #include <QtCore>
 #include <QtGui>
 
@@ -42,8 +52,7 @@ RemoteHostConnectingStatusDialog::RemoteHostConnectingStatusDialog ( QString use
 
 RemoteHostConnectingStatusDialog::~RemoteHostConnectingStatusDialog()
 {
-    timer.stop();
-    this->connect_status_dialog.progressBar->setValue(100);
+  this->stop_progress_bar();
 }
 
 void RemoteHostConnectingStatusDialog::slot_time_out()
@@ -69,3 +78,9 @@ void RemoteHostConnectingStatusDialog::closeEvent ( QCloseEvent * event )
     event->ignore();
     this->setVisible(false);
 }
+void RemoteHostConnectingStatusDialog::stop_progress_bar()
+{
+  timer.stop();
+  this->connect_status_dialog.progressBar->setValue(100);
+}
+

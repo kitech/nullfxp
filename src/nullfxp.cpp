@@ -1,22 +1,31 @@
-/***************************************************************************
- *   Copyright (C) 2007 by liuguangzhao   *
- *   liuguangzhao@users.sourceforge.net   *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+// nullfxp.cpp --- 
+// 
+// Filename: nullfxp.cpp
+// Description: 
+// Author: 刘光照<liuguangzhao@comsenz.com>
+// Maintainer: 
+// Copyright (C) 2000-2008 www.comsenz.com
+// Created: 二  5月 13 09:50:23 2008 (UTC)
+// Version: 
+// Last-Updated: 
+//           By: 
+//     Update #: 0
+// URL: 
+// Keywords: 
+// Compatibility: 
+// 
+// 
+
+// Commentary: 
+// 
+// 
+// 
+// 
+
+// Change log:
+// 
+// 
+// 
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -130,7 +139,7 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
     //根据当前屏幕大小调整界面的大小。
     QDesktopWidget * dw = new QDesktopWidget();
     //qDebug()<<dw->screenGeometry();
-    this->resize(dw->screenGeometry().width()*4/5, dw->screenGeometry().height()*4/5) ;
+    this->resize(dw->screenGeometry().width()*5/6, dw->screenGeometry().height()*5/6) ;
     delete dw ;
     //调整本地目录树窗口的大小
 	//QList<QMdiSubWindow *> mdiSubWindow = mdiArea->subWindowList();
@@ -313,9 +322,10 @@ void NullFXP::slot_connect_remote_host_finished ( int status,void * ssh2_sess , 
         qDebug()<<"user canceled connecting";
     }else
 	{
-		//assert ( 1==2 );
-        //this->connect_status_dailog->setVisible(false);
-        QMessageBox::critical(this,tr("Connect Error:"),tr("Check user name and password , retry again") );
+	  //assert ( 1==2 );
+	  //this->connect_status_dailog->setVisible(false);
+	  this->connect_status_dailog->stop_progress_bar();
+	  QMessageBox::critical(this,tr("Connect Error:"),tr("Check user name and password , retry again") );
 	}
 	this->connect_status_dailog->accept();
 	delete this->connect_status_dailog ;
