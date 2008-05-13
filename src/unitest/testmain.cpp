@@ -53,6 +53,7 @@
 
 int main(int argc, char ** argv)
 {
+	QCoreApplication a(argc, argv);
   TestNullfxp mytest;
   QTest::qExec(&mytest);
   return 0;
