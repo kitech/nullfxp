@@ -42,7 +42,7 @@ class EncryptionDetailDialog : public QDialog
 {
 Q_OBJECT
   public:
-  EncryptionDetailDialog(QWidget * parent = 0, Qt::WindowFlags f = 0);
+  EncryptionDetailDialog(char **server_info, QWidget * parent = 0, Qt::WindowFlags f = 0);
   ~EncryptionDetailDialog();
 
   public slots:

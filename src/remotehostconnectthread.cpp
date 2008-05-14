@@ -267,7 +267,13 @@ void RemoteHostConnectThread::run()
     
   ssh2_sftp = libssh2_sftp_init((LIBSSH2_SESSION*)ssh2_sess );
   assert( ssh2_sftp != NULL );
-  printf("Received SFTP Version: %d %s\n",libssh2_sftp_get_version((LIBSSH2_SFTP*)ssh2_sftp), libssh2_session_get_remote_info((LIBSSH2_SESSION*)ssh2_sess));	
+  char **server_info, **pptr;
+  server_info = pptr = libssh2_session_get_remote_info((LIBSSH2_SESSION*)ssh2_sess);
+  printf("Received SFTP Version: %d %s\n",libssh2_sftp_get_version((LIBSSH2_SFTP*)ssh2_sftp), server_info[0]);	
+  while(*pptr != NULL){
+    free(*pptr); pptr++;
+  }
+  free(server_info);
     
   ret = libssh2_sftp_realpath((LIBSSH2_SFTP*)ssh2_sftp,".",home_path,PATH_MAX);
   if(ret != 0 )

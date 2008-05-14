@@ -187,34 +187,49 @@ LIBSSH2_API char * libssh2_session_get_remote_version(LIBSSH2_SESSION *session)
 {
 	return session->banner_TxRx_banner;
 }
-LIBSSH2_API char * libssh2_session_get_remote_info(LIBSSH2_SESSION *session)
+LIBSSH2_API char ** libssh2_session_get_remote_info(LIBSSH2_SESSION *session)
 {
 	char *info_buff;
 	const LIBSSH2_KEX_METHOD *kex;
 	const LIBSSH2_HOSTKEY_METHOD *hostkey;
 	libssh2_endpoint_data *remote;
-	
+	char **info_vec = calloc(10, sizeof(char*));
+	memset(info_vec, 0, 10 * sizeof(char*));
+		
 	kex = session->kex;
 	hostkey = session->hostkey;
 	remote = &session->remote;
 	
-	info_buff = malloc(256);
-	memset(info_buff,0,256);
-	snprintf(info_buff,255, 
+    char fingerprint[50], *fprint = fingerprint;
+    int i;
+    for(i = 0; i < 16; i++, fprint += 3) {
+      snprintf(fprint, 4, "%02x:", session->server_hostkey_md5[i]);
+            }
+     *(--fprint) = '\0';
+	
+	info_buff = malloc(512);
+	memset(info_buff,0,512);
+	snprintf(info_buff,510, 
 	"SSH Server: %s\n"
 	"Key exchange method: %s\n"
+	"Key fingerprint: %s\n"
 	"Host key method: %s , Hash length: %ld\n"
 	"Crypt name: %s, secret length: %d\n"
 	"Mac name: %s, Key length: %d\n"
 	"Comp name: %s\n"
-	, remote->banner, kex->name, hostkey->name, hostkey->hash_len,
+	, remote->banner, kex->name,
+	fingerprint,
+	hostkey->name, hostkey->hash_len,
 	remote->crypt->name, remote->crypt->secret_len,
 	remote->mac->name, remote->mac->key_len,
 	remote->comp->name);
 
-	return info_buff;
+	info_vec[0] = info_buff;
+	info_vec[1] = strdup(kex->name);
+	info_vec[2] = strdup(hostkey->name);
+	info_vec[3] = strdup(fingerprint);
 	
-	return NULL;
+	return info_vec;
 }
 
 /* }}} */

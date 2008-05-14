@@ -96,8 +96,6 @@ DISTFILES += ../CMakeLists.txt \
 CMakeLists.txt \
 libssh2/CMakeLists.txt
 
-DEFINES += LIBSSH2DEBUG
-
 CONFIG -= release
 
 win32 {

@@ -39,8 +39,11 @@ CONFIG += staticlib \
 CONFIG -= qt \
  release
 
+
+
+
 DEFINES += HAVE_CONFIG_H \
- LIBSSH2DEBUG
+ LIBSSH2DEBUG=1 LIBSSH2_MD5=1
 
 TARGET = ssh2
 

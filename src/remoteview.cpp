@@ -1007,29 +1007,38 @@ void RemoteView::slot_show_hidden(bool show)
 }
 void RemoteView::slot_ssh_server_info()
 {
-  char * server_info ;
+  char ** server_info, **pptr ;
   int sftp_version ;
 
-  server_info = libssh2_session_get_remote_info(this->ssh2_sess);
+  pptr = server_info = libssh2_session_get_remote_info(this->ssh2_sess);
   sftp_version = libssh2_sftp_get_version(this->ssh2_sftp);
-  QMessageBox::warning(this,tr("SSH Server Info:"),QString("%1\nSFTP Version: %2").arg(server_info).arg(sftp_version));
-  if(server_info != NULL) free(server_info);
+  QMessageBox::warning(this,tr("SSH Server Info:"),QString("%1\nSFTP Version: %2").arg(server_info[0]).arg(sftp_version));
+  //if(server_info != NULL) free(server_info);
+  while(*pptr != NULL){
+    free(*pptr); pptr ++;
+  }
+  free(server_info);
 }
 
 void RemoteView::encryption_focus_label_double_clicked()
 {
   //qDebug()<<__FILE__<<":"<<__LINE__;
   EncryptionDetailDialog * enc_dlg = 0;
-  char * server_info;
+  char ** server_info, **pptr;
   int sftp_version;
 
-  server_info = libssh2_session_get_remote_info(this->ssh2_sess);
+  pptr = server_info = libssh2_session_get_remote_info(this->ssh2_sess);
   sftp_version = libssh2_sftp_get_version(this->ssh2_sftp); 
 
-  enc_dlg = new EncryptionDetailDialog(this);
+  enc_dlg = new EncryptionDetailDialog(server_info,this);
   enc_dlg->exec();
 
-  if(server_info != NULL) free(server_info);
+  //if(server_info != NULL) free(server_info);
   delete enc_dlg;
+
+  while(*pptr != NULL){
+    free(*pptr); pptr ++;
+  }
+  free(server_info);
 }
 
