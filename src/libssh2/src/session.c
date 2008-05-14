@@ -192,13 +192,14 @@ LIBSSH2_API char ** libssh2_session_get_remote_info(LIBSSH2_SESSION *session)
 	char *info_buff;
 	const LIBSSH2_KEX_METHOD *kex;
 	const LIBSSH2_HOSTKEY_METHOD *hostkey;
-	libssh2_endpoint_data *remote;
+	libssh2_endpoint_data *remote, *local;
 	char **info_vec = calloc(10, sizeof(char*));
 	memset(info_vec, 0, 10 * sizeof(char*));
 		
 	kex = session->kex;
 	hostkey = session->hostkey;
 	remote = &session->remote;
+	local = &session->local;
 	
     char fingerprint[50], *fprint = fingerprint;
     int i;
@@ -214,20 +215,28 @@ LIBSSH2_API char ** libssh2_session_get_remote_info(LIBSSH2_SESSION *session)
 	"Key exchange method: %s\n"
 	"Key fingerprint: %s\n"
 	"Host key method: %s , Hash length: %ld\n"
-	"Crypt name: %s, secret length: %d\n"
-	"Mac name: %s, Key length: %d\n"
+	"S->C Crypt name: %s, secret length: %d\n"
+	"S->C Mac name: %s, Key length: %d\n"
+	"C->S Crypt name: %s, secret length: %d\n"
+	"C->S Mac name: %s, Key length: %d\n"
 	"Comp name: %s\n"
 	, remote->banner, kex->name,
 	fingerprint,
 	hostkey->name, hostkey->hash_len,
 	remote->crypt->name, remote->crypt->secret_len,
 	remote->mac->name, remote->mac->key_len,
+	local->crypt->name, local->crypt->secret_len,
+	local->mac->name, local->mac->key_len,
 	remote->comp->name);
 
 	info_vec[0] = info_buff;
 	info_vec[1] = strdup(kex->name);
 	info_vec[2] = strdup(hostkey->name);
 	info_vec[3] = strdup(fingerprint);
+	info_vec[4] = strdup(local->crypt->name);
+	info_vec[5] = strdup(local->mac->name);
+	info_vec[6] = strdup(remote->crypt->name);
+	info_vec[7] = strdup(remote->mac->name);
 	
 	return info_vec;
 }
