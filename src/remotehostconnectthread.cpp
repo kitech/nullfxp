@@ -48,6 +48,7 @@
 #include <netinet/in.h>
 #endif
 
+#include <fcntl.h>
 #include <assert.h>
 
 #include <QtCore>
@@ -91,7 +92,7 @@ RemoteHostConnectThread::RemoteHostConnectThread(QString user_name , QString pas
   this->host_name = host_name;
   this->port = port;
     
-  this->connect_status = 0;
+  this->connect_status = CONN_OK;
   this->user_canceled = false;
   ////////////////
   QObject::connect(this,SIGNAL(finished()) ,this , SLOT(slot_finished()) );
@@ -140,7 +141,7 @@ void RemoteHostConnectThread::run()
 #else
       emit connect_state_changed( tr( "Resoving host faild : (%1),%2 ").arg(h_errno).arg(hstrerror(h_errno)) ) ;
 #endif
-      this->connect_status = 1 ;
+      this->connect_status = CONN_RESOLVE_ERROR ;
       //assert( ret == 0 );
       return ;
     }
@@ -169,20 +170,35 @@ void RemoteHostConnectThread::run()
   printf(" inet_pton ret: %d \n" , ret );
 #endif
   if( this->user_canceled == true ){
-    this->connect_status = 2 ;
+    this->connect_status = CONN_CANCEL ;
     return;
   }   
 
   emit connect_state_changed( tr("Connecting to %1 ( %2:%3 ) ").arg(this->host_name).arg(host_ipaddr).arg(this->port) );
   this->ssh2_sock = socket(AF_INET,SOCK_STREAM,0);
+  assert(this->ssh2_sock > 0);
+  //设置连接超时
+  int sock_flag = fcntl(this->ssh2_sock, F_GETFL);
+  fcntl(this->ssh2_sock, F_SETFL, sock_flag | O_NONBLOCK);
+  
   ret = ::connect( this->ssh2_sock,(struct sockaddr*)&serv_addr,sizeof(serv_addr));
-  if( ret != 0 )
-    {
-      emit connect_state_changed( tr( "Connect faild : (%1),%2 ").arg(errno).arg(strerror(errno)) ) ;
-      this->connect_status = 1 ;
+
+  struct timeval timeo = {10, 0};//连接超时10秒
+  fd_set set;
+  FD_ZERO(&set);
+  FD_SET(this->ssh2_sock, &set);
+  ret = select(this->ssh2_sock + 1, NULL, &set, NULL, &timeo);
+  if( ret == -1){
+    assert( 1==2);
+  }else if( ret == 0 ) {
+      QString emsg = QString(tr( "Connect faild : (%1),%2 ").arg(errno).arg(strerror(errno)));
+      emit connect_state_changed( emsg ) ;
+      this->connect_status = CONN_REFUSE ;
+      qDebug()<<emsg;
       //assert( ret == 0 );
       return ;
     }
+  fcntl(this->ssh2_sock, F_SETFL, sock_flag);
   if( this->user_canceled == true ){
     this->connect_status = 2 ;
 #ifdef WIN32
@@ -192,6 +208,7 @@ void RemoteHostConnectThread::run()
 #endif
     return;
   }   
+
   //create session
   ssh2_sess = libssh2_session_init();
   //libssh2_trace((LIBSSH2_SESSION*)ssh2_sess , 64 );    
@@ -246,13 +263,13 @@ void RemoteHostConnectThread::run()
   ret = libssh2_userauth_authenticated((LIBSSH2_SESSION*)ssh2_sess);
   if( ret == 0 )
     {
-      this->connect_status = 1 ;
+      this->connect_status = CONN_AUTH_ERROR ;
       qDebug()<<" user auth faild";
       emit connect_state_changed( tr( "User faild (Keyboard Interactive)(Password ).") );
       return ;
     }
   if( this->user_canceled == true ){
-    this->connect_status = 2 ;
+    this->connect_status = CONN_CANCEL ;
     libssh2_session_disconnect((LIBSSH2_SESSION*)ssh2_sess,"");
     libssh2_session_free((LIBSSH2_SESSION*)ssh2_sess);
 #ifdef WIN32
@@ -289,7 +306,7 @@ void RemoteHostConnectThread::run()
   this->connect_status = 0 ;
     
   if( this->user_canceled == true ){
-    this->connect_status = 2 ;
+    this->connect_status = CONN_CANCEL ;
     libssh2_session_disconnect((LIBSSH2_SESSION*)ssh2_sess,"");
     libssh2_session_free((LIBSSH2_SESSION*)ssh2_sess);
 #ifdef WIN32

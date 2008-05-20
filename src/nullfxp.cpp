@@ -292,9 +292,8 @@ void NullFXP::slot_connect_remote_host_finished ( int status,void * ssh2_sess , 
 {
     RemoteHostConnectThread * conn_thread = static_cast< RemoteHostConnectThread*>(sender()) ;
     
-	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-	if ( status == 0 )
-	{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    if ( status == RemoteHostConnectThread::CONN_OK ) {
         RemoteView * remote_view = new RemoteView(this->mdiArea , this->localView);
         
         mdiArea->addSubWindow ( remote_view );
@@ -313,23 +312,41 @@ void NullFXP::slot_connect_remote_host_finished ( int status,void * ssh2_sess , 
         remote_view->set_user_home_path ( this->remote_conn_thread->get_user_home_path() );
         remote_view->set_host_info(conn_thread->get_host_name(),
                                    conn_thread->get_user_name(),
-                                           conn_thread->get_password(),
-                                  conn_thread->get_port());
+				   conn_thread->get_password(),
+				   conn_thread->get_port());
         //初始化远程目录树        
         remote_view->i_init_dir_view (  );
+      }
+    else if( status == RemoteHostConnectThread::CONN_CANCEL ) {   //use canceled connection
+      qDebug()<<"user canceled connecting";
+    }else {
+	//assert ( 1==2 );
+	//this->connect_status_dailog->setVisible(false);
+	this->connect_status_dailog->stop_progress_bar();
+	
+	QString emsg = QString(tr("No error."));
+	switch (status){
+	case RemoteHostConnectThread::CONN_REFUSE:
+	  emsg = QString(tr("Remote host not usable."));
+	  break;
+	case RemoteHostConnectThread::CONN_AUTH_ERROR:
+	  emsg = QString(tr("Auth faild. Check your name and password and retry again."));
+	  break;
+	case RemoteHostConnectThread::CONN_RESOLVE_ERROR:
+	  emsg = QString(tr("Can not resolve host name."));
+	  break;
+	case RemoteHostConnectThread::CONN_SESS_ERROR:
+	  emsg = QString(tr("Can not initial SSH session."));
+	  break;
+	default:
+	  emsg = QString(tr("Unknown error."));
+	  break;
 	}
-	else if( status == 2 ) {   //use canceled connection
-        qDebug()<<"user canceled connecting";
-    }else
-	{
-	  //assert ( 1==2 );
-	  //this->connect_status_dailog->setVisible(false);
-	  this->connect_status_dailog->stop_progress_bar();
-	  QMessageBox::critical(this,tr("Connect Error:"),tr("Check user name and password , retry again") );
-	}
-	this->connect_status_dailog->accept();
-	delete this->connect_status_dailog ;
-	this->connect_status_dailog = 0 ;
+	QMessageBox::critical(this,tr("Connect Error:"), emsg);
+    }
+    this->connect_status_dailog->accept();
+    delete this->connect_status_dailog ;
+    this->connect_status_dailog = 0 ;
     delete this->remote_conn_thread ;
     this->remote_conn_thread = 0 ;
 }

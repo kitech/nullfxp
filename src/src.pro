@@ -114,6 +114,10 @@ win32 {
     TARGETDEPS += libssh2/src/libssh2.a
 }
 
+release {
+    CXXFLAGS += -DNDEBUG
+}
+
 INCLUDEPATH += . ./libssh2/include
 
 RESOURCES = nullfxp.qrc
