@@ -31,11 +31,7 @@ SOURCES += main.cpp \
 
 TEMPLATE = app
 VERSION = 1.5.6
-CONFIG += warn_on \
-	  thread \
-          qt \
- debug \
- console
+CONFIG += qt thread console warn_on ordered  debug
 TARGET = nullfxp
 DESTDIR = ../bin
 
@@ -96,7 +92,6 @@ DISTFILES += ../CMakeLists.txt \
 CMakeLists.txt \
 libssh2/CMakeLists.txt
 
-CONFIG -= release
 
 win32 {
     debug {
@@ -114,9 +109,14 @@ win32 {
     TARGETDEPS += libssh2/src/libssh2.a
 }
 
-release {
-    CXXFLAGS += -DNDEBUG
+CONFIG(release, debug|release) {
+    DEFINES += NDEBUG
 }
+
+CONFIG(debug, debug|release) {
+    DEFINES += DEBUG
+}
+
 
 INCLUDEPATH += . ./libssh2/include
 

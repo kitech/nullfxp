@@ -4,10 +4,6 @@ SUBDIRS +=  \
  src/unitest
 
 TEMPLATE = subdirs 
-CONFIG += warn_on \
-          qt \
-          thread  \
- ordered \
- console
+CONFIG = ordered
 DESTDIR = .
 
