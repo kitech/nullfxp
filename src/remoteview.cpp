@@ -9,9 +9,9 @@
 // http://nullget.sourceforge.net
 // Created: 一  5月  5 21:04:45 2008 (CST)
 // Version: 
-// Last-Updated: 二  5月  6 09:17:38 2008 (UTC)
-//           By: 刘光照<liuguangzhao@comsenz.com>
-//     Update #: 1
+// Last-Updated: 五  5月 23 22:48:51 2008 (CST)
+//           By: liuguangzhao
+//     Update #: 2
 // URL: 
 // Keywords: 
 // Compatibility: 
@@ -44,26 +44,26 @@
 #include "encryptiondetaildialog.h"
 
 RemoteView::RemoteView(QMdiArea * main_mdi_area ,LocalView * local_view ,QWidget *parent)
- : QWidget(parent)
+    : QWidget(parent)
 {
-  this->remoteview.setupUi(this);
-  this->local_view = local_view ;
-  this->main_mdi_area = main_mdi_area ;
-  this->setObjectName("rv");
-  ///////
-  status_bar = new QStatusBar(  );    
-  this->layout()->addWidget(status_bar);
-  this->status_bar->addPermanentWidget(this->enc_label = new EncryptionDetailFocusLabel("ENC", this));
-  QObject::connect(this->enc_label, SIGNAL(mouseDoubleClick()),
-		   this, SLOT(encryption_focus_label_double_clicked()));
+    this->remoteview.setupUi(this);
+    this->local_view = local_view ;
+    this->main_mdi_area = main_mdi_area ;
+    this->setObjectName("rv");
+    ///////
+    status_bar = new QStatusBar(  );    
+    this->layout()->addWidget(status_bar);
+    this->status_bar->addPermanentWidget(this->enc_label = new EncryptionDetailFocusLabel("ENC", this));
+    QObject::connect(this->enc_label, SIGNAL(mouseDoubleClick()),
+		     this, SLOT(encryption_focus_label_double_clicked()));
 
     ////////////
     
-  //     this->remoteview.treeView->setAcceptDrops(false);
-  //     this->remoteview.treeView->setDragEnabled(false);
-  //     this->remoteview.treeView->setDropIndicatorShown(false);
-  //     this->remoteview.treeView->setDragDropMode(QAbstractItemView::NoDragDrop);
-  //this->remoteview.treeView->setSelectionMode(QAbstractItemView::ExtendedSelection);
+    //     this->remoteview.treeView->setAcceptDrops(false);
+    //     this->remoteview.treeView->setDragEnabled(false);
+    //     this->remoteview.treeView->setDropIndicatorShown(false);
+    //     this->remoteview.treeView->setDragDropMode(QAbstractItemView::NoDragDrop);
+    //this->remoteview.treeView->setSelectionMode(QAbstractItemView::ExtendedSelection);
     
     QObject::connect(this->remoteview.treeView,SIGNAL(customContextMenuRequested(const QPoint &)),
                      this,SLOT(slot_dir_tree_customContextMenuRequested (const QPoint & )) );
@@ -130,13 +130,6 @@ void RemoteView::init_popup_context_menu()
     this->dir_tree_context_menu->addAction(action);
     QObject::connect(action,SIGNAL(triggered()),this,SLOT(rm_file_or_directory_recursively()));
     
-    action = new QAction("", 0);
-    action->setSeparator(true);
-    this->dir_tree_context_menu->addAction(action);
-
-    action = new QAction(tr("SSH Server Info ..."), 0);
-    this->dir_tree_context_menu->addAction(action);
-    QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_ssh_server_info()));
 }
 
 RemoteView::~RemoteView()
@@ -446,7 +439,7 @@ void RemoteView::update_layout()
     
     if( mil.count() == 0 )
     {
-            qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+	qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
     }
     
     for(int i = 0 ; i < mil.size(); i +=4 )
@@ -543,10 +536,10 @@ void RemoteView::slot_mkdir()
     }
     
     dir_name = QInputDialog::getText(this,tr("Create directory:"),
-                                      tr("Input directory name:")
+				     tr("Input directory name:")
                                      +"                                                        ",
-                                         QLineEdit::Normal,
-                                         tr("new_direcotry") );
+				     QLineEdit::Normal,
+				     tr("new_direcotry") );
     if( dir_name == QString::null )
     {
         return ;
@@ -660,19 +653,19 @@ void RemoteView::slot_rename()
     
     QString rename_to ;
     rename_to = QInputDialog::getText(this,tr("Rename to:"),  tr("Input new name:"),
-                                         QLineEdit::Normal, dti->file_name );
+				      QLineEdit::Normal, dti->file_name );
      
-	if(  rename_to  == QString::null )
+    if(  rename_to  == QString::null )
     {
         //qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
         //QMessageBox::critical(this,tr("Waring..."),tr("No new name supplyed "));
         return;
     }
-	if( rename_to.length() == 0 )
-	{
-		QMessageBox::critical(this,tr("Waring..."),tr("No new name supplyed "));
-		return ;
-	}
+    if( rename_to.length() == 0 )
+    {
+	QMessageBox::critical(this,tr("Waring..."),tr("No new name supplyed "));
+	return ;
+    }
 
     this->remote_dir_model->slot_execute_command(parent_item,parent_model.internalPointer() ,SSH2_FXP_RENAME ,  dti->file_name + "!" + rename_to );
 }
@@ -761,17 +754,17 @@ void RemoteView::slot_new_download_requested(QStringList local_file_names,   QSt
     
     RemoteView * remote_view = this/*->get_top_most_remote_view()*/ ;
         
-	ProgressDialog *pdlg = new ProgressDialog ( 0 );
+    ProgressDialog *pdlg = new ProgressDialog ( 0 );
 //     pdlg->set_remote_connection ( remote_view->get_ssh2_sess() /*,
 //                                   remote_view->get_ssh2_sftp(),
 //                                           remote_view->get_ssh2_sock() */ );
-	//pdlg->set_transfer_info ( /*TransferThread::TRANSFER_GET,*/local_file_names,remote_file_names );
+    //pdlg->set_transfer_info ( /*TransferThread::TRANSFER_GET,*/local_file_names,remote_file_names );
     // src is remote file , dest if localfile 
     pdlg->set_transfer_info ( /*TransferThread::TRANSFER_GET,*/remote_file_names , local_file_names );
-	QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
-	                   this,SLOT ( slot_transfer_finished ( int ) ) );
+    QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
+		       this,SLOT ( slot_transfer_finished ( int ) ) );
 //     remote_view->slot_enter_remote_dir_retrive_loop();
-	//pdlg->exec();
+    //pdlg->exec();
     this->main_mdi_area->addSubWindow(pdlg);
     pdlg->show();
     this->own_progress_dialog = pdlg ;
@@ -780,26 +773,26 @@ void RemoteView::slot_new_download_requested( QStringList remote_file_names )
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
-	QStringList local_file_names ;
-	QString local_file_path  ;
+    QStringList local_file_names ;
+    QString local_file_path  ;
         
     RemoteView * remote_view = this/*->get_top_most_remote_view() */;
     
-	local_file_path = this->local_view->get_selected_directory();
+    local_file_path = this->local_view->get_selected_directory();
 	
     qDebug()<<local_file_path;
-	if ( local_file_path.length() == 0 || ! is_dir( GlobalOption::instance()->locale_codec->fromUnicode( local_file_path  ).data() ) )
-	{
-		qDebug() <<" selected a local file directory  please";
-		QMessageBox::critical ( this,tr ( "waring..." ),tr ( "you should selecte a local file directory." ) );
-	}
-	else
-	{
+    if ( local_file_path.length() == 0 || ! is_dir( GlobalOption::instance()->locale_codec->fromUnicode( local_file_path  ).data() ) )
+    {
+	qDebug() <<" selected a local file directory  please";
+	QMessageBox::critical ( this,tr ( "waring..." ),tr ( "you should selecte a local file directory." ) );
+    }
+    else
+    {
         local_file_path = QString("file://"
 #ifdef WIN32
-					   "/"
+				  "/"
 #endif
-			) + local_file_path ;
+	    ) + local_file_path ;
         local_file_names << local_file_path ;
         this->slot_new_download_requested( local_file_names,remote_file_names);
 // 		ProgressDialog *pdlg = new ProgressDialog ( this );
@@ -811,7 +804,7 @@ void RemoteView::slot_new_download_requested( QStringList remote_file_names )
 // 		                   this,SLOT ( slot_transfer_finished ( int ) ) );
 //         remote_view->slot_enter_remote_dir_retrive_loop();
 // 		pdlg->exec();
-	}
+    }
 }
 
 void RemoteView::slot_transfer_finished( int status ) 
@@ -828,7 +821,7 @@ void RemoteView::slot_transfer_finished( int status )
     }
     else if(status == 0 || status ==3 )
     {
-		//TODO 通知UI更新目录结构,在某些情况下会导致左侧树目录变空。
+	//TODO 通知UI更新目录结构,在某些情况下会导致左侧树目录变空。
         //int transfer_type = pdlg->get_transfer_type();
         //if ( transfer_type == TransferThread::TRANSFER_GET )
         {
@@ -840,7 +833,7 @@ void RemoteView::slot_transfer_finished( int status )
         }
         //else
         {
-			// xxxxx: 没有预期到的错误
+	    // xxxxx: 没有预期到的错误
             //assert ( 1== 2 );
         }
     }
@@ -856,23 +849,23 @@ void RemoteView::slot_transfer_finished( int status )
  */
 void RemoteView::slot_dir_tree_item_clicked ( const QModelIndex & index )
 {
-	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-	QString file_path ;
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    QString file_path ;
 
     remote_dir_model->slot_remote_dir_node_clicked(this->remote_dir_sort_filter_model_ex->mapToSource(index));
         
     file_path = this->remote_dir_sort_filter_model_ex->filePath ( index );
     this->remoteview.tableView->setRootIndex ( this->remote_dir_sort_filter_model->index ( file_path ) ) ;
     for ( int i = 0 ; i < this->remote_dir_sort_filter_model->rowCount ( this->remote_dir_sort_filter_model->index ( file_path ) ); i ++ )
-		this->remoteview.tableView->setRowHeight ( i,this->table_row_height );
-	this->remoteview.tableView->resizeColumnToContents ( 0 );
+	this->remoteview.tableView->setRowHeight ( i,this->table_row_height );
+    this->remoteview.tableView->resizeColumnToContents ( 0 );
 }
 
 void RemoteView::slot_dir_file_view_double_clicked( const QModelIndex & index )
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     //TODO if the clicked item is direcotry ,
-     //expand left tree dir and update right table view
+    //expand left tree dir and update right table view
     // got the file path , tell tree ' model , then expand it
     //文件列表中的双击事件
     //1。　本地主机，如果是目录，则打开这个目录，如果是文件，则使用本机的程序打开这个文件
@@ -928,37 +921,37 @@ void RemoteView::slot_drag_ready()
 }
 
 bool RemoteView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction action,
-                                 int row, int column, const QModelIndex &parent ) 
+				     int row, int column, const QModelIndex &parent ) 
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
-	QStringList local_file_names;
-	QStringList remote_file_names ;
+    QStringList local_file_names;
+    QStringList remote_file_names ;
     
-	//QTextCodec * codec = QTextCodec::codecForName ( REMOTE_CODEC );
+    //QTextCodec * codec = QTextCodec::codecForName ( REMOTE_CODEC );
         
-	QByteArray ba ;
+    QByteArray ba ;
     
-	directory_tree_item * aim_item = static_cast<directory_tree_item*> ( parent.internalPointer() );
+    directory_tree_item * aim_item = static_cast<directory_tree_item*> ( parent.internalPointer() );
         
-	QString remote_file_name = aim_item->strip_path ;
-	//QString remote_file_type = aim_item->file_type.c_str();
-        remote_file_name = QString("nrsftp://%1:%2@%3:%4").arg(this->user_name).arg(this->password).arg(this->host_name).arg(this->port) + remote_file_name ;
-	remote_file_names << remote_file_name ;
+    QString remote_file_name = aim_item->strip_path ;
+    //QString remote_file_type = aim_item->file_type.c_str();
+    remote_file_name = QString("nrsftp://%1:%2@%3:%4").arg(this->user_name).arg(this->password).arg(this->host_name).arg(this->port) + remote_file_name ;
+    remote_file_names << remote_file_name ;
     
-	QList<QUrl> urls = data->urls( ) ;
+    QList<QUrl> urls = data->urls( ) ;
     
     qDebug() << urls << " action: " << action <<" "<< parent << data->text() <<"remote file:"<< remote_file_name  ;
     
-	if ( urls.count() == 0 )
-	{
-		qDebug() <<" no url droped";
-		return false ;
-	}
+    if ( urls.count() == 0 )
+    {
+	qDebug() <<" no url droped";
+	return false ;
+    }
     
-	QString file_name;
-	for ( int i = 0 ; i < urls.count() ; i ++ )
-	{
+    QString file_name;
+    for ( int i = 0 ; i < urls.count() ; i ++ )
+    {
         qDebug()<<urls.at(i).toString()<<urls.at(i).scheme();
         if( urls.at(i).scheme() == "nrsftp")
         {
@@ -967,7 +960,7 @@ bool RemoteView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction actio
         }
         else if( urls.at(i).scheme() == "file")
         {
-//             file_name = urls.at(i).toString().right(urls.at(i).toString().length()-7 );	
+//file_name = urls.at(i).toString().right(urls.at(i).toString().length()-7 );	
 //             #ifdef WIN32
 //                 //在windows上Qt获取的路径URL带着 file:///前缀 , 如 file:///E:/xxx/bbb.txt , 而在　unix上这个路径为 file:///home/aaa.txt , 前缀为 file:// , 所以两个值还是差1的，需要下面的语句
 //                 file_name = file_name.right( file_name.length() - 1 );
@@ -985,12 +978,12 @@ bool RemoteView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction actio
         {
             qDebug()<<" not support shemem";
         }
-	}
+    }
     if( local_file_names.count() > 0 )
     {
-	   this->slot_new_upload_requested ( local_file_names,remote_file_names );
+	this->slot_new_upload_requested ( local_file_names,remote_file_names );
     }
-	qDebug() <<"drop mime data processed ";
+    qDebug() <<"drop mime data processed ";
     
     return true ;
 }
@@ -1005,40 +998,26 @@ void RemoteView::slot_show_hidden(bool show)
         remote_dir_sort_filter_model_ex->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
     }
 }
-void RemoteView::slot_ssh_server_info()
-{
-  char ** server_info, **pptr ;
-  int sftp_version ;
-
-  pptr = server_info = libssh2_session_get_remote_info(this->ssh2_sess);
-  sftp_version = libssh2_sftp_get_version(this->ssh2_sftp);
-  QMessageBox::warning(this,tr("SSH Server Info:"),QString("%1\nSFTP Version: %2").arg(server_info[0]).arg(sftp_version));
-  //if(server_info != NULL) free(server_info);
-  while(*pptr != NULL){
-    free(*pptr); pptr ++;
-  }
-  free(server_info);
-}
 
 void RemoteView::encryption_focus_label_double_clicked()
 {
-  //qDebug()<<__FILE__<<":"<<__LINE__;
-  EncryptionDetailDialog * enc_dlg = 0;
-  char ** server_info, **pptr;
-  int sftp_version;
+    //qDebug()<<__FILE__<<":"<<__LINE__;
+    EncryptionDetailDialog * enc_dlg = 0;
+    char ** server_info, **pptr;
+    int sftp_version;
 
-  pptr = server_info = libssh2_session_get_remote_info(this->ssh2_sess);
-  sftp_version = libssh2_sftp_get_version(this->ssh2_sftp); 
+    pptr = server_info = libssh2_session_get_remote_info(this->ssh2_sess);
+    sftp_version = libssh2_sftp_get_version(this->ssh2_sftp); 
 
-  enc_dlg = new EncryptionDetailDialog(server_info,this);
-  enc_dlg->exec();
+    enc_dlg = new EncryptionDetailDialog(server_info,this);
+    enc_dlg->exec();
 
-  //if(server_info != NULL) free(server_info);
-  delete enc_dlg;
+    //if(server_info != NULL) free(server_info);
+    delete enc_dlg;
 
-  while(*pptr != NULL){
-    free(*pptr); pptr ++;
-  }
-  free(server_info);
+    while(*pptr != NULL){
+	free(*pptr); pptr ++;
+    }
+    free(server_info);
 }
 

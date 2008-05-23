@@ -1,24 +1,34 @@
-/***************************************************************************
- *   Copyright (C) 2007 by liuguangzhao   *
- *   liuguangzhao@users.sourceforge.net   *
- *
- *   http://www.qtchina.net                                                *
- *   http://nullget.sourceforge.net                                        *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+// remotedirsortfiltermodel.cpp --- 
+// 
+// Filename: remotedirsortfiltermodel.cpp
+// Description: 
+// Author: liuguangzhao
+// Maintainer: 
+// Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sourceforge.net>
+// http://www.qtchina.net
+// http://nullget.sourceforge.net
+// Created: 五  5月 23 22:53:31 2008 (CST)
+// Version: 
+// Last-Updated: 
+//           By: 
+//     Update #: 0
+// URL: 
+// Keywords: 
+// Compatibility: 
+// 
+// 
+
+// Commentary: 
+// 
+// 
+// 
+// 
+
+// Change log:
+// 
+// 
+// 
+
 
 #include "remotedirmodel.h"
 #include "remotedirsortfiltermodel.h"
@@ -146,17 +156,17 @@ RemoteDirSortFilterModelEX::~RemoteDirSortFilterModelEX()
 bool RemoteDirSortFilterModelEX::filterAcceptsRow ( int source_row, const QModelIndex & source_parent ) const
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<this->filters;
-        if( this->source_model->isDir( this->source_model->index(source_row, 0, source_parent)))
-        {
-            //QString file_name = this->source_model->data(this->source_model->index(source_row, 0, source_parent), Qt::DisplayRole).toString();
+    if( this->source_model->isDir( this->source_model->index(source_row, 0, source_parent)))
+    {
+	//QString file_name = this->source_model->data(this->source_model->index(source_row, 0, source_parent), Qt::DisplayRole).toString();
         //qDebug()<<this->source_model->data(this->source_model->index(source_row, 0, source_parent), Qt::DisplayRole).toString();
 //             if(file_name.at(0) == '.') return true;
 //             else return false;
 //             return true;
-            return RemoteDirSortFilterModel::filterAcceptsRow(source_row, source_parent);
-        }else{
-            return false;
-        }
+	return RemoteDirSortFilterModel::filterAcceptsRow(source_row, source_parent);
+    }else{
+	return false;
+    }
 //     if(this->filters &  QDir::Hidden )
 //     {
 //         //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
