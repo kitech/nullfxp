@@ -1,0 +1,5 @@
+
+
+
+代码格式： emacs
+(setq c-default-style "bsd"  c-basic-offset 4)

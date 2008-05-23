@@ -47,6 +47,9 @@ EncryptionDetailDialog::EncryptionDetailDialog(char **server_info, QWidget * par
   this->ui_dlg.label_2->setText(QString("%1 %2").arg(this->ui_dlg.label_2->text()).arg(server_info[5]));
   this->ui_dlg.label_4->setText(QString("%1 %2").arg(this->ui_dlg.label_4->text()).arg(server_info[6]));
   this->ui_dlg.label_3->setText(QString("%1 %2").arg(this->ui_dlg.label_3->text()).arg(server_info[7]));
+
+  QList<QAbstractButton *> ok_cancel_btns = this->ui_dlg.buttonBox->buttons();
+  this->ui_dlg.buttonBox->removeButton(ok_cancel_btns.at(1));
 }
 
 EncryptionDetailDialog::~EncryptionDetailDialog()
