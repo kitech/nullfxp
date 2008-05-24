@@ -198,26 +198,22 @@ void ProgressDialog::slot_set_transfer_percent(int percent  , int total_transfer
 void ProgressDialog::slot_transfer_thread_finished() 
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
-
     
     //this->done(QDialog::Accepted);
     int error_code = this->sftp_transfer_thread->get_error_code();
-    
-    emit this->transfer_finished(error_code);
-    
+    QString errorString = this->sftp_transfer_thread->get_error_message(error_code);
+    emit this->transfer_finished(error_code, errorString);
 }
 
 void ProgressDialog::exec()
 {
-
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
     if(this->first_show)
     {
         this->first_show = 0 ;
         this->sftp_transfer_thread->start(); 
     }
-    //QDialog::exec();
-    
+    //QDialog::exec();    
 }
 void ProgressDialog::show () 
 {

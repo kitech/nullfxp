@@ -135,7 +135,7 @@ private:
     void slot_enter_remote_dir_retrive_loop();
     void slot_leave_remote_dir_retrive_loop();
         
-    void slot_transfer_finished( int status ) ;
+    void slot_transfer_finished( int status, QString errorString ) ;
         
     //view drag
     void slot_drag_ready();

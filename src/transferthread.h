@@ -57,14 +57,17 @@
  * 上执行同步操作，顺序操作，所有的命令序列及响应都是顺序的，不会发生死锁问题。
  * 还有其他的方案吗？
  */
+
 class TransferThread : public QThread
 {
-Q_OBJECT
-public:
+    Q_OBJECT
+	public:
     
     enum { TRANSFER_MIN, TRANSFER_GET,TRANSFER_PUT,TRANSFER_EXCHANGE,TRANSFER_RETRIVE_TO_LOCAL,TRANSFER_RETRIVE_TO_REMOTE ,TRANSFER_MAX };
     enum { PROTO_MIN, PROTO_FILE , PROTO_NRSFTP , PROTO_NRFTP , PROTO_HTTP, PROTO_HTTPS,PROTO_FTP,PROTO_RSTP,PROTO_MMS , PROTO_MAX } ;
     enum {OW_UNKNOWN,OW_CANCEL, OW_YES,OW_YES_ALL,OW_RESUME,OW_NO, OW_NO_ALL};
+    enum {ERRNO_BASE=100};
+    
     
     TransferThread(QObject *parent = 0);
 
@@ -84,61 +87,63 @@ public:
     int do_nrsftp_exchange( QString src_path , QString dest_path );
     
     int   get_error_code () { return this->error_code ;} 
+    QString get_error_message(int error_code){ (void)error_code; return this->errorString;}
     void set_user_cancel( bool cancel );
 
     void user_response_result(int result);
 
-    private :
-        int remote_is_dir( LIBSSH2_SFTP * ssh2_sftp, QString path );
-        int remote_is_reg( LIBSSH2_SFTP * ssh2_sftp, QString path ); 
-        int fxp_do_ls_dir (LIBSSH2_SFTP * ssh2_sftp, QString parent_path  , QVector<QMap<char, QString> > & fileinfos    );
+private :
+    int remote_is_dir( LIBSSH2_SFTP * ssh2_sftp, QString path );
+    int remote_is_reg( LIBSSH2_SFTP * ssh2_sftp, QString path ); 
+    int fxp_do_ls_dir (LIBSSH2_SFTP * ssh2_sftp, QString parent_path  , QVector<QMap<char, QString> > & fileinfos    );
 
-	void wait_user_response();
+    void wait_user_response();
 
-    signals:
-        void  transfer_percent_changed( int percent , int total_transfered ,int transfer_delta );
-        void  transfer_new_file_started(QString new_file_name);
-        void  transfer_got_file_size( int size );
-        void  transfer_log(QString log);
-	void dest_file_exists(QString src_file, QString src_file_size, QString src_file_date, QString dest_file, QString dest_file_size, QString dest_file_date);
+signals:
+    void  transfer_percent_changed( int percent , int total_transfered ,int transfer_delta );
+    void  transfer_new_file_started(QString new_file_name);
+    void  transfer_got_file_size( int size );
+    void  transfer_log(QString log);
+    void dest_file_exists(QString src_file, QString src_file_size, QString src_file_date, QString dest_file, QString dest_file_size, QString dest_file_date);
         
-    private:
+private:
         
-        LIBSSH2_SESSION * dest_ssh2_sess;
-        LIBSSH2_SFTP * dest_ssh2_sftp;
-        int dest_ssh2_sock ;
+    LIBSSH2_SESSION * dest_ssh2_sess;
+    LIBSSH2_SFTP * dest_ssh2_sftp;
+    int dest_ssh2_sock ;
         
-        LIBSSH2_SESSION * src_ssh2_sess ;
-        LIBSSH2_SFTP * src_ssh2_sftp ;
-        int src_ssh2_sock ;
+    LIBSSH2_SESSION * src_ssh2_sess ;
+    LIBSSH2_SFTP * src_ssh2_sftp ;
+    int src_ssh2_sock ;
         
-        bool user_canceled ;
-	int file_exist_over_write_method;
+    bool user_canceled ;
+    int file_exist_over_write_method;
         
-        //int transfer_type ;
+    //int transfer_type ;
 
-        QStringList src_file_names ;
-        QStringList dest_file_names;
+    QStringList src_file_names ;
+    QStringList dest_file_names;
         
-        uint64_t total_file_size ;
-        uint64_t total_transfered_file_length ; 
-        uint32_t total_file_count ;
-        uint32_t total_transfered_file_count ;
-        uint64_t current_file_size ;
-        uint64_t current_file_transfered_length ;
-        QString  current_src_file_name;
-        QString  current_src_file_type;
-        QString  current_dest_file_name;
-        QString  current_dest_file_type;
+    uint64_t total_file_size ;
+    uint64_t total_transfered_file_length ; 
+    uint32_t total_file_count ;
+    uint32_t total_transfered_file_count ;
+    uint64_t current_file_size ;
+    uint64_t current_file_transfered_length ;
+    QString  current_src_file_name;
+    QString  current_src_file_type;
+    QString  current_dest_file_name;
+    QString  current_dest_file_type;
 
-	QVector<QPair<QPair<QString,QString> , QPair<QString,QString> > > transfer_ready_queue;
-        QVector<QPair<QPair<QString,QString> , QPair<QString,QString> > > transfer_done_queue;
-	QVector<QPair<QPair<QString,QString> , QPair<QString,QString> > > transfer_error_queue;
-        //
-        int error_code ;
-	//
-	QWaitCondition  wait_user_response_cond;
-	QMutex     wait_user_response_mutex;
+    QVector<QPair<QPair<QString,QString> , QPair<QString,QString> > > transfer_ready_queue;
+    QVector<QPair<QPair<QString,QString> , QPair<QString,QString> > > transfer_done_queue;
+    QVector<QPair<QPair<QString,QString> , QPair<QString,QString> > > transfer_error_queue;
+    //
+    int error_code ;
+    QString errorString;
+    //
+    QWaitCondition  wait_user_response_cond;
+    QMutex     wait_user_response_mutex;
 };
 
 #endif

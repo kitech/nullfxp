@@ -690,8 +690,8 @@ void RemoteView::slot_new_upload_requested ( QStringList local_file_names,  QStr
         pdlg->set_transfer_info (/* TransferThread::TRANSFER_PUT,*/local_file_names , remote_file_names ) ;
 // 		QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
 // 		                   this,SLOT ( slot_transfer_finished ( int ) ) );
-        QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
-                           remote_view , SLOT ( slot_transfer_finished ( int ) ) );        
+        QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int, QString ) ),
+                           remote_view , SLOT ( slot_transfer_finished ( int, QString ) ) );        
 //         remote_view->slot_enter_remote_dir_retrive_loop();
         //pdlg->setWindowModality(Qt::WindowModal);
 //         pdlg->exec();
@@ -761,8 +761,8 @@ void RemoteView::slot_new_download_requested(QStringList local_file_names,   QSt
     //pdlg->set_transfer_info ( /*TransferThread::TRANSFER_GET,*/local_file_names,remote_file_names );
     // src is remote file , dest if localfile 
     pdlg->set_transfer_info ( /*TransferThread::TRANSFER_GET,*/remote_file_names , local_file_names );
-    QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
-		       this,SLOT ( slot_transfer_finished ( int ) ) );
+    QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int,QString ) ),
+		       this,SLOT ( slot_transfer_finished ( int ,QString) ) );
 //     remote_view->slot_enter_remote_dir_retrive_loop();
     //pdlg->exec();
     this->main_mdi_area->addSubWindow(pdlg);
@@ -807,19 +807,14 @@ void RemoteView::slot_new_download_requested( QStringList remote_file_names )
     }
 }
 
-void RemoteView::slot_transfer_finished( int status ) 
+void RemoteView::slot_transfer_finished( int status, QString errorString ) 
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
     RemoteView * remote_view = this/*->get_top_most_remote_view()*/ ;
     
     ProgressDialog * pdlg = ( ProgressDialog* ) sender();
 
-    if ( status != 0 && status != 3  )
-    {
-        QMessageBox::critical ( this,QString ( tr ( "Error: " ) ),
-                                QString ( tr ( "Unknown error: %1         " ) ).arg ( status ) );
-    }
-    else if(status == 0 || status ==3 )
+    if(status == 0 || status ==3 )
     {
 	//TODO 通知UI更新目录结构,在某些情况下会导致左侧树目录变空。
         //int transfer_type = pdlg->get_transfer_type();
@@ -836,6 +831,10 @@ void RemoteView::slot_transfer_finished( int status )
 	    // xxxxx: 没有预期到的错误
             //assert ( 1== 2 );
         }
+    }else if ( status != 0 && status != 3  ){
+	QMessageBox::critical ( this,QString ( tr ( "Error: " ) ),
+                                QString ( errorString  ).arg ( status ) );
+	
     }
     this->main_mdi_area->removeSubWindow(pdlg->parentWidget());
     delete pdlg ;
