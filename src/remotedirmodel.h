@@ -162,7 +162,7 @@ signals:
     void leave_remote_dir_retrive_loop();
         
 private:
-    enum { DEFAULT_KEEP_ALIVE_TIMEOUT=30 };
+    enum { DEFAULT_KEEP_ALIVE_TIMEOUT=30*1000 };
     directory_tree_item * tree_root ;
     //struct sftp_conn * sftp_connection ;
     RemoteDirRetriveThread * remote_dir_retrive_thread ;

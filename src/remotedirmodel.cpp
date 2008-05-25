@@ -58,10 +58,10 @@ RemoteDirModel::RemoteDirModel (  QObject *parent )
     this->keep_alive = true ;
     this->keep_alive_timer = new QTimer();
     this->keep_alive_interval = DEFAULT_KEEP_ALIVE_TIMEOUT ;
-    this->keep_alive_timer->setInterval( this->keep_alive_interval*1000 );
+    this->keep_alive_timer->setInterval( this->keep_alive_interval );
     QObject::connect(this->keep_alive_timer,SIGNAL(timeout()),
                      this,SLOT( slot_keep_alive_time_out() ) );
-    //this->keep_alive_timer->start( this->keep_alive_interval * 1000 );
+
 }
 void RemoteDirModel::set_ssh2_handler( void * ssh2_sess /*, void * ssh2_sftp, int ssh2_sock*/ )
 {
@@ -678,7 +678,7 @@ void RemoteDirModel::set_keep_alive(bool keep_alive,int time_out)
     if( time_out != this->keep_alive_interval)
     {
         this->keep_alive_interval = time_out  ;
-        this->keep_alive_timer->setInterval(this->keep_alive_interval*1000);
+        this->keep_alive_timer->setInterval(this->keep_alive_interval);
     }
     //assert(1==2);
     if( keep_alive != this->keep_alive )
