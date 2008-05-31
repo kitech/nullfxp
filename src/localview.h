@@ -1,22 +1,34 @@
-/***************************************************************************
- *   Copyright (C) 2007-2008 by liuguangzhao   *
- *   liuguangzhao@users.sourceforge.net   *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+/* localview.h --- 
+ * 
+ * Filename: localview.h
+ * Description: 
+ * Author: liuguangzhao
+ * Maintainer: 
+ * Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sourceforge.net>
+ * http://www.qtchina.net
+ * http://nullget.sourceforge.net
+ * Created: 六  5月 31 15:26:31 2008 (CST)
+ * Version: 
+ * Last-Updated: 
+ *           By: 
+ *     Update #: 0
+ * URL: 
+ * Keywords: 
+ * Compatibility: 
+ * 
+ */
+
+/* Commentary: 
+ * 
+ * 
+ * 
+ */
+
+/* Change log:
+ * 
+ * 
+ */
+
 #ifndef LOCALVIEW_H
 #define LOCALVIEW_H
 
@@ -34,13 +46,11 @@
 
 class RemoteView ;
 
-/**
-	@author liuguangzhao <liuguangzhao@users.sourceforge.net>
-*/
+
 class LocalView : public QWidget
 {
-Q_OBJECT
-public:
+    Q_OBJECT
+	public:
     LocalView(QWidget *parent = 0);
 
     ~LocalView();
@@ -49,44 +59,45 @@ public:
     
     void update_layout();
     
-    signals:
-        void new_upload_requested(QStringList local_file_names);
+signals:
+    void new_upload_requested(QStringList local_file_names);
         
-    private:
-        QStatusBar * status_bar ;
-        QDirModel * model ;
-        Ui::LocalView localView ;
-        LocalDirSortFilterModel * dir_file_model ;
-        int   table_row_height ;
-        QAbstractItemView * curr_item_view ;    //
+private:
+    QStatusBar * status_bar ;
+    QDirModel * model ;
+    Ui::LocalView localView ;
+    LocalDirSortFilterModel * dir_file_model ;
+    int   table_row_height ;
+    QAbstractItemView * curr_item_view ;    //
         
-        void expand_to_home_directory(QModelIndex parent_model,int level );
+    void expand_to_home_directory(QModelIndex parent_model,int level );
         
-        QMenu * local_dir_tree_context_menu ;
+    QMenu * local_dir_tree_context_menu ;
         
-        void init_local_dir_tree_context_menu();
+    void init_local_dir_tree_context_menu();
         
     public slots:
         
-        void slot_local_dir_tree_context_menu_request(const QPoint & pos );
+    void slot_local_dir_tree_context_menu_request(const QPoint & pos );
         
-        void slot_local_new_upload_requested();
+    void slot_local_new_upload_requested();
         
-        void slot_refresh_directory_tree();
+    void slot_refresh_directory_tree();
         
-        void slot_show_hidden(bool show);
+    void slot_show_hidden(bool show);
         
     private slots:
-        void slot_dir_tree_item_clicked( const QModelIndex & index);
-        void slot_dir_file_view_double_clicked( const QModelIndex & index );
-        void slot_show_properties();
-        void slot_mkdir();
-        void slot_rmdir();
-        void slot_rename();
-        void rm_file_or_directory_recursively();
+    void slot_dir_tree_item_clicked( const QModelIndex & index);
+    void slot_dir_file_view_double_clicked( const QModelIndex & index );
+    void slot_show_properties();
+    void slot_mkdir();
+    void slot_rmdir();
+    void slot_rename();
+    void rm_file_or_directory_recursively();
+    void slot_copy_path_url();
         
-    protected:
-        virtual void closeEvent ( QCloseEvent * event );
+protected:
+    virtual void closeEvent ( QCloseEvent * event );
 };
 
 #endif

@@ -9,9 +9,9 @@
  * http://nullget.sourceforge.net
  * Created: 一  5月  5 22:09:15 2008 (CST)
  * Version: 
- * Last-Updated: 五  5月 23 22:49:11 2008 (CST)
+ * Last-Updated: 六  5月 31 15:25:48 2008 (CST)
  *           By: liuguangzhao
- *     Update #: 1
+ *     Update #: 2
  * URL: 
  * Keywords: 
  * Compatibility: 
@@ -163,6 +163,7 @@ signals:
     void slot_mkdir();
     void slot_rmdir();        
     void slot_rename();
+    void slot_copy_path_url();
         
     void rm_file_or_directory_recursively();
 
