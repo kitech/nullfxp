@@ -653,7 +653,8 @@ void RemoteView::slot_rename()
     directory_tree_item * parent_item = (directory_tree_item*)parent_model.internalPointer();
     
     QString rename_to ;
-    rename_to = QInputDialog::getText(this,tr("Rename to:"),  tr("Input new name:"),
+    rename_to = QInputDialog::getText(this,tr("Rename to:"),  tr("Input new name:")
+				      +"                                                        ",
 				      QLineEdit::Normal, dti->file_name );
      
     if(  rename_to  == QString::null )
