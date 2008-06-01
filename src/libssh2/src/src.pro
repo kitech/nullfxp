@@ -33,11 +33,15 @@ DESTDIR = .
 TEMPLATE = lib
 
 CONFIG += staticlib \
- console \
- debug
+ console 
 
-CONFIG -= qt \
- release
+CONFIG -= qt 
+
+win32 {
+	CONFIG += release
+} else {
+	CONFIG += debug release
+}
 
 
 

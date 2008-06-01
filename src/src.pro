@@ -31,13 +31,17 @@ SOURCES += main.cpp \
 
 TEMPLATE = app
 VERSION = 1.5.6
-CONFIG += qt thread console warn_on ordered  debug
+CONFIG += qt thread console warn_on ordered  
 TARGET = nullfxp
 DESTDIR = ../bin
 
 QT += network 
-QT += webkit
-
+win32 {
+	CONFIG += release
+} else {
+	QT += webkit
+	CONFIG += debug release
+}
 UI_DIR = obj
 MOC_DIR = obj
 OBJECTS_DIR = obj

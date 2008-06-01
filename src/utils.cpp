@@ -4,11 +4,13 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <fcntl.h>
 
 #include "globaloption.h"
 
 #ifdef WIN32
 #include <windows.h>
+#include <winsock2.h>
 
 //#define	_IFMT		0170000	/* type of file */
 //#define		_IFDIR	0040000	/* directory */
@@ -289,4 +291,14 @@ long fxp_getpid()
 #endif
     
     return pid ;
+}
+
+int set_nonblock (int sock)
+{
+#ifdef WIN32
+  unsigned long flags = 1;
+  return (ioctlsocket(sock, FIONBIO, &flags) != SOCKET_ERROR);
+#else
+  return (fcntl(sock, F_SETFL, O_NONBLOCK) != -1);
+#endif
 }

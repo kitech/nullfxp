@@ -177,16 +177,24 @@ void RemoteHostConnectThread::run()
     this->ssh2_sock = socket(AF_INET,SOCK_STREAM,0);
     assert(this->ssh2_sock > 0);
     //设置连接超时
-    int sock_flag = fcntl(this->ssh2_sock, F_GETFL);
+    unsigned long sock_flag = 1;
+    #ifdef WIN32
+    ioctlsocket(this->ssh2_sock, FIONBIO, &sock_flag);
+    #else
+    sock_flag = fcntl(this->ssh2_sock, F_GETFL);
     fcntl(this->ssh2_sock, F_SETFL, sock_flag | O_NONBLOCK);
-  
+  	#endif
     ret = ::connect( this->ssh2_sock,(struct sockaddr*)&serv_addr,sizeof(serv_addr));
 
     struct timeval timeo = {10, 0};//连接超时10秒
     fd_set set;
     FD_ZERO(&set);
     FD_SET(this->ssh2_sock, &set);
+    #ifdef WIN32
     ret = select(this->ssh2_sock + 1, NULL, &set, NULL, &timeo);
+    #else
+    ret = select(this->ssh2_sock + 1, NULL, &set, NULL, &timeo);
+    #endif
     if( ret == -1){
 	assert( 1==2);
     }else if( ret == 0 ) {
@@ -197,7 +205,12 @@ void RemoteHostConnectThread::run()
 	//assert( ret == 0 );
 	return ;
     }
+    #ifdef WIN32
+    sock_flag = 0;
+    ioctlsocket(this->ssh2_sock, FIONBIO, &sock_flag);
+    #else
     fcntl(this->ssh2_sock, F_SETFL, sock_flag);
+    #endif
     if( this->user_canceled == true ){
 	this->connect_status = 2 ;
 #ifdef WIN32

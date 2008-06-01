@@ -60,6 +60,12 @@ int  fxp_local_do_mkdir(const char * path );
 
 long fxp_getpid();
 
+/*
+ * Sets a socket to non-blocking operation.
+ */
+int set_nonblock (int sock);
+
+
 #ifdef __cplusplush
 };
 #endif
