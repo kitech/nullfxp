@@ -55,7 +55,7 @@ RemoteView::RemoteView(QMdiArea * main_mdi_area ,LocalView * local_view ,QWidget
     this->layout()->addWidget(status_bar);
     this->status_bar->addPermanentWidget(this->enc_label = new EncryptionDetailFocusLabel("ENC", this));
     QObject::connect(this->enc_label, SIGNAL(mouseDoubleClick()),
-		     this, SLOT(encryption_focus_label_double_clicked()));
+                     this, SLOT(encryption_focus_label_double_clicked()));
 
     ////////////
     
@@ -312,7 +312,7 @@ QString RemoteView::get_selected_directory()
 void RemoteView::set_ssh2_handler( void * ssh2_sess /*, void * ssh2_sftp*/ , int ssh2_sock )
 {
     this->ssh2_sess = (LIBSSH2_SESSION*) ssh2_sess ;
-//     this->ssh2_sftp = (LIBSSH2_SFTP * ) ssh2_sftp ;
+    //     this->ssh2_sftp = (LIBSSH2_SFTP * ) ssh2_sftp ;
     this->ssh2_sftp = libssh2_sftp_init( this->ssh2_sess );
     assert( this->ssh2_sftp != 0 );
     
@@ -443,7 +443,7 @@ void RemoteView::update_layout()
     
     if( mil.count() == 0 )
     {
-	qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
     }
     
     for(int i = 0 ; i < mil.size(); i +=4 )
@@ -486,7 +486,7 @@ void RemoteView::slot_show_properties()
         }
     }
     else{
-//         aim_mil = mil ;
+        //         aim_mil = mil ;
         for( int i = 0 ; i < mil.count() ; i ++ )
         {
             aim_mil << this->remote_dir_sort_filter_model->mapToSource( mil.at(i) );
@@ -540,10 +540,10 @@ void RemoteView::slot_mkdir()
     }
     
     dir_name = QInputDialog::getText(this,tr("Create directory:"),
-				     tr("Input directory name:")
+                                     tr("Input directory name:")
                                      +"                                                        ",
-				     QLineEdit::Normal,
-				     tr("new_direcotry") );
+                                     QLineEdit::Normal,
+                                     tr("new_direcotry") );
     if( dir_name == QString::null )
     {
         return ;
@@ -598,18 +598,15 @@ void RemoteView::rm_file_or_directory_recursively()
     
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
-    if(ism == 0)
-    {
+    if(ism == 0){
         qDebug()<<" why???? no QItemSelectionModel??";
         QMessageBox::critical(this,tr("Waring..."),tr("Maybe you haven't connected"));                
         return  ;
-        return ;
     }
     
     QModelIndexList mil = ism->selectedIndexes()   ;
     
-    if( mil.count() == 0 )
-    {
+    if( mil.count() == 0 ) {
         qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
         QMessageBox::critical(this,tr("Waring..."),tr("No item selected"));
         return ;
@@ -618,10 +615,14 @@ void RemoteView::rm_file_or_directory_recursively()
     QModelIndex midx = mil.at(0);
     QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) ? this->remote_dir_sort_filter_model_ex->mapToSource(midx): this->remote_dir_sort_filter_model->mapToSource(midx) ;
     directory_tree_item * dti = (directory_tree_item*) aim_midx.internalPointer();
-    QModelIndex parent_model =  aim_midx.parent() ;
-    directory_tree_item * parent_item = (directory_tree_item*)parent_model.internalPointer();
+    if(QMessageBox::warning(this, tr("Warning:"), 
+                            tr("Are you sure remote this directory and it's subnodes"),
+                            QMessageBox::Yes, QMessageBox::Cancel) == QMessageBox::Yes) {
+        QModelIndex parent_model =  aim_midx.parent() ;
+        directory_tree_item * parent_item = (directory_tree_item*)parent_model.internalPointer();
     
-    this->remote_dir_model->slot_execute_command(parent_item,parent_model.internalPointer() ,SSH2_FXP_REMOVE ,  dti->file_name   );
+        this->remote_dir_model->slot_execute_command(parent_item,parent_model.internalPointer() ,SSH2_FXP_REMOVE ,  dti->file_name   );
+    }
 }
 
 void RemoteView::slot_rename()
@@ -630,8 +631,7 @@ void RemoteView::slot_rename()
     
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
-    if(ism == 0)
-    {
+    if(ism == 0) {
         qDebug()<<" why???? no QItemSelectionModel??";
         QMessageBox::critical(this,tr("waring..."),tr("maybe you haven't connected"));                
         return  ;
@@ -639,8 +639,7 @@ void RemoteView::slot_rename()
     
     QModelIndexList mil = ism->selectedIndexes()   ;
     
-    if( mil.count() == 0 )
-    {
+    if( mil.count() == 0 ) {
         qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
         QMessageBox::critical(this,tr("waring..."),tr("no item selected"));
         return ;
@@ -654,19 +653,17 @@ void RemoteView::slot_rename()
     
     QString rename_to ;
     rename_to = QInputDialog::getText(this,tr("Rename to:"),  tr("Input new name:")
-				      +"                                                        ",
-				      QLineEdit::Normal, dti->file_name );
+                                      +"                                                        ",
+                                      QLineEdit::Normal, dti->file_name );
      
-    if(  rename_to  == QString::null )
-    {
+    if(  rename_to  == QString::null ) {
         //qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
         //QMessageBox::critical(this,tr("Waring..."),tr("No new name supplyed "));
         return;
     }
-    if( rename_to.length() == 0 )
-    {
-	QMessageBox::critical(this,tr("Waring..."),tr("No new name supplyed "));
-	return ;
+    if( rename_to.length() == 0 ) {
+        QMessageBox::critical(this,tr("Waring..."),tr("No new name supplyed "));
+        return ;
     }
 
     this->remote_dir_model->slot_execute_command(parent_item,parent_model.internalPointer() ,SSH2_FXP_RENAME ,  dti->file_name + "!" + rename_to );
@@ -701,27 +698,24 @@ void RemoteView::slot_new_upload_requested ( QStringList local_file_names,  QStr
 {
     RemoteView * remote_view = this ;
     //if( this->in_remote_dir_retrive_loop )
-    if(0)
-    {
+    if(0) {
         //TODO 这个分支原是用于判断与目录树操作的冲突，当前模式下所有传输都使用新的SSH连接，因而这个不在需要了
         QMessageBox::warning(this,tr("Attentions:"),tr("retriving remote directory tree,wait a minute please.") );
         return ;
-    }
-    else
-    {
+    } else {
         ProgressDialog * pdlg = new ProgressDialog (  );
-//         pdlg->set_remote_connection ( remote_view->get_ssh2_sess() /*,
-//                                       remote_view->get_ssh2_sftp(),
-//                                               remote_view->get_ssh2_sock() */ );
+        //         pdlg->set_remote_connection ( remote_view->get_ssh2_sess() /*,
+        //                                       remote_view->get_ssh2_sftp(),
+        //                                               remote_view->get_ssh2_sock() */ );
 
         pdlg->set_transfer_info (/* TransferThread::TRANSFER_PUT,*/local_file_names , remote_file_names ) ;
-// 		QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
-// 		                   this,SLOT ( slot_transfer_finished ( int ) ) );
+        //      QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
+        //                         this,SLOT ( slot_transfer_finished ( int ) ) );
         QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int, QString ) ),
                            remote_view , SLOT ( slot_transfer_finished ( int, QString ) ) );        
-//         remote_view->slot_enter_remote_dir_retrive_loop();
+        //         remote_view->slot_enter_remote_dir_retrive_loop();
         //pdlg->setWindowModality(Qt::WindowModal);
-//         pdlg->exec();
+        //         pdlg->exec();
         this->main_mdi_area->addSubWindow(pdlg);
         pdlg->show();
         this->own_progress_dialog = pdlg ;
@@ -756,21 +750,21 @@ void RemoteView::slot_new_upload_requested ( QStringList local_file_names )
         remote_file_name = QString("nrsftp://%1:%2@%3:%4").arg(this->user_name).arg(this->password).arg(this->host_name).arg(this->port) + remote_file_name ;
         remote_file_names << remote_file_name ;
         this->slot_new_upload_requested( local_file_names , remote_file_names );
-//         ProgressDialog * pdlg = new ProgressDialog (  );
-//         pdlg->set_remote_connection ( remote_view->get_ssh2_sess() ,
-//                                       remote_view->get_ssh2_sftp(),
-//                                               remote_view->get_ssh2_sock()  );
-// 
-//         pdlg->set_transfer_info ( TransferThread::TRANSFER_PUT,local_file_names , remote_file_names ) ;
-// // 		QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
-// // 		                   this,SLOT ( slot_transfer_finished ( int ) ) );
-//         QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
-//                            remote_view , SLOT ( slot_transfer_finished ( int ) ) );        
-//         remote_view->slot_enter_remote_dir_retrive_loop();
-//         //pdlg->setWindowModality(Qt::WindowModal);
-// //         pdlg->exec();
-//         this->main_mdi_area->addSubWindow(pdlg);
-//         pdlg->show();
+        //         ProgressDialog * pdlg = new ProgressDialog (  );
+        //         pdlg->set_remote_connection ( remote_view->get_ssh2_sess() ,
+        //                                       remote_view->get_ssh2_sftp(),
+        //                                               remote_view->get_ssh2_sock()  );
+        // 
+        //         pdlg->set_transfer_info ( TransferThread::TRANSFER_PUT,local_file_names , remote_file_names ) ;
+        // //       QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
+        // //                          this,SLOT ( slot_transfer_finished ( int ) ) );
+        //         QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
+        //                            remote_view , SLOT ( slot_transfer_finished ( int ) ) );        
+        //         remote_view->slot_enter_remote_dir_retrive_loop();
+        //         //pdlg->setWindowModality(Qt::WindowModal);
+        // //         pdlg->exec();
+        //         this->main_mdi_area->addSubWindow(pdlg);
+        //         pdlg->show();
     }
 }
 
@@ -782,15 +776,15 @@ void RemoteView::slot_new_download_requested(QStringList local_file_names,   QSt
     RemoteView * remote_view = this/*->get_top_most_remote_view()*/ ;
         
     ProgressDialog *pdlg = new ProgressDialog ( 0 );
-//     pdlg->set_remote_connection ( remote_view->get_ssh2_sess() /*,
-//                                   remote_view->get_ssh2_sftp(),
-//                                           remote_view->get_ssh2_sock() */ );
+    //     pdlg->set_remote_connection ( remote_view->get_ssh2_sess() /*,
+    //                                   remote_view->get_ssh2_sftp(),
+    //                                           remote_view->get_ssh2_sock() */ );
     //pdlg->set_transfer_info ( /*TransferThread::TRANSFER_GET,*/local_file_names,remote_file_names );
     // src is remote file , dest if localfile 
     pdlg->set_transfer_info ( /*TransferThread::TRANSFER_GET,*/remote_file_names , local_file_names );
     QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int,QString ) ),
-		       this,SLOT ( slot_transfer_finished ( int ,QString) ) );
-//     remote_view->slot_enter_remote_dir_retrive_loop();
+                       this,SLOT ( slot_transfer_finished ( int ,QString) ) );
+    //     remote_view->slot_enter_remote_dir_retrive_loop();
     //pdlg->exec();
     this->main_mdi_area->addSubWindow(pdlg);
     pdlg->show();
@@ -806,31 +800,31 @@ void RemoteView::slot_new_download_requested( QStringList remote_file_names )
     RemoteView * remote_view = this/*->get_top_most_remote_view() */;
     
     local_file_path = this->local_view->get_selected_directory();
-	
+    
     qDebug()<<local_file_path;
     if ( local_file_path.length() == 0 || ! is_dir( GlobalOption::instance()->locale_codec->fromUnicode( local_file_path  ).data() ) )
     {
-	qDebug() <<" selected a local file directory  please";
-	QMessageBox::critical ( this,tr ( "waring..." ),tr ( "you should selecte a local file directory." ) );
+        qDebug() <<" selected a local file directory  please";
+        QMessageBox::critical ( this,tr ( "waring..." ),tr ( "you should selecte a local file directory." ) );
     }
     else
     {
         local_file_path = QString("file://"
 #ifdef WIN32
-				  "/"
+                                  "/"
 #endif
-	    ) + local_file_path ;
+                                  ) + local_file_path ;
         local_file_names << local_file_path ;
         this->slot_new_download_requested( local_file_names,remote_file_names);
-// 		ProgressDialog *pdlg = new ProgressDialog ( this );
-//         pdlg->set_remote_connection ( remote_view->get_ssh2_sess() ,
-//                                       remote_view->get_ssh2_sftp(),
-//                                               remote_view->get_ssh2_sock()  );
-// 		pdlg->set_transfer_info ( TransferThread::TRANSFER_GET,local_file_names,remote_file_names );
-// 		QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
-// 		                   this,SLOT ( slot_transfer_finished ( int ) ) );
-//         remote_view->slot_enter_remote_dir_retrive_loop();
-// 		pdlg->exec();
+        //      ProgressDialog *pdlg = new ProgressDialog ( this );
+        //         pdlg->set_remote_connection ( remote_view->get_ssh2_sess() ,
+        //                                       remote_view->get_ssh2_sftp(),
+        //                                               remote_view->get_ssh2_sock()  );
+        //      pdlg->set_transfer_info ( TransferThread::TRANSFER_GET,local_file_names,remote_file_names );
+        //      QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
+        //                         this,SLOT ( slot_transfer_finished ( int ) ) );
+        //         remote_view->slot_enter_remote_dir_retrive_loop();
+        //      pdlg->exec();
     }
 }
 
@@ -843,7 +837,7 @@ void RemoteView::slot_transfer_finished( int status, QString errorString )
 
     if(status == 0 || status ==3 )
     {
-	//TODO 通知UI更新目录结构,在某些情况下会导致左侧树目录变空。
+        //TODO 通知UI更新目录结构,在某些情况下会导致左侧树目录变空。
         //int transfer_type = pdlg->get_transfer_type();
         //if ( transfer_type == TransferThread::TRANSFER_GET )
         {
@@ -855,18 +849,18 @@ void RemoteView::slot_transfer_finished( int status, QString errorString )
         }
         //else
         {
-	    // xxxxx: 没有预期到的错误
+            // xxxxx: 没有预期到的错误
             //assert ( 1== 2 );
         }
     }else if ( status != 0 && status != 3  ){
-	QMessageBox::critical ( this,QString ( tr ( "Error: " ) ),
+        QMessageBox::critical ( this,QString ( tr ( "Error: " ) ),
                                 QString ( errorString  ).arg ( status ) );
-	
+    
     }
     this->main_mdi_area->removeSubWindow(pdlg->parentWidget());
     delete pdlg ;
     this->own_progress_dialog = 0 ;
-//     remote_view->slot_leave_remote_dir_retrive_loop();
+    //     remote_view->slot_leave_remote_dir_retrive_loop();
 }
 
 /**
@@ -883,7 +877,7 @@ void RemoteView::slot_dir_tree_item_clicked ( const QModelIndex & index )
     file_path = this->remote_dir_sort_filter_model_ex->filePath ( index );
     this->remoteview.tableView->setRootIndex ( this->remote_dir_sort_filter_model->index ( file_path ) ) ;
     for ( int i = 0 ; i < this->remote_dir_sort_filter_model->rowCount ( this->remote_dir_sort_filter_model->index ( file_path ) ); i ++ )
-	this->remoteview.tableView->setRowHeight ( i,this->table_row_height );
+        this->remoteview.tableView->setRowHeight ( i,this->table_row_height );
     this->remoteview.tableView->resizeColumnToContents ( 0 );
 }
 
@@ -947,7 +941,7 @@ void RemoteView::slot_drag_ready()
 }
 
 bool RemoteView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction action,
-				     int row, int column, const QModelIndex &parent ) 
+                                     int row, int column, const QModelIndex &parent ) 
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
@@ -971,8 +965,8 @@ bool RemoteView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction actio
     
     if ( urls.count() == 0 )
     {
-	qDebug() <<" no url droped";
-	return false ;
+        qDebug() <<" no url droped";
+        return false ;
     }
     
     QString file_name;
@@ -986,12 +980,12 @@ bool RemoteView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction actio
         }
         else if( urls.at(i).scheme() == "file")
         {
-//file_name = urls.at(i).toString().right(urls.at(i).toString().length()-7 );	
-//             #ifdef WIN32
-//                 //在windows上Qt获取的路径URL带着 file:///前缀 , 如 file:///E:/xxx/bbb.txt , 而在　unix上这个路径为 file:///home/aaa.txt , 前缀为 file:// , 所以两个值还是差1的，需要下面的语句
-//                 file_name = file_name.right( file_name.length() - 1 );
-//                 //qDebug()<< file_name << strlen( "file:///") ;
-//             #endif
+            //file_name = urls.at(i).toString().right(urls.at(i).toString().length()-7 );   
+            //             #ifdef WIN32
+            //                 //在windows上Qt获取的路径URL带着 file:///前缀 , 如 file:///E:/xxx/bbb.txt , 而在　unix上这个路径为 file:///home/aaa.txt , 前缀为 file:// , 所以两个值还是差1的，需要下面的语句
+            //                 file_name = file_name.right( file_name.length() - 1 );
+            //                 //qDebug()<< file_name << strlen( "file:///") ;
+            //             #endif
             //if ( file_name.trimmed().length() == 0 ) continue ;
             //从 Qt 内部编码到本地编码
             //ba = codec->fromUnicode ( file_name );
@@ -1007,7 +1001,7 @@ bool RemoteView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction actio
     }
     if( local_file_names.count() > 0 )
     {
-	this->slot_new_upload_requested ( local_file_names,remote_file_names );
+        this->slot_new_upload_requested ( local_file_names,remote_file_names );
     }
     qDebug() <<"drop mime data processed ";
     
@@ -1042,7 +1036,7 @@ void RemoteView::encryption_focus_label_double_clicked()
     delete enc_dlg;
 
     while(*pptr != NULL){
-	free(*pptr); pptr ++;
+        free(*pptr); pptr ++;
     }
     free(server_info);
 }
