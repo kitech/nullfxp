@@ -29,6 +29,17 @@
 // Code:
 
 #include "basestorage.h"
+
+
+BaseStorage * BaseStorage::mInstance = NULL;
+BaseStorage * BaseStorage::instance()
+{
+    if(BaseStorage::mInstance == NULL) {
+        BaseStorage::mInstance = new BaseStorage();
+    }
+    return BaseStorage::mInstance;
+}
+
 BaseStorage::BaseStorage()
 {
 }
@@ -61,6 +72,8 @@ bool BaseStorage::open()
     this->ioStream>>this->hosts;
     this->ioStream>>this->vec_hosts;
 
+    //qDebug()<<__FILE__<<__LINE__<<this->hosts;
+
     return true;
 }
 
@@ -84,7 +97,7 @@ bool BaseStorage::save()
     this->ioStream<<this->hosts;
     this->ioStream<<this->vec_hosts;
 
-    qDebug()<<__FILE__<<__LINE__<<this->hosts;
+    //qDebug()<<__FILE__<<__LINE__<<this->hosts;
 
     return true;
 }
@@ -117,14 +130,23 @@ bool BaseStorage::removeHost(QString show_name)
 
 bool BaseStorage::updateHost(QMap<QString,QString> host)
 {
-    if(!host.contains("hid") || host["hid"].length() == 0) {
-        host["hid"] = QString("%1").arg(this->generate_hid());
-        qDebug()<<host<<__LINE__;
+    QMap<QString, QString> old_host;
+
+    if(this->containsHost(host["show_name"])){
+        old_host = this->hosts[host["show_name"]];
+        if(!old_host.contains("hid")) {
+            host["hid"] = QString("%1").arg(this->generate_hid());
+        }else{
+            host["hid"] = old_host["hid"];
+        }
+        this->hosts[host["show_name"]] = host;
+    }else{
+        if(!host.contains("hid") || host["hid"].length() == 0) {
+            host["hid"] = QString("%1").arg(this->generate_hid());
+            //qDebug()<<host<<__LINE__;
+        }
+        this->hosts[host["show_name"]] = host;
     }
-    if(this->containsHost(host["show_name"]))
-        this->hosts[host["show_name"]] = host;
-    else
-        this->hosts[host["show_name"]] = host;
     this->changed = true;
     return true;
 }
@@ -153,7 +175,7 @@ QMap<QString, QMap<QString,QString> > & BaseStorage::getAllHost()
     return this->hosts;
 }
 
-QMap<QString,QString> BaseStorage::getHost(QString show_name)
+QMap<QString,QString> & BaseStorage::getHost(QString show_name)
 {
     QMap<QString,QString> host;
 

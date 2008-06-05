@@ -75,9 +75,9 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
     mdiArea = new QMdiArea;
     mdiArea->setWindowIcon(QIcon(":/icons/nullget-2.png") ); 
     QObject::connect ( this->mUIMain.actionTransfer_queue,SIGNAL ( triggered ( bool ) ),
-		       this,SLOT ( slot_show_transfer_queue ( bool ) ) );
+                       this,SLOT ( slot_show_transfer_queue ( bool ) ) );
     QObject::connect ( this->mUIMain.actionShow_log,SIGNAL ( triggered ( bool ) ),
-		       this,SLOT ( slot_show_fxp_command_log ( bool ) ) );
+                       this,SLOT ( slot_show_fxp_command_log ( bool ) ) );
   
     QObject::connect ( this->mUIMain.actionCascade_window,SIGNAL ( triggered(bool) ),this,SLOT ( slot_cascade_sub_windows(bool) ) );
     QObject::connect ( this->mUIMain.actionTile_window,SIGNAL ( triggered(bool) ),this,SLOT ( slot_tile_sub_windows(bool) ) );
@@ -97,31 +97,31 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
 
     ///////////////////////
     QObject::connect ( this->mUIMain.actionConnect, SIGNAL ( triggered() ) ,
-		       this, SLOT ( connect_to_remote_host() ) );
+                       this, SLOT ( connect_to_remote_host() ) );
     QObject::connect ( this->mUIMain.actionDisconnect,SIGNAL ( triggered() ),
-		       this,SLOT ( slot_disconnect_from_remote_host() ) );
+                       this,SLOT ( slot_disconnect_from_remote_host() ) );
     QObject::connect( this->mUIMain.actionSession, SIGNAL(triggered()),
-		      this, SLOT(slot_show_session_dialog()));
+                      this, SLOT(slot_show_session_dialog()));
 
     localView = new LocalView();
 
     mdiArea->addSubWindow ( localView );
 
     QObject::connect ( localView,SIGNAL ( new_upload_requested ( QStringList ) ),
-		       this,SLOT ( slot_new_upload_requested ( QStringList ) ) );
+                       this,SLOT ( slot_new_upload_requested ( QStringList ) ) );
 
     //
     QObject::connect ( this->mUIMain.action_Local_Window,SIGNAL ( triggered() ),
-		       this,SLOT ( slot_show_local_view() ) );
+                       this,SLOT ( slot_show_local_view() ) );
     QObject::connect ( this->mUIMain.action_Remote_Window,SIGNAL ( triggered() ),
-		       this,SLOT ( slot_show_remote_view() ) );
+                       this,SLOT ( slot_show_remote_view() ) );
 
     //////////////
     about_nullfxp_dialog = new AboutNullFXP ( this );
     QObject::connect ( this->mUIMain.actionAbout_NullFXP,SIGNAL ( triggered() ),
-		       this,SLOT ( slot_about_nullfxp() ) );
+                       this,SLOT ( slot_about_nullfxp() ) );
     QObject::connect ( this->mUIMain.actionAbout_Qt,SIGNAL ( triggered() ),
-		       qApp,SLOT ( aboutQt() ) );
+                       qApp,SLOT ( aboutQt() ) );
 
     //tool menu
     QObject::connect(this->mUIMain.action_Forward_connect, SIGNAL(triggered(bool)),
@@ -148,14 +148,14 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
     QMdiSubWindow * local_sub_win = mdiArea->subWindowList().at(0);
     local_sub_win->setGeometry( local_sub_win->x(),local_sub_win->y(), mdiArea->width()/2,  mdiArea->height()*18/19 );
 
-    BaseStorage * storage = new BaseStorage();
+    BaseStorage * storage = BaseStorage::instance();
     storage->open();
     int host_count = storage->hostCount();
-    delete storage ;
+    //delete storage ;
     if(host_count > 0)
-	this->slot_show_session_dialog();
+        this->slot_show_session_dialog();
     else
-	this->connect_to_remote_host();
+        this->connect_to_remote_host();
 
     //////////////////////
     //this->mUIMain.action_Forward_connect->setVisible(false);
@@ -177,43 +177,42 @@ void NullFXP::connect_to_remote_host()
     QString password ;
     QString remoteaddr ;
     short   port;
-    QMap<QString,QString> host;
+    QMap<QString,QString> host, old_host;
     //提示输入远程主机信息
 
     this->quick_connect_info_dailog = new RemoteHostQuickConnectInfoDialog ( this );
     if ( this->quick_connect_info_dailog->exec() == QDialog::Accepted )
     {
-	username = this->quick_connect_info_dailog->get_user_name();
-	password = this->quick_connect_info_dailog->get_password();
-	password = QUrl::toPercentEncoding(password);
-	remoteaddr = this->quick_connect_info_dailog->get_host_name();
-	port = this->quick_connect_info_dailog->get_port();
+        username = this->quick_connect_info_dailog->get_user_name();
+        password = this->quick_connect_info_dailog->get_password();
+        password = QUrl::toPercentEncoding(password);
+        remoteaddr = this->quick_connect_info_dailog->get_host_name();
+        port = this->quick_connect_info_dailog->get_port();
 
-	delete this->quick_connect_info_dailog;this->quick_connect_info_dailog=0;
+        delete this->quick_connect_info_dailog;this->quick_connect_info_dailog=0;
 
-	host["show_name"] = remoteaddr;
-	host["host_name"] = remoteaddr;
-	host["user_name"] = username;
-	host["password"] = password;
-	host["port"] = QString("%1").arg(port);
-		
-	BaseStorage * storage = new BaseStorage();
-	storage->open();
-	if(storage->containsHost(remoteaddr))
-	{
-	    storage->updateHost(host);
-	}
-	else
-	{
-	    storage->addHost(host);
-	}
-	storage->save();
-	delete storage;
-	this->connect_to_remote_host(host);
+        host["show_name"] = remoteaddr;
+        host["host_name"] = remoteaddr;
+        host["user_name"] = username;
+        host["password"] = password;
+        host["port"] = QString("%1").arg(port);
+        
+        BaseStorage * storage = BaseStorage::instance();
+        storage->open();
+        if(storage->containsHost(remoteaddr)) {
+            storage->updateHost(host);
+        }else {
+            storage->addHost(host);
+        }
+        storage->save();
+        host.clear();
+        host = storage->getHost(remoteaddr);
+        //delete storage;
+        this->connect_to_remote_host(host);
     }
     else
     {
-	qDebug() <<"user canceled ...";
+        qDebug() <<"user canceled ...";
     }
 
 }
@@ -233,15 +232,15 @@ void NullFXP::connect_to_remote_host(QMap<QString,QString> host)
     qDebug()<< host;
     this->connect_status_dailog = new RemoteHostConnectingStatusDialog ( username,remoteaddr,this, Qt::Dialog );
     QObject::connect(this->connect_status_dailog,SIGNAL(cancel_connect()),
-		     this,SLOT(slot_cancel_connect()) );
+                     this,SLOT(slot_cancel_connect()) );
     //this->localView->set_sftp_connection ( &theconn );
     remote_conn_thread = new RemoteHostConnectThread (
-	username,  password, remoteaddr, port ) ;
+                                                      username,  password, remoteaddr, port ) ;
     QObject::connect ( this->remote_conn_thread , SIGNAL ( connect_finished ( int,void * , int /* , void **/ ) ),
-		       this, SLOT ( slot_connect_remote_host_finished ( int ,void * ,int /* , void **/ ) ) );
+                       this, SLOT ( slot_connect_remote_host_finished ( int ,void * ,int /* , void **/ ) ) );
 
     QObject::connect(remote_conn_thread , SIGNAL(connect_state_changed(QString)),
-		     connect_status_dailog,SLOT(slot_connect_state_changed(QString)));
+                     connect_status_dailog,SLOT(slot_connect_state_changed(QString)));
         
     this->remote_conn_thread->start();        
     this->connect_status_dailog->exec();
@@ -255,23 +254,23 @@ void NullFXP::slot_disconnect_from_remote_host()
     RemoteView * remote_view = this->get_top_most_remote_view() ;
     
     if( remote_view == 0 ) {
-	//do nothing
+        //do nothing
     }
     else
     {
-	qDebug()<< " disconnect : "<< remote_view->windowTitle() ;
-	QList<QMdiSubWindow *> sub_window_list = this->mdiArea->subWindowList(QMdiArea::StackingOrder);
-	int sub_wnd_count = sub_window_list.count() ;
+        qDebug()<< " disconnect : "<< remote_view->windowTitle() ;
+        QList<QMdiSubWindow *> sub_window_list = this->mdiArea->subWindowList(QMdiArea::StackingOrder);
+        int sub_wnd_count = sub_window_list.count() ;
     
-	for( sub_wnd_count = sub_wnd_count -1 ;  sub_wnd_count >= 0  ; sub_wnd_count -- )
-	{
-	    if( sub_window_list.at( sub_wnd_count )->widget() != this->localView 
-		&& sub_window_list.at( sub_wnd_count )->widget()->objectName()=="rv" )
-	    {
-		sub_window_list.at( sub_wnd_count )->close();
-		break ;
-	    }
-	}
+        for( sub_wnd_count = sub_wnd_count -1 ;  sub_wnd_count >= 0  ; sub_wnd_count -- )
+        {
+            if( sub_window_list.at( sub_wnd_count )->widget() != this->localView 
+                && sub_window_list.at( sub_wnd_count )->widget()->objectName()=="rv" )
+            {
+                sub_window_list.at( sub_wnd_count )->close();
+                break ;
+            }
+        }
     }
 }
 
@@ -280,11 +279,11 @@ void NullFXP::slot_show_session_dialog()
     SessionDialog * sess_dlg = new SessionDialog(this);
     if(sess_dlg->exec() == QDialog::Accepted)
     {
-	QMap<QString,QString> host ;
+        QMap<QString,QString> host ;
 
-	host = sess_dlg->get_host_map();
+        host = sess_dlg->get_host_map();
 
-	this->connect_to_remote_host(host);
+        this->connect_to_remote_host(host);
     }
     delete sess_dlg;
 }
@@ -313,37 +312,37 @@ void NullFXP::slot_connect_remote_host_finished ( int status,void * ssh2_sess , 
         remote_view->set_user_home_path ( this->remote_conn_thread->get_user_home_path() );
         remote_view->set_host_info(conn_thread->get_host_name(),
                                    conn_thread->get_user_name(),
-				   conn_thread->get_password(),
-				   conn_thread->get_port());
+                                   conn_thread->get_password(),
+                                   conn_thread->get_port());
         //初始化远程目录树        
         remote_view->i_init_dir_view (  );
     }
     else if( status == RemoteHostConnectThread::CONN_CANCEL ) {   //use canceled connection
-	qDebug()<<"user canceled connecting";
+        qDebug()<<"user canceled connecting";
     }else {
-	//assert ( 1==2 );
-	//this->connect_status_dailog->setVisible(false);
-	this->connect_status_dailog->stop_progress_bar();
-	
-	QString emsg = QString(tr("No error."));
-	switch (status){
-	case RemoteHostConnectThread::CONN_REFUSE:
-	    emsg = QString(tr("Remote host not usable."));
-	    break;
-	case RemoteHostConnectThread::CONN_AUTH_ERROR:
-	    emsg = QString(tr("Auth faild. Check your name and password and retry again."));
-	    break;
-	case RemoteHostConnectThread::CONN_RESOLVE_ERROR:
-	    emsg = QString(tr("Can not resolve host name."));
-	    break;
-	case RemoteHostConnectThread::CONN_SESS_ERROR:
-	    emsg = QString(tr("Can not initial SSH session."));
-	    break;
-	default:
-	    emsg = QString(tr("Unknown error."));
-	    break;
-	}
-	QMessageBox::critical(this,tr("Connect Error:"), emsg);
+        //assert ( 1==2 );
+        //this->connect_status_dailog->setVisible(false);
+        this->connect_status_dailog->stop_progress_bar();
+    
+        QString emsg = QString(tr("No error."));
+        switch (status){
+        case RemoteHostConnectThread::CONN_REFUSE:
+            emsg = QString(tr("Remote host not usable."));
+            break;
+        case RemoteHostConnectThread::CONN_AUTH_ERROR:
+            emsg = QString(tr("Auth faild. Check your name and password and retry again."));
+            break;
+        case RemoteHostConnectThread::CONN_RESOLVE_ERROR:
+            emsg = QString(tr("Can not resolve host name."));
+            break;
+        case RemoteHostConnectThread::CONN_SESS_ERROR:
+            emsg = QString(tr("Can not initial SSH session."));
+            break;
+        default:
+            emsg = QString(tr("Unknown error."));
+            break;
+        }
+        QMessageBox::critical(this,tr("Connect Error:"), emsg);
     }
     this->connect_status_dailog->accept();
     delete this->connect_status_dailog ;
@@ -366,8 +365,8 @@ void NullFXP::slot_new_upload_requested ( QStringList local_file_names )
     RemoteView * remote_view = this->get_top_most_remote_view() ;
     if( remote_view == 0 )
     {
-	qDebug()<<" may be not connected ";
-	return ;
+        qDebug()<<" may be not connected ";
+        return ;
     }
     remote_view->slot_new_upload_requested( local_file_names ) ;
 
@@ -384,7 +383,7 @@ void NullFXP::slot_show_fxp_command_log ( bool show )
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     RemoteView * remote_view = this->get_top_most_remote_view() ;
     if( remote_view !=0 )
-	remote_view->slot_show_fxp_command_log ( show )  ;
+        remote_view->slot_show_fxp_command_log ( show )  ;
 }
 
 void NullFXP::slot_cascade_sub_windows(bool triggered)
@@ -407,7 +406,7 @@ void NullFXP::slot_show_local_view()
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     if ( !this->localView->isVisible() )
     {
-	this->localView->setVisible ( true );
+        this->localView->setVisible ( true );
     }
     this->mdiArea->setActiveSubWindow ( this->mdiArea->subWindowList(QMdiArea::CreationOrder) .at ( 0 ) );
 }
@@ -423,12 +422,12 @@ void NullFXP::slot_show_remote_view()
     
     for( sub_wnd_count = sub_wnd_count -1 ;  sub_wnd_count >= 0  ; sub_wnd_count -- )
     {
-	if( sub_window_list.at( sub_wnd_count )->widget() != this->localView 
-	    && sub_window_list.at( sub_wnd_count )->widget()->objectName()=="rv" )
-	{
-	    this->mdiArea->setActiveSubWindow ( sub_window_list.at( sub_wnd_count ) );
-	    break ;
-	}
+        if( sub_window_list.at( sub_wnd_count )->widget() != this->localView 
+            && sub_window_list.at( sub_wnd_count )->widget()->objectName()=="rv" )
+        {
+            this->mdiArea->setActiveSubWindow ( sub_window_list.at( sub_wnd_count ) );
+            break ;
+        }
     }
 }
 
@@ -440,12 +439,12 @@ RemoteView * NullFXP::get_top_most_remote_view ()
     
     for( sub_wnd_count = sub_wnd_count -1 ;  sub_wnd_count >= 0  ; sub_wnd_count -- )
     {
-	if( sub_window_list.at( sub_wnd_count )->widget() != this->localView 
-	    && sub_window_list.at( sub_wnd_count )->widget()->objectName()=="rv" )
-	{
-	    remote_view = static_cast<RemoteView*>( sub_window_list.at( sub_wnd_count )->widget() );
-	    break ;
-	}
+        if( sub_window_list.at( sub_wnd_count )->widget() != this->localView 
+            && sub_window_list.at( sub_wnd_count )->widget()->objectName()=="rv" )
+        {
+            remote_view = static_cast<RemoteView*>( sub_window_list.at( sub_wnd_count )->widget() );
+            break ;
+        }
     }
     return remote_view ;
 }

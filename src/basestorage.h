@@ -37,7 +37,7 @@
 class BaseStorage
 {
 public:
-    BaseStorage();
+    static BaseStorage * instance();
     ~BaseStorage();
     bool open();
     bool close();
@@ -51,13 +51,16 @@ public:
     bool containsHost(QString show_name);
 
     QMap<QString, QMap<QString,QString> > & getAllHost();
-    QMap<QString,QString> getHost(QString show_name);
+    QMap<QString,QString> & getHost(QString show_name);
     int hostCount();
   
 signals:
     void hostListChanged();
     void hostLIstChanged(QString show_name);
 private:
+    BaseStorage();
+
+    static BaseStorage * mInstance;
     QMap<QString,QMap<QString,QString> >  hosts;
     QVector<QMap<QString, QString> > vec_hosts;
     bool opened;
@@ -88,5 +91,6 @@ private:
     hnode * map_to_node(QMap<QString, QString> map);
     int generate_hid();
 };
+
 
 /* basestorage.h ends here */

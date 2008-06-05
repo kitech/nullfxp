@@ -84,7 +84,10 @@ private:
     QMenu * host_list_ctx_menu;
     QAction * action_connect;
     QAction * action_edit;
+    QAction * action_rename;
     QAction * action_remove;
+    QAction * action_sep;
+
     void * info_dlg;
 };
 
