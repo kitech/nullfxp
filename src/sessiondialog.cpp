@@ -131,8 +131,12 @@ void SessionDialog::slot_ctx_menu_requested(const QPoint & pos)
         this->host_list_ctx_menu->addAction(this->action_remove);
 
 
+
+
         QObject::connect(this->action_connect,SIGNAL(triggered()),this,SLOT(slot_conntect_selected_host()));
         QObject::connect(this->action_edit,SIGNAL(triggered()),this,SLOT(slot_edit_selected_host()));
+        QObject::connect(this->action_rename,SIGNAL(triggered()),this,SLOT(slot_rename_selected_host()));
+
         QObject::connect(this->action_remove,SIGNAL(triggered()),this,SLOT(slot_remove_selected_host()));
     }
     this->host_list_ctx_menu->popup(this->sess_dlg.treeView->mapToGlobal(pos));
@@ -224,6 +228,31 @@ void SessionDialog::slot_edit_selected_host()
     }
 }
 
+void SessionDialog::slot_rename_selected_host()
+{
+    QItemSelectionModel * ism = 0;
+    QModelIndexList mil;
+
+    ism = this->sess_dlg.treeView->selectionModel();
+    mil = ism->selectedIndexes();
+    //qDebug()<<mil;
+    if(mil.count() > 0) {
+        QString new_name = QInputDialog::getText ( this, tr("Rename host:"), tr("Type the new name:"));
+        if(new_name == QString::null) {
+            
+        }else if(new_name.length() == 0) {
+            
+        }else if(new_name == mil.at(0).data().toString()) {
+
+        }else{
+            QMap<QString, QString> host = this->storage->getHost(mil.at(0).data().toString());
+            this->storage->updateHost(host, new_name);
+            //this->host_list_model->removeRows(mil.at(0).row(),1,QModelIndex());            
+            this->host_list_model->setData(mil.at(0), new_name);
+        }
+    }
+}
+
 void SessionDialog::slot_remove_selected_host()
 {
     QItemSelectionModel * ism = 0;
@@ -232,13 +261,10 @@ void SessionDialog::slot_remove_selected_host()
     ism = this->sess_dlg.treeView->selectionModel();
     mil = ism->selectedIndexes();
     //qDebug()<<mil;
-    if(mil.count() > 0)
-    {
+    if(mil.count() > 0) {
         //waning user
-        //
         int ret = QMessageBox::question(this,tr("Remote host:") ,tr("Are you sure remote it ?"), QMessageBox::Yes,QMessageBox::No );
-        if(ret == QMessageBox::Yes)
-        {
+        if(ret == QMessageBox::Yes) {
             this->storage->removeHost(mil.at(0).data().toString());
             this->host_list_model->removeRows(mil.at(0).row(),1,QModelIndex());
         }

@@ -45,7 +45,7 @@ public:
 
     bool addHost(QMap<QString,QString> host);
     bool removeHost(QString show_name);
-    bool updateHost(QMap<QString,QString> host);
+    bool updateHost(QMap<QString,QString> host, QString newName =QString::null);
     bool clearHost();
 
     bool containsHost(QString show_name);

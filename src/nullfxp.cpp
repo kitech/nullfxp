@@ -64,7 +64,6 @@
 NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
     : QMainWindow ( parent ,  flags )
 {
-    
     this->mUIMain.setupUi ( this );
     this->setWindowIcon(QIcon(":/icons/nullget-1.png") ); 
     //////////////////////////

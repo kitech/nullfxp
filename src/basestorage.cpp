@@ -128,7 +128,7 @@ bool BaseStorage::removeHost(QString show_name)
     return false;
 }
 
-bool BaseStorage::updateHost(QMap<QString,QString> host)
+bool BaseStorage::updateHost(QMap<QString,QString> host, QString new_name)
 {
     QMap<QString, QString> old_host;
 
@@ -140,6 +140,19 @@ bool BaseStorage::updateHost(QMap<QString,QString> host)
             host["hid"] = old_host["hid"];
         }
         this->hosts[host["show_name"]] = host;
+        if(new_name == QString::null) {
+            
+        }else{
+            if(this->containsHost(new_name)) {
+                qDebug()<<"name conflict";
+            }else{
+                QString old_name = host["show_name"];
+                host["show_name"] = new_name;
+                this->hosts[new_name] = host;
+                this->hosts.remove(old_name);
+                
+            }
+        }
     }else{
         if(!host.contains("hid") || host["hid"].length() == 0) {
             host["hid"] = QString("%1").arg(this->generate_hid());

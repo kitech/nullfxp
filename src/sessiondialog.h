@@ -67,6 +67,7 @@ public slots:
     void slot_conntect_selected_host();
     void slot_conntect_selected_host(const QModelIndex & index);
     void slot_edit_selected_host();
+    void slot_rename_selected_host();
     void slot_remove_selected_host();
 
     QMap<QString,QString>  get_host_map();

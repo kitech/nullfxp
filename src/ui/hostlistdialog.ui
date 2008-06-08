@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>313</width>
-    <height>409</height>
+    <width>322</width>
+    <height>358</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -72,7 +72,7 @@ p, li { white-space: pre-wrap; }
        <property name="orientation" >
         <enum>Qt::Horizontal</enum>
        </property>
-       <property name="sizeHint" >
+       <property name="sizeHint" stdset="0" >
         <size>
          <width>40</width>
          <height>20</height>
@@ -106,7 +106,7 @@ p, li { white-space: pre-wrap; }
        <property name="orientation" >
         <enum>Qt::Horizontal</enum>
        </property>
-       <property name="sizeHint" >
+       <property name="sizeHint" stdset="0" >
         <size>
          <width>40</width>
          <height>20</height>
@@ -117,14 +117,14 @@ p, li { white-space: pre-wrap; }
      <item>
       <widget class="QPushButton" name="pushButton" >
        <property name="text" >
-        <string>&amp;OK</string>
+        <string>&amp;Connect</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="pushButton_2" >
        <property name="text" >
-        <string>&amp;Cancel</string>
+        <string>Close</string>
        </property>
       </widget>
      </item>
