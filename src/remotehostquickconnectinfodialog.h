@@ -1,22 +1,34 @@
-/***************************************************************************
- *   Copyright (C) 2007 by liuguangzhao   *
- *   gzl@localhost   *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+/* remotehostquickconnectinfodialog.h --- 
+ * 
+ * Filename: remotehostquickconnectinfodialog.h
+ * Description: 
+ * Author: 刘光照<liuguangzhao@users.sf.net>
+ * Maintainer: 
+ * Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sf.net>
+ * http://www.qtchina.net
+ * http://nullget.sourceforge.net
+ * Created: 日  6月  8 11:29:15 2008 (CST)
+ * Version: 
+ * Last-Updated: 
+ *           By: 
+ *     Update #: 0
+ * URL: 
+ * Keywords: 
+ * Compatibility: 
+ * 
+ */
+
+/* Commentary: 
+ * 
+ * 
+ * 
+ */
+
+/* Change log:
+ * 
+ * 
+ */
+
 #ifndef REMOTEHOSTQUICKCONNECTINFODIALOG_H
 #define REMOTEHOSTQUICKCONNECTINFODIALOG_H
 
@@ -44,11 +56,14 @@ public:
     QMap<QString,QString> get_host_map();
     
     public slots:
-        void slot_test_remote_host_changed(int value);
-	void set_active_host(QMap<QString,QString> host);
+        void set_active_host(QMap<QString,QString> host);
+    private slots:
+        void slot_pubkey_checked(int state);
+        void slot_select_pubkey();
     private:
         Ui::RemoteHostQuickConnectInfoDialog quick_connect_info_dialog;
         QString show_name;
+        QString pubkey_path;
 };
 
 #endif

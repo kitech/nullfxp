@@ -1,32 +1,45 @@
-/***************************************************************************
- *   Copyright (C) 2007 by liuguangzhao   *
- *   gzl@localhost   *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+// remotehostquickconnectinfodialog.cpp --- 
+// 
+// Filename: remotehostquickconnectinfodialog.cpp
+// Description: 
+// Author: 刘光照<liuguangzhao@users.sf.net>
+// Maintainer: 
+// Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sf.net>
+// http://www.qtchina.net
+// http://nullget.sourceforge.net
+// Created: 日  6月  8 11:28:59 2008 (CST)
+// Version: 
+// Last-Updated: 
+//           By: 
+//     Update #: 0
+// URL: 
+// Keywords: 
+// Compatibility: 
+// 
+// 
+
+// Commentary: 
+// 
+// 
+// 
+// 
+
+// Change log:
+// 
+// 
+// 
+
+#include  <QtGui>
+
 #include "remotehostquickconnectinfodialog.h"
 
 RemoteHostQuickConnectInfoDialog::RemoteHostQuickConnectInfoDialog(QWidget* parent, Qt::WindowFlags f): QDialog(parent, f)
 {
     this->quick_connect_info_dialog.setupUi(this);
-    QObject::connect(this->quick_connect_info_dialog.comboBox_3,SIGNAL( currentIndexChanged(int)),
-                     this,SLOT(slot_test_remote_host_changed(int)) );
-
-    //
-    this->quick_connect_info_dialog.comboBox_3->setVisible(false);
+    QObject::connect(this->quick_connect_info_dialog.checkBox_3, SIGNAL(stateChanged(int)),
+                     this, SLOT(slot_pubkey_checked(int)));
+    QObject::connect(this->quick_connect_info_dialog.toolButton, SIGNAL(clicked()),
+                     this, SLOT(slot_select_pubkey()));
 }
 
 
@@ -58,22 +71,23 @@ short  RemoteHostQuickConnectInfoDialog::get_port()
 
 void RemoteHostQuickConnectInfoDialog::set_active_host(QMap<QString,QString> host)
 {
-  QString show_name = host["show_name"];
-  QString host_name = host["host_name"];
-  QString user_name = host["user_name"];
-  QString password = host["password"];
-  QString port = host["port"];
-
-  this->quick_connect_info_dialog.lineEdit->setText(host_name);
-  this->quick_connect_info_dialog.lineEdit_2->setText(port);
-  this->quick_connect_info_dialog.lineEdit_3->setText(user_name);
-
-  this->quick_connect_info_dialog.lineEdit_4->setFocus();
-  this->quick_connect_info_dialog.lineEdit_4->setText(password);
-
-  this->quick_connect_info_dialog.groupBox->setTitle(QString(tr("Host Infomation: %1")).arg(show_name));
-  this->show_name = show_name;
+    QString show_name = host["show_name"];
+    QString host_name = host["host_name"];
+    QString user_name = host["user_name"];
+    QString password = host["password"];
+    QString port = host["port"];
+    
+    this->quick_connect_info_dialog.lineEdit->setText(host_name);
+    this->quick_connect_info_dialog.lineEdit_2->setText(port);
+    this->quick_connect_info_dialog.lineEdit_3->setText(user_name);
+    
+    this->quick_connect_info_dialog.lineEdit_4->setFocus();
+    this->quick_connect_info_dialog.lineEdit_4->setText(password);
+    
+    this->quick_connect_info_dialog.groupBox->setTitle(QString(tr("Host Infomation: %1")).arg(show_name));
+    this->show_name = show_name;
 }
+
 QMap<QString,QString> RemoteHostQuickConnectInfoDialog::get_host_map()
 {
   QMap<QString,QString> host;
@@ -87,39 +101,23 @@ QMap<QString,QString> RemoteHostQuickConnectInfoDialog::get_host_map()
   return host;
 }
 
-void RemoteHostQuickConnectInfoDialog::slot_test_remote_host_changed(int value)
+void RemoteHostQuickConnectInfoDialog::slot_pubkey_checked(int state)
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    switch(value)
-    {
-         
-        case 0:
-            this->quick_connect_info_dialog.lineEdit->setText("localhost");
-            this->quick_connect_info_dialog.lineEdit_3->setText("root");
-            break;
-        case 1:
-            this->quick_connect_info_dialog.lineEdit->setText("shell.sourceforge.net");
-            this->quick_connect_info_dialog.lineEdit_3->setText("liuguangzhao");
-            break;
-        case 2:
-            this->quick_connect_info_dialog.lineEdit->setText("www.bjdazhaimen.com");
-            this->quick_connect_info_dialog.lineEdit_3->setText("webroot");
-            
-            break;
-        case 3:
-            this->quick_connect_info_dialog.lineEdit->setText("localhost");
-            this->quick_connect_info_dialog.lineEdit_3->setText("gzl");
-
-            break;
-        case 4:
-            this->quick_connect_info_dialog.lineEdit->setText("192.168.1.6");
-            this->quick_connect_info_dialog.lineEdit_3->setText("gzl");
-
-            break;
-        default:
-            break;
-    }            
+    if(state == Qt::Checked || state == Qt::PartiallyChecked) {
+        this->quick_connect_info_dialog.toolButton->setEnabled(true);
+    }else{
+        this->quick_connect_info_dialog.toolButton->setEnabled(false);
+    }
 }
-    
+
+void RemoteHostQuickConnectInfoDialog::slot_select_pubkey()
+{
+    QString path = QString::null;
+
+    path = QFileDialog::getOpenFileName ( this, tr("Publickey Select Dialog"),".");
+    qDebug()<<path;    
+}
+
+
 
 
