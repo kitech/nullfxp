@@ -53,6 +53,7 @@ public:
     QString get_host_name ();
     QString get_password();
     short  get_port();
+    QString get_pubkey();
     QMap<QString,QString> get_host_map();
     
     public slots:

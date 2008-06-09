@@ -106,11 +106,17 @@
    </property>
   </action>
   <action name="action_Local_Window" >
+   <property name="checkable" >
+    <bool>true</bool>
+   </property>
    <property name="text" >
     <string>&amp;Local Window</string>
    </property>
   </action>
   <action name="action_Remote_Window" >
+   <property name="checkable" >
+    <bool>true</bool>
+   </property>
    <property name="text" >
     <string>&amp;Remote Window</string>
    </property>

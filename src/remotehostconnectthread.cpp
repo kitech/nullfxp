@@ -83,14 +83,22 @@ static void kbd_callback(const char *name, int name_len,
 } /* kbd_callback */
 
 
-RemoteHostConnectThread::RemoteHostConnectThread(QString user_name , QString password , QString host_name, short port, QObject* parent): QThread(parent)
+RemoteHostConnectThread::RemoteHostConnectThread(QString user_name , QString password , QString host_name, 
+                                                 short port, QString pubkey,  QObject* parent)
+  : QThread(parent)
 {
     this->user_name = user_name;
     this->password = password;
     this->decoded_password = QUrl::fromPercentEncoding(this->password.toAscii());
     this->host_name = host_name;
     this->port = port;
-    
+    this->pubkey_path = pubkey;
+    if(this->pubkey_path.length() == 0) {
+        this->pubkey_path = QString::null;
+    }
+    if(!QFile::exists(this->pubkey_path)) {
+        qDebug()<<"Warning: pubkey setted, but file not exist";
+    }
     this->connect_status = CONN_OK;
     this->user_canceled = false;
     ////////////////

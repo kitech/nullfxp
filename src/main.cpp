@@ -47,9 +47,9 @@ int main(int argc, char *argv[])
       
       app_exec_ret = app.exec();
       if( app_exec_ret == 0)
-          qDebug()<<"app exit normally.";
+          qDebug()<<"Exit normally.";
       else
-          qDebug()<<"app exit with code:"<<app_exec_ret;
+          qDebug()<<"App exit with error code:"<<app_exec_ret;
       return app_exec_ret;
 }
 

@@ -110,10 +110,10 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
                        this,SLOT ( slot_new_upload_requested ( QStringList ) ) );
 
     //
-    QObject::connect ( this->mUIMain.action_Local_Window,SIGNAL ( triggered() ),
-                       this,SLOT ( slot_show_local_view() ) );
-    QObject::connect ( this->mUIMain.action_Remote_Window,SIGNAL ( triggered() ),
-                       this,SLOT ( slot_show_remote_view() ) );
+    QObject::connect ( this->mUIMain.action_Local_Window,SIGNAL ( triggered(bool) ),
+                       this,SLOT ( slot_show_local_view(bool) ) );
+    QObject::connect ( this->mUIMain.action_Remote_Window,SIGNAL ( triggered(bool) ),
+                       this,SLOT ( slot_show_remote_view(bool) ) );
 
     //////////////
     about_nullfxp_dialog = new AboutNullFXP ( this );
@@ -176,6 +176,7 @@ void NullFXP::connect_to_remote_host()
     QString password ;
     QString remoteaddr ;
     short   port;
+    QString pubkey = QString::null;
     QMap<QString,QString> host, old_host;
     //提示输入远程主机信息
 
@@ -187,6 +188,7 @@ void NullFXP::connect_to_remote_host()
         password = QUrl::toPercentEncoding(password);
         remoteaddr = this->quick_connect_info_dailog->get_host_name();
         port = this->quick_connect_info_dailog->get_port();
+        pubkey = this->quick_connect_info_dailog->get_pubkey();
 
         delete this->quick_connect_info_dailog;this->quick_connect_info_dailog=0;
 
@@ -195,6 +197,7 @@ void NullFXP::connect_to_remote_host()
         host["user_name"] = username;
         host["password"] = password;
         host["port"] = QString("%1").arg(port);
+        (pubkey == QString::null) ? (pubkey=QString::null) : (host["pubkey"] = pubkey);
         
         BaseStorage * storage = BaseStorage::instance();
         storage->open();
@@ -208,9 +211,7 @@ void NullFXP::connect_to_remote_host()
         host = storage->getHost(remoteaddr);
         //delete storage;
         this->connect_to_remote_host(host);
-    }
-    else
-    {
+    }else{
         qDebug() <<"user canceled ...";
     }
 
@@ -222,28 +223,29 @@ void NullFXP::connect_to_remote_host(QMap<QString,QString> host)
     QString password ;
     QString remoteaddr ;
     short   port;
+    QString pubkey = QString::null;
 
     username = host["user_name"];
     password = host["password"];
     remoteaddr = host["host_name"];
     port = (host["port"].length() == 0) ? 22 : host["port"].toShort();
+    if(host.contains("pubkey")) {
+        pubkey = host["pubkey"];
+    }
 
     qDebug()<< host;
-    this->connect_status_dailog = new RemoteHostConnectingStatusDialog ( username,remoteaddr,this, Qt::Dialog );
+    this->connect_status_dailog = new RemoteHostConnectingStatusDialog(username,remoteaddr,this, Qt::Dialog );
     QObject::connect(this->connect_status_dailog,SIGNAL(cancel_connect()),
                      this,SLOT(slot_cancel_connect()) );
-    //this->localView->set_sftp_connection ( &theconn );
-    remote_conn_thread = new RemoteHostConnectThread (
-                                                      username,  password, remoteaddr, port ) ;
-    QObject::connect ( this->remote_conn_thread , SIGNAL ( connect_finished ( int,void * , int /* , void **/ ) ),
-                       this, SLOT ( slot_connect_remote_host_finished ( int ,void * ,int /* , void **/ ) ) );
+    remote_conn_thread = new RemoteHostConnectThread (username,  password, remoteaddr, port, pubkey ) ;
+    QObject::connect ( this->remote_conn_thread , SIGNAL (connect_finished (int,void * , int) ),
+                       this, SLOT ( slot_connect_remote_host_finished (int,void * ,int ) ) );
 
     QObject::connect(remote_conn_thread , SIGNAL(connect_state_changed(QString)),
                      connect_status_dailog,SLOT(slot_connect_state_changed(QString)));
         
     this->remote_conn_thread->start();        
     this->connect_status_dailog->exec();
-
 }
 
 void NullFXP::slot_disconnect_from_remote_host()
@@ -387,47 +389,59 @@ void NullFXP::slot_show_fxp_command_log ( bool show )
 
 void NullFXP::slot_cascade_sub_windows(bool triggered)
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    this->mdiArea->cascadeSubWindows();
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;    
+    if(triggered) {
+        this->mdiArea->cascadeSubWindows();
+    }
+
+    this->mUIMain.actionTile_window->setChecked(!triggered);
 }
 void NullFXP::slot_tile_sub_windows(bool triggered)
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    //让本地视图总是显示在左侧,并不改为原来的窗口顺序
-    QMdiSubWindow * curr_active_sub_window = this->mdiArea->activeSubWindow ();
-    this->mdiArea->setActiveSubWindow ( this->mdiArea->subWindowList(QMdiArea::CreationOrder) .at ( 0 ) );
-    this->mdiArea->tileSubWindows();
-    this->mdiArea->setActiveSubWindow ( curr_active_sub_window );
-}
-
-void NullFXP::slot_show_local_view()
-{
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    if ( !this->localView->isVisible() )
-    {
-        this->localView->setVisible ( true );
+    if(triggered) {
+        //让本地视图总是显示在左侧,并不改为原来的窗口顺序
+        QMdiSubWindow * curr_active_sub_window = this->mdiArea->activeSubWindow ();
+        this->mdiArea->setActiveSubWindow ( this->mdiArea->subWindowList(QMdiArea::CreationOrder) .at ( 0 ) );
+        this->mdiArea->tileSubWindows();
+        this->mdiArea->setActiveSubWindow ( curr_active_sub_window );
     }
-    this->mdiArea->setActiveSubWindow ( this->mdiArea->subWindowList(QMdiArea::CreationOrder) .at ( 0 ) );
+    this->mUIMain.actionCascade_window->setChecked(!triggered);
 }
 
-void NullFXP::slot_show_remote_view()
+void NullFXP::slot_show_local_view(bool triggered)
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    if(triggered) {
+        if ( !this->localView->isVisible()) {
+            this->localView->setVisible ( true );
+        }
+        this->mdiArea->setActiveSubWindow ( this->mdiArea->subWindowList(QMdiArea::CreationOrder) .at ( 0 ) );
+    }
+    this->mUIMain.action_Remote_Window->setChecked(!triggered);
+}
+
+void NullFXP::slot_show_remote_view(bool triggered)
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
-    //将最上面一个RemoteView提升起来，条件是这个RemoteView现在还不是最上面的一个子窗口。
-
-    QList<QMdiSubWindow *> sub_window_list = this->mdiArea->subWindowList(QMdiArea::StackingOrder);
-    int sub_wnd_count = sub_window_list.count() ;
+    if(triggered) {
+        //将最上面一个RemoteView提升起来，条件是这个RemoteView现在还不是最上面的一个子窗口。
     
-    for( sub_wnd_count = sub_wnd_count -1 ;  sub_wnd_count >= 0  ; sub_wnd_count -- )
-    {
-        if( sub_window_list.at( sub_wnd_count )->widget() != this->localView 
-            && sub_window_list.at( sub_wnd_count )->widget()->objectName()=="rv" )
+        QList<QMdiSubWindow *> sub_window_list = this->mdiArea->subWindowList(QMdiArea::StackingOrder);
+        int sub_wnd_count = sub_window_list.count() ;
+    
+        for( sub_wnd_count = sub_wnd_count -1 ;  sub_wnd_count >= 0  ; sub_wnd_count -- )
         {
-            this->mdiArea->setActiveSubWindow ( sub_window_list.at( sub_wnd_count ) );
-            break ;
+            if( sub_window_list.at( sub_wnd_count )->widget() != this->localView 
+                && sub_window_list.at( sub_wnd_count )->widget()->objectName()=="rv" )
+            {
+                this->mdiArea->setActiveSubWindow ( sub_window_list.at( sub_wnd_count ) );
+                break ;
+            }
         }
     }
+    this->mUIMain.action_Local_Window->setChecked(!triggered);
 }
 
 RemoteView * NullFXP::get_top_most_remote_view () 

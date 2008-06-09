@@ -42,7 +42,8 @@ class RemoteHostConnectThread : public QThread
 Q_OBJECT
 public:
   enum {CONN_OK=0,CONN_REFUSE=1,CONN_CANCEL=2,CONN_OTHER,CONN_RESOLVE_ERROR,CONN_SESS_ERROR,CONN_AUTH_ERROR,CONN_SFTP_ERROR,CONN_EXEC_ERROR};
-    RemoteHostConnectThread(QString user_name, QString password, QString host_name, short port, QObject* parent=0);
+    RemoteHostConnectThread(QString user_name, QString password, QString host_name, 
+                            short port, QString pubkey, QObject* parent=0);
 
     ~RemoteHostConnectThread();
 
@@ -69,6 +70,7 @@ public:
         QString decoded_password;
         QString host_name ;
         short   port;
+        QString pubkey_path;
         int connect_status;
         bool user_canceled;
         
