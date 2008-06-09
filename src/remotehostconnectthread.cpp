@@ -213,12 +213,12 @@ void RemoteHostConnectThread::run()
 	//assert( ret == 0 );
 	return ;
     }
-    #ifdef WIN32
+#ifdef WIN32
     sock_flag = 0;
     ioctlsocket(this->ssh2_sock, FIONBIO, &sock_flag);
-    #else
+#else
     fcntl(this->ssh2_sock, F_SETFL, sock_flag);
-    #endif
+#endif
     if( this->user_canceled == true ){
 	this->connect_status = 2 ;
 #ifdef WIN32
@@ -241,45 +241,101 @@ void RemoteHostConnectThread::run()
     //auth
     char * auth_list = libssh2_userauth_list((LIBSSH2_SESSION*)ssh2_sess,this->user_name.toAscii().data(),strlen(this->user_name.toAscii().data()) );
     printf("user auth list : %s \n" , auth_list ) ;
-    
-    emit connect_state_changed( tr( "User authing (Password)...") );
-    
-    if( this->user_canceled == true ){
-	this->connect_status = 2 ;
-	libssh2_session_disconnect((LIBSSH2_SESSION*)ssh2_sess,"");
-	libssh2_session_free((LIBSSH2_SESSION*)ssh2_sess);
-#ifdef WIN32
-	::closesocket(this->ssh2_sock);
-#else
-	::close(this->ssh2_sock);
-#endif
-	return;
-    }   
 
-    ret = libssh2_userauth_password((LIBSSH2_SESSION*)ssh2_sess,this->user_name.toAscii().data(),this->decoded_password.toAscii().data());
-    qDebug()<<"Keyboard Interactive :"<<ret ;
+    ret = libssh2_userauth_hostbased_fromfile((LIBSSH2_SESSION*)ssh2_sess, 
+                                              this->user_name.toAscii().data(),
+                                              this->pubkey_path.toAscii().data(),
+                                              this->pubkey_path.left(this->pubkey_path.length()-4).toAscii().data(),
+                                              this->decoded_password.toAscii().data(),
+                                              this->host_name.toAscii().data());
+    qDebug()<<this->user_name<<this->pubkey_path<<this->pubkey_path.left(this->pubkey_path.length()-4)
+            <<this->decoded_password<<this->host_name;;
 
-    if( ret == -1 )
-    {
-	emit connect_state_changed( tr( "User auth faild (Password). Trying (Keyboard Interactive) ...") );
-	ssh2_kbd_cb_mutex.lock();
-	strncpy(ssh2_password,this->decoded_password.toAscii().data() , sizeof(ssh2_password));
-	ret = libssh2_userauth_keyboard_interactive((LIBSSH2_SESSION*)ssh2_sess,this->user_name.toAscii().data(),&kbd_callback) ;
-	memset( ssh2_password,0,sizeof(ssh2_password));
-	ssh2_kbd_cb_mutex.unlock();
-	qDebug()<<"keyboard interactive :"<<ret ;
+    if(ret == -1){
+        char * emsg = 0;
+        int  emsg_len = 0;
+        libssh2_session_last_error((LIBSSH2_SESSION*)ssh2_sess, &emsg, &emsg_len, 1);
+        qDebug()<<"error: "<<emsg;
+        if(emsg != 0) free(emsg);        
+    }else{
+        qDebug()<<"host based public key auth successful";
     }
-    if( this->user_canceled == true ){
-	this->connect_status = 2 ;
-	libssh2_session_disconnect((LIBSSH2_SESSION*)ssh2_sess,"");
-	libssh2_session_free((LIBSSH2_SESSION*)ssh2_sess);
+
+    if(this->pubkey_path != QString::null && this->pubkey_path.length() != 0) {
+        //publickey auth
+        emit connect_state_changed(QString(tr("User authing(PublicKey: %1)...")).arg(this->pubkey_path));
+        if( this->user_canceled == true ){
+            this->connect_status = 2 ;
+            libssh2_session_disconnect((LIBSSH2_SESSION*)ssh2_sess,"");
+            libssh2_session_free((LIBSSH2_SESSION*)ssh2_sess);
 #ifdef WIN32
-	::closesocket(this->ssh2_sock);
+            ::closesocket(this->ssh2_sock);
 #else
-	::close(this->ssh2_sock);
+            ::close(this->ssh2_sock);
 #endif
-	return;
-    }   
+            return;
+        }
+        ret = libssh2_userauth_publickey_fromfile((LIBSSH2_SESSION*)ssh2_sess, 
+                                                  this->user_name.toAscii().data(),
+                                                  this->pubkey_path.toAscii().data(),
+                                                  this->pubkey_path.left(this->pubkey_path.length()-4).toAscii().data(),
+                                                  this->decoded_password.toAscii().data());
+
+        qDebug()<<this->user_name<<this->pubkey_path<<this->pubkey_path.left(this->pubkey_path.length()-4)
+                <<this->decoded_password;
+    }else{
+        ret = -1;
+    }
+    if(ret == -1) {
+        //password auth
+        if(this->pubkey_path == QString::null || this->pubkey_path.length() == 0) {
+            emit connect_state_changed( tr( "User authing (Password)...") );    
+        }else{
+            char * emsg = 0;
+            int  emsg_len = 0;
+            libssh2_session_last_error((LIBSSH2_SESSION*)ssh2_sess, &emsg, &emsg_len, 1);
+            qDebug()<<"error: "<<emsg;
+            if(emsg != 0) free(emsg);
+            
+            emit connect_state_changed( tr( "User auth faild(PublicKey). Trying (Password)...") );    
+        }
+        if( this->user_canceled == true ){
+            this->connect_status = 2 ;
+            libssh2_session_disconnect((LIBSSH2_SESSION*)ssh2_sess,"");
+            libssh2_session_free((LIBSSH2_SESSION*)ssh2_sess);
+#ifdef WIN32
+            ::closesocket(this->ssh2_sock);
+#else
+            ::close(this->ssh2_sock);
+#endif
+            return;
+        }   
+
+        ret = libssh2_userauth_password((LIBSSH2_SESSION*)ssh2_sess,this->user_name.toAscii().data(),this->decoded_password.toAscii().data());
+        qDebug()<<"Keyboard Interactive :"<<ret ;
+
+        if( ret == -1 )
+        {
+            emit connect_state_changed( tr( "User auth faild (Password). Trying (Keyboard Interactive) ...") );
+            ssh2_kbd_cb_mutex.lock();
+            strncpy(ssh2_password,this->decoded_password.toAscii().data() , sizeof(ssh2_password));
+            ret = libssh2_userauth_keyboard_interactive((LIBSSH2_SESSION*)ssh2_sess,this->user_name.toAscii().data(),&kbd_callback) ;
+            memset( ssh2_password,0,sizeof(ssh2_password));
+            ssh2_kbd_cb_mutex.unlock();
+            qDebug()<<"keyboard interactive :"<<ret ;
+        }
+        if( this->user_canceled == true ){
+            this->connect_status = 2 ;
+            libssh2_session_disconnect((LIBSSH2_SESSION*)ssh2_sess,"");
+            libssh2_session_free((LIBSSH2_SESSION*)ssh2_sess);
+#ifdef WIN32
+            ::closesocket(this->ssh2_sock);
+#else
+            ::close(this->ssh2_sock);
+#endif
+            return;
+        }   
+    }
     ret = libssh2_userauth_authenticated((LIBSSH2_SESSION*)ssh2_sess);
     if( ret == 0 )
     {

@@ -140,7 +140,9 @@ void RemoteHostQuickConnectInfoDialog::slot_select_pubkey()
     }else if(path.length() == 0){
         qDebug()<<"select null";
     }else{
-        //TODO 检查文件格式
+        //TODO 检查文件格式, 
+        //TODO 简单检查是否是一个有效的public key 
+        //TODO 检查key中的用户名及主机是否与上面输入的一致
         this->pubkey_path = path;
     }
 }

@@ -70,6 +70,7 @@ void RemoteHostConnectingStatusDialog::slot_time_out()
 void  RemoteHostConnectingStatusDialog::slot_connect_state_changed(QString state_desc )
 {
     this->connect_status_dialog.lineEdit_2->setText( state_desc ) ;
+    qDebug()<<state_desc;
 }
 
 void RemoteHostConnectingStatusDialog::closeEvent ( QCloseEvent * event ) 
