@@ -144,6 +144,8 @@ void RemoteHostQuickConnectInfoDialog::slot_select_pubkey()
         //TODO 简单检查是否是一个有效的public key 
         //TODO 检查key中的用户名及主机是否与上面输入的一致
         this->pubkey_path = path;
+        this->quick_connect_info_dialog.toolButton->setToolTip(QString(tr("Current key: ")) 
+                                                               + this->pubkey_path);
     }
 }
 
