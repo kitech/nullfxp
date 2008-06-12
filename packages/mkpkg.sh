@@ -25,7 +25,8 @@ chmod +x $dirname/../nullfxp/bin/nullfxp
 
 cp -v $dirname/../bin/nullfxp $dirname/../nullfxp/lib/
 cp -v $dirname/../bin/unitest $dirname/../nullfxp/bin/
-cp -v $dirname/../bin/plink   $dirname/../nullfxp/lib/
+cp -pv $dirname/../bin/plink   $dirname/../nullfxp/lib/
+
 strip -s -v $dirname/../nullfxp/lib/nullfxp
 strip -s -v $dirname/../nullfxp/bin/unitest
 strip -s -v $dirname/../nullfxp/lib/plink
@@ -37,9 +38,23 @@ echo $VERSION
 
 USED_OPENSSL_SSL=`ldd $dirname/../nullfxp/lib/nullfxp|grep libssl|awk '{print $3}'` 
 USED_OPENSSL_CRYPTO=`ldd $dirname/../nullfxp/lib/nullfxp|grep libcrypto|awk '{print $3}'` 
+USED_GSSAPI=`ldd $dirname/../nullfxp/lib/nullfxp|grep libgssapi|awk '{print $3}'` 
+USED_KRB5SO=`ldd $dirname/../nullfxp/lib/nullfxp|grep libkrb5.so|awk '{print $3}'` 
+USED_K5CRYPTO=`ldd $dirname/../nullfxp/lib/nullfxp|grep libk5crypto|awk '{print $3}'` 
+USED_KRB5SUPPORT=`ldd $dirname/../nullfxp/lib/nullfxp|grep libkrb5support|awk '{print $3}'` 
+USED_EXPAT=`ldd $dirname/../nullfxp/lib/nullfxp|grep libexpat|awk '{print $3}'` 
+
 echo $USED_OPENSSL_SSL $USED_OPENSSL_CRYPTO
 cp -v $USED_OPENSSL_SSL $dirname/../nullfxp/lib/
 cp -v $USED_OPENSSL_CRYPTO $dirname/../nullfxp/lib/
+
+cp -v $USED_GSSAPI $dirname/../nullfxp/lib/
+cp -v $USED_KRB5SO $dirname/../nullfxp/lib/
+cp -v $USED_K5CRYPTO $dirname/../nullfxp/lib/
+cp -v $USED_KRB5SUPPORT $dirname/../nullfxp/lib/
+
+cp -v $USED_EXPAT $dirname/../nullfxp/lib/
+
 
 USED_QT=`ldd $dirname/../nullfxp/lib/nullfxp|grep libQt|awk '{print $3}'`
 echo $USED_QT
