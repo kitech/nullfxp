@@ -697,29 +697,17 @@ void RemoteView::slot_copy_path_url()
 void RemoteView::slot_new_upload_requested ( QStringList local_file_names,  QStringList remote_file_names )
 {
     RemoteView * remote_view = this ;
-    //if( this->in_remote_dir_retrive_loop )
-    if(0) {
-        //TODO 这个分支原是用于判断与目录树操作的冲突，当前模式下所有传输都使用新的SSH连接，因而这个不在需要了
-        QMessageBox::warning(this,tr("Attentions:"),tr("retriving remote directory tree,wait a minute please.") );
-        return ;
-    } else {
-        ProgressDialog * pdlg = new ProgressDialog (  );
-        //         pdlg->set_remote_connection ( remote_view->get_ssh2_sess() /*,
-        //                                       remote_view->get_ssh2_sftp(),
-        //                                               remote_view->get_ssh2_sock() */ );
+    ProgressDialog * pdlg = new ProgressDialog();
 
-        pdlg->set_transfer_info (/* TransferThread::TRANSFER_PUT,*/local_file_names , remote_file_names ) ;
-        //      QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
-        //                         this,SLOT ( slot_transfer_finished ( int ) ) );
-        QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int, QString ) ),
-                           remote_view , SLOT ( slot_transfer_finished ( int, QString ) ) );        
-        //         remote_view->slot_enter_remote_dir_retrive_loop();
-        //pdlg->setWindowModality(Qt::WindowModal);
-        //         pdlg->exec();
-        this->main_mdi_area->addSubWindow(pdlg);
-        pdlg->show();
-        this->own_progress_dialog = pdlg ;
-    }
+    pdlg->set_transfer_info (local_file_names , remote_file_names ) ;
+
+    QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int, QString ) ),
+                       remote_view , SLOT ( slot_transfer_finished ( int, QString ) ) );        
+    //         remote_view->slot_enter_remote_dir_retrive_loop();
+    this->main_mdi_area->addSubWindow(pdlg);
+    pdlg->show();
+    this->own_progress_dialog = pdlg ;
+
 }
 void RemoteView::slot_new_upload_requested ( QStringList local_file_names ) 
 {
@@ -750,21 +738,6 @@ void RemoteView::slot_new_upload_requested ( QStringList local_file_names )
         remote_file_name = QString("nrsftp://%1:%2@%3:%4").arg(this->user_name).arg(this->password).arg(this->host_name).arg(this->port) + remote_file_name ;
         remote_file_names << remote_file_name ;
         this->slot_new_upload_requested( local_file_names , remote_file_names );
-        //         ProgressDialog * pdlg = new ProgressDialog (  );
-        //         pdlg->set_remote_connection ( remote_view->get_ssh2_sess() ,
-        //                                       remote_view->get_ssh2_sftp(),
-        //                                               remote_view->get_ssh2_sock()  );
-        // 
-        //         pdlg->set_transfer_info ( TransferThread::TRANSFER_PUT,local_file_names , remote_file_names ) ;
-        // //       QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
-        // //                          this,SLOT ( slot_transfer_finished ( int ) ) );
-        //         QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
-        //                            remote_view , SLOT ( slot_transfer_finished ( int ) ) );        
-        //         remote_view->slot_enter_remote_dir_retrive_loop();
-        //         //pdlg->setWindowModality(Qt::WindowModal);
-        // //         pdlg->exec();
-        //         this->main_mdi_area->addSubWindow(pdlg);
-        //         pdlg->show();
     }
 }
 
@@ -776,10 +749,6 @@ void RemoteView::slot_new_download_requested(QStringList local_file_names,   QSt
     RemoteView * remote_view = this/*->get_top_most_remote_view()*/ ;
         
     ProgressDialog *pdlg = new ProgressDialog ( 0 );
-    //     pdlg->set_remote_connection ( remote_view->get_ssh2_sess() /*,
-    //                                   remote_view->get_ssh2_sftp(),
-    //                                           remote_view->get_ssh2_sock() */ );
-    //pdlg->set_transfer_info ( /*TransferThread::TRANSFER_GET,*/local_file_names,remote_file_names );
     // src is remote file , dest if localfile 
     pdlg->set_transfer_info ( /*TransferThread::TRANSFER_GET,*/remote_file_names , local_file_names );
     QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int,QString ) ),
@@ -816,22 +785,13 @@ void RemoteView::slot_new_download_requested( QStringList remote_file_names )
                                   ) + local_file_path ;
         local_file_names << local_file_path ;
         this->slot_new_download_requested( local_file_names,remote_file_names);
-        //      ProgressDialog *pdlg = new ProgressDialog ( this );
-        //         pdlg->set_remote_connection ( remote_view->get_ssh2_sess() ,
-        //                                       remote_view->get_ssh2_sftp(),
-        //                                               remote_view->get_ssh2_sock()  );
-        //      pdlg->set_transfer_info ( TransferThread::TRANSFER_GET,local_file_names,remote_file_names );
-        //      QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int ) ),
-        //                         this,SLOT ( slot_transfer_finished ( int ) ) );
-        //         remote_view->slot_enter_remote_dir_retrive_loop();
-        //      pdlg->exec();
     }
 }
 
 void RemoteView::slot_transfer_finished( int status, QString errorString ) 
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
-    RemoteView * remote_view = this/*->get_top_most_remote_view()*/ ;
+    RemoteView * remote_view = this ;
     
     ProgressDialog * pdlg = ( ProgressDialog* ) sender();
 
@@ -853,11 +813,12 @@ void RemoteView::slot_transfer_finished( int status, QString errorString )
             //assert ( 1== 2 );
         }
     }else if ( status != 0 && status != 3  ){
-        QMessageBox::critical ( this,QString ( tr ( "Error: " ) ),
-                                QString ( errorString  ).arg ( status ) );
-    
+        QString errmsg = QString(errorString).arg(status);
+        if(errmsg.length() < 50) errmsg = errmsg.leftJustified(50);
+        QMessageBox::critical ( this, QString(tr("Error: ")), errmsg);
     }
     this->main_mdi_area->removeSubWindow(pdlg->parentWidget());
+
     delete pdlg ;
     this->own_progress_dialog = 0 ;
     //     remote_view->slot_leave_remote_dir_retrive_loop();

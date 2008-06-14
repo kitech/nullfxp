@@ -9,9 +9,9 @@
  * http://nullget.sourceforge.net
  * Created: 一  5月  5 22:09:57 2008 (CST)
  * Version: 
- * Last-Updated: 三  6月 11 21:53:13 2008 (CST)
+ * Last-Updated: 六  6月 14 22:49:31 2008 (CST)
  *           By: 刘光照<liuguangzhao@users.sf.net>
- *     Update #: 2
+ *     Update #: 3
  * URL: 
  * Keywords: 
  * Compatibility: 
@@ -33,7 +33,7 @@
 #ifndef NULLFXP_VERSION_H
 #define NULLFXP_VERSION_H
 
-#define NULLFXP_VERSION	"NullFXP 1.6.0 "
+#define NULLFXP_VERSION	"NullFXP 1.6.1 "
 
 #define NULLFXP_PORTABLE	""
 #define NULLFXP_RELEASE	NULLFXP_VERSION NULLFXP_PORTABLE

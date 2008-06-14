@@ -4,14 +4,14 @@
 // Description: 
 // Author: liuguangzhao
 // Maintainer: 
-// Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sourceforge.net>
+// Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sf.net>
 // http://www.qtchina.net
 // http://nullget.sourceforge.net
 // Created: 二  5月  6 21:59:14 2008 (CST)
 // Version: 
-// Last-Updated: 一  5月 12 21:21:57 2008 (CST)
-//           By: liuguangzhao
-//     Update #: 1
+// Last-Updated: 六  6月 14 21:55:51 2008 (CST)
+//           By: 刘光照<liuguangzhao@users.sf.net>
+//     Update #: 2
 // URL: 
 // Keywords: 
 // Compatibility: 
@@ -100,12 +100,7 @@ ProgressDialog::~ProgressDialog()
     delete this->sftp_transfer_thread;
 }
 
-// void ProgressDialog::set_remote_connection(void* ssh2_sess  )
-// {
-//     this->sftp_transfer_thread->set_remote_connection( ssh2_sess  );
-// }
-
-void ProgressDialog::set_transfer_info(/*int type,*/QStringList local_file_names,QStringList remote_file_names  ) 
+void ProgressDialog::set_transfer_info(QStringList local_file_names,QStringList remote_file_names  ) 
 {
     QString local_file_name ;
     QString remote_file_name ;
@@ -117,31 +112,6 @@ void ProgressDialog::set_transfer_info(/*int type,*/QStringList local_file_names
 
     this->sftp_transfer_thread->set_transfer_info(/*type,*/local_file_names,remote_file_names  );
     
-//     if(type == TransferThread::TRANSFER_PUT)
-//     {
-//         assert( remote_file_names.count() ==1);
-//         QString remote_full_path ;
-//         remote_file_name = remote_file_names.at(0);
-//         
-//         this->ui_progress_dialog.lineEdit->setText(tr("Uploading..."));
-//         this->ui_progress_dialog.comboBox->clear();
-//         this->ui_progress_dialog.comboBox_2->clear();
-//         this->ui_progress_dialog.comboBox_2->addItem(remote_file_name);
-//         
-//         for(int i = 0 ; i < local_file_names.count() ; i ++)
-//         {
-//             local_file_name = local_file_names.at(i);
-//             remote_full_path = remote_file_name + "/"
-//                     + local_file_name.split ( "/" ).at ( local_file_name.split ( "/" ).count()-1 ) ;
-//             this->ui_progress_dialog.comboBox_2->addItem( local_file_name );
-// 
-//         }
-//     }
-//     else if( type == TransferThread::TRANSFER_GET)
-//     {
-//         assert( local_file_names.count() == 1 ) ;
-//         local_file_name = local_file_names.at(0);
-//         
         QString local_full_path ;
 //         this->ui_progress_dialog.lineEdit->setText(tr("Downloading..."));
         this->ui_progress_dialog.comboBox->clear();
@@ -163,11 +133,6 @@ void ProgressDialog::set_transfer_info(/*int type,*/QStringList local_file_names
 			}
             this->ui_progress_dialog.lineEdit->setText(QUrl(local_file_names.at(0)).scheme()+"-->"+QUrl(remote_file_name).scheme());
         }
-//     }
-//     else
-//     {
-//         assert(1==2);
-//     }
 }
 
 void ProgressDialog::slot_set_transfer_percent(int percent  , int total_transfered,int transfer_delta )
@@ -262,9 +227,10 @@ void ProgressDialog::closeEvent ( QCloseEvent * event )
     u_r = QMessageBox::information(this,tr("Attemp to close this window?"),tr("Are you sure to stop the transfomition ?"),QMessageBox::Ok | QMessageBox::Cancel );
     if(u_r == QMessageBox::Ok){
         this->sftp_transfer_thread->set_user_cancel(true);
-        event->ignore();
+        //event->ignore();
         this->setVisible(false);
         //emit this->transfer_finished(this->sftp_transfer_thread->get_error_code());
+        qDebug()<<"Transfer error: "<< this->sftp_transfer_thread->get_error_code();
     }else{
         event->ignore();
     }

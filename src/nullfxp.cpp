@@ -7,9 +7,9 @@
 // Copyright (C) 2000-2008 www.comsenz.com
 // Created: 二  5月 13 09:50:23 2008 (UTC)
 // Version: 
-// Last-Updated: 
-//           By: 
-//     Update #: 0
+// Last-Updated: 六  6月 14 22:50:03 2008 (CST)
+//           By: 刘光照<liuguangzhao@users.sf.net>
+//     Update #: 1
 // URL: 
 // Keywords: 
 // Compatibility: 

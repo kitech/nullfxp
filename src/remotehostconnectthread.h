@@ -7,9 +7,9 @@
  * Copyright (C) 2000-2008 www.comsenz.com
  * Created: 三  5月 14 15:30:32 2008 (UTC)
  * Version: 
- * Last-Updated: 
- *           By: 
- *     Update #: 0
+ * Last-Updated: 六  6月 14 22:30:28 2008 (CST)
+ *           By: 刘光照<liuguangzhao@users.sf.net>
+ *     Update #: 1
  * URL: 
  * Keywords: 
  * Compatibility: 
@@ -34,14 +34,14 @@
 
 #include <QThread>
 
-/**
-	@author liuguangzhao <gzl@localhost>
-*/
+///
+///
+///
 class RemoteHostConnectThread : public QThread
 {
 Q_OBJECT
 public:
-  enum {CONN_OK=0,CONN_REFUSE=1,CONN_CANCEL=2,CONN_OTHER,CONN_RESOLVE_ERROR,CONN_SESS_ERROR,CONN_AUTH_ERROR,CONN_SFTP_ERROR,CONN_EXEC_ERROR};
+    enum {CONN_OK=0,CONN_REFUSE,CONN_CANCEL,CONN_OTHER,CONN_RESOLVE_ERROR,CONN_SESS_ERROR,CONN_AUTH_ERROR,CONN_SFTP_ERROR,CONN_EXEC_ERROR};
     RemoteHostConnectThread(QString user_name, QString password, QString host_name, 
                             short port, QString pubkey, QObject* parent=0);
 
@@ -59,6 +59,8 @@ public:
     short   get_port();
     void * get_ssh2_sess () ;
     int get_ssh2_sock () ;
+    int get_connect_status();
+    QString get_status_desc(int status);
     void set_user_canceled();
     
     signals:

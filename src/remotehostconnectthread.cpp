@@ -4,12 +4,14 @@
 // Description: 
 // Author: 刘光照<liuguangzhao@users.sf.net>
 // Maintainer: 
-// Copyright (C) 2000-2008 www.qtchina.net
-// Created: 三  5月 14 15:37:38 2008 (UTC)
+// Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sf.net>
+// http://www.qtchina.net
+// http://nullget.sourceforge.net
+// Created: 六  6月 14 22:29:50 2008 (CST)
 // Version: 
-// Last-Updated: 日  5月 25 09:44:26 2008 (CST)
-//           By: liuguangzhao
-//     Update #: 1
+// Last-Updated: 
+//           By: 
+//     Update #: 0
 // URL: 
 // Keywords: 
 // Compatibility: 
@@ -26,6 +28,7 @@
 // 
 // 
 // 
+
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -83,8 +86,9 @@ static void kbd_callback(const char *name, int name_len,
 } /* kbd_callback */
 
 
-RemoteHostConnectThread::RemoteHostConnectThread(QString user_name , QString password , QString host_name, 
-                                                 short port, QString pubkey,  QObject* parent)
+RemoteHostConnectThread::RemoteHostConnectThread(QString user_name, QString password, 
+                                                 QString host_name, short port, QString pubkey,  
+                                                 QObject* parent)
     : QThread(parent)
 {
     this->user_name = user_name;
@@ -321,15 +325,14 @@ void RemoteHostConnectThread::run()
         ret = libssh2_userauth_password((LIBSSH2_SESSION*)ssh2_sess,this->user_name.toAscii().data(),this->decoded_password.toAscii().data());
         qDebug()<<"Keyboard Interactive :"<<ret ;
 
-        if( ret == -1 )
-        {
+        if( ret == -1 ) {
             emit connect_state_changed( tr( "User auth faild (Password). Trying (Keyboard Interactive) ...") );
             ssh2_kbd_cb_mutex.lock();
             strncpy(ssh2_password,this->decoded_password.toAscii().data() , sizeof(ssh2_password));
             ret = libssh2_userauth_keyboard_interactive((LIBSSH2_SESSION*)ssh2_sess,this->user_name.toAscii().data(),&kbd_callback) ;
             memset( ssh2_password,0,sizeof(ssh2_password));
             ssh2_kbd_cb_mutex.unlock();
-            qDebug()<<"keyboard interactive :"<<ret ;
+            qDebug()<<"Keyboard interactive :"<<ret ;
         }
         if( this->user_canceled == true ){
             this->connect_status = 2 ;
@@ -346,7 +349,7 @@ void RemoteHostConnectThread::run()
     ret = libssh2_userauth_authenticated((LIBSSH2_SESSION*)ssh2_sess);
     if( ret == 0 ) {
         this->connect_status = CONN_AUTH_ERROR ;
-        qDebug()<<" user auth faild";
+        qDebug()<<"User auth faild";
         emit connect_state_changed( tr( "User faild (Keyboard Interactive)(Password ).") );
         return ;
     }
@@ -433,7 +436,7 @@ QString RemoteHostConnectThread::get_server_env_vars(char *cmd)
 
 void RemoteHostConnectThread::slot_finished()
 {
-    emit this->connect_finished(this->connect_status,this->ssh2_sess,this->ssh2_sock/*,this->ssh2_sftp*/ );
+    emit this->connect_finished(this->connect_status,this->ssh2_sess,this->ssh2_sock);
 }
 
 void RemoteHostConnectThread::do_init()
@@ -476,9 +479,36 @@ int RemoteHostConnectThread::get_ssh2_sock ()
 {
     return this->ssh2_sock ;
 }
+
+int RemoteHostConnectThread::get_connect_status()
+{
+    return this->connect_status;
+}
+
 void RemoteHostConnectThread::set_user_canceled()
 {
     this->user_canceled = true;
+}
+
+QString RemoteHostConnectThread::get_status_desc(int status)
+{
+    static char * status_desc[] = {
+        "CONN_OK",
+        "CONN_REFUSE",
+        "CONN_CANCEL",
+        "CONN_OTHER",
+        "CONN_RESOLVE_ERROR",
+        "CONN_SESS_ERROR",
+        "CONN_AUTH_ERROR",
+        "CONN_SFTP_ERROR",
+        "CONN_EXEC_ERROR"
+    };
+    
+    if(status > sizeof(status_desc)/sizeof(char*) ) {
+        return "Unknown status";
+    }else{
+        return status_desc[status];
+    }
 }
 
 //TODO 在网络断线时这run中的代码可能导致程序崩溃
