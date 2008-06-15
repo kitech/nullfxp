@@ -314,7 +314,8 @@ void NullFXP::slot_connect_remote_host_finished ( int status,void * ssh2_sess , 
         remote_view->set_host_info(conn_thread->get_host_name(),
                                    conn_thread->get_user_name(),
                                    conn_thread->get_password(),
-                                   conn_thread->get_port());
+                                   conn_thread->get_port(),
+                                   conn_thread->get_pubkey());
         //初始化远程目录树        
         remote_view->i_init_dir_view (  );
     }

@@ -57,6 +57,7 @@ public:
     QString get_user_name () ;
     QString get_password () ;
     short   get_port();
+    QString get_pubkey();
     void * get_ssh2_sess () ;
     int get_ssh2_sock () ;
     int get_connect_status();

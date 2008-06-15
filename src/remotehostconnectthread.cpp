@@ -471,6 +471,10 @@ short   RemoteHostConnectThread::get_port()
 {
     return this->port;
 }
+QString RemoteHostConnectThread::get_pubkey()
+{
+    return this->pubkey_path;
+}
 void * RemoteHostConnectThread::get_ssh2_sess () 
 {
     return this->ssh2_sess ;

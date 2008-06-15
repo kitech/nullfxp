@@ -76,6 +76,27 @@ long fxp_getpid();
 int set_nonblock (int sock);
 
 
+/*******************/
+#define log_printf(ls, fn, ln, yorn, ... ) do { \
+    char log[2560] = {0}; \
+    snprintf(log, sizeof(log), __VA_ARGS__ ); \
+    fn != NULL ? fprintf(stdout, "%s %s at %s on line %d.\n %s\n", ls, __FUNCTION__, fn , ln, log) : fprintf(stdout, "%s %s\n %s\n", ls, __FUNCTION__, log) ; \
+    yorn == 'y' ? (1==1) : (1==1) ; \
+    }while(0);
+ 
+#define log_error( ... ) log_printf("Error:", __FILE__, __LINE__, 'n', __VA_ARGS__ )
+#ifndef NDEBUG
+#define log_debug( ... ) log_printf("Debug:", __FILE__, __LINE__, 'n', __VA_ARGS__ )
+#else
+#define log_debug( ... ) do {} while(0);
+#endif
+#define log_fetal( ... ) log_printf("Fetal:", __FILE__, __LINE__, 'y', __VA_ARGS__ )
+#define qlog( ... ) log_printf("Info:", (char*)0, 0, 'n', __VA_ARGS__ )
+
+#define q_debug()  qDebug()<<"DEBUG: "<<__FILE__<<" on "<<__LINE__<<"\n\t"
+
+/************* log end ********/
+
 #ifdef __cplusplush
 };
 #endif
