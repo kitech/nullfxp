@@ -483,7 +483,7 @@ void TransferThread::run()
             {
                 //其他的情况暂时不考虑处理。跳过
                 //TODO return a error value , not only error code
-                qDebug()<<"src: "<< current_src_url<<" dest:"<< current_dest_url ;
+                q_debug()<<"src: "<< current_src_url<<" dest:"<< current_dest_url ;
                 this->error_code = 1 ;
                 //assert ( 1 == 2 ) ;
                 qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in " << __LINE__ ;
