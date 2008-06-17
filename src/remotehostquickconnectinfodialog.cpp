@@ -31,6 +31,8 @@
 
 #include  <QtGui>
 
+#include "utils.h"
+
 #include "remotehostquickconnectinfodialog.h"
 
 RemoteHostQuickConnectInfoDialog::RemoteHostQuickConnectInfoDialog(QWidget* parent, Qt::WindowFlags f): QDialog(parent, f)
@@ -132,8 +134,15 @@ void RemoteHostQuickConnectInfoDialog::slot_pubkey_checked(int state)
 void RemoteHostQuickConnectInfoDialog::slot_select_pubkey()
 {
     QString path = QString::null;
+    QString init_dir;
 
-    path = QFileDialog::getOpenFileName ( this, tr("Publickey Select Dialog"),".");
+#ifdef WIN32
+    init_dir = ".";
+#else
+    init_dir = QDir::homePath();
+#endif
+
+    path = QFileDialog::getOpenFileName ( this, tr("Publickey Select Dialog"),init_dir, tr("Public Key Files (*.pub);;All Files (*)"));
     qDebug()<<path;    
     if(path == QString::null) {
         //cancel
@@ -143,6 +152,11 @@ void RemoteHostQuickConnectInfoDialog::slot_select_pubkey()
         //TODO 检查文件格式, 
         //TODO 简单检查是否是一个有效的public key 
         //TODO 检查key中的用户名及主机是否与上面输入的一致
+        //检查对应的私钥文件;
+        QString privkey = path.left(path.length() - 4);
+        if(!QFile::exists(privkey)) {
+            QMessageBox::warning(this, tr("Warning"), tr("Can not find related private key file."));
+        }
         this->pubkey_path = path;
         this->quick_connect_info_dialog.toolButton->setToolTip(QString(tr("Current key: ")) 
                                                                + this->pubkey_path);
