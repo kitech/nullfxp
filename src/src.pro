@@ -30,7 +30,7 @@ SOURCES += main.cpp \
  encryptiondetaildialog.cpp
 
 TEMPLATE = app
-VERSION = 1.5.6
+VERSION = 1.6.1
 CONFIG += qt thread console warn_on ordered  
 TARGET = nullfxp
 DESTDIR = ../bin
