@@ -1,9 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 
 
 appname=`basename $0 | sed s,\.sh$,,`
 dirname=`dirname $0`
-if [ "${dirname:0:1}" != "/" ]; then
+firstchar=`dirname $0|cut -c 1`
+if [ "${firstchar}" != "/" ]; then
    dirname=$PWD/$dirname
 fi
 
@@ -25,7 +26,7 @@ chmod +x $dirname/../nullfxp/bin/nullfxp
 
 cp -v $dirname/../bin/nullfxp $dirname/../nullfxp/lib/
 cp -v $dirname/../bin/unitest $dirname/../nullfxp/bin/
-cp -pv $dirname/../bin/plink   $dirname/../nullfxp/lib/
+cp -pv $dirname/../bin/plink   $dirname/../nullfxp/bin/
 
 strip -s -v $dirname/../nullfxp/lib/nullfxp
 strip -s -v $dirname/../nullfxp/bin/unitest
@@ -73,5 +74,11 @@ fi
 #LINK_TYPE=static
 LINK_PLATFORM=`uname`
 
+TAR_CMD=tar
+if [ x"${LINK_PLATFORM}" = x"SunOS" ]; then
+    TAR_CMD=gtar
+fi
+
+
 echo "package info: $LINK_PLATFORM $LINK_TYPE $VERSION"
-tar jcvf $dirname/../nullfxp-$VERSION-$LINK_TYPE-qt4.i686.$LINK_PLATFORM.tar.bz2 $dirname/../nullfxp
+$TAR_CMD  jcvf $dirname/../nullfxp-$VERSION-$LINK_TYPE-qt4.i686.$LINK_PLATFORM.tar.bz2 $dirname/../nullfxp

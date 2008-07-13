@@ -38,6 +38,8 @@ DESTDIR = ../bin
 QT += network 
 win32 {
 	CONFIG += release
+} else:solaris-g++ {
+        QT -= webkit
 } else {
 	QT += webkit
 	CONFIG += debug release

@@ -2,7 +2,8 @@
 
 appname=`basename $0 | sed s,\.sh$,,`
 dirname=`dirname $0`
-if [ "${dirname:0:1}" != "/" ]; then
+firstchar=`dirname $0|cut -c 1`
+if [ "${firstchar}" != "/" ]; then
    dirname=$PWD/$dirname
 fi
 
