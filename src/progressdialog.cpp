@@ -338,7 +338,6 @@ void ProgressDialog::slot_ask_accepted(int which)
 
 void ProgressDialog::slot_speed_timer_timeout()
 {
-    qDebug()<<__FILE__<<__LINE__;
     QDateTime now_time = QDateTime::currentDateTime();
     int days = 0;
     int hours = 0;
