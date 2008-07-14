@@ -9,9 +9,9 @@
 // http://nullget.sourceforge.net
 // Created: 二  5月  6 21:59:14 2008 (CST)
 // Version: 
-// Last-Updated: 六  6月 14 21:55:51 2008 (CST)
+// Last-Updated: 一  7月 14 21:52:31 2008 (CST)
 //           By: 刘光照<liuguangzhao@users.sf.net>
-//     Update #: 2
+//     Update #: 3
 // URL: 
 // Keywords: 
 // Compatibility: 
@@ -92,6 +92,9 @@ ProgressDialog::ProgressDialog(QWidget *parent )
     this->total_files_count = 0 ;
     this->abtained_files_size = 0 ;
     this->abtained_files_count = 0 ;
+
+    this->time_cacl_timer.setInterval(1000*1);
+    QObject::connect(&this->time_cacl_timer, SIGNAL(timeout()), this, SLOT(slot_speed_timer_timeout()));
 }
 
 
@@ -148,6 +151,7 @@ void ProgressDialog::slot_set_transfer_percent(int percent  , int total_transfer
     if(!start_time.isValid()){
         start_time = QDateTime::currentDateTime();
         transfer_speed = 0 ;
+        this->time_cacl_timer.start();
     }else{
         end_time = QDateTime::currentDateTime();
         if( (end_time.toTime_t()-start_time.toTime_t()) !=0 )
@@ -330,4 +334,49 @@ void ProgressDialog::slot_ask_accepted(int which)
     this->sftp_transfer_thread->user_response_result(which);
   else
     qDebug()<<"No care response";
+}
+
+void ProgressDialog::slot_speed_timer_timeout()
+{
+    qDebug()<<__FILE__<<__LINE__;
+    QDateTime now_time = QDateTime::currentDateTime();
+    int days = 0;
+    int hours = 0;
+    int minites = 0;
+    int seconds = 0;
+    int total_seconds = 0;
+    int left_size = 0;
+    float speed_value = 0.0;
+    QString time_str;
+
+    total_seconds = this->start_time.secsTo(now_time);
+
+    days = total_seconds/(24*3600);
+    hours = total_seconds%(24*3600)/3600;
+    minites = total_seconds%3600/60;
+    seconds = total_seconds%60;    
+    if(days > 0) {
+        time_str = QString("%1d%2:%3:%4").arg(days).arg( hours).arg(minites).arg(seconds);
+    }else{
+        time_str = QString("%1:%2:%3").arg( hours).arg(minites).arg(seconds);
+    }
+    this->ui_progress_dialog.lineEdit_6->setText(time_str);
+
+    ////////////
+    speed_value = this->transfer_speed * 1024;
+    left_size = total_files_size - abtained_files_size;
+
+    total_seconds = left_size/speed_value;
+
+    days = total_seconds/(24*3600);
+    hours = total_seconds%(24*3600)/3600;
+    minites = total_seconds%3600/60;
+    seconds = total_seconds%60;    
+
+    if(days > 0) {
+        time_str = QString("%1d%2:%3:%4").arg(days).arg( hours).arg(minites).arg(seconds);
+    }else{
+        time_str = QString("%1:%2:%3").arg( hours).arg(minites).arg(seconds);
+    }
+    this->ui_progress_dialog.lineEdit_7->setText(time_str);
 }

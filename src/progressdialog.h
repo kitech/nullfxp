@@ -4,14 +4,14 @@
  * Description: 
  * Author: liuguangzhao
  * Maintainer: 
- * Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sourceforge.net>
+ * Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sf.net>
  * http://www.qtchina.net
  * http://nullget.sourceforge.net
  * Created: 二  5月  6 21:59:33 2008 (CST)
  * Version: 
- * Last-Updated: 六  5月 24 11:13:55 2008 (CST)
- *           By: liuguangzhao
- *     Update #: 2
+ * Last-Updated: 一  7月 14 21:52:38 2008 (CST)
+ *           By: 刘光照<liuguangzhao@users.sf.net>
+ *     Update #: 3
  * URL: 
  * Keywords: 
  * Compatibility: 
@@ -71,6 +71,8 @@ class ProgressDialog : public QWidget
     void slot_transfer_log(QString log);
     void slot_dest_file_exists(QString src_path, QString src_file_size, QString src_file_date,QString dest_path, QString dest_file_size, QString dest_file_date);
     void slot_ask_accepted(int which);
+    private slots:
+    void slot_speed_timer_timeout();
 
 signals:
     void transfer_finished(int status, QString errorString);
@@ -91,6 +93,7 @@ private:
     int  transfer_speed ;
     QDateTime start_time;
     QDateTime end_time ;
+    QTimer  time_cacl_timer;
         
 private:    //UI element
         
@@ -99,6 +102,7 @@ private:    //UI element
 private:
     void update_transfer_state();
     QString type(QString file_name);
+
 protected:
     void closeEvent ( QCloseEvent * event ) ;
 };
