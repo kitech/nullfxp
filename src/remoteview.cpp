@@ -254,7 +254,6 @@ void RemoteView::slot_new_transfer()
     for(int i = 0 ; i < mil.size(); i +=4 )
     {
         QModelIndex midx = mil.at(i);
-        qDebug()<<midx ;
         directory_tree_item * dti = (directory_tree_item*) ( this->curr_item_view!=this->remoteview.treeView ?   this->remote_dir_sort_filter_model->mapToSource(midx).internalPointer() : ( this->remote_dir_sort_filter_model_ex->mapToSource(midx ).internalPointer() )  );
         qDebug()<<dti->file_name<<" "<<dti->file_type<<" "<< dti->strip_path  ;
         file_path = dti->strip_path;
@@ -262,7 +261,7 @@ void RemoteView::slot_new_transfer()
         file_path = QString("nrsftp://%1:%2@%3:%4").arg(this->user_name).arg("").arg(this->host_name).arg(this->port) + file_path;
 
         QUrl uu(file_path);
-        uu.setEncodedPassword(QUrl::toPercentEncoding(this->password));
+        uu.setEncodedPassword(this->password.toAscii());
         QList<QPair<QString, QString> > query_items;
         query_items<<QPair<QString, QString>("pubkey",this->pubkey);
         uu.setQueryItems(query_items);
@@ -717,7 +716,7 @@ void RemoteView::slot_new_upload_requested ( QStringList local_file_names )
         remote_file_name = QString("nrsftp://%1:%2@%3:%4").arg(this->user_name).arg(".").arg(this->host_name).arg(this->port) + remote_file_name ;
         //q_debug()<<remote_file_name<<QUrl::toPercentEncoding(this->password);
         QUrl uu = QUrl::fromEncoded(remote_file_name.toAscii(), QUrl::StrictMode);
-        uu.setEncodedPassword(QUrl::toPercentEncoding(this->password));
+        uu.setEncodedPassword(this->password.toAscii());
         QList<QPair<QString, QString> > query_items;
         query_items<<QPair<QString, QString>("pubkey",this->pubkey);
         uu.setQueryItems(query_items);
@@ -878,7 +877,7 @@ void RemoteView::slot_drag_ready()
         QModelIndex midx = mil.at(i);
         temp_file_path = (qobject_cast<RemoteDirModel*>(this->remote_dir_model))->filePath(this->remote_dir_sort_filter_model->mapToSource(midx) );
         QUrl uu = QUrl( QString("nrsftp://%1:%2@%3:%4").arg(this->user_name).arg("").arg(this->host_name).arg(this->port) + temp_file_path);
-        uu.setEncodedPassword(QUrl::toPercentEncoding(this->password));
+        uu.setEncodedPassword(this->password.toAscii());
         QList<QPair<QString, QString> > query_items;
         query_items<<QPair<QString, QString>("pubkey",this->pubkey);
         uu.setQueryItems(query_items);
@@ -916,7 +915,7 @@ bool RemoteView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction actio
     //QString remote_file_type = aim_item->file_type.c_str();
     remote_file_name = QString("nrsftp://%1:%2@%3:%4").arg(this->user_name).arg("").arg(this->host_name).arg(this->port) + remote_file_name ;
     QUrl uu(remote_file_name);
-    uu.setEncodedPassword(QUrl::toPercentEncoding(this->password));
+    uu.setEncodedPassword(this->password.toAscii());
     QList<QPair<QString, QString> > query_items;
     query_items<<QPair<QString, QString>("pubkey",this->pubkey);
     uu.setQueryItems(query_items);

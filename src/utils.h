@@ -93,7 +93,7 @@ int set_nonblock (int sock);
 #define log_fetal( ... ) log_printf("Fetal:", __FILE__, __LINE__, 'y', __VA_ARGS__ )
 #define qlog( ... ) log_printf("Info:", (char*)0, 0, 'n', __VA_ARGS__ )
 
-#define q_debug()  qDebug()<<"DEBUG: "<<__FILE__<<" on "<<__LINE__<<"\n\t"
+#define q_debug()  qDebug()<<"DEBUG: "<<__FILE__<<" on "<<__LINE__<<"\n    "
 
 /************* log end ********/
 
