@@ -4,7 +4,7 @@
  * Description: 
  * Author: liuguangzhao
  * Maintainer: 
- * Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sourceforge.net>
+ * Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sf.net>
  * http://www.qtchina.net
  * http://nullget.sourceforge.net
  * Created: 一  5月  5 22:09:15 2008 (CST)
@@ -51,10 +51,6 @@ class RemoteDirSortFilterModelEX ;
 
 class LocalView ;
 class EncryptionDetailFocusLabel;
-
-/**
-   @author liuguangzhao <liuguangzhao@users.sourceforge.net >
-*/
 
 class RemoteView : public QWidget
 {

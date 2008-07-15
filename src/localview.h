@@ -4,14 +4,14 @@
  * Description: 
  * Author: liuguangzhao
  * Maintainer: 
- * Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sourceforge.net>
+ * Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sf.net>
  * http://www.qtchina.net
  * http://nullget.sourceforge.net
  * Created: 六  5月 31 15:26:31 2008 (CST)
  * Version: 
- * Last-Updated: 
- *           By: 
- *     Update #: 0
+ * Last-Updated: 二  7月 15 20:02:16 2008 (CST)
+ *           By: 刘光照<liuguangzhao@users.sf.net>
+ *     Update #: 1
  * URL: 
  * Keywords: 
  * Compatibility: 
@@ -92,6 +92,7 @@ private:
     void slot_show_properties();
     void slot_mkdir();
     void slot_rmdir();
+    void slot_remove();
     void slot_rename();
     void rm_file_or_directory_recursively();
     void slot_copy_path_url();

@@ -123,6 +123,10 @@ CONFIG(debug, debug|release) {
     DEFINES += DEBUG
 }
 
+HOST_MACHINE = $$system(gcc -dumpmachine)
+HOST_GCC_VERSION = $$system(gcc -dumpversion)
+DEFINES += GCC_MV=\"\\\"$$HOST_MACHINE-g++-$$HOST_GCC_VERSION\\\"\"
+
 
 INCLUDEPATH += . ./libssh2/include
 

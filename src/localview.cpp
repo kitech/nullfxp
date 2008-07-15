@@ -4,14 +4,14 @@
 // Description: 
 // Author: liuguangzhao
 // Maintainer: 
-// Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sourceforge.net>
+// Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sf.net>
 // http://www.qtchina.net
 // http://nullget.sourceforge.net
 // Created: 六  5月 31 15:26:15 2008 (CST)
 // Version: 
-// Last-Updated: 
-//           By: 
-//     Update #: 0
+// Last-Updated: 二  7月 15 20:01:47 2008 (CST)
+//           By: 刘光照<liuguangzhao@users.sf.net>
+//     Update #: 1
 // URL: 
 // Keywords: 
 // Compatibility: 
@@ -35,6 +35,8 @@
 #include "localview.h"
 #include "globaloption.h"
 #include "fileproperties.h"
+
+#include "utils.h"
 
 //#define REMOTE_CODEC "UTF-8"
 
@@ -140,6 +142,10 @@ void LocalView::init_local_dir_tree_context_menu()
     action = new QAction(tr("Delete directory"),0);
     this->local_dir_tree_context_menu->addAction(action);
     QObject::connect(action,SIGNAL(triggered()),this,SLOT(slot_rmdir()));
+    action = new QAction(tr("Remove"), 0);
+    this->local_dir_tree_context_menu->addAction(action);
+    QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_remove()));
+
     action = new QAction ( tr("Rename ..."),0);
     this->local_dir_tree_context_menu->addAction ( action );
     QObject::connect(action, SIGNAL(triggered()),this,SLOT(slot_rename()));
@@ -445,6 +451,29 @@ void LocalView::slot_rmdir()
     else
     {
         this->slot_refresh_directory_tree();
+    }
+}
+
+void LocalView::slot_remove()
+{
+    QModelIndexList mil;
+    QItemSelectionModel * ism = this->curr_item_view->selectionModel();
+    if( ism == 0 || ism->selectedIndexes().count() == 0) {
+        QMessageBox::critical(this,tr("Waring..."),tr("No item selected")+"                    ");
+        return ;
+    }
+    mil = ism->selectedIndexes();
+
+    QString local_file = this->curr_item_view==this->localView.treeView?this->dir_file_model->filePath ( mil.at ( 0 ) ) : this->model->filePath(mil.at(0));
+
+    if(QMessageBox::question(this, tr("Question..."), 
+                             QString("%1\n\t%2").arg(QString(tr("Are you sure remove it?"))).arg(local_file),
+                             QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes) {
+        if(QFile::remove(local_file)) {
+            this->slot_refresh_directory_tree();    
+        }else{
+            q_debug()<<"can not remove file:"<<local_file;
+        }
     }
 }
 
