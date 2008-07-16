@@ -278,6 +278,7 @@ void NullFXP::slot_disconnect_from_remote_host()
 void NullFXP::slot_show_session_dialog()
 {
     SessionDialog * sess_dlg = new SessionDialog(this);
+    QObject::connect(sess_dlg, SIGNAL(quick_connect()), this, SLOT(connect_to_remote_host()));
     if(sess_dlg->exec() == QDialog::Accepted)
     {
         QMap<QString,QString> host ;

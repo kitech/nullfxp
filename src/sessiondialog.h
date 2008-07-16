@@ -69,11 +69,13 @@ public slots:
     void slot_edit_selected_host();
     void slot_rename_selected_host();
     void slot_remove_selected_host();
+    void slot_quick_connect();
 
     QMap<QString,QString>  get_host_map();
 
  signals:
     void connect_remote_host_requested(QMap<QString,QString> host);
+    void quick_connect();
 
 private slots:
     bool loadHost();

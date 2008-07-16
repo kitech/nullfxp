@@ -73,7 +73,7 @@ SessionDialog::SessionDialog(QWidget * parent)
     QObject::connect(this->sess_dlg.toolButton,SIGNAL(clicked()),
                      this,SLOT(slot_conntect_selected_host()));
     QObject::connect(this->sess_dlg.toolButton_2,SIGNAL(clicked()),
-                     this,SLOT(slot_conntect_selected_host()));
+                     this,SLOT(slot_quick_connect()));
     QObject::connect(this->sess_dlg.toolButton_3,SIGNAL(clicked()),
                      this,SLOT(slot_remove_selected_host()));
     this->host_list_ctx_menu = 0;
@@ -269,6 +269,13 @@ void SessionDialog::slot_remove_selected_host()
             this->host_list_model->removeRows(mil.at(0).row(),1,QModelIndex());
         }
     }
+}
+
+void SessionDialog::slot_quick_connect()
+{
+    this->setVisible(false);
+    emit quick_connect();
+    this->reject();
 }
 
 //
