@@ -2,9 +2,12 @@
 // 
 // Filename: sessiondialog.cpp
 // Description: 
-// Author: liuguangzhao
+// Author: 刘光照<liuguangzhao@users.sf.net>
 // Maintainer: 
-// Created: 六  4月  5 18:10:37 2008 (CST)
+// Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sf.net>
+// http://www.qtchina.net
+// http://nullget.sourceforge.net
+// Created: 三  7月 16 21:35:27 2008 (CST)
 // Version: 
 // Last-Updated: 
 //           By: 
@@ -25,26 +28,7 @@
 // 
 // 
 // 
-// 
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 3, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-// General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program; see the file COPYING.  If not, write to
-// the Free Software Foundation, Inc., 51 Franklin Street, Fifth
-// Floor, Boston, MA 02110-1301, USA.
 
-// 
-// 
-
-// Code:
 
 #include "remotehostquickconnectinfodialog.h"
 
@@ -172,6 +156,8 @@ void  SessionDialog::slot_conntect_selected_host(const QModelIndex & index)
         {
 
         }
+    }else{
+        this->slot_show_no_item_tip();
     }
 }
 QMap<QString,QString>  SessionDialog::get_host_map()
@@ -195,6 +181,8 @@ void SessionDialog::slot_conntect_selected_host()
     {
         //qDebug()<<mil.at(0).data();
         this->slot_conntect_selected_host(mil.at(0));
+    }else{
+        this->slot_show_no_item_tip();
     }
 }
 
@@ -225,6 +213,8 @@ void SessionDialog::slot_edit_selected_host()
             }
         }
         delete info_dlg;
+    }else{
+        this->slot_show_no_item_tip();
     }
 }
 
@@ -250,6 +240,8 @@ void SessionDialog::slot_rename_selected_host()
             //this->host_list_model->removeRows(mil.at(0).row(),1,QModelIndex());            
             this->host_list_model->setData(mil.at(0), new_name);
         }
+    }else{
+        this->slot_show_no_item_tip();
     }
 }
 
@@ -268,6 +260,8 @@ void SessionDialog::slot_remove_selected_host()
             this->storage->removeHost(mil.at(0).data().toString());
             this->host_list_model->removeRows(mil.at(0).row(),1,QModelIndex());
         }
+    }else{
+        this->slot_show_no_item_tip();
     }
 }
 
@@ -276,6 +270,15 @@ void SessionDialog::slot_quick_connect()
     this->setVisible(false);
     emit quick_connect();
     this->reject();
+}
+
+void SessionDialog::slot_show_no_item_tip()
+{
+    QString msg = QString("<br>&nbsp;&nbsp;&nbsp;<b>") + tr("No selected host.") 
+        + QString("&nbsp;&nbsp;</b><br>");
+    QPoint pos = this->sess_dlg.toolButton_3->pos();
+    pos.setY(pos.y() + 80);
+    QToolTip::showText(this->mapToGlobal(pos), msg, this);
 }
 
 //

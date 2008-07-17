@@ -92,6 +92,10 @@ LocalView::LocalView ( QWidget *parent )
     this->localView.splitter->setStretchFactor(0,1);
     this->localView.splitter->setStretchFactor(1,2);
     //this->localView.listView->setVisible(false);    //暂时没有功能在里面先隐藏掉
+
+    //TODO localview 标题格式: Local(主机名) - 当前所在目录名
+    //TODO remoteview 标题格式: user@hostname - 当前所在目录名
+    //TODO 状态栏: 信息格式:  n entries (m hidden entries) . --- 与remoteview相同
 }
 
 
@@ -131,7 +135,7 @@ void LocalView::init_local_dir_tree_context_menu()
     action->setSeparator(true);
     this->local_dir_tree_context_menu->addAction ( action );
 
-    action = new QAction(tr("Copy path URL"),0);
+    action = new QAction(tr("Copy &Path"),0);
     this->local_dir_tree_context_menu->addAction(action);
     QObject::connect(action,SIGNAL(triggered()),this,SLOT(slot_copy_path_url()));
     

@@ -109,7 +109,9 @@ void RemoteView::init_popup_context_menu()
     action->setSeparator(true);
     this->dir_tree_context_menu->addAction(action);
 
-    action = new QAction(tr("Copy path URL"),0);
+    //TODO Copy URL, || CUT, COPY, PASTE, ||set initial directory,||open,open with
+    
+    action = new QAction(tr("Copy &Path"),0);
     this->dir_tree_context_menu->addAction(action);
     QObject::connect(action,SIGNAL(triggered()),this,SLOT(slot_copy_path_url()));
         
