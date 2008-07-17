@@ -27,7 +27,8 @@ SOURCES += main.cpp \
  sessiondialog.cpp \
  fileexistaskdialog.cpp \
  encryptiondetailfocuslabel.cpp \
- encryptiondetaildialog.cpp
+ encryptiondetaildialog.cpp \
+ baserfsmodel.cpp
 
 TEMPLATE = app
 VERSION = 1.6.1
@@ -92,7 +93,8 @@ HEADERS += nullfxp.h \
  sessiondialog.h \
  fileexistaskdialog.h \
  encryptiondetailfocuslabel.h \
- encryptiondetaildialog.h
+ encryptiondetaildialog.h \
+ baserfsmodel.h
 
 DISTFILES += ../CMakeLists.txt \
 CMakeLists.txt \

@@ -18,6 +18,8 @@ src/ReadMe -text
 src/aboutnullfxp.cpp -text
 src/aboutnullfxp.h -text
 src/aboutnullfxp.ui -text
+src/baserfsmodel.cpp -text
+src/baserfsmodel.h -text
 src/basestorage.cpp -text
 src/basestorage.h -text
 src/encryptiondetaildialog.cpp -text
