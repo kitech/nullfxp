@@ -115,12 +115,20 @@ bool BaseRFSModel::setData(const QModelIndex &index, const QVariant &value, int 
 }
 Qt::ItemFlags BaseRFSModel::flags(const QModelIndex &index) const
 {
-
-    return Qt::ItemIsSelectable | Qt::ItemIsEditable ;
+    return Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsDragEnabled 
+        | Qt::ItemIsDropEnabled | Qt::ItemIsEnabled;
 }
 
 QVariant BaseRFSModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
+    if(role != Qt::DisplayRole) return QVariant();
+    switch(section) {
+    case 0: return QString(tr("name"));
+    case 1: return QString(tr("type"));
+    case 2: return QString(tr("mode"));
+    case 3: return QString(tr("mtime"));
+    default: break;
+    }
     return QVariant();
 }
 
@@ -138,6 +146,7 @@ QStringList BaseRFSModel::mimeTypes() const
 {
     QStringList types;
 
+    types<<"url/list";
     return types;
 }
 Qt::DropActions BaseRFSModel::supportedDropActions() const
@@ -147,6 +156,7 @@ Qt::DropActions BaseRFSModel::supportedDropActions() const
 
 bool BaseRFSModel::insertRows(int row, int count, const QModelIndex &parent)
 {
+    
     return true;
 }
 bool BaseRFSModel::removeRows(int row, int count, const QModelIndex &parent)

@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 #endif
       NullFXP nfxp ;
       nfxp.showNormal ();
-      //BaseRFSModel *rfs_model = new BaseRFSModel();
+      BaseRFSModel *rfs_model = new BaseRFSModel();
       app_exec_ret = app.exec();
       if( app_exec_ret == 0)
           qDebug()<<"Exit normally.";
