@@ -31,15 +31,36 @@
 #define REMOTEHOSTCONNECTTHREAD_H
 
 #include <QtCore>
-
 #include <QThread>
 
+#include "libssh2.h"
+#include "libssh2_sftp.h"
+
+class ConnectionInfo : public QObject
+{
+    Q_OBJECT;
+public:
+ConnectionInfo(QObject *parent = 0) : QObject(parent) {}
+    ~ConnectionInfo(){}
+public:
+    QString userName;
+    QString password;   //存储的密码为url编码过的
+    QString decodedPassword;
+    QString hostName ;
+    short   port;
+    QString pubkeyPath;
+    QString homePath;
+    
+    LIBSSH2_SESSION * sshSess;
+    LIBSSH2_SFTP * sshSftp ;
+    int sshSock;
+};
 ///
 ///
 ///
 class RemoteHostConnectThread : public QThread
 {
-Q_OBJECT
+    Q_OBJECT;
 public:
     enum {CONN_OK=0,CONN_REFUSE,CONN_CANCEL,CONN_OTHER,CONN_RESOLVE_ERROR,CONN_SESS_ERROR,CONN_AUTH_ERROR,CONN_SFTP_ERROR,CONN_EXEC_ERROR};
     RemoteHostConnectThread(QString user_name, QString password, QString host_name, 

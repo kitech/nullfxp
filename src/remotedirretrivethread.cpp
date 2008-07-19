@@ -4,7 +4,7 @@
 // Description: 
 // Author: liuguangzhao
 // Maintainer: 
-// Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sourceforge.net>
+// Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sf.net>
 // http://www.qtchina.net
 // http://nullget.sourceforge.net
 // Created: 日  5月 25 09:50:50 2008 (CST)
@@ -39,15 +39,12 @@
 #include <winsock2.h>
 #endif
 
+#include "utils.h"
 #include "globaloption.h"
 #include "remotedirretrivethread.h"
 
-#include "utils.h"
+#include "rfsdirnode.h"
 
-//这种声明方法是为什么呢？
-// int remote_glob(struct sftp_conn *, const char *, int,
-//                 int (*)(const char *, int), glob_t *); /* proto for sftp-glob.c */
-                
 ////////////////////////directory_tree_item
 directory_tree_item::~directory_tree_item()
 {
@@ -72,23 +69,13 @@ RemoteDirRetriveThread::~RemoteDirRetriveThread()
     libssh2_sftp_shutdown(this->ssh2_sftp);
     libssh2_session_disconnect( this->ssh2_sess,"SSH_DISCONNECT_BY_APPLICATION" );
     libssh2_session_free( this->ssh2_sess );
-#ifdef WIN32    
-    //::closesocket( this->ssh2_sock ) ;
-#else
-    //::close( this->ssh2_sock );
-#endif
-    
-    //TODO delete model data , ok , delete it in RemoteDirModel class
 }
 
-void RemoteDirRetriveThread::set_ssh2_handler( void * ssh2_sess /*, void * ssh2_sftp, int ssh2_sock*/ )
+void RemoteDirRetriveThread::set_ssh2_handler( void * ssh2_sess )
 {
     this->ssh2_sess = (LIBSSH2_SESSION*) ssh2_sess ;
     this->ssh2_sftp = libssh2_sftp_init( this->ssh2_sess ) ;
-    qDebug()<<" sftp init: "<< this->ssh2_sftp ;
     assert( this->ssh2_sftp != 0 );
-//     this->ssh2_sftp = (LIBSSH2_SFTP * ) ssh2_sftp ;
-//     this->ssh2_sock = ssh2_sock ;
 }
 
 void RemoteDirRetriveThread::run()
@@ -207,7 +194,8 @@ int  RemoteDirRetriveThread::retrive_dir()
             thefile.insert( 'T',QString( file_type ) );
             thefile.insert( 'S',QString( file_size ) );
             thefile.insert( 'D',QString( file_date ) );  
-                      
+
+            emit this->sigFoundChildNode(0, thefile);
             fileinfos.push_back(thefile);
             memset(&ssh2_sftp_attrib,0,sizeof(LIBSSH2_SFTP_ATTRIBUTES) );
         }  

@@ -28,7 +28,9 @@ SOURCES += main.cpp \
  fileexistaskdialog.cpp \
  encryptiondetailfocuslabel.cpp \
  encryptiondetaildialog.cpp \
- baserfsmodel.cpp
+ baserfsmodel.cpp \
+ rfsdirnode.cpp \
+ CompleteLineEditDelegate.cpp
 
 TEMPLATE = app
 VERSION = 1.6.1
@@ -94,7 +96,9 @@ HEADERS += nullfxp.h \
  fileexistaskdialog.h \
  encryptiondetailfocuslabel.h \
  encryptiondetaildialog.h \
- baserfsmodel.h
+ baserfsmodel.h \
+ rfsdirnode.h \
+ CompleteLineEditDelegate.h
 
 DISTFILES += ../CMakeLists.txt \
 CMakeLists.txt \
@@ -124,6 +128,7 @@ CONFIG(release, debug|release) {
 CONFIG(debug, debug|release) {
     DEFINES += DEBUG
 }
+DEFINES -= NDEBUG
 
 HOST_MACHINE = $$system(gcc -dumpmachine)
 HOST_GCC_VERSION = $$system(gcc -dumpversion)

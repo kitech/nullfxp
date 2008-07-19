@@ -43,6 +43,11 @@
 #include "encryptiondetailfocuslabel.h"
 #include "encryptiondetaildialog.h"
 
+#warning "wrapper lower class, drop this include"
+#include "rfsdirnode.h"
+
+#include "CompleteLineEditDelegate.h"
+
 RemoteView::RemoteView(QMdiArea * main_mdi_area ,LocalView * local_view ,QWidget *parent)
     : QWidget(parent)
 {
@@ -76,6 +81,9 @@ RemoteView::RemoteView(QMdiArea * main_mdi_area ,LocalView * local_view ,QWidget
     
     this->in_remote_dir_retrive_loop = false;
     this->remoteview.tableView->test_use_qt_designer_prompt = 0;
+    CompleteLineEditDelegate *delegate = new CompleteLineEditDelegate();
+    this->remoteview.tableView->setItemDelegate(delegate);
+    this->remoteview.tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
 }
 
 void RemoteView::init_popup_context_menu()
@@ -635,7 +643,7 @@ void RemoteView::slot_rename()
         QMessageBox::critical(this,tr("waring..."),tr("no item selected"));
         return ;
     }
-    
+    this->curr_item_view->edit(mil.at(0));
     QModelIndex midx = mil.at(0);
     QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) ? this->remote_dir_sort_filter_model_ex->mapToSource(midx): this->remote_dir_sort_filter_model->mapToSource(midx) ;
     directory_tree_item * dti = (directory_tree_item*) aim_midx.internalPointer();
@@ -658,6 +666,7 @@ void RemoteView::slot_rename()
     }
 
     this->remote_dir_model->slot_execute_command(parent_item,parent_model.internalPointer() ,SSH2_FXP_RENAME ,  dti->file_name + "!" + rename_to );
+
 }
 void RemoteView::slot_copy_path_url()
 {
