@@ -30,7 +30,7 @@ SOURCES += main.cpp \
  encryptiondetaildialog.cpp \
  baserfsmodel.cpp \
  rfsdirnode.cpp \
- CompleteLineEditDelegate.cpp
+ completelineeditdelegate.cpp
 
 TEMPLATE = app
 VERSION = 1.6.1
@@ -98,7 +98,7 @@ HEADERS += nullfxp.h \
  encryptiondetaildialog.h \
  baserfsmodel.h \
  rfsdirnode.h \
- CompleteLineEditDelegate.h
+ completelineeditdelegate.h
 
 DISTFILES += ../CMakeLists.txt \
 CMakeLists.txt \

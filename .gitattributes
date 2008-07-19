@@ -22,6 +22,8 @@ src/baserfsmodel.cpp -text
 src/baserfsmodel.h -text
 src/basestorage.cpp -text
 src/basestorage.h -text
+src/completelineeditdelegate.cpp -text
+src/completelineeditdelegate.h -text
 src/encryptiondetaildialog.cpp -text
 src/encryptiondetaildialog.h -text
 src/encryptiondetailfocuslabel.cpp -text
