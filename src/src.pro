@@ -38,7 +38,9 @@ TARGET = nullfxp
 DESTDIR = ../bin
 
 system(gcc -o gv.exe get_ver.c)
-VERSION = $$system(./gv.exe nullfxp-version.h)
+!win32 {
+    VERSION = $$system(./gv.exe nullfxp-version.h)
+}
 win32 {
 	CONFIG += release
     VERSION = $$system(gv nullfxp-version.h)
