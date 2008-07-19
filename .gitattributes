@@ -42,6 +42,7 @@ src/forwardconnectinfodialog.ui -text
 src/forwarddebugwindow.cpp -text
 src/forwarddebugwindow.h -text
 src/forwarddebugwindow.ui -text
+src/get_ver.c -text
 src/globaloption.cpp -text
 src/globaloption.h -text
 src/globaloptionsdialog.cpp -text

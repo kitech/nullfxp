@@ -38,6 +38,7 @@
 #warning "wrapper lower class, drop this include"
 #include "rfsdirnode.h"
 
+#warning "maybe there is some way to drop this thread"
 FilePropertiesRetriveThread::FilePropertiesRetriveThread(LIBSSH2_SFTP * ssh2_sftp ,QString file_path , QObject * parent): QThread(parent)
 {
     this->ssh2_sftp = ssh2_sftp ;
@@ -62,7 +63,7 @@ FileProperties::FileProperties ( QWidget *parent )
 {
 	this->ui_file_prop_dialog.setupUi ( this );
 
-    //connect(this,SIGNAL(finished()),this,SLOT(slot_this_thread_finished()));
+    this->ui_file_prop_dialog.label_13->setPixmap(QPixmap(":/icons/nullget-1.png").scaledToHeight(50));
 }
 
 FileProperties::~FileProperties()

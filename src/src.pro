@@ -33,20 +33,23 @@ SOURCES += main.cpp \
  completelineeditdelegate.cpp
 
 TEMPLATE = app
-VERSION = 1.6.1
 CONFIG += qt thread console warn_on ordered  
 TARGET = nullfxp
 DESTDIR = ../bin
 
-QT += network 
+system(gcc -o gv.exe get_ver.c)
+VERSION = $$system(./gv.exe nullfxp-version.h)
 win32 {
 	CONFIG += release
+    VERSION = $$system(gv nullfxp-version.h)
 } else:solaris-g++ {
         QT -= webkit
 } else {
 	QT += webkit
 	CONFIG += debug release
 }
+QT += network 
+
 UI_DIR = obj
 MOC_DIR = obj
 OBJECTS_DIR = obj

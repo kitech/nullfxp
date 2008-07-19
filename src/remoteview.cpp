@@ -46,7 +46,7 @@
 #warning "wrapper lower class, drop this include"
 #include "rfsdirnode.h"
 
-#include "CompleteLineEditDelegate.h"
+#include "completelineeditdelegate.h"
 
 RemoteView::RemoteView(QMdiArea * main_mdi_area ,LocalView * local_view ,QWidget *parent)
     : QWidget(parent)
