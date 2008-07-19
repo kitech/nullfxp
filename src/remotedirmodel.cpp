@@ -375,9 +375,13 @@ Qt::ItemFlags RemoteDirModel::flags ( const QModelIndex &index ) const
 
     if ( !index.isValid() )
         return Qt::ItemIsEnabled;
-
-    return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled
-        | Qt::ItemIsDropEnabled | Qt::ItemIsEditable;
+    Qt::ItemFlags flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable
+        | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled;
+    if(index.column() == 0) {
+        return flags | Qt::ItemIsEditable;
+    }else{
+        return flags;
+    }
 }
 QVariant RemoteDirModel::headerData(int section, Qt::Orientation orientation, int role ) const
 {
@@ -441,7 +445,23 @@ int RemoteDirModel::rowCount(const QModelIndex &parent) const
 
 bool RemoteDirModel::setData ( const QModelIndex & index, const QVariant & value, int role )
 {
-    q_debug()<<value ;
+    if(!index.isValid()) {
+        return false;
+    }
+    if(role != Qt::EditRole) return false;
+    if(value.toString().length() <= 0) return false;
+    assert(index.column() == 0);
+
+    directory_tree_item *parent_item = static_cast<directory_tree_item*>(index.parent().internalPointer());
+    directory_tree_item *dti =  static_cast<directory_tree_item*>(index.internalPointer());
+    int cmd = SSH2_FXP_RENAME;
+    QString data = dti->file_name + "!" + value.toString();
+
+    if(dti->file_name == value.toString()) return false;
+
+    this->remote_dir_retrive_thread->slot_execute_command(parent_item, parent_item, cmd, data);
+    dti->file_name = value.toString();
+
     return true;
 }
 

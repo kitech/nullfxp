@@ -74,8 +74,6 @@ RemoteView::RemoteView(QMdiArea * main_mdi_area ,LocalView * local_view ,QWidget
                      this,SLOT(slot_dir_tree_customContextMenuRequested (const QPoint & )) );
     QObject::connect(this->remoteview.tableView,SIGNAL(customContextMenuRequested(const QPoint &)),
                      this,SLOT(slot_dir_tree_customContextMenuRequested (const QPoint & )) );
-    //QObject::connect( this->remoteview.treeView,SIGNAL(clicked(const QModelIndex & )),
-    //                  this,SLOT(slot_dir_item_clicked(const QModelIndex & ))) ;
     
     this->init_popup_context_menu();
     
@@ -117,11 +115,14 @@ void RemoteView::init_popup_context_menu()
     action->setSeparator(true);
     this->dir_tree_context_menu->addAction(action);
 
-    //TODO Copy URL, || CUT, COPY, PASTE, ||set initial directory,||open,open with
-    
+    //TODO  CUT, COPY, PASTE, ||set initial directory,||open,open with    
     action = new QAction(tr("Copy &Path"),0);
     this->dir_tree_context_menu->addAction(action);
-    QObject::connect(action,SIGNAL(triggered()),this,SLOT(slot_copy_path_url()));
+    QObject::connect(action,SIGNAL(triggered()),this,SLOT(slot_copy_path()));
+
+    action = new QAction(tr("Copy &URL"),0);
+    this->dir_tree_context_menu->addAction(action);
+    QObject::connect(action,SIGNAL(triggered()),this,SLOT(slot_copy_url()));
         
     action = new QAction(tr("Create directory..."),0);
     this->dir_tree_context_menu->addAction(action);
@@ -644,37 +645,14 @@ void RemoteView::slot_rename()
         return ;
     }
     this->curr_item_view->edit(mil.at(0));
-    QModelIndex midx = mil.at(0);
-    QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) ? this->remote_dir_sort_filter_model_ex->mapToSource(midx): this->remote_dir_sort_filter_model->mapToSource(midx) ;
-    directory_tree_item * dti = (directory_tree_item*) aim_midx.internalPointer();
-    QModelIndex parent_model =  aim_midx.parent() ;
-    directory_tree_item * parent_item = (directory_tree_item*)parent_model.internalPointer();
-    
-    QString rename_to ;
-    rename_to = QInputDialog::getText(this,tr("Rename to:"),  tr("Input new name:")
-                                      +"                                                        ",
-                                      QLineEdit::Normal, dti->file_name );
-     
-    if(  rename_to  == QString::null ) {
-        //qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
-        //QMessageBox::critical(this,tr("Waring..."),tr("No new name supplyed "));
-        return;
-    }
-    if( rename_to.length() == 0 ) {
-        QMessageBox::critical(this,tr("Waring..."),tr("No new name supplyed "));
-        return ;
-    }
-
-    this->remote_dir_model->slot_execute_command(parent_item,parent_model.internalPointer() ,SSH2_FXP_RENAME ,  dti->file_name + "!" + rename_to );
-
 }
-void RemoteView::slot_copy_path_url()
+void RemoteView::slot_copy_path()
 {
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
     if(ism == 0) {
         qDebug()<<" why???? no QItemSelectionModel??";
-        QMessageBox::critical(this,tr("Waring..."),tr("Maybe you haven't connected"));                
+        QMessageBox::critical(this,tr("Waring..."),tr("Maybe you haven't connected"));
         return  ;
     }
     
@@ -691,6 +669,33 @@ void RemoteView::slot_copy_path_url()
     directory_tree_item * dti = (directory_tree_item*) aim_midx.internalPointer();
 
     QApplication::clipboard()->setText(dti->strip_path);
+}
+
+void RemoteView::slot_copy_url()
+{
+    QItemSelectionModel *ism = this->curr_item_view->selectionModel();
+    
+    if(ism == 0) {
+        qDebug()<<" why???? no QItemSelectionModel??";
+        QMessageBox::critical(this,tr("Waring..."),tr("Maybe you haven't connected"));
+        return  ;
+    }
+    
+    QModelIndexList mil = ism->selectedIndexes()   ;
+    
+    if( mil.count() == 0 ) {
+        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+        QMessageBox::critical(this,tr("Waring..."),tr("No item selected")+"                         ");
+        return ;
+    }
+    
+    QModelIndex midx = mil.at(0);
+    QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) ? this->remote_dir_sort_filter_model_ex->mapToSource(midx): this->remote_dir_sort_filter_model->mapToSource(midx) ;    
+    directory_tree_item * dti = (directory_tree_item*) aim_midx.internalPointer();
+
+    QString url = QString("sftp://%1@%2:%3%4").arg(this->user_name)
+        .arg(this->host_name).arg(this->port).arg(dti->strip_path);
+    QApplication::clipboard()->setText(url);
 }
 
 
