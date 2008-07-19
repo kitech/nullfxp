@@ -4,7 +4,7 @@
 // Description: 
 // Author: liuguangzhao
 // Maintainer: 
-// Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sourceforge.net>
+// Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sf.net>
 // http://www.qtchina.net
 // http://nullget.sourceforge.net
 // Created: 日  5月 25 09:47:47 2008 (CST)
@@ -40,7 +40,6 @@
 RemoteDirModel::RemoteDirModel (  QObject *parent )
     :QAbstractItemModel ( parent )
 {
-    this->init();
     this->remote_dir_retrive_thread = new RemoteDirRetriveThread ( );
     QObject::connect ( this->remote_dir_retrive_thread,SIGNAL ( remote_dir_node_retrived ( directory_tree_item *,void * ) ),
                        this,SLOT ( slot_remote_dir_node_retrived ( directory_tree_item*,   void * ) ) );
@@ -59,16 +58,6 @@ RemoteDirModel::RemoteDirModel (  QObject *parent )
     QObject::connect(this->keep_alive_timer,SIGNAL(timeout()),
                      this,SLOT( slot_keep_alive_time_out() ) );
 
-}
-void RemoteDirModel::init()
-{
-    root = new RFSDirNode();
-    root->name = "";
-    root->path = "/";
-    root->pstatus = POP_NO_NEED_NO_DATA;
-    root->status = POP_NO_NEED_WITH_DATA;
-    root->size = 0;
-    root->md5 = "";
 }
 
 void RemoteDirModel::set_ssh2_handler( void * ssh2_sess )
@@ -106,29 +95,23 @@ void RemoteDirModel::set_user_home_path ( std::string user_home_path )
     while ( 1 )
     {
         sep_pos = strchr ( buff,'/' ) ;
-        if ( sep_pos == NULL )
-        {
+        if ( sep_pos == NULL ) {
             temp_strip_path =  buff2 ;
             memset ( buff3,0,PATH_MAX+1 );
             strcpy ( buff3,buff2+ ( pre_sep_pos-buff ) +1 );
             temp_path_name =  buff3 ;
             temp_parent_tree_item = temp_tree_item ;
             temp_tree_item = new directory_tree_item();
-        }
-        else
-        {
+        }else{
             *sep_pos = '&'; //将这个字符替换掉，防止重复查找这个位置
-            if ( sep_pos == buff )
-            {
+            if ( sep_pos == buff ) {
                 strncpy ( buff3,buff2,int ( sep_pos-buff ) );
                 temp_strip_path = buff3 ;
                 temp_path_name =  "/" ;
                 first_item   = new directory_tree_item();
                 temp_tree_item = first_item ;
                 temp_parent_tree_item = this->tree_root ;
-            }
-            else
-            {
+            }else{
                 strncpy ( buff3,buff2,int ( sep_pos-buff ) );
                 temp_strip_path =  buff3 ;
                 memset ( buff3,0,PATH_MAX+1 );
@@ -137,20 +120,16 @@ void RemoteDirModel::set_user_home_path ( std::string user_home_path )
                 temp_parent_tree_item = temp_tree_item ;
                 temp_tree_item = new directory_tree_item();
             }
-
-
         }
         qDebug() <<"distance to begin:   strip path:"<< temp_strip_path << "dir name:"<< temp_path_name ;
         //assign
-        //temp_tree_item->tree_node_item.insert ( std::make_pair ( 'N',temp_path_name ) );
-        //temp_tree_item->tree_node_item.insert ( std::make_pair ( 'T',"D" ) ) ;
         temp_tree_item->parent_item = temp_parent_tree_item ;
         temp_tree_item->row_number = 0 ;    //指的是此结点在父结点中的第几个结点，在这里预置的只能为0
         temp_tree_item->retrived = ( sep_pos == NULL ) ?0:1 ;  //半满结点
         temp_tree_item->strip_path = temp_strip_path;
         temp_tree_item->file_name = temp_path_name;
         temp_tree_item->file_size =  "0" ;
-        temp_tree_item->file_type =  "D" ;
+        temp_tree_item->file_type =  "drwxr-xr-x" ;
         temp_tree_item->prev_retr_flag = -1 ;
 
         temp_parent_tree_item->child_items.insert ( std::make_pair ( 0,temp_tree_item ) );
@@ -165,8 +144,7 @@ void RemoteDirModel::set_user_home_path ( std::string user_home_path )
     this->tree_root->row_number = 0;
     
     //启动keep alive 功能。
-    if(this->keep_alive )
-    {
+    if(this->keep_alive ) {
         this->keep_alive_timer->start();
     }
 }
@@ -328,9 +306,10 @@ QVariant RemoteDirModel::data ( const QModelIndex &index, int role ) const
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     QVariant ret_var ;
     QString unicode_name ;
+    char mem[32] = {0};
+    struct tm *ltime = 0;
 
-    if( role == Qt::DecorationRole && index.column()==0)
-    {
+    if( role == Qt::DecorationRole && index.column()==0) {
         if(this->isDir(index))
             return qApp->style()->standardIcon(QStyle::SP_DirIcon);
         else
@@ -342,28 +321,27 @@ QVariant RemoteDirModel::data ( const QModelIndex &index, int role ) const
 
     directory_tree_item *item = static_cast< directory_tree_item*> ( index.internalPointer() );
 
-    switch ( index.column() )
-    {
+    switch(index.column()) {
     case 0:
-        //return node.nodeName();
-        //codec = QTextCodec::codecForName ( REMOTE_CODEC );
-        //unicode_name = codec->toUnicode ( item->file_name );			
         ret_var = QVariant ( item->file_name );
         break;
     case 2:
-
-        ret_var = QVariant ( item->file_type);
+        strmode(item->attrib.permissions, mem);
+        ret_var = QString(mem);
         break;
     case 1:
-        //return node.nodeValue().split("\n").join(" ");
-        ret_var = QVariant ( item->file_size  );
+        ret_var = QString("%1").arg(item->attrib.filesize);
         break;
     case 3:
-        ret_var = QVariant ( item->file_date );
+        ltime = localtime((time_t*)&item->attrib.mtime);
+        if (ltime != NULL) {
+            strftime(mem, sizeof(mem), "%Y/%m/%d %H:%M:%S", ltime);
+        }
+        ret_var = QString(mem);
+        //ret_var = QVariant ( item->file_date );
         break;
     default:
         return QVariant();
-        break;
     }
 
     return ret_var ;
@@ -372,7 +350,6 @@ QVariant RemoteDirModel::data ( const QModelIndex &index, int role ) const
 Qt::ItemFlags RemoteDirModel::flags ( const QModelIndex &index ) const
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-
     if ( !index.isValid() )
         return Qt::ItemIsEnabled;
     Qt::ItemFlags flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable
@@ -385,7 +362,6 @@ Qt::ItemFlags RemoteDirModel::flags ( const QModelIndex &index ) const
 }
 QVariant RemoteDirModel::headerData(int section, Qt::Orientation orientation, int role ) const
 {
-
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     //qDebug() <<"section:" << section ;
 
@@ -652,9 +628,7 @@ void RemoteDirModel::slot_remote_dir_node_clicked ( const QModelIndex & index )
     if ( clicked_item->retrived == 1 ) // 半满状态结点
     {
         this->remote_dir_retrive_thread->add_node ( clicked_item,index.internalPointer() );
-    }
-    else
-    {
+    }else{
         //no op needed
     }
 }
@@ -679,14 +653,10 @@ void RemoteDirModel::set_keep_alive(bool keep_alive,int time_out)
         this->keep_alive_timer->setInterval(this->keep_alive_interval);
     }
     //assert(1==2);
-    if( keep_alive != this->keep_alive )
-    {
-        if( keep_alive == false )
-        {
+    if( keep_alive != this->keep_alive ) {
+        if( keep_alive == false ) {
             this->keep_alive_timer->stop();
-        }
-        else
-        {
+        }else{
             this->keep_alive_timer->start();
         }
         this->keep_alive = keep_alive ;
@@ -701,11 +671,19 @@ void RemoteDirModel::slot_keep_alive_time_out()
 }
 QString RemoteDirModel::filePath(const QModelIndex &index) const
 {
-    return static_cast<directory_tree_item*>(index.internalPointer())->strip_path ;
+    directory_tree_item * node_item = 0;
+    node_item =  static_cast<directory_tree_item*>(index.internalPointer());
+    assert(node_item != 0);
+
+    return node_item->filePath();
 }
 bool RemoteDirModel::isDir(const QModelIndex &index) const
 {
     directory_tree_item * node_item = static_cast<directory_tree_item*>(index.internalPointer()) ;
+    assert(node_item != 0);
+    return node_item->isDir();
+    //depcreated
+    /*
     if( node_item->child_items.size() > 0 
         || node_item->file_type.at(0) == QChar('d') 
         || node_item->file_type.at(0) == QChar('D') 
@@ -713,10 +691,7 @@ bool RemoteDirModel::isDir(const QModelIndex &index) const
         )
         return true ;
     return false ;
+    */
 }
 
-void RemoteDirModel::slotFoundChildNode(RFSDirNode * parent, QMap<char,QString> fmap)
-{
-    q_debug()<<fmap;
-}
 

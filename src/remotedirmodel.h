@@ -49,11 +49,6 @@ class RFSDirNode;
 class RemoteDirModel : public QAbstractItemModel
 {
     Q_OBJECT;
-private: //remote direcotry struct impl
-    void init();
-    RFSDirNode * root;
-    const static int column = 4;
-
 public:
     RemoteDirModel ( QObject *parent = 0 );
 
@@ -94,7 +89,6 @@ public:
 // 		QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
 // 
 // 		bool hasChildren(const QModelIndex &index = QModelIndex()) const;
-// 		Qt::ItemFlags flags(const QModelIndex &index) const;
 // 
 // 		void sort(int column, Qt::SortOrder order = Qt::AscendingOrder);
 // 
@@ -152,7 +146,6 @@ public slots:
         
     //keep_alive
     void set_keep_alive(bool keep_alive,int time_out=DEFAULT_KEEP_ALIVE_TIMEOUT);
-    void slotFoundChildNode(RFSDirNode * parent, QMap<char,QString> fmap);
 
 private slots:        
     /// time_out 秒                
@@ -166,12 +159,10 @@ signals:
     void enter_remote_dir_retrive_loop();
     void leave_remote_dir_retrive_loop();
     
-    void sigWantData(RFSDirNode *parent);
-        
 private:
     enum { DEFAULT_KEEP_ALIVE_TIMEOUT=30*1000 };
     directory_tree_item * tree_root ;
-    //struct sftp_conn * sftp_connection ;
+
     RemoteDirRetriveThread * remote_dir_retrive_thread ;
     //递归查找树
     QModelIndex find_node_item_by_path_elements( directory_tree_item * parent_node_item , QStringList & path_elements , int level ) const ;

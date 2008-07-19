@@ -35,24 +35,35 @@
 #include <QtCore>
 #include <QtGui>
 
+#include "libssh2.h"
+#include "libssh2_sftp.h"
+
 class RFSDirNode;
 
+enum {
+    POP_NO_NEED_NO_DATA = 0,
+    POP_NO_NEED_WITH_DATA = 1,
+    POP_WITH_NEED_WANT_UPDATE = 2,
+    POP_UPDATING = 8,
+    POP_NEWEST = 9  
+};
+
 //这个类中存储的字符串改为Qt内部使用的Unicode编码。
-class directory_tree_item
+class directory_tree_item : public QObject
 {
+    Q_OBJECT;
 public:
-    directory_tree_item()
+    directory_tree_item(QObject *parent = 0)
     {
-        this->type = 0 ;
         this->prev_retr_flag = 0;
         this->retrived = 0;
         this->parent_item = 0;
         this->row_number = -1;
         this->delete_flag = 0 ;
+        this->meet = 0;
     }
     ~directory_tree_item();
 
-    int type ;  // dir , not dir    // depcreated
     int prev_retr_flag ;    // 前一步的retrived 状态值。在改变retrived的状态的时候使用。
     int retrived ;  // 1 , 0
     int delete_flag ;   // 1 , 0 ;
@@ -77,49 +88,26 @@ public:
                 
     QString strip_path ;
     QString file_name ;
+
     QString file_size ;
     QString file_date ;
     QString file_type ;
-    QString file_perm ;  
-};
-
-//////////////////////////////////////
-///
-//////////////////////////////////////
-
-enum {POP_NO_NEED_NO_DATA = 0,
-      POP_NO_NEED_WITH_DATA = 1,
-      POP_WITH_NEED_WANT_UPDATE = 2,
-      POP_UPDATING = 8,
-      POP_NEWEST = 9  
-};
-struct RFSDirNode {
-RFSDirNode(): parentNode(0){}
-    ~RFSDirNode(){}
-    QString name; //文件名
-    QString path; //文件所在的目录
-    QString mode;
-    quint32 imode;
-    quint64 size;
-    QString mtime;
-    QString atime;
-    QString ctime;
-    RFSDirNode *parentNode;
-    QVector<RFSDirNode*> children;
-    QString md5;
-    char    pstatus;
-    char    status;
-    int     rowNum;
-    //operate function
+    LIBSSH2_SFTP_ATTRIBUTES attrib;
+    ///////
+    bool  meet;
+public:
     bool isDir();
-    bool isSymlink();
-    int  childCount(){return this->children.count();}
-    RFSDirNode *childAt(int row);
-    RFSDirNode *parent(){return this->parentNode;}
-    bool addChild(int row, RFSDirNode *node);
-    bool removeChild(int row);
-    bool setMode(QString mode);
+    int childCount();
+    bool hasChild(QString name);
+    bool setMeet(QString name, bool meet);
+    bool setDeleteFlag(QString name, bool del);
+    directory_tree_item *parent();
+    directory_tree_item *childAt(int index);
+    QString filePath();
+    QString fileName();
+    QString fileMode();    
+    QString fileMDate();
+    QString fileADate();    
 };
-
 
 #endif

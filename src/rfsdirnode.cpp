@@ -4,61 +4,81 @@
 
 #include "rfsdirnode.h"
 
-
-//////////////////////////////
-///  RFSDirNode
-/////////////////////////////
-
-bool RFSDirNode::setMode(QString mode)
+////////////////////////directory_tree_item
+directory_tree_item::~directory_tree_item()
 {
-    this->mode = mode;
-    //TODO 将字符串类型的mode转换成整数
-    return true;
+    //qDebug()<<"tree delete now";
+    int line = this->child_items.size();
+    for(int i = line -1 ; i >=0 ; i --)
+    {
+        delete this->child_items[i];
+    }
 }
-bool RFSDirNode::isDir()
+
+bool directory_tree_item::isDir()
 {
-    QChar ch = this->mode.at(0);
-    if(ch == QChar('d') || ch == QChar('D') || ch == QChar('l')) {
-        return true;
+    return S_ISDIR(this->attrib.permissions);
+}
+int directory_tree_item::childCount()
+{
+    return this->child_items.size();
+    return 0;
+}
+directory_tree_item *directory_tree_item::parent()
+{
+    return this->parent_item;
+}
+bool directory_tree_item::hasChild(QString name)
+{
+    for(int i = 0 ; i < this->child_items.size(); i++) {
+        if(child_items.at(i)->file_name == name) {
+            return true;
+        }
     }
     return false;
 }
-bool RFSDirNode::isSymlink()
+bool directory_tree_item::setMeet(QString name, bool meet)
 {
-    QChar ch = this->mode.at(0);
-    if(ch == QChar('l')) {
-        return true;
-    }
+    for(int i = 0 ; i < this->child_items.size(); i++) {
+        if(child_items.at(i)->file_name == name) {
+            child_items.at(i)->meet = meet;
+            return true;
+        }
+    }    
     return false;
 }
-
-RFSDirNode * RFSDirNode::childAt(int row)
+bool directory_tree_item::setDeleteFlag(QString name, bool del)
 {
-    if(row >= this->children.count()) return NULL;
-    return this->children.at(row);
+    for(int i = 0 ; i < this->child_items.size(); i++) {
+        if(child_items.at(i)->file_name == name) {
+            this->child_items.at(i)->delete_flag = del;
+            return true;
+        }
+    }    
+    return false;
+}
+directory_tree_item *directory_tree_item::childAt(int index)
+{
+    return this->child_items.at(index);
+}
+QString directory_tree_item::filePath()
+{
+    return this->strip_path;
+}
+QString directory_tree_item::fileName()
+{
+    return this->file_name;
+}
+QString directory_tree_item::fileMode()
+{
+    return QString();
+}
+QString directory_tree_item::fileMDate()
+{
+    return QString();
+}
+QString directory_tree_item::fileADate()
+{
+    return QString();
 }
 
-bool RFSDirNode::addChild(int row, RFSDirNode *node)
-{
-    if(row > this->children.count()) return false;
-    node->rowNum = row;
-    this->children.insert(row, node);
-    RFSDirNode * n = 0;
-    for(int i = row + 1 ; i < this->children.count() ; i++) {
-        n = this->children.at(i);
-        n->rowNum =+ 1;
-    }
-    return true;
-}
-bool RFSDirNode::removeChild(int row)
-{
-    if(row >= this->children.count()) return false;
-    this->children.remove(row);
-    RFSDirNode * n = 0;
-    for(int i = row; i < this->children.count(); i++) {
-        n = this->children.at(i);
-        n->rowNum -= 1;
-    }
-    //TODO 清理删除掉的结点内在
-    return true;
-}
