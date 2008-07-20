@@ -427,8 +427,9 @@ bool RemoteDirModel::setData ( const QModelIndex & index, const QVariant & value
 
     if(dti->file_name == value.toString()) return false;
 
+    dti->strip_path = parent_item->filePath() + "/" + value.toString();
+    dti->file_name = value.toString();//这时是不能修改这个值,否则上句命令执行的时候找不到原文件名
     this->remote_dir_retrive_thread->slot_execute_command(parent_item, parent_item, cmd, data);
-    dti->file_name = value.toString();
 
     return true;
 }

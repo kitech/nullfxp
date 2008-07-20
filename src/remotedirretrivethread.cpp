@@ -137,6 +137,10 @@ int  RemoteDirRetriveThread::retrive_dir()
         parent_model_internal_pointer = mit->second ;
        
         fileinfos.clear();
+        //状态初始化
+        for(int i = 0; i < parent_item->childCount(); i++) {
+            parent_item->childAt(i)->delete_flag = 1;
+        }
 
         LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib ;
         memset(&ssh2_sftp_attrib,0,sizeof(LIBSSH2_SFTP_ATTRIBUTES));
@@ -148,7 +152,8 @@ int  RemoteDirRetriveThread::retrive_dir()
         if( ssh2_sftp_handle == 0 ) {
             qDebug()<<" sftp last error: "<< libssh2_sftp_last_error( this->ssh2_sftp )
                     <<(parent_item->strip_path+ ( "/" ))
-                    <<GlobalOption::instance()->remote_codec->fromUnicode(parent_item->strip_path+ ( "/" )).data();
+                    <<GlobalOption::instance()->remote_codec
+                ->fromUnicode(parent_item->strip_path+ ( "/" )).data();
         }
         fxp_ls_ret = 0;
         while(ssh2_sftp_handle != 0 &&
@@ -159,9 +164,11 @@ int  RemoteDirRetriveThread::retrive_dir()
             if( strlen ( file_name ) == 2 && file_name[0] == '.' && file_name[1] == '.') continue ;
             //不处理隐藏文件? 处理隐藏文件,在这要提供隐藏文件，上层使用过滤代理模型提供显示隐藏文件的功能。
             tmp = QString( GlobalOption::instance()->remote_codec->toUnicode(file_name ));
-            if(parent_item->setMeet(tmp, true)) {
-                if(fxp_ls_ret++ == 0) printf("Already in list, omited");
-                else printf(" %d", fxp_ls_ret);
+            if(parent_item->setDeleteFlag(tmp, 0)) {
+                if(fxp_ls_ret++ == 0) 
+                    printf("Already in list, omited %d", fxp_ls_ret), fxp_ls_ret = fxp_ls_ret | 1<<16;
+                else 
+                    printf(" %d", fxp_ls_ret<<16>>16);
             }else{
                 new_item = new directory_tree_item();
                 new_item->parent_item = parent_item;
@@ -172,24 +179,15 @@ int  RemoteDirRetriveThread::retrive_dir()
                 deltaItems.append(new_item);
             }
         }  
+        if(fxp_ls_ret & (1 << 16))   printf("\n");
         fflush(stdout);
 	
-        //将需要删除的条目做出删除标记
-        fxp_ls_ret = 0;
-        for(int i = 0; i < parent_item->childCount() ; i ++) {
-            if(parent_item->childAt(i)->meet == true) {
-                if(fxp_ls_ret++ == 0) printf("\ndelete flag");
-                else printf(" %d%s", fxp_ls_ret, (i == parent_item->childCount()-1)?"\n":"");
-            }
-            parent_item->childAt(i)->delete_flag = ! parent_item->childAt(i)->meet;
-        }
-        fflush(stdout);
-
         //将多出的记录插入到树中
         for(int i = 0 ;i < deltaItems.count(); i ++) {
             deltaItems.at(i)->row_number = parent_item->childCount();
             parent_item->child_items.insert(std::make_pair(parent_item->childCount(), deltaItems.at(i)));
         }
+
         deltaItems.clear();
         parent_item->prev_retr_flag = parent_item->retrived ;
         parent_item->retrived = POP_NEWEST ;
@@ -267,43 +265,19 @@ int  RemoteDirRetriveThread::rm_file_or_directory_recursively()
     parent_item = cmd_item->parent_item ;
     
     QString abs_path = cmd_item->parent_item->strip_path + "/" +  cmd_item->params ;
-    //char  remote_path[PATH_MAX] = {0};
-    //strcpy(remote_path, abs_path.toAscii().data());
-    
     qDebug()<< "abs  path :"<< abs_path  ;
     
     if( sys_dirs.contains(  abs_path) )
     {
         qDebug()<<" rm  system directory recusively , this is danger.";
-    }
-    else
-    {
-        //         path1 = make_absolute(path1, *pwd);
-        //         remote_glob(conn, path1, GLOB_NOCHECK, NULL, &g);
-        //         for (i = 0; g.gl_pathv[i] && !interrupted; i++) {
-        //             printf("Removing %s\n", g.gl_pathv[i]);
-        //             err = do_rm(conn, g.gl_pathv[i]);
-        //             if (err != 0 && err_abort)
-        //                 break;
-        //         }        
-        //exec_ret = do_rmdir(this->sftp_connection , remote_path   );
-        //TODO 这个地方实现递归删除功能，现在还没有实现。
-        //         remote_glob(this->sftp_connection , remote_path , GLOB_NOCHECK , NULL ,& g);
-        //         for( int i = 0 ; g.gl_pathv[i] != NULL ; i ++ )
-        //         {
-        //             qDebug()<<QString(tr("Removing %1")).arg(g.gl_pathv[i]);
-        //             exec_ret = do_rm( this->sftp_connection,g.gl_pathv[i] );
-        //             if( exec_ret != 0 )
-        //             {
-        //                 //break ;
-        //             }
-        //         }
+    }else{
         //找到这个要删除的结点并删除
         for( int  i = 0 ; i < parent_item->child_items.size() ; i ++ )
         {
             child_item = parent_item->child_items[i];
             if( child_item->file_name.compare( cmd_item->params ) == 0 )
             {
+                qDebug()<<"found whill remove file:"<<child_item->strip_path;
                 this->rm_file_or_directory_recursively_ex(child_item->strip_path);
                 break ;
             }
@@ -334,26 +308,14 @@ int  RemoteDirRetriveThread::rm_file_or_directory_recursively_ex( QString parent
     //     lflag = LS_LONG_VIEW;
     //     lflag |= LS_SHOW_ALL ;
     
-    //strcpy ( file_name, ( parent_path+  ( "/" ) ).toAscii().data() );
-    //strcpy ( strip_path,parent_path.toAscii().data() );
-    
-    //     exec_ret = fxp_do_globbed_ls(this->sftp_connection,file_name,strip_path,lflag , fileinfos);
-    exec_ret = fxp_do_ls_dir( parent_path+  ( "/" ) , fileinfos ) ;
+    exec_ret = fxp_do_ls_dir(parent_path + ("/") , fileinfos);
     
     int file_count = fileinfos.size();
     //qDebug()<<" rm ex :" << file_count ;
     
     for( int i = file_count -1 ; i >= 0 ; i --)
     {
-        //qDebug()<<" lsed file:"<< fileinfos.at(i)['N'].c_str() ;
-        //         path1 = make_absolute(path1, *pwd);
-        //         remote_glob(conn, path1, GLOB_NOCHECK, NULL, &g);
-        //         for (i = 0; g.gl_pathv[i] && !interrupted; i++) {
-        //             printf("Removing %s\n", g.gl_pathv[i]);
-        //             err = do_rm(conn, g.gl_pathv[i]);
-        //             if (err != 0 && err_abort)
-        //                 break;
-        //         }        
+        //qDebug()<<" lsed file:"<< fileinfos.at(i)['N'] ;
         if( fileinfos.at(i)['T'].at(0) == 'd')
         {
             if( fileinfos.at(i)['N'].compare(".") == 0 
@@ -361,44 +323,25 @@ int  RemoteDirRetriveThread::rm_file_or_directory_recursively_ex( QString parent
             {
                 //qDebug()<<"do ... ls shown . and .. ???";
                 continue ;
-            }
-            else
-            {
+            }else{
                 this->rm_file_or_directory_recursively_ex( parent_path + ("/") + fileinfos.at(i)['N'] );
             }
-        }
-        else if( fileinfos.at(i)['T'].at(0) == 'l'
-                 ||  fileinfos.at(i)['T'].at(0) == '-' )
+        }else if(fileinfos.at(i)['T'].at(0) == 'l' || fileinfos.at(i)['T'].at(0) == '-')
         {
             abs_path = parent_path + "/" + fileinfos.at(i)['N'] ;//+ "/" + child_item->file_name ;
             //strcpy( remote_path , abs_path.toAscii().data() );
             //qDebug()<<QString(tr("Removing %1")).arg( remote_path );
             exec_ret = libssh2_sftp_unlink( ssh2_sftp , GlobalOption::instance()->remote_codec->fromUnicode(abs_path) );
-                                
-            //                 remote_glob(this->sftp_connection , remote_path , GLOB_NOCHECK , NULL ,& g);
-            //                 for( int i = 0 ; g.gl_pathv[i] != NULL ; i ++ )
-            //                 {
-            //                     //qDebug()<<QString(tr("Removing %1")).arg(g.gl_pathv[i]);
-            //                     exec_ret = do_rm( this->sftp_connection,g.gl_pathv[i] );
-            //                     if( exec_ret != 0 )
-            //                     {
-            //                         //break ;
-            //                     }
-            //                 }
-        }
-        else
-        {
+        }else{
             qDebug()<<" unknow file type ,don't know how to remove it";
         }
     }
     
     //删除这个目录
     abs_path = parent_path ;//+ "/" + parent_item->file_name ;
-    //strcpy( remote_path , abs_path.toAscii().data() );
-    //     exec_ret = do_rmdir(this->sftp_connection , remote_path   );
-    //     if(exec_ret != 0 )  //可能这是一个文件，不是目录，那么使用删除文件的指令
-    //         exec_ret = do_rm(this->sftp_connection , remote_path   );
-    exec_ret = libssh2_sftp_rmdir(ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(abs_path) );
+    abs_path = GlobalOption::instance()->remote_codec->fromUnicode(abs_path);
+    //qDebug()<<"rmdir: "<< abs_path;
+    exec_ret = libssh2_sftp_rmdir(ssh2_sftp, abs_path.toAscii().data());
     if( exec_ret != 0 ) //可能这是一个文件，不是目录，那么使用删除文件的指令
     {
         exec_ret = libssh2_sftp_unlink(ssh2_sftp,GlobalOption::instance()->remote_codec->fromUnicode(abs_path) );

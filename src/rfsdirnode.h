@@ -60,7 +60,6 @@ public:
         this->parent_item = 0;
         this->row_number = -1;
         this->delete_flag = 0 ;
-        this->meet = 0;
         memset(&this->attrib, 0, sizeof(this->attrib));
     }
     ~directory_tree_item();
@@ -94,13 +93,10 @@ public:
     QString file_date ;
     QString file_type ;
     LIBSSH2_SFTP_ATTRIBUTES attrib;
-    ///////
-    bool  meet;
 public:
     bool isDir();
     int childCount();
     bool hasChild(QString name);
-    bool setMeet(QString name, bool meet);
     bool setDeleteFlag(QString name, bool del);
     directory_tree_item *parent();
     directory_tree_item *childAt(int index);

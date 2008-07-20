@@ -37,16 +37,7 @@ bool directory_tree_item::hasChild(QString name)
     }
     return false;
 }
-bool directory_tree_item::setMeet(QString name, bool meet)
-{
-    for(int i = 0 ; i < this->child_items.size(); i++) {
-        if(child_items.at(i)->file_name == name) {
-            child_items.at(i)->meet = meet;
-            return true;
-        }
-    }    
-    return false;
-}
+
 bool directory_tree_item::setDeleteFlag(QString name, bool del)
 {
     for(int i = 0 ; i < this->child_items.size(); i++) {
