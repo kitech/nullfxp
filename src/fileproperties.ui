@@ -5,7 +5,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>351</width>
+    <width>366</width>
     <height>435</height>
    </rect>
   </property>
@@ -190,14 +190,14 @@
      <item row="1" column="1" >
       <widget class="QCheckBox" name="checkBox_10" >
        <property name="text" >
-        <string>Set-User-I</string>
+        <string>Set-User-ID</string>
        </property>
       </widget>
      </item>
      <item row="1" column="2" >
       <widget class="QCheckBox" name="checkBox_11" >
        <property name="text" >
-        <string>Set-Group-I</string>
+        <string>Set-Group-ID</string>
        </property>
       </widget>
      </item>

@@ -125,13 +125,13 @@ win32 {
 }
 
 CONFIG(release, debug|release) {
-    DEFINES += NDEBUG
+    DEFINES += NDEBUG QT_NO_DEBUG_OUTPUT
 }
 
 CONFIG(debug, debug|release) {
-    DEFINES += DEBUG
+    DEFINES += DEBUG 
 }
-DEFINES -= NDEBUG
+DEFINES -= NDEBUG QT_NO_DEBUG_OUTPUT
 
 HOST_MACHINE = $$system(gcc -dumpmachine)
 HOST_GCC_VERSION = $$system(gcc -dumpversion)

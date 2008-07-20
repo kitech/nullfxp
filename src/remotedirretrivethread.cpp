@@ -80,10 +80,8 @@ void RemoteDirRetriveThread::run()
         switch(cmd_elem->cmd)
         {
         case SSH2_FXP_READDIR:
-            this->dir_node_process_queue.insert(std::make_pair(cmd_elem->parent_item,cmd_elem->parent_model_internal_pointer) );
-                
-            exec_ret_code = this->retrive_dir();
-            
+            this->dir_node_process_queue.insert(std::make_pair(cmd_elem->parent_item,cmd_elem->parent_model_internal_pointer) );                
+            exec_ret_code = this->retrive_dir();            
             break;
         case SSH2_FXP_MKDIR:
             exec_ret_code = this->mkdir();
@@ -150,7 +148,7 @@ int  RemoteDirRetriveThread::retrive_dir()
         // ssh2_sftp_handle == 0 是怎么回事呢？ 返回值 应该是
         // 1 . 这个file_name 是一个链接，但这个链接指向的是一个普通文件而不是目录时libssh2_sftp_opendir返回0 , 而 libssh2_sftp_last_error 返回值为 2 == SSH2_FX_NO_SUCH_FILE
         if( ssh2_sftp_handle == 0 ) {
-            qDebug()<<" sftp last error: "<< libssh2_sftp_last_error( this->ssh2_sftp )
+            qDebug()<<" sftp last error: "<< libssh2_sftp_last_error(this->ssh2_sftp)
                     <<(parent_item->strip_path+ ( "/" ))
                     <<GlobalOption::instance()->remote_codec
                 ->fromUnicode(parent_item->strip_path+ ( "/" )).data();
