@@ -131,8 +131,9 @@ void RemoteDirModel::set_user_home_path ( std::string user_home_path )
         temp_tree_item->file_size =  "0" ;
         temp_tree_item->file_type =  "drwxr-xr-x" ;
         temp_tree_item->prev_retr_flag = -1 ;
+        temp_tree_item->attrib.permissions = 16877;//默认目录属性: drwxr-xr-x
 
-        temp_parent_tree_item->child_items.insert ( std::make_pair ( 0,temp_tree_item ) );
+        temp_parent_tree_item->child_items.insert(std::make_pair(0, temp_tree_item));
 
         //pre_sep_pos
         pre_sep_pos = sep_pos ;
@@ -151,22 +152,18 @@ void RemoteDirModel::set_user_home_path ( std::string user_home_path )
 
 RemoteDirModel::~RemoteDirModel()
 {
-    if(this->keep_alive_timer->isActive() )
-    {
+    if(this->keep_alive_timer->isActive() ) {
         this->keep_alive_timer->stop();
     }
     delete this->keep_alive_timer ;
     
-    if ( this->remote_dir_retrive_thread->isRunning() )
-    {
+    if ( this->remote_dir_retrive_thread->isRunning() ) {
         //TODO 怎么能友好的结束,  现在这么做只能让程序不崩溃掉。
         qDebug() <<" remote_dir_retrive_thread is run , how stop ?";
         this->remote_dir_retrive_thread->terminate();
         //this->remote_dir_retrive_thread->wait();  //这个不好用
         delete this->remote_dir_retrive_thread ;        
-    }
-    else
-    {
+    }else{
         delete this->remote_dir_retrive_thread ;
     }
     if( tree_root != 0 ) delete tree_root ;
@@ -205,10 +202,7 @@ QModelIndex RemoteDirModel::index ( int row, int column, const QModelIndex &pare
 
 QModelIndex RemoteDirModel::index ( const QString & path, int column  ) const
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-
-    if( path == "" )
-    {
+    if( path == "" ) {
         qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
         return this->createIndex(0,0,this->tree_root->child_items[0]  );
     } 
@@ -303,7 +297,6 @@ QModelIndex RemoteDirModel::parent ( const QModelIndex &child ) const
 
 QVariant RemoteDirModel::data ( const QModelIndex &index, int role ) const
 {
-    //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     QVariant ret_var ;
     QString unicode_name ;
     char mem[32] = {0};
@@ -323,7 +316,7 @@ QVariant RemoteDirModel::data ( const QModelIndex &index, int role ) const
 
     switch(index.column()) {
     case 0:
-        ret_var = QVariant ( item->file_name );
+        ret_var = item->fileName();
         break;
     case 2:
         strmode(item->attrib.permissions, mem);
@@ -343,7 +336,6 @@ QVariant RemoteDirModel::data ( const QModelIndex &index, int role ) const
     default:
         return QVariant();
     }
-
     return ret_var ;
 }
 
@@ -681,6 +673,7 @@ bool RemoteDirModel::isDir(const QModelIndex &index) const
 {
     directory_tree_item * node_item = static_cast<directory_tree_item*>(index.internalPointer()) ;
     assert(node_item != 0);
+
     return node_item->isDir();
     //depcreated
     /*

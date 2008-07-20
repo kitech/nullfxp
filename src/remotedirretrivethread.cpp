@@ -123,7 +123,6 @@ int  RemoteDirRetriveThread::retrive_dir()
     QVector<directory_tree_item*> deltaItems;
     QVector< QMap< char, QString > > fileinfos;
     char file_name[PATH_MAX+1] ;
-    int row_count = 0 ;
     int fxp_ls_ret = 0 ;
     char file_size[20] = {0};
     char file_date[32] = {0};
@@ -151,6 +150,7 @@ int  RemoteDirRetriveThread::retrive_dir()
                     <<(parent_item->strip_path+ ( "/" ))
                     <<GlobalOption::instance()->remote_codec->fromUnicode(parent_item->strip_path+ ( "/" )).data();
         }
+        fxp_ls_ret = 0;
         while(ssh2_sftp_handle != 0 &&
               libssh2_sftp_readdir(ssh2_sftp_handle, file_name, PATH_MAX, &ssh2_sftp_attrib ) > 0)
         {
@@ -160,85 +160,34 @@ int  RemoteDirRetriveThread::retrive_dir()
             //不处理隐藏文件? 处理隐藏文件,在这要提供隐藏文件，上层使用过滤代理模型提供显示隐藏文件的功能。
             tmp = QString( GlobalOption::instance()->remote_codec->toUnicode(file_name ));
             if(parent_item->setMeet(tmp, true)) {
-                qDebug()<<"Already in list, omited";
+                if(fxp_ls_ret++ == 0) printf("Already in list, omited");
+                else printf(" %d", fxp_ls_ret);
             }else{
                 new_item = new directory_tree_item();
+                new_item->parent_item = parent_item;
                 new_item->strip_path = parent_item->strip_path + QString("/") + file_name ;
                 new_item->file_name = tmp;
                 new_item->attrib = ssh2_sftp_attrib;
+                new_item->retrived = (new_item->isDir()) ? POP_NO_NEED_NO_DATA : POP_NEWEST;
                 deltaItems.append(new_item);
             }
-            continue;
-            /////depcreated code
-            /*
-            memset(file_size,0,sizeof(file_size )) ;
-            snprintf(file_size,sizeof(file_size) , "%llu",ssh2_sftp_attrib.filesize );
-            
-            struct tm *ltime = localtime((time_t*)&ssh2_sftp_attrib.mtime);
-            if (ltime != NULL) 
-            {
-                if (time(NULL) - ssh2_sftp_attrib.mtime < (365*24*60*60)/2)
-                    strftime(file_date, sizeof file_date, "%Y/%m/%d %H:%M:%S", ltime);
-                else
-                    strftime(file_date, sizeof file_date, "%Y/%m/%d %H:%M:%S", ltime);
-            }
-
-            strmode(ssh2_sftp_attrib.permissions, file_type);
-            //printf(" ls dir : %s %s , date=%s , type=%s \n" , file_name , file_size , file_date , file_type );
-            thefile.insert( 'N',QString( GlobalOption::instance()->remote_codec->toUnicode(file_name )) );
-            thefile.insert( 'T',QString( file_type ) );
-            thefile.insert( 'S',QString( file_size ) );
-            thefile.insert( 'D',QString( file_date ) );  
-
-            fileinfos.push_back(thefile);
-            memset(&ssh2_sftp_attrib,0,sizeof(LIBSSH2_SFTP_ATTRIBUTES) );
-            */
         }  
-
-        //qDebug() <<"fxp_ls_ret:" << fxp_ls_ret<< ", fileinfos number="<<fileinfos.size() << " use strip:" << strip_path <<" file_name ="<< file_name ;
+        fflush(stdout);
 	
-        //将已经存在的项目找出来, depcreated code
-        /*
-        QMap<QString,int> existed_items ;
-        for( int i = 0 ; i < parent_item->child_items.size() ; i ++) {
-            existed_items.insert( parent_item->child_items[i]->file_name,8 );
-        }
-
-        ////////////
-        for ( int i = 0 ; i < fileinfos.size() ; i ++ )
-        {
-            if( existed_items.count(fileinfos.at(i)['N']) > 0 ) {
-                qDebug()<<"also in model,skipped";
-                continue ;
-            }
-            
-            directory_tree_item * thefile = new directory_tree_item();            
-            
-            if(fileinfos.at ( i ) ['T'][0] == 'd' ||
-               fileinfos.at ( i ) ['T'][0] == 'l' )
-                thefile->retrived = POP_NO_NEED_NO_DATA;
-            else    //对非目录就不需要再让它再次列目录了
-                thefile->retrived = POP_NEWEST ;
-            
-            thefile->parent_item = parent_item ;
-            thefile->row_number= parent_item->child_items.size();
- 
-            thefile->strip_path = parent_item->strip_path + QString("/") + fileinfos.at(i)['N'] ;
-
-            thefile->file_type = fileinfos.at ( i ) ['T'];
-            thefile->file_size = fileinfos.at ( i ) ['S'];
-            thefile->file_name = fileinfos.at ( i ) ['N'] ;
-            thefile->file_date = fileinfos.at ( i ) ['D'];
-
-            parent_item->child_items.insert(std::make_pair(thefile->row_number, thefile));
-        }
-        
-        this->subtract_existed_model( parent_item , fileinfos );
-        */
+        //将需要删除的条目做出删除标记
+        fxp_ls_ret = 0;
         for(int i = 0; i < parent_item->childCount() ; i ++) {
+            if(parent_item->childAt(i)->meet == true) {
+                if(fxp_ls_ret++ == 0) printf("\ndelete flag");
+                else printf(" %d%s", fxp_ls_ret, (i == parent_item->childCount()-1)?"\n":"");
+            }
             parent_item->childAt(i)->delete_flag = ! parent_item->childAt(i)->meet;
         }
+        fflush(stdout);
+
+        //将多出的记录插入到树中
         for(int i = 0 ;i < deltaItems.count(); i ++) {
+            deltaItems.at(i)->row_number = parent_item->childCount();
             parent_item->child_items.insert(std::make_pair(parent_item->childCount(), deltaItems.at(i)));
         }
         deltaItems.clear();
@@ -255,43 +204,6 @@ int  RemoteDirRetriveThread::retrive_dir()
 
     return exec_ret ;
 }
-
-/**
- * 将标记删除的条目标识出来
- */
-void RemoteDirRetriveThread::subtract_existed_model(directory_tree_item * parent_item ,
-                                                    QVector<QMap<char,QString> > & new_items )
-{
-    assert( new_items.size() <= parent_item->child_items.size() );
-    QString  tmp_file_name ;
-    QMap<QString,int> new_file_items ;
-    
-    std::vector<directory_tree_item*> missed_item_handle;
-    
-    directory_tree_item * missed_item , *temp_item ;
-    
-    if( new_items.count() != parent_item->child_items.size() )
-    {
-        qDebug()<<" some item miss in new file list";
-        for(int i = 0 ; i < new_items.count() ; i ++ )
-        {
-            new_file_items.insert( new_items.at(i)['N'],1 );
-        }
-        for( int i = 0 ; i < parent_item->child_items.size() ; i ++ )
-        {
-            tmp_file_name = parent_item->child_items[i]->file_name;
-            if( new_file_items.count(tmp_file_name) == 0 )
-            {
-                qDebug()<<" missed file :"<<i<<" "<<tmp_file_name ;
-                missed_item = parent_item->child_items[i] ;
-                missed_item->delete_flag =1 ;	
-                //使用delete 标记来处理，这个条目将被上层的model删除
-                //如果在这删除可能导致mvc中数据与视图不一致而崩溃.
-            }
-        }
-    }
-}
-
 
 int  RemoteDirRetriveThread::mkdir()
 {

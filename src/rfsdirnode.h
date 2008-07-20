@@ -61,6 +61,7 @@ public:
         this->row_number = -1;
         this->delete_flag = 0 ;
         this->meet = 0;
+        memset(&this->attrib, 0, sizeof(this->attrib));
     }
     ~directory_tree_item();
 

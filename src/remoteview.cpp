@@ -82,6 +82,7 @@ RemoteView::RemoteView(QMdiArea * main_mdi_area ,LocalView * local_view ,QWidget
     CompleteLineEditDelegate *delegate = new CompleteLineEditDelegate();
     this->remoteview.tableView->setItemDelegate(delegate);
     this->remoteview.tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    this->remoteview.treeView->setItemDelegate(delegate);
 }
 
 void RemoteView::init_popup_context_menu()
@@ -163,7 +164,7 @@ void RemoteView::i_init_dir_view( )
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
     this->remote_dir_model = new RemoteDirModel( );
-    this->remote_dir_model->set_ssh2_handler(this->ssh2_sess /*,this->ssh2_sftp,this->ssh2_sock*/ );
+    this->remote_dir_model->set_ssh2_handler(this->ssh2_sess);
     
     this->remote_dir_model->set_user_home_path(this->user_home_path);
     this->remote_dir_sort_filter_model = new RemoteDirSortFilterModel();
@@ -195,13 +196,12 @@ void RemoteView::i_init_dir_view( )
     /////tableView
     this->remoteview.tableView->setModel( this->remote_dir_sort_filter_model);
     this->remoteview.tableView->setRootIndex( this->remote_dir_sort_filter_model->index( this->user_home_path.c_str() ) );
+
     //change row height of table 
     if( this->remote_dir_sort_filter_model->rowCount( this->remote_dir_sort_filter_model->index( this->user_home_path.c_str() ) ) > 0 )
     {
         this->table_row_height = this->remoteview.tableView->rowHeight(0)*2/3;
-    }
-    else
-    {
+    }else{
         this->table_row_height = 20 ;
     }
     for( int i = 0 ; i < this->remote_dir_sort_filter_model->rowCount( this->remote_dir_sort_filter_model->index( this->user_home_path.c_str() ) ); i ++ )
@@ -314,6 +314,7 @@ QString RemoteView::get_selected_directory()
         qDebug()<<dti->file_name <<" "<<dti->file_type 
                 <<" "<< dti->strip_path  ;
         file_path = dti->strip_path ;
+#warning "maybe gc code"
         if( dti->file_type.at(0) == 'd' || dti->file_type.at(0) == 'D'
             || dti->file_type.at(0) == 'l' )
         {

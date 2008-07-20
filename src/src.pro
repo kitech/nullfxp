@@ -28,7 +28,6 @@ SOURCES += main.cpp \
  fileexistaskdialog.cpp \
  encryptiondetailfocuslabel.cpp \
  encryptiondetaildialog.cpp \
- baserfsmodel.cpp \
  rfsdirnode.cpp \
  completelineeditdelegate.cpp
 
@@ -101,7 +100,6 @@ HEADERS += nullfxp.h \
  fileexistaskdialog.h \
  encryptiondetailfocuslabel.h \
  encryptiondetaildialog.h \
- baserfsmodel.h \
  rfsdirnode.h \
  completelineeditdelegate.h
 

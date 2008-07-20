@@ -112,11 +112,6 @@ private:
        
     LIBSSH2_SESSION * ssh2_sess;
     LIBSSH2_SFTP * ssh2_sftp ;
-
-    void subtract_existed_model(directory_tree_item * parent_item , QVector<QMap<char,QString> > & new_items );
-
-signals:
-    void sigFoundChildNode(RFSDirNode * parent, QMap<char,QString> fmap);
 };
 
 #endif
