@@ -128,34 +128,16 @@ void SessionDialog::slot_ctx_menu_requested(const QPoint & pos)
 
 void  SessionDialog::slot_conntect_selected_host(const QModelIndex & index)
 {
-
     if(index.isValid())
     {
         //qDebug()<<index;
         QString show_name = index.data().toString();
-        //qDebug()<<show_name;
         QMap<QString,QString> host = this->storage->getHost(show_name);
-        QMap<QString,QString> host_new;
-        //qDebug()<<host;
-        RemoteHostQuickConnectInfoDialog * info_dlg = new RemoteHostQuickConnectInfoDialog(this);
-        info_dlg->set_active_host(host);
-        if(info_dlg->exec() == QDialog::Accepted)
-        {
-            host_new = info_dlg->get_host_map();
-            if(host_new != host)
-            {
-                this->storage->updateHost(host_new);
-                this->storage->save();
-            }
-            emit this->connect_remote_host_requested(host_new);
-            this->setVisible(false);
-            this->info_dlg = info_dlg;
-            this->accept();
-        }
-        else
-        {
-
-        }
+        QMap<QString,QString> host_new = QMap<QString, QString>(host);
+        this->selected_host = host;
+        emit this->connect_remote_host_requested(host); 
+        this->setVisible(false);
+        this->accept();
     }else{
         this->slot_show_no_item_tip();
     }
@@ -165,6 +147,8 @@ QMap<QString,QString>  SessionDialog::get_host_map()
     QMap<QString,QString> host;
     if(this->info_dlg != 0)
         host = ((RemoteHostQuickConnectInfoDialog*)this->info_dlg)->get_host_map();
+    else
+        host = selected_host;
     return host;
 }
 

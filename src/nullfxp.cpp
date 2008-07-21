@@ -232,8 +232,7 @@ void NullFXP::connect_to_remote_host(QMap<QString,QString> host)
     if(host.contains("pubkey")) {
         pubkey = host["pubkey"];
     }
-
-    qDebug()<< host;
+    //qDebug()<< host;
     this->connect_status_dailog = new RemoteHostConnectingStatusDialog(username,remoteaddr,this, Qt::Dialog );
     QObject::connect(this->connect_status_dailog,SIGNAL(cancel_connect()),
                      this,SLOT(slot_cancel_connect()) );
@@ -290,7 +289,7 @@ void NullFXP::slot_show_session_dialog()
     delete sess_dlg;
 }
 
-void NullFXP::slot_connect_remote_host_finished ( int status,void * ssh2_sess , int ssh2_sock /* , void * ssh2_sftp*/ )
+void NullFXP::slot_connect_remote_host_finished ( int status,void * ssh2_sess , int ssh2_sock)
 {
     RemoteHostConnectThread * conn_thread = static_cast< RemoteHostConnectThread*>(sender()) ;
     

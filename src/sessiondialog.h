@@ -73,6 +73,7 @@ private:
     QAction * action_rename;
     QAction * action_remove;
     QAction * action_sep;
+    QMap<QString, QString> selected_host;
 
     void * info_dlg;
 };
