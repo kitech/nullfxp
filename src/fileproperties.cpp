@@ -28,6 +28,7 @@
 // 
 // 
 // 
+#include <errno.h>
 
 #include "utils.h"
 
@@ -75,7 +76,7 @@ FileProperties::~FileProperties()
 }
 void FileProperties::set_ssh2_sftp ( void * ssh2_sftp )
 {
-	this->ssh2_sftp = ( LIBSSH2_SFTP* ) ssh2_sftp ;
+this->ssh2_sftp = ( LIBSSH2_SFTP* ) ssh2_sftp ;
 }
 
 void FileProperties::set_file_info_model_list ( QModelIndexList &mil )
@@ -249,7 +250,7 @@ LocalFileProperties::LocalFileProperties ( QWidget *parent )
     : QDialog ( parent )
 {
     this->ui_file_prop_dialog.setupUi ( this );
-
+    this->ui_file_prop_dialog.label_13->setPixmap(QPixmap(":/icons/nullget-1.png").scaledToHeight(50));
     //connect(this,SIGNAL(finished()),this,SLOT(slot_this_thread_finished()));
 }
 
@@ -264,18 +265,20 @@ void LocalFileProperties::set_file_info_model_list(QString file_name)
     QFileInfo fi(file_name);
     
     this->file_name = file_name;
-    //directory_tree_item * item_node = static_cast<directory_tree_item*> ( mil.at ( 0 ).internalPointer() );
-    //QString file_name = mil.at ( 0 ).data().toString();
     QString file_size = "";
     QString file_modify_time = "";
-    
-    //qDebug()<<item_node->strip_path.c_str();
+
     this->ui_file_prop_dialog.lineEdit->setText ( fi.fileName() );
     this->ui_file_prop_dialog.lineEdit_2->setText ( this->type(file_name) );
     this->ui_file_prop_dialog.lineEdit_3->setText (  fi.path() );
     this->ui_file_prop_dialog.lineEdit_4->setText ( QString("%1").arg(fi.size()));
     this->ui_file_prop_dialog.lineEdit_5->setText ( fi.lastModified().toString("yyyy/MM/dd hh:mm:ss") );   
     this->ui_file_prop_dialog.lineEdit_6->setText ( fi.lastRead().toString("yyyy/MM/dd hh:mm:ss") ); //2007/11/28 06:53:45
+
+#warning "mode has strange behivier, fixed me!"
+    this->ui_file_prop_dialog.lineEdit_7->setText("7777");
+    this->ui_file_prop_dialog.label_15->setText(fi.owner());
+    this->ui_file_prop_dialog.label_16->setText(fi.group());
 
     this->update_perm_table ( file_name );
 }
