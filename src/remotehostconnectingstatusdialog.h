@@ -2,10 +2,12 @@
  * 
  * Filename: remotehostconnectingstatusdialog.h
  * Description: 
- * Author: 刘光照<liuguangzhao@comsenz.com>
+ * Author: 刘光照<liuguangzhao@users.sf.net>
  * Maintainer: 
- * Copyright (C) 2000-2008 www.comsenz.com
- * Created: 二  5月 13 09:49:40 2008 (UTC)
+ * Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sf.net>
+ * http://www.qtchina.net
+ * http://nullget.sourceforge.net
+ * Created: 二  7月 22 21:18:30 2008 (CST)
  * Version: 
  * Last-Updated: 
  *           By: 
@@ -26,6 +28,7 @@
  * 
  * 
  */
+
 
 #ifndef REMOTEHOSTCONNECTINGSTATUSDIALOG_H
 #define REMOTEHOSTCONNECTINGSTATUSDIALOG_H

@@ -2,12 +2,14 @@
  * 
  * Filename: remotehostconnectthread.h
  * Description: 
- * Author: 刘光照<liuguangzhao@comsenz.com>
+ * Author: 刘光照<liuguangzhao@users.sf.net>
  * Maintainer: 
- * Copyright (C) 2000-2008 www.comsenz.com
- * Created: 三  5月 14 15:30:32 2008 (UTC)
+ * Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sf.net>
+ * http://www.qtchina.net
+ * http://nullget.sourceforge.net
+ * Created: 二  7月 22 21:11:46 2008 (CST)
  * Version: 
- * Last-Updated: 六  6月 14 22:30:28 2008 (CST)
+ * Last-Updated: 二  7月 22 21:11:51 2008 (CST)
  *           By: 刘光照<liuguangzhao@users.sf.net>
  *     Update #: 1
  * URL: 

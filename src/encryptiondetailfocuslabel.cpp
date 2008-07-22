@@ -4,14 +4,14 @@
 // Description: 
 // Author: liuguangzhao
 // Maintainer: 
-// Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sourceforge.net>
+// Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sf.net>
 // http://www.qtchina.net
 // http://nullget.sourceforge.net
 // Created: 一  5月  5 21:22:01 2008 (CST)
 // Version: 
-// Last-Updated: 二  5月  6 09:16:05 2008 (UTC)
-//           By: 刘光照<liuguangzhao@comsenz.com>
-//     Update #: 1
+// Last-Updated: 二  7月 22 21:17:20 2008 (CST)
+//           By: 刘光照<liuguangzhao@users.sf.net>
+//     Update #: 2
 // URL: 
 // Keywords: 
 // Compatibility: 
