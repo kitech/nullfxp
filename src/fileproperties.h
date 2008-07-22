@@ -43,8 +43,8 @@
 
 class FilePropertiesRetriveThread : public QThread
 {
-    Q_OBJECT
-    public:
+    Q_OBJECT;
+public:
         FilePropertiesRetriveThread( LIBSSH2_SFTP * ssh2_sftp , QString file_path , QObject * parent = 0 );
         ~FilePropertiesRetriveThread();
         virtual void run ();
@@ -60,7 +60,7 @@ class FilePropertiesRetriveThread : public QThread
 */
 class FileProperties : public  QDialog
 {
-Q_OBJECT
+    Q_OBJECT;
 public:
     FileProperties(QWidget *parent = 0);
 
@@ -82,7 +82,7 @@ public:
 
 class LocalFileProperties: public QDialog
 {
-Q_OBJECT
+    Q_OBJECT;
 public:
     LocalFileProperties(QWidget *parent = 0);
 
@@ -95,6 +95,7 @@ public:
     private:
         void update_perm_table( QString file_name );
         QString type(QString file_name);
+        QString digit_mode(int mode);
         Ui::FileProperties ui_file_prop_dialog;
         QString file_name;
 };

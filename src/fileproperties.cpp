@@ -251,7 +251,6 @@ LocalFileProperties::LocalFileProperties ( QWidget *parent )
 {
     this->ui_file_prop_dialog.setupUi ( this );
     this->ui_file_prop_dialog.label_13->setPixmap(QPixmap(":/icons/nullget-1.png").scaledToHeight(50));
-    //connect(this,SIGNAL(finished()),this,SLOT(slot_this_thread_finished()));
 }
 
 LocalFileProperties::~LocalFileProperties()
@@ -259,7 +258,6 @@ LocalFileProperties::~LocalFileProperties()
 
 }
 
-// void LocalFileProperties::set_file_info_model_list ( QModelIndexList &mil )
 void LocalFileProperties::set_file_info_model_list(QString file_name)
 {
     QFileInfo fi(file_name);
@@ -275,16 +273,44 @@ void LocalFileProperties::set_file_info_model_list(QString file_name)
     this->ui_file_prop_dialog.lineEdit_5->setText ( fi.lastModified().toString("yyyy/MM/dd hh:mm:ss") );   
     this->ui_file_prop_dialog.lineEdit_6->setText ( fi.lastRead().toString("yyyy/MM/dd hh:mm:ss") ); //2007/11/28 06:53:45
 
-#warning "mode has strange behivier, fixed me!"
-    this->ui_file_prop_dialog.lineEdit_7->setText("7777");
+    QString mode = this->digit_mode(fi.permissions());
+    this->ui_file_prop_dialog.lineEdit_7->setText(mode);
     this->ui_file_prop_dialog.label_15->setText(fi.owner());
     this->ui_file_prop_dialog.label_16->setText(fi.group());
 
     this->update_perm_table ( file_name );
 }
 
+QString LocalFileProperties::digit_mode(int mode)
+{
+    int keys[] = {
+        QFile::ReadOwner,
+        QFile::WriteOwner,
+        QFile::ExeOwner,
+        QFile::ReadUser,
+        QFile::WriteUser,
+        QFile::ExeUser,
+        QFile::ReadGroup,
+        QFile::WriteGroup,
+        QFile::ExeGroup,
+        QFile::ReadOther,
+        QFile::WriteOther,
+        QFile::ExeOther,
+        NULL
+    };
+    char dmode[5] = {0};
+    int i = 0, v = 0;;
+    for(i =0 ;i < 4 ; i++) {
+        v = 0;
+        if(mode & keys[i*3]) v += 4;
+        if(mode & keys[i*3+1]) v += 2;
+        if(mode & keys[i*3+2]) v += 1;
+        sprintf(dmode+strlen(dmode), "%d", v);
+    }
+    dmode[0] = '0';
 
-
+    return QString(dmode);
+}
 
 void LocalFileProperties::update_perm_table ( QString file_name )
 {
