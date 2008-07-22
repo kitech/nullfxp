@@ -17,7 +17,7 @@ directory_tree_item::~directory_tree_item()
 
 bool directory_tree_item::isDir()
 {
-    return S_ISDIR(this->attrib.permissions);
+    return S_ISDIR(this->attrib.permissions) || S_ISLNK(this->attrib.permissions);
 }
 int directory_tree_item::childCount()
 {
