@@ -38,8 +38,7 @@
 
 class SessionDialog: public QDialog
 {
-  Q_OBJECT
-
+    Q_OBJECT;
 public:
     SessionDialog(QWidget * parent = 0);
     ~SessionDialog();
