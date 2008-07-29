@@ -249,7 +249,11 @@ src/sessiondialog.cpp -text
 src/sessiondialog.h -text
 src/sftp.h -text
 src/src.pro -text
+src/synchronizeoptiondialog.cpp -text
+src/synchronizeoptiondialog.h -text
 src/synchronizeoptiondialog.ui -text
+src/synchronizewindow.cpp -text
+src/synchronizewindow.h -text
 src/synchronizewindow.ui -text
 src/tmpmain.cpp -text
 src/transferthread.cpp -text

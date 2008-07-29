@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>381</width>
-    <height>246</height>
+    <width>534</width>
+    <height>293</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -121,6 +121,9 @@
           <property name="text" >
            <string>Include subdirectory</string>
           </property>
+          <property name="checked" >
+           <bool>true</bool>
+          </property>
          </widget>
         </item>
        </layout>
@@ -134,7 +137,7 @@
       <enum>Qt::Vertical</enum>
      </property>
      <property name="standardButtons" >
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::NoButton|QDialogButtonBox::Ok</set>
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
      </property>
     </widget>
    </item>
