@@ -68,7 +68,6 @@ SessionDialog::~SessionDialog()
 {
     if(this->storage != 0)
         this->storage->close();
-    //delete this->storage;
     delete this->host_list_model;
 }
 
@@ -96,8 +95,7 @@ bool SessionDialog::loadHost()
 
 void SessionDialog::slot_ctx_menu_requested(const QPoint & pos)
 {
-    if(this->host_list_ctx_menu == 0)
-    {
+    if(this->host_list_ctx_menu == 0) {
         this->host_list_ctx_menu = new QMenu(this);
         this->action_connect = new QAction(tr("&Connect to host"),this);
         this->host_list_ctx_menu->addAction(this->action_connect);
@@ -128,34 +126,16 @@ void SessionDialog::slot_ctx_menu_requested(const QPoint & pos)
 
 void  SessionDialog::slot_conntect_selected_host(const QModelIndex & index)
 {
-
     if(index.isValid())
     {
         //qDebug()<<index;
         QString show_name = index.data().toString();
-        //qDebug()<<show_name;
         QMap<QString,QString> host = this->storage->getHost(show_name);
-        QMap<QString,QString> host_new;
-        //qDebug()<<host;
-        RemoteHostQuickConnectInfoDialog * info_dlg = new RemoteHostQuickConnectInfoDialog(this);
-        info_dlg->set_active_host(host);
-        if(info_dlg->exec() == QDialog::Accepted)
-        {
-            host_new = info_dlg->get_host_map();
-            if(host_new != host)
-            {
-                this->storage->updateHost(host_new);
-                this->storage->save();
-            }
-            emit this->connect_remote_host_requested(host_new);
-            this->setVisible(false);
-            this->info_dlg = info_dlg;
-            this->accept();
-        }
-        else
-        {
-
-        }
+        QMap<QString,QString> host_new = QMap<QString, QString>(host);
+        this->selected_host = host;
+        emit this->connect_remote_host_requested(host); 
+        this->setVisible(false);
+        this->accept();
     }else{
         this->slot_show_no_item_tip();
     }
@@ -165,6 +145,8 @@ QMap<QString,QString>  SessionDialog::get_host_map()
     QMap<QString,QString> host;
     if(this->info_dlg != 0)
         host = ((RemoteHostQuickConnectInfoDialog*)this->info_dlg)->get_host_map();
+    else
+        host = selected_host;
     return host;
 }
 
@@ -177,8 +159,7 @@ void SessionDialog::slot_conntect_selected_host()
     mil = ism->selectedIndexes();
     //qDebug()<<mil;
 
-    if(mil.count() > 0)
-    {
+    if(mil.count() > 0) {
         //qDebug()<<mil.at(0).data();
         this->slot_conntect_selected_host(mil.at(0));
     }else{
@@ -222,22 +203,18 @@ void SessionDialog::slot_rename_selected_host()
 {
     QItemSelectionModel * ism = 0;
     QModelIndexList mil;
+    bool ok;
 
     ism = this->sess_dlg.treeView->selectionModel();
     mil = ism->selectedIndexes();
     //qDebug()<<mil;
     if(mil.count() > 0) {
-        QString new_name = QInputDialog::getText ( this, tr("Rename host:"), tr("Type the new name:"));
-        if(new_name == QString::null) {
-            
-        }else if(new_name.length() == 0) {
-            
-        }else if(new_name == mil.at(0).data().toString()) {
-
-        }else{
+        QString new_name = 
+            QInputDialog::getText(this, tr("Rename host:"), tr("Type the new name:"), 
+                                  QLineEdit::Normal, mil.at(0).data().toString(), &ok);
+        if(ok && !new_name.isEmpty() && new_name != mil.at(0).data().toString()) {
             QMap<QString, QString> host = this->storage->getHost(mil.at(0).data().toString());
             this->storage->updateHost(host, new_name);
-            //this->host_list_model->removeRows(mil.at(0).row(),1,QModelIndex());            
             this->host_list_model->setData(mil.at(0), new_name);
         }
     }else{

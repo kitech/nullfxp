@@ -28,23 +28,29 @@ SOURCES += main.cpp \
  fileexistaskdialog.cpp \
  encryptiondetailfocuslabel.cpp \
  encryptiondetaildialog.cpp \
- baserfsmodel.cpp
+ rfsdirnode.cpp \
+ completelineeditdelegate.cpp
 
 TEMPLATE = app
-VERSION = 1.6.1
 CONFIG += qt thread console warn_on ordered  
 TARGET = nullfxp
 DESTDIR = ../bin
 
-QT += network 
+system(gcc -o gv.exe get_ver.c)
+!win32 {
+    VERSION = $$system(./gv.exe nullfxp-version.h)
+}
 win32 {
 	CONFIG += release
+    VERSION = $$system(gv nullfxp-version.h)
 } else:solaris-g++ {
         QT -= webkit
 } else {
 	QT += webkit
 	CONFIG += debug release
 }
+QT += network 
+
 UI_DIR = obj
 MOC_DIR = obj
 OBJECTS_DIR = obj
@@ -94,7 +100,8 @@ HEADERS += nullfxp.h \
  fileexistaskdialog.h \
  encryptiondetailfocuslabel.h \
  encryptiondetaildialog.h \
- baserfsmodel.h
+ rfsdirnode.h \
+ completelineeditdelegate.h
 
 DISTFILES += ../CMakeLists.txt \
 CMakeLists.txt \
@@ -118,12 +125,13 @@ win32 {
 }
 
 CONFIG(release, debug|release) {
-    DEFINES += NDEBUG
+    DEFINES += NDEBUG QT_NO_DEBUG_OUTPUT
 }
 
 CONFIG(debug, debug|release) {
-    DEFINES += DEBUG
+    DEFINES += DEBUG 
 }
+DEFINES -= NDEBUG QT_NO_DEBUG_OUTPUT
 
 HOST_MACHINE = $$system(gcc -dumpmachine)
 HOST_GCC_VERSION = $$system(gcc -dumpversion)

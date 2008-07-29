@@ -238,7 +238,16 @@ void RemoteHostConnectThread::run()
     //libssh2_trace((LIBSSH2_SESSION*)ssh2_sess , 64 );    
     ret = libssh2_session_startup((LIBSSH2_SESSION*)ssh2_sess,this->ssh2_sock);
     printf("Received Banner: %s\n",libssh2_session_get_remote_version((LIBSSH2_SESSION*)ssh2_sess));
-    assert( ret == 0 );
+    if(ret != 0) {
+        this->connect_status = CONN_SESS_ERROR;
+#ifdef WIN32
+        ::closesocket(this->ssh2_sock);
+#else
+        ::close(this->ssh2_sock);
+#endif
+        assert( ret == 0 );
+        return ;
+    }
     emit connect_state_changed( tr( "SSH session started ..."));
     
     ///////////

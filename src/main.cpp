@@ -42,8 +42,6 @@
 #include "nullfxp.h"
 #include "nullfxp-version.h"
 
-#include "baserfsmodel.h"
-
 int main(int argc, char *argv[])
 {
     int app_exec_ret = -1;
@@ -55,7 +53,7 @@ int main(int argc, char *argv[])
 #endif
       NullFXP nfxp ;
       nfxp.showNormal ();
-      BaseRFSModel *rfs_model = new BaseRFSModel();
+
       app_exec_ret = app.exec();
       if( app_exec_ret == 0)
           qDebug()<<"Exit normally.";

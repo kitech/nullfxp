@@ -5,26 +5,20 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>296</width>
-    <height>363</height>
+    <width>366</width>
+    <height>435</height>
    </rect>
   </property>
   <property name="windowTitle" >
    <string>File Properties</string>
   </property>
-  <layout class="QVBoxLayout" >
-   <property name="topMargin" >
-    <number>5</number>
-   </property>
-   <property name="bottomMargin" >
-    <number>5</number>
-   </property>
+  <layout class="QVBoxLayout" name="verticalLayout" >
    <item>
     <layout class="QHBoxLayout" >
      <item>
       <widget class="QLabel" name="label_13" >
        <property name="text" >
-        <string>File Icon</string>
+        <string>Icon here</string>
        </property>
       </widget>
      </item>
@@ -42,7 +36,7 @@
          <property name="orientation" >
           <enum>Qt::Vertical</enum>
          </property>
-         <property name="sizeHint" >
+         <property name="sizeHint" stdset="0" >
           <size>
            <width>20</width>
            <height>21</height>
@@ -65,7 +59,7 @@
          <property name="orientation" >
           <enum>Qt::Vertical</enum>
          </property>
-         <property name="sizeHint" >
+         <property name="sizeHint" stdset="0" >
           <size>
            <width>20</width>
            <height>20</height>
@@ -78,240 +72,332 @@
     </layout>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox_2" >
-     <property name="title" >
-      <string>General</string>
-     </property>
-     <layout class="QGridLayout" >
-      <property name="topMargin" >
-       <number>5</number>
-      </property>
-      <property name="bottomMargin" >
-       <number>5</number>
-      </property>
-      <item row="0" column="0" >
-       <widget class="QLabel" name="label" >
-        <property name="text" >
-         <string>Type:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1" >
-       <widget class="QLineEdit" name="lineEdit_2" />
-      </item>
-      <item row="1" column="0" >
-       <widget class="QLabel" name="label_2" >
-        <property name="text" >
-         <string>Path:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1" >
-       <widget class="QLineEdit" name="lineEdit_3" />
-      </item>
-      <item row="2" column="0" >
-       <widget class="QLabel" name="label_3" >
-        <property name="text" >
-         <string>Size:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1" >
-       <widget class="QLineEdit" name="lineEdit_4" />
-      </item>
-      <item row="3" column="0" >
-       <widget class="QLabel" name="label_4" >
-        <property name="text" >
-         <string>Modify Time:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1" >
-       <widget class="QLineEdit" name="lineEdit_5" />
-      </item>
-      <item row="4" column="1" >
-       <widget class="QLineEdit" name="lineEdit_6" />
-      </item>
-      <item row="4" column="0" >
-       <widget class="QLabel" name="label_5" >
-        <property name="text" >
-         <string>Acess Time:</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox" >
-     <property name="title" >
-      <string>Permition</string>
-     </property>
-     <layout class="QGridLayout" >
-      <property name="topMargin" >
-       <number>5</number>
-      </property>
-      <property name="bottomMargin" >
-       <number>5</number>
-      </property>
-      <item row="0" column="0" >
-       <widget class="QLabel" name="label_9" >
-        <property name="text" >
-         <string>X      X</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1" >
-       <widget class="QLabel" name="label_6" >
-        <property name="text" >
-         <string>Read</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2" >
-       <widget class="QLabel" name="label_7" >
-        <property name="text" >
-         <string>Write</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="3" >
-       <widget class="QLabel" name="label_8" >
-        <property name="text" >
-         <string>Execute</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0" >
-       <widget class="QLabel" name="label_10" >
-        <property name="text" >
-         <string>Owner</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1" >
-       <widget class="QCheckBox" name="checkBox" >
-        <property name="text" >
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2" >
-       <widget class="QCheckBox" name="checkBox_2" >
-        <property name="text" >
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="3" >
-       <widget class="QCheckBox" name="checkBox_3" >
-        <property name="text" >
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0" >
-       <widget class="QLabel" name="label_11" >
-        <property name="text" >
-         <string>Group</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1" >
-       <widget class="QCheckBox" name="checkBox_4" >
-        <property name="text" >
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="2" >
-       <widget class="QCheckBox" name="checkBox_5" >
-        <property name="text" >
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="3" >
-       <widget class="QCheckBox" name="checkBox_6" >
-        <property name="text" >
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0" >
-       <widget class="QLabel" name="label_12" >
-        <property name="text" >
-         <string>Other</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1" >
-       <widget class="QCheckBox" name="checkBox_7" >
-        <property name="text" >
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="2" >
-       <widget class="QCheckBox" name="checkBox_8" >
-        <property name="text" >
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="3" >
-       <widget class="QCheckBox" name="checkBox_9" >
-        <property name="text" >
-         <string/>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QDialogButtonBox" name="buttonBox" >
+    <widget class="Line" name="line_2" >
      <property name="orientation" >
       <enum>Qt::Horizontal</enum>
      </property>
-     <property name="standardButtons" >
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::NoButton|QDialogButtonBox::Ok</set>
+    </widget>
+   </item>
+   <item>
+    <layout class="QGridLayout" name="gridLayout_2" >
+     <item row="0" column="0" >
+      <widget class="QLabel" name="label" >
+       <property name="text" >
+        <string>Type:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1" colspan="2" >
+      <widget class="QLineEdit" name="lineEdit_2" />
+     </item>
+     <item row="1" column="0" >
+      <widget class="QLabel" name="label_2" >
+       <property name="text" >
+        <string>Location:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="2" >
+      <widget class="QLineEdit" name="lineEdit_3" />
+     </item>
+     <item row="2" column="0" colspan="2" >
+      <widget class="QLabel" name="label_3" >
+       <property name="text" >
+        <string>Size:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="2" >
+      <widget class="QLineEdit" name="lineEdit_4" />
+     </item>
+     <item row="3" column="0" >
+      <widget class="QLabel" name="label_4" >
+       <property name="text" >
+        <string>Modify Time:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="2" >
+      <widget class="QLineEdit" name="lineEdit_5" />
+     </item>
+     <item row="4" column="0" >
+      <widget class="QLabel" name="label_5" >
+       <property name="text" >
+        <string>Acess Time:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="2" >
+      <widget class="QLineEdit" name="lineEdit_6" />
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="Line" name="line_3" >
+     <property name="orientation" >
+      <enum>Qt::Horizontal</enum>
      </property>
     </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout" >
+     <item>
+      <widget class="QLabel" name="label_7" >
+       <property name="text" >
+        <string>Owner:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_15" >
+       <property name="text" >
+        <string>TextLabel</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_8" >
+       <property name="text" >
+        <string>Group:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_16" >
+       <property name="text" >
+        <string>TextLabel</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="Line" name="line" >
+     <property name="orientation" >
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QGridLayout" name="gridLayout" >
+     <item row="1" column="0" >
+      <widget class="QLabel" name="label_6" >
+       <property name="text" >
+        <string>Executable</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1" >
+      <widget class="QCheckBox" name="checkBox_10" >
+       <property name="text" >
+        <string>Set-User-ID</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="2" >
+      <widget class="QCheckBox" name="checkBox_11" >
+       <property name="text" >
+        <string>Set-Group-ID</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="3" >
+      <widget class="QCheckBox" name="checkBox_12" >
+       <property name="text" >
+        <string>Sticky</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0" >
+      <widget class="QLabel" name="label_10" >
+       <property name="text" >
+        <string>Owner</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1" >
+      <widget class="QCheckBox" name="checkBox" >
+       <property name="text" >
+        <string>Readable</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="2" >
+      <widget class="QCheckBox" name="checkBox_2" >
+       <property name="text" >
+        <string>Writable</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="3" >
+      <widget class="QCheckBox" name="checkBox_3" >
+       <property name="text" >
+        <string>Executable</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0" >
+      <widget class="QLabel" name="label_11" >
+       <property name="text" >
+        <string>Group</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1" >
+      <widget class="QCheckBox" name="checkBox_4" >
+       <property name="text" >
+        <string>Readable</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="2" >
+      <widget class="QCheckBox" name="checkBox_5" >
+       <property name="text" >
+        <string>Writable</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="3" >
+      <widget class="QCheckBox" name="checkBox_6" >
+       <property name="text" >
+        <string>Executable</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0" >
+      <widget class="QLabel" name="label_12" >
+       <property name="text" >
+        <string>Other</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1" >
+      <widget class="QCheckBox" name="checkBox_7" >
+       <property name="text" >
+        <string>Readable</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="2" >
+      <widget class="QCheckBox" name="checkBox_8" >
+       <property name="text" >
+        <string>Writable</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="3" >
+      <widget class="QCheckBox" name="checkBox_9" >
+       <property name="text" >
+        <string>Executable</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0" >
+      <widget class="QLabel" name="label_9" >
+       <property name="text" >
+        <string>Atrribute</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1" >
+      <widget class="QLineEdit" name="lineEdit_7" />
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="Line" name="line_4" >
+     <property name="orientation" >
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2" >
+     <item>
+      <spacer name="horizontalSpacer" >
+       <property name="orientation" >
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0" >
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton" >
+       <property name="text" >
+        <string>&amp;Ok</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_2" >
+       <property name="text" >
+        <string>&amp;Cancel</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_3" >
+       <property name="text" >
+        <string>&amp;Apply</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
  <resources/>
  <connections>
   <connection>
-   <sender>buttonBox</sender>
-   <signal>accepted()</signal>
-   <receiver>FileProperties</receiver>
-   <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel" >
-     <x>248</x>
-     <y>254</y>
-    </hint>
-    <hint type="destinationlabel" >
-     <x>157</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>rejected()</signal>
+   <sender>pushButton_2</sender>
+   <signal>clicked()</signal>
    <receiver>FileProperties</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>316</x>
-     <y>260</y>
+     <x>212</x>
+     <y>411</y>
     </hint>
     <hint type="destinationlabel" >
-     <x>286</x>
-     <y>274</y>
+     <x>8</x>
+     <y>398</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton</sender>
+   <signal>clicked()</signal>
+   <receiver>FileProperties</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>148</x>
+     <y>411</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>43</x>
+     <y>406</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_3</sender>
+   <signal>clicked()</signal>
+   <receiver>FileProperties</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>328</x>
+     <y>408</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>81</x>
+     <y>413</y>
     </hint>
    </hints>
   </connection>

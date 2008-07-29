@@ -38,8 +38,7 @@
 
 class SessionDialog: public QDialog
 {
-  Q_OBJECT
-
+    Q_OBJECT;
 public:
     SessionDialog(QWidget * parent = 0);
     ~SessionDialog();
@@ -73,6 +72,7 @@ private:
     QAction * action_rename;
     QAction * action_remove;
     QAction * action_sep;
+    QMap<QString, QString> selected_host;
 
     void * info_dlg;
 };

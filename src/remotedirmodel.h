@@ -4,7 +4,7 @@
  * Description: 
  * Author: liuguangzhao
  * Maintainer: 
- * Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sourceforge.net>
+ * Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sf.net>
  * http://www.qtchina.net
  * http://nullget.sourceforge.net
  * Created: 日  5月 25 09:48:00 2008 (CST)
@@ -38,6 +38,7 @@
 
 #include "remotedirretrivethread.h"
 
+class RFSDirNode;
 
 /**
    @author liuguangzhao <liuguangzhao@users.sourceforge.net >
@@ -47,15 +48,15 @@
 
 class RemoteDirModel : public QAbstractItemModel
 {
-    Q_OBJECT
-	public:
+    Q_OBJECT;
+public:
     RemoteDirModel ( QObject *parent = 0 );
 
     virtual ~RemoteDirModel();
     //仅需要调用一次的函数,并且是在紧接着该类的初始化之后调用。
     void set_user_home_path(std::string user_home_path);
     //这个调用应该在set_user_home_path之前
-    void set_ssh2_handler( void * ssh2_sess /*, void * ssh2_sftp, int ssh2_sock*/ );
+    void set_ssh2_handler( void * ssh2_sess );
                 
     ////model 函数
     QVariant data ( const QModelIndex &index, int role ) const;
@@ -88,7 +89,6 @@ class RemoteDirModel : public QAbstractItemModel
 // 		QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
 // 
 // 		bool hasChildren(const QModelIndex &index = QModelIndex()) const;
-// 		Qt::ItemFlags flags(const QModelIndex &index) const;
 // 
 // 		void sort(int column, Qt::SortOrder order = Qt::AscendingOrder);
 // 
@@ -137,34 +137,32 @@ class RemoteDirModel : public QAbstractItemModel
 
     QString filePath(const QModelIndex &index) const;
     bool isDir(const QModelIndex &index) const;
-    public slots:
+
+public slots:
     void slot_remote_dir_node_retrived(directory_tree_item* parent_item,void *  parent_model_internal_pointer );
-      
-        
     void slot_remote_dir_node_clicked(const QModelIndex & index);
         
     void slot_execute_command( directory_tree_item* parent_item , void * parent_model_internal_pointer, int cmd , QString params );
         
     //keep_alive
     void set_keep_alive(bool keep_alive,int time_out=DEFAULT_KEEP_ALIVE_TIMEOUT);
-    private slots:
-        
+
+private slots:        
     /// time_out 秒                
     void slot_keep_alive_time_out();
+
 signals:
-    //void new_transfer_requested(QString local_file_name,QString local_file_type,                                    QString remote_file_name,QString remote_file_type);
-    //void new_transfer_requested(QStringList local_file_names,     QStringList remote_file_names);
     void sig_drop_mime_data(const QMimeData *data, Qt::DropAction action,
 			    int row, int column, const QModelIndex &parent);
         
     //for wait option
     void enter_remote_dir_retrive_loop();
     void leave_remote_dir_retrive_loop();
-        
+    
 private:
     enum { DEFAULT_KEEP_ALIVE_TIMEOUT=30*1000 };
     directory_tree_item * tree_root ;
-    //struct sftp_conn * sftp_connection ;
+
     RemoteDirRetriveThread * remote_dir_retrive_thread ;
     //递归查找树
     QModelIndex find_node_item_by_path_elements( directory_tree_item * parent_node_item , QStringList & path_elements , int level ) const ;
@@ -175,6 +173,8 @@ private:
     bool    keep_alive ;
     QTimer  * keep_alive_timer ;
     int     keep_alive_interval;        
+
+    
 };
 
 #endif

@@ -2,14 +2,16 @@
 // 
 // Filename: nullfxp.cpp
 // Description: 
-// Author: 刘光照<liuguangzhao@comsenz.com>
+// Author: 刘光照<liuguangzhao@users.sf.net>
 // Maintainer: 
-// Copyright (C) 2000-2008 www.comsenz.com
-// Created: 二  5月 13 09:50:23 2008 (UTC)
+// Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sf.net>
+// http://www.qtchina.net
+// http://nullget.sourceforge.net
+// Created: 二  7月 22 21:18:03 2008 (CST)
 // Version: 
-// Last-Updated: 六  6月 14 22:50:03 2008 (CST)
-//           By: 刘光照<liuguangzhao@users.sf.net>
-//     Update #: 1
+// Last-Updated: 
+//           By: 
+//     Update #: 0
 // URL: 
 // Keywords: 
 // Compatibility: 
@@ -232,8 +234,7 @@ void NullFXP::connect_to_remote_host(QMap<QString,QString> host)
     if(host.contains("pubkey")) {
         pubkey = host["pubkey"];
     }
-
-    qDebug()<< host;
+    //qDebug()<< host;
     this->connect_status_dailog = new RemoteHostConnectingStatusDialog(username,remoteaddr,this, Qt::Dialog );
     QObject::connect(this->connect_status_dailog,SIGNAL(cancel_connect()),
                      this,SLOT(slot_cancel_connect()) );
@@ -290,7 +291,7 @@ void NullFXP::slot_show_session_dialog()
     delete sess_dlg;
 }
 
-void NullFXP::slot_connect_remote_host_finished ( int status,void * ssh2_sess , int ssh2_sock /* , void * ssh2_sftp*/ )
+void NullFXP::slot_connect_remote_host_finished ( int status,void * ssh2_sess , int ssh2_sock)
 {
     RemoteHostConnectThread * conn_thread = static_cast< RemoteHostConnectThread*>(sender()) ;
     

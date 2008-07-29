@@ -54,8 +54,8 @@ class EncryptionDetailFocusLabel;
 
 class RemoteView : public QWidget
 {
-    Q_OBJECT
-	public:
+    Q_OBJECT;
+public:
     RemoteView( QMdiArea * main_mdi_area , LocalView * local_view , QWidget *parent = 0);
 
     ~RemoteView();
@@ -69,10 +69,6 @@ class RemoteView : public QWidget
     { return this->in_remote_dir_retrive_loop ; }
     
     void update_layout();
-    
-//     LIBSSH2_SESSION * get_ssh2_sess();
-//     LIBSSH2_SFTP * get_ssh2_sftp ();
-//     int get_ssh2_sock ( );
     
 private:
     LocalView  * local_view ;
@@ -112,16 +108,15 @@ private:
     QAction * attr_action;
     EncryptionDetailFocusLabel * enc_label;
         
-    public slots:
+public slots:
     void i_init_dir_view( );
     void slot_disconnect_from_remote_host();
         
     void slot_dir_tree_customContextMenuRequested ( const QPoint & pos );
     void slot_new_transfer();
-    //void slot_new_transfer_requested(QStringList local_file_names,                                    QStringList remote_file_names);
-    void slot_new_upload_requested(QStringList local_file_names,                                    QStringList remote_file_names);
+    void slot_new_upload_requested(QStringList local_file_names, QStringList remote_file_names);
     void slot_new_upload_requested( QStringList local_file_names ) ;
-    void slot_new_download_requested(QStringList local_file_names,                                    QStringList remote_file_names);
+    void slot_new_download_requested(QStringList local_file_names, QStringList remote_file_names);
     void slot_new_download_requested( QStringList remote_file_names ) ;
         
     //////////ui
@@ -143,24 +138,17 @@ private:
     void slot_show_hidden(bool show);
 	
 signals:
-    //void new_transfer_requested( QString file_name,QString file_type ) ;
-    //void new_transfer_requested(QStringList remote_file_names);
-    //first is file_name , second is file_type 
-    //可以多选的时候使用。
-    //void new_transfer_requested( QVector<QPair<QString ,QString > > file_lists ) ;
-    //void new_transfer_requested(QString local_file_name,QString local_file_type,
-    //                            QString remote_file_name,QString remote_file_type );
     void new_transfer_requested(QStringList local_file_names,QStringList remote_file_names);
         
-    private slots:
-    //void slot_dir_item_clicked(const QModelIndex & index);
+private slots:
 
     void slot_refresh_directory_tree();
     void slot_show_properties();
     void slot_mkdir();
     void slot_rmdir();        
     void slot_rename();
-    void slot_copy_path_url();
+    void slot_copy_path();
+    void slot_copy_url();
         
     void rm_file_or_directory_recursively();
 

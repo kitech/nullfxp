@@ -208,7 +208,7 @@ strmode ( int mode, char *p )
     *p++ = ' ';		/* will be a '+' if ACL's implemented */
     *p = '\0';
 }
-//��������path�ı��뷽ʽ�Ǳ���ϵͳ�����õı��뷽ʽ
+//
 int     is_dir(char *path)
 {
     struct stat sb;
@@ -222,7 +222,36 @@ int     is_dir(char *path)
 
     return(S_ISDIR(sb.st_mode));
 }
-//��������path�ı��뷽ʽ�Ǳ���ϵͳ�����õı��뷽ʽ
+const char *digit_mode(int mode)
+{
+    int keys[] = {
+        S_ISUID,
+        S_ISGID,
+        S_ISVTX,
+        S_IRUSR,
+        S_IWUSR,
+        S_IXUSR,
+        S_IRGRP,
+        S_IWGRP,
+        S_IXGRP,
+        S_IROTH,
+        S_IWOTH,
+        S_IXOTH,
+        NULL
+    };
+    char dmode[5] = {0};
+    int i = 0, v = 0;;
+    for(i =0 ;i < 4 ; i++) {
+        v = 0;
+        if(mode & keys[i*3]) v += 4;
+        if(mode & keys[i*3+1]) v += 2;
+        if(mode & keys[i*3+2]) v += 1;
+        sprintf(dmode+strlen(dmode), "%d", v);
+    }
+    return dmode;
+}
+
+//
 int is_reg(char *path)
 {
     struct stat sb;
@@ -234,7 +263,7 @@ int is_reg(char *path)
     }
     return(S_ISREG(sb.st_mode));
 }
-//��������path�ı��뷽ʽ�Ǳ���ϵͳ�����õı��뷽ʽ
+//
 void  fxp_local_do_ls( QString args , QVector<QMap<char, QString> > & fileinfos )
 {
     int sz ;
@@ -289,7 +318,7 @@ void  fxp_local_do_ls( QString args , QVector<QMap<char, QString> > & fileinfos 
     }
     closedir(dh);
 }
-//��������path�ı��뷽ʽ�Ǳ���ϵͳ�����õı��뷽ʽ
+//
 int     fxp_local_do_mkdir(const char * path )
 {
     int ret = 0 ;
