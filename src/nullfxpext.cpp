@@ -4,7 +4,7 @@
 // Description: 
 // Author: liuguangzhao
 // Maintainer: 
-// Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sourceforge.net>
+// Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sf.net>
 // http://www.qtchina.net
 // http://nullget.sourceforge.net
 // Created: 二  5月  6 22:01:49 2008 (CST)
@@ -61,6 +61,9 @@
 #include "remotehostconnectthread.h"
 #include "forwardconnectdaemon.h"
 
+#include "synchronizeoptiondialog.h"
+#include "synchronizewindow.h"
+
 void NullFXP::slot_forward_connect(bool show)
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
@@ -86,6 +89,10 @@ void NullFXP::slot_forward_connect(bool show)
 void NullFXP::slot_synchronize_file()
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    QMessageBox::warning(this,tr("Infomation:"),tr("This feather will coming soon.") );
+    //QMessageBox::warning(this,tr("Infomation:"),tr("This feather will coming soon.") );
+
+    SynchronizeOptionDialog * sync_dlg = new SynchronizeOptionDialog(this);
+    sync_dlg->show();    
+    
 }
 
