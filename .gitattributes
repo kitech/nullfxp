@@ -22,6 +22,8 @@ src/baserfsmodel.cpp -text
 src/baserfsmodel.h -text
 src/basestorage.cpp -text
 src/basestorage.h -text
+src/completelineeditdelegate.cpp -text
+src/completelineeditdelegate.h -text
 src/encryptiondetaildialog.cpp -text
 src/encryptiondetaildialog.h -text
 src/encryptiondetailfocuslabel.cpp -text
@@ -40,6 +42,7 @@ src/forwardconnectinfodialog.ui -text
 src/forwarddebugwindow.cpp -text
 src/forwarddebugwindow.h -text
 src/forwarddebugwindow.ui -text
+src/get_ver.c -text
 src/globaloption.cpp -text
 src/globaloption.h -text
 src/globaloptionsdialog.cpp -text
@@ -245,6 +248,8 @@ src/remoteview.h -text
 src/remoteview.ui -text
 src/remoteviewdirtableview.cpp -text
 src/remoteviewdirtableview.h -text
+src/rfsdirnode.cpp -text
+src/rfsdirnode.h -text
 src/sessiondialog.cpp -text
 src/sessiondialog.h -text
 src/sftp.h -text

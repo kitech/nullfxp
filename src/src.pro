@@ -1,3 +1,36 @@
+SOURCES += main.cpp \
+ nullfxp.cpp \
+ localview.cpp \
+ remoteview.cpp \
+ remotedirmodel.cpp \
+ progressdialog.cpp \
+ transferthread.cpp \
+ remotedirretrivethread.cpp \
+ remotehostconnectthread.cpp \
+ remotehostconnectingstatusdialog.cpp \
+ remotehostquickconnectinfodialog.cpp \
+ aboutnullfxp.cpp \
+ globaloption.cpp \
+ globaloptionsdialog.cpp \
+ utils.cpp \
+ fileproperties.cpp \
+ remotedirsortfiltermodel.cpp \
+ remoteviewdirtableview.cpp \
+ remotedirtreeview.cpp \
+ localdirsortfiltermodel.cpp \
+ localdirorginalmodel.cpp \
+ nullfxpext.cpp \
+ forwardconnectdaemon.cpp \
+ forwarddebugwindow.cpp \
+ forwardconnectinfodialog.cpp \
+ basestorage.cpp \
+ sessiondialog.cpp \
+ fileexistaskdialog.cpp \
+ encryptiondetailfocuslabel.cpp \
+ encryptiondetaildialog.cpp \
+ rfsdirnode.cpp \
+ completelineeditdelegate.cpp
+
 TEMPLATE = app
 CONFIG += qt thread console warn_on ordered  
 TARGET = nullfxp
@@ -40,41 +73,6 @@ FORMS += nullfxp.ui \
  ui/encryptiondetaildialog.ui \
  ui/fileexistaskdialog.ui
 
-SOURCES += main.cpp \
- nullfxp.cpp \
- localview.cpp \
- remoteview.cpp \
- remotedirmodel.cpp \
- progressdialog.cpp \
- transferthread.cpp \
- remotedirretrivethread.cpp \
- remotehostconnectthread.cpp \
- remotehostconnectingstatusdialog.cpp \
- remotehostquickconnectinfodialog.cpp \
- aboutnullfxp.cpp \
- globaloption.cpp \
- globaloptionsdialog.cpp \
- utils.cpp \
- fileproperties.cpp \
- remotedirsortfiltermodel.cpp \
- remoteviewdirtableview.cpp \
- remotedirtreeview.cpp \
- localdirsortfiltermodel.cpp \
- localdirorginalmodel.cpp \
- nullfxpext.cpp \
- forwardconnectdaemon.cpp \
- forwarddebugwindow.cpp \
- forwardconnectinfodialog.cpp \
- basestorage.cpp \
- sessiondialog.cpp \
- fileexistaskdialog.cpp \
- encryptiondetailfocuslabel.cpp \
- encryptiondetaildialog.cpp \
- rfsdirnode.cpp \
- completelineeditdelegate.cpp \
- synchronizeoptiondialog.cpp \
- synchronizewindow.cpp
-
 HEADERS += nullfxp.h \
  localview.h \
  remoteview.h \
@@ -103,9 +101,7 @@ HEADERS += nullfxp.h \
  encryptiondetailfocuslabel.h \
  encryptiondetaildialog.h \
  rfsdirnode.h \
- completelineeditdelegate.h \
- synchronizeoptiondialog.h \
- synchronizewindow.h
+ completelineeditdelegate.h
 
 DISTFILES += ../CMakeLists.txt \
 CMakeLists.txt \
