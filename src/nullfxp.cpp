@@ -9,9 +9,9 @@
 // http://nullget.sourceforge.net
 // Created: 二  7月 22 21:18:03 2008 (CST)
 // Version: 
-// Last-Updated: 
-//           By: 
-//     Update #: 0
+// Last-Updated: 三  8月  6 20:53:52 2008 (CST)
+//           By: 刘光照<liuguangzhao@users.sf.net>
+//     Update #: 1
 // URL: 
 // Keywords: 
 // Compatibility: 
