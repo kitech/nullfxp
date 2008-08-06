@@ -2,6 +2,8 @@
 #include <QtCore>
 #include <QtGui>
 
+#include "utils.h"
+
 #include "rfsdirnode.h"
 
 ////////////////////////directory_tree_item

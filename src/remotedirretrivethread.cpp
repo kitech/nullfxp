@@ -337,15 +337,14 @@ int  RemoteDirRetriveThread::rm_file_or_directory_recursively_ex( QString parent
     
     //删除这个目录
     abs_path = parent_path ;//+ "/" + parent_item->file_name ;
-    abs_path = GlobalOption::instance()->remote_codec->fromUnicode(abs_path);
     //qDebug()<<"rmdir: "<< abs_path;
     exec_ret = libssh2_sftp_rmdir(ssh2_sftp, abs_path.toAscii().data());
     if( exec_ret != 0 ) //可能这是一个文件，不是目录，那么使用删除文件的指令
     {
-        exec_ret = libssh2_sftp_unlink(ssh2_sftp,GlobalOption::instance()->remote_codec->fromUnicode(abs_path) );
+        exec_ret = libssh2_sftp_unlink(ssh2_sftp, abs_path.toAscii().data());
         if( exec_ret != 0 )
         {
-            qDebug()<< " count remove file or directory ("<< libssh2_sftp_last_error(ssh2_sftp) <<"): "<< abs_path ;
+            qDebug()<< "count remove file or directory ("<< libssh2_sftp_last_error(ssh2_sftp) <<"): "<< abs_path ;
         }
     }
     

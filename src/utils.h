@@ -28,7 +28,8 @@
  * 
  * 
  */
-
+#ifndef UTILS_H
+#define UTILS_H
 
 #include <vector>
 #include <map>
@@ -48,11 +49,69 @@
 // # define S_ISREG(mode)	(((mode) & (_S_IFMT)) == (_S_IFREG))
 // #endif /* S_ISREG */
 // 
-// #ifndef S_ISLNK
-// # define S_ISLNK(mode)	(((mode) & S_IFMT) == S_IFLNK)
-// #endif /* S_ISLNK */
-#ifndef UTILS_H
-#define UTILS_H
+
+
+
+#ifdef WIN32
+#include <windows.h>
+#include <winsock2.h>
+
+#ifndef S_ISLNK
+# define S_ISLNK(mode)	(((mode) & S_IFMT) == S_IFLNK)
+#endif /* S_ISLNK */
+
+//#define	_IFMT		0170000	/* type of file */
+//#define		_IFDIR	0040000	/* directory */
+//#define		_IFCHR	0020000	/* character special */
+#define		_IFBLK	0060000	/* block special */
+//#define		_IFREG	0100000	/* regular */
+#define		_IFLNK	0120000	/* symbolic link */
+#define		_IFSOCK	0140000	/* socket */
+//#define		_IFIFO	0010000	/* fifo */
+
+#define 	S_BLKSIZE  1024 /* size of a block */
+
+#define	S_ISUID		0004000	/* set user id on execution */
+#define	S_ISGID		0002000	/* set group id on execution */
+
+#define	S_ISVTX		0001000	/* save swapped text even after use */
+//#define	S_IREAD		0000400	/* read permission, owner */
+//#define	S_IWRITE 	0000200	/* write permission, owner */
+//#define	S_IEXEC		0000100	/* execute/search permission, owner */
+#define	S_ENFMT 	0002000	/* enforcement-mode locking */
+
+//#define	S_IFMT		_IFMT
+//#define	S_IFDIR		_IFDIR
+//#define	S_IFCHR		_IFCHR
+//#define	S_IFBLK		_IFBLK
+//#define	S_IFREG		_IFREG
+#define	S_IFLNK		_IFLNK
+#define	S_IFSOCK	_IFSOCK
+//#define	S_IFIFO		_IFIFO
+
+//#define link(from, to) 0
+
+
+/* The Windows header files define _S_ forms of these, so we do too
+   for easier portability.  */
+//#define _S_IFMT		_IFMT
+//#define _S_IFDIR	_IFDIR
+//#define _S_IFCHR	_IFCHR
+//#define _S_IFIFO	_IFIFO
+//#define _S_IFREG	_IFREG
+//#define _S_IREAD	0000400
+//#define _S_IWRITE	0000200
+//#define _S_IEXEC	0000100
+
+#define		S_IWGRP	0000020	/* write permission, grougroup */
+#define		S_IXGRP 0000010/* execute/search permission, group */
+#define		S_IRGRP	0000040	/* read permission, group */
+#define		S_IROTH	0000004	/* read permission, other */
+#define		S_IWOTH	0000002	/* write permission, other */
+#define		S_IXOTH 0000001/* execute/search permission, other */
+
+
+#endif
 
 #ifdef __cplusplush
 extern "C"{

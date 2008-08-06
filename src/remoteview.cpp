@@ -313,8 +313,14 @@ QString RemoteView::get_selected_directory()
         directory_tree_item * dti = (directory_tree_item*) aim_midx.internalPointer();
         qDebug()<<dti->file_name <<" "<<dti->file_type 
                 <<" "<< dti->strip_path  ;
-        file_path = dti->strip_path ;
+        if(this->remote_dir_sort_filter_model->isDir(midx)) {
+        	  file_path = dti->strip_path ;	
+        }else{
+        	  file_path = "" ;
+        }
+        
 #warning "maybe gc code"
+        /*
         if( dti->file_type.at(0) == 'd' || dti->file_type.at(0) == 'D'
             || dti->file_type.at(0) == 'l' )
         {
@@ -324,6 +330,7 @@ QString RemoteView::get_selected_directory()
         {
             file_path = "" ;
         }
+        */
     }
     
     return file_path ;
@@ -730,16 +737,16 @@ void RemoteView::slot_new_upload_requested ( QStringList local_file_names )
     if ( remote_file_name.length() == 0 ) {
         QMessageBox::critical ( this,tr ( "Waring..." ),tr ( "you should selecte a remote file directory." ) );        
     }else{
-        remote_file_name = QString("nrsftp://%1:%2@%3:%4").arg(this->user_name).arg(".").arg(this->host_name).arg(this->port) + remote_file_name ;
+        remote_file_name = QString("nrsftp://%1:%2@%3:%4").arg(this->user_name).arg("").arg(this->host_name).arg(this->port) + remote_file_name ;
         //q_debug()<<remote_file_name<<QUrl::toPercentEncoding(this->password);
         QUrl uu = QUrl::fromEncoded(remote_file_name.toAscii(), QUrl::StrictMode);
-        uu.setEncodedPassword(this->password.toAscii());
+        uu.setEncodedPassword(QUrl::toPercentEncoding(this->password));
         QList<QPair<QString, QString> > query_items;
         query_items<<QPair<QString, QString>("pubkey",this->pubkey);
         uu.setQueryItems(query_items);
-        //q_debug()<<uu;
+        q_debug()<<uu;
         remote_file_name = uu.toEncoded();//uu.toString();
-        //q_debug()<<remote_file_name;
+        q_debug()<<remote_file_name;
         remote_file_names << remote_file_name ;
         this->slot_new_upload_requested( local_file_names , remote_file_names );
     }
