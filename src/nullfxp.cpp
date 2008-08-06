@@ -42,7 +42,6 @@
 #include <winsock2.h>
 #else
 #include <sys/socket.h>
-//#include <wait.h>
 #endif
 
 #include <QtNetwork>
