@@ -6,9 +6,9 @@
 // Maintainer: 
 // Created: 五  4月  4 14:39:04 2008 (CST)
 // Version: 
-// Last-Updated: 五  4月  4 16:28:26 2008 (CST)
-//           By: liuguangzhao
-//     Update #: 1
+// Last-Updated: 五  8月  8 12:02:01 2008 (CST)
+//           By: 刘光照<liuguangzhao@users.sf.net>
+//     Update #: 2
 // URL: 
 // Keywords: 
 // Compatibility: 
@@ -187,7 +187,14 @@ QMap<QString, QMap<QString,QString> > & BaseStorage::getAllHost()
         this->open();
     return this->hosts;
 }
+QStringList BaseStorage::getNameList()
+{
+    QStringList nlist;
 
+    nlist = this->hosts.keys();
+
+    return nlist;
+}
 QMap<QString,QString> & BaseStorage::getHost(QString show_name)
 {
     QMap<QString,QString> host;

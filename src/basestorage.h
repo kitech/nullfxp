@@ -6,9 +6,9 @@
  * Maintainer: 
  * Created: 五  4月  4 14:46:49 2008 (CST)
  * Version: 
- * Last-Updated: 五  4月  4 14:47:37 2008 (CST)
- *           By: liuguangzhao
- *     Update #: 1
+ * Last-Updated: 五  8月  8 12:01:55 2008 (CST)
+ *           By: 刘光照<liuguangzhao@users.sf.net>
+ *     Update #: 2
  * URL: 
  * Keywords: 
  * Compatibility: 
@@ -52,6 +52,8 @@ public:
 
     QMap<QString, QMap<QString,QString> > & getAllHost();
     QMap<QString,QString> & getHost(QString show_name);
+    QStringList getNameList();
+
     int hostCount();
   
 signals:

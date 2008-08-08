@@ -21,7 +21,8 @@ private:
 
 private slots:
     void slot_select_local_base_directory();
-
+    void slot_show_session_list();
+    void slot_session_item_selected();
 };
 
 #endif
