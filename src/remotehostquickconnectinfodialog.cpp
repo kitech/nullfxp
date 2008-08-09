@@ -62,7 +62,9 @@ QString RemoteHostQuickConnectInfoDialog::get_host_name ()
 
 QString RemoteHostQuickConnectInfoDialog::get_password()
 {
-    return this->quick_connect_info_dialog.lineEdit_4->text();
+    QString passwd = this->quick_connect_info_dialog.lineEdit_4->text();
+    passwd = QUrl::toPercentEncoding(passwd);
+    return passwd;
 }
 short  RemoteHostQuickConnectInfoDialog::get_port()
 {
@@ -92,7 +94,7 @@ void RemoteHostQuickConnectInfoDialog::set_active_host(QMap<QString,QString> hos
     this->quick_connect_info_dialog.lineEdit_3->setText(user_name);
     
     this->quick_connect_info_dialog.lineEdit_4->setFocus();
-    this->quick_connect_info_dialog.lineEdit_4->setText(password);
+    this->quick_connect_info_dialog.lineEdit_4->setText(QUrl::fromPercentEncoding(password.toAscii()));
     
     this->quick_connect_info_dialog.groupBox->setTitle(QString(tr("Host Infomation: %1")).arg(show_name));
     this->show_name = show_name;
@@ -114,6 +116,7 @@ QMap<QString,QString> RemoteHostQuickConnectInfoDialog::get_host_map()
   host["host_name"] = this->quick_connect_info_dialog.lineEdit->text();
   host["user_name"] = this->quick_connect_info_dialog.lineEdit_3->text();
   host["password"] = this->quick_connect_info_dialog.lineEdit_4->text();
+  host["password"] = QUrl::toPercentEncoding(host["password"]);
   host["port"] = this->quick_connect_info_dialog.lineEdit_2->text();
   if(this->pubkey_path != QString::null && this->pubkey_path.length() > 0) {
       host["pubkey"] = this->pubkey_path;

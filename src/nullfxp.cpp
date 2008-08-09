@@ -186,7 +186,6 @@ void NullFXP::connect_to_remote_host()
     {
         username = this->quick_connect_info_dailog->get_user_name();
         password = this->quick_connect_info_dailog->get_password();
-        password = QUrl::toPercentEncoding(password);
         remoteaddr = this->quick_connect_info_dailog->get_host_name();
         port = this->quick_connect_info_dailog->get_port();
         pubkey = this->quick_connect_info_dailog->get_pubkey();

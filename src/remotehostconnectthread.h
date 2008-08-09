@@ -93,7 +93,6 @@ public:
     private:
         QString user_name;
         QString password;   //存储的密码为url编码过的
-        QString decoded_password;
         QString host_name ;
         short   port;
         QString pubkey_path;

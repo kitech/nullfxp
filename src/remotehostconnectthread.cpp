@@ -93,7 +93,7 @@ RemoteHostConnectThread::RemoteHostConnectThread(QString user_name, QString pass
 {
     this->user_name = user_name;
     this->password = password;
-    this->decoded_password = QUrl::fromPercentEncoding(this->password.toAscii());
+    //this->decoded_password = QUrl::fromPercentEncoding(this->password.toAscii());
     this->host_name = host_name;
     this->port = port;
     this->pubkey_path = pubkey;
@@ -259,7 +259,8 @@ void RemoteHostConnectThread::run()
                                               this->user_name.toAscii().data(),
                                               this->pubkey_path.toAscii().data(),
                                               this->pubkey_path.left(this->pubkey_path.length()-4).toAscii().data(),
-                                              this->decoded_password.toAscii().data(),
+                                              //this->decoded_password.toAscii().data(),
+                                              QUrl::fromPercentEncoding(this->password.toAscii()).toAscii().data(),
                                               this->host_name.toAscii().data());
     //qDebug()<<this->user_name<<this->pubkey_path<<this->pubkey_path.left(this->pubkey_path.length()-4)
     //      <<this->decoded_password<<this->host_name;;
@@ -295,7 +296,9 @@ void RemoteHostConnectThread::run()
                                                       this->user_name.toAscii().data(),
                                                       this->pubkey_path.toAscii().data(),
                                                       this->pubkey_path.left(this->pubkey_path.length()-4).toAscii().data(),
-                                                      this->decoded_password.toAscii().data());
+                                                      //this->decoded_password.toAscii().data());
+                                                      QUrl::fromPercentEncoding(this->password.toAscii()).toAscii().data());                                                     
+
 
             //qDebug()<<this->user_name<<this->pubkey_path<<this->pubkey_path.left(this->pubkey_path.length()-4)
             //      <<this->decoded_password;
@@ -331,13 +334,18 @@ void RemoteHostConnectThread::run()
             return;
         }   
 
-        ret = libssh2_userauth_password((LIBSSH2_SESSION*)ssh2_sess,this->user_name.toAscii().data(),this->decoded_password.toAscii().data());
+        ret = libssh2_userauth_password((LIBSSH2_SESSION*)ssh2_sess,this->user_name.toAscii().data(),
+                                        //this->decoded_password.toAscii().data());
+                                        QUrl::fromPercentEncoding(this->password.toAscii()).toAscii().data());
         qDebug()<<"Keyboard Interactive :"<<ret ;
 
         if( ret == -1 ) {
             emit connect_state_changed( tr( "User auth faild (Password). Trying (Keyboard Interactive) ...") );
             ssh2_kbd_cb_mutex.lock();
-            strncpy(ssh2_password,this->decoded_password.toAscii().data() , sizeof(ssh2_password));
+            strncpy(ssh2_password, 
+                    //this->decoded_password.toAscii().data(),
+                    QUrl::fromPercentEncoding(this->password.toAscii()).toAscii().data(),
+                    sizeof(ssh2_password));
             ret = libssh2_userauth_keyboard_interactive((LIBSSH2_SESSION*)ssh2_sess,this->user_name.toAscii().data(),&kbd_callback) ;
             memset( ssh2_password,0,sizeof(ssh2_password));
             ssh2_kbd_cb_mutex.unlock();

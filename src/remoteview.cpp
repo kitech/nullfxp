@@ -272,11 +272,12 @@ void RemoteView::slot_new_transfer()
         file_path = QString("nrsftp://%1:%2@%3:%4").arg(this->user_name).arg("").arg(this->host_name).arg(this->port) + file_path;
 
         QUrl uu(file_path);
+        qDebug()<<"vvvvvvvvv"<<this->password;
         uu.setEncodedPassword(this->password.toAscii());
         QList<QPair<QString, QString> > query_items;
         query_items<<QPair<QString, QString>("pubkey",this->pubkey);
         uu.setQueryItems(query_items);
-        //q_debug()<<uu;
+        q_debug()<<uu;
         file_path = uu.toEncoded();//toString();
         //q_debug()<<file_path;
 
@@ -740,13 +741,13 @@ void RemoteView::slot_new_upload_requested ( QStringList local_file_names )
         remote_file_name = QString("nrsftp://%1:%2@%3:%4").arg(this->user_name).arg("").arg(this->host_name).arg(this->port) + remote_file_name ;
         //q_debug()<<remote_file_name<<QUrl::toPercentEncoding(this->password);
         QUrl uu = QUrl::fromEncoded(remote_file_name.toAscii(), QUrl::StrictMode);
-        uu.setEncodedPassword(QUrl::toPercentEncoding(this->password));
+        uu.setEncodedPassword(this->password.toAscii());
         QList<QPair<QString, QString> > query_items;
         query_items<<QPair<QString, QString>("pubkey",this->pubkey);
         uu.setQueryItems(query_items);
-        q_debug()<<uu;
+        //q_debug()<<uu;
         remote_file_name = uu.toEncoded();//uu.toString();
-        q_debug()<<remote_file_name;
+        //q_debug()<<remote_file_name;
         remote_file_names << remote_file_name ;
         this->slot_new_upload_requested( local_file_names , remote_file_names );
     }
@@ -764,8 +765,6 @@ void RemoteView::slot_new_download_requested(QStringList local_file_names,   QSt
     pdlg->set_transfer_info (remote_file_names , local_file_names );
     QObject::connect ( pdlg,SIGNAL ( transfer_finished ( int,QString ) ),
                        this,SLOT ( slot_transfer_finished ( int ,QString) ) );
-    //     remote_view->slot_enter_remote_dir_retrive_loop();
-    //pdlg->exec();
     this->main_mdi_area->addSubWindow(pdlg);
     pdlg->show();
     this->own_progress_dialog = pdlg ;
@@ -782,13 +781,11 @@ void RemoteView::slot_new_download_requested( QStringList remote_file_names )
     local_file_path = this->local_view->get_selected_directory();
     
     qDebug()<<local_file_path;
-    if ( local_file_path.length() == 0 || ! is_dir( GlobalOption::instance()->locale_codec->fromUnicode( local_file_path  ).data() ) )
+    if (local_file_path.length() == 0 || !is_dir( GlobalOption::instance()->locale_codec->fromUnicode(local_file_path).data()))
     {
         qDebug() <<" selected a local file directory  please";
-        QMessageBox::critical ( this,tr ( "waring..." ),tr ( "you should selecte a local file directory." ) );
-    }
-    else
-    {
+        QMessageBox::critical (this, tr ( "waring..." ), tr ("you should selecte a local file directory." ));
+    } else {
         local_file_path = QString("file://"
 #ifdef WIN32
                                   "/"
@@ -806,8 +803,7 @@ void RemoteView::slot_transfer_finished( int status, QString errorString )
     
     ProgressDialog * pdlg = ( ProgressDialog* ) sender();
 
-    if(status == 0 || status ==3 )
-    {
+    if (status == 0 || status ==3) {
         //TODO 通知UI更新目录结构,在某些情况下会导致左侧树目录变空。
         //int transfer_type = pdlg->get_transfer_type();
         //if ( transfer_type == TransferThread::TRANSFER_GET )
