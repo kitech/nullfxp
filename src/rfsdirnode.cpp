@@ -1,3 +1,33 @@
+// rfsdirnode.cpp --- 
+// 
+// Filename: rfsdirnode.cpp
+// Description: 
+// Author: 刘光照<liuguangzhao@users.sf.net>
+// Maintainer: 
+// Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sf.net>
+// http://www.qtchina.net
+// http://nullget.sourceforge.net
+// Created: 六  8月  9 11:50:49 2008 (CST)
+// Version: 
+// Last-Updated: 六  8月  9 11:51:05 2008 (CST)
+//           By: 刘光照<liuguangzhao@users.sf.net>
+//     Update #: 1
+// URL: 
+// Keywords: 
+// Compatibility: 
+// 
+// 
+
+// Commentary: 
+// 
+// 
+// 
+// 
+
+// Change log:
+// 
+// 
+// 
 
 #include <QtCore>
 #include <QtGui>
@@ -32,26 +62,63 @@ directory_tree_item *directory_tree_item::parent()
 }
 bool directory_tree_item::hasChild(QString name)
 {
-    for(int i = 0 ; i < this->child_items.size(); i++) {
-        if(child_items.at(i)->file_name == name) {
+    /*
+    std::map<int, directory_tree_item*>::iterator it;
+    int i = 0;
+    for(it = this->child_items.begin(); it != this->child_items.end(); it++)
+    {
+        if(it->second->file_name == name) {
             return true;
         }
     }
+    */
+    
+    for(int i = 0 ; i < this->child_items.size(); i++) {
+        if(child_items[i]->file_name == name) {
+            return true;
+        }
+    }
+    
     return false;
 }
 
 bool directory_tree_item::setDeleteFlag(QString name, bool del)
 {
-    for(int i = 0 ; i < this->child_items.size(); i++) {
-        if(child_items.at(i)->file_name == name) {
-            this->child_items.at(i)->delete_flag = del;
+    /*
+    std::map<int, directory_tree_item*>::iterator it;
+    int i = 0;
+    for(it = this->child_items.begin(); it != this->child_items.end(); it++)
+    {
+        if(it->second->file_name == name) {
+            it->second->delete_flag = del;
             return true;
         }
-    }    
+    }
+    */
+    
+    for(int i = 0 ; i < this->child_items.size(); i++) {
+        if(child_items[i]->file_name == name) {
+            this->child_items[i]->delete_flag = del;
+            return true;
+        }
+    } 
+    
     return false;
 }
 directory_tree_item *directory_tree_item::childAt(int index)
 {
+    /*
+    std::map<int, directory_tree_item*>::iterator it;
+    int i = 0;
+    for(it = this->child_items.begin(); it != this->child_items.end(); it++)
+    {
+        if(i++ == index) {
+            return it->second;
+        }
+    }
+    
+    return NULL;
+    */
     return this->child_items.at(index);
 }
 QString directory_tree_item::filePath()

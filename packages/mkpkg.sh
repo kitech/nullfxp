@@ -26,6 +26,7 @@ chmod +x $dirname/../nullfxp/bin/nullfxp
 
 cp -v $dirname/../bin/nullfxp $dirname/../nullfxp/lib/
 cp -v $dirname/../bin/unitest $dirname/../nullfxp/bin/
+cp -pv $dirname/../bin/plink   $dirname/../nullfxp/lib/
 cp -pv $dirname/../bin/plink   $dirname/../nullfxp/bin/
 
 strip -s -v $dirname/../nullfxp/lib/nullfxp
