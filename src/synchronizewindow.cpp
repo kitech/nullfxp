@@ -79,7 +79,7 @@ void SyncWalker::run()
         q_debug()<<dname;
         hsftp = libssh2_sftp_opendir(ssh2_sftp, dname.toAscii().data());
         if(hsftp == NULL) {
-            assert(hsftp != NULL);
+            Q_ASSERT(hsftp != NULL);
         }
         remote_list.clear();
         local_list.clear();
@@ -87,7 +87,7 @@ void SyncWalker::run()
 
         //local first
         dname = this->parent->local_dir + "/" + this->parent->dirs.at(0);
-        assert(QDir().exists(dname));
+        Q_ASSERT(QDir().exists(dname));
         local_list = QDir(dname).entryList();
         qDebug()<<local_list;
         for(int i = 0; i < local_list.count(); i++) {
