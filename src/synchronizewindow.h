@@ -68,6 +68,7 @@ public:
 
     public slots:
     void slot_status_msg(QString msg);
+    void slot_finished();
     private slots:
     void start();
     void stop();
@@ -83,16 +84,15 @@ private:
     bool running;
     SyncWalker *walker;
 
+    enum {ST_LZERO = 0x00, ST_RZERO = 0x01, ST_LRSAME = 0x02, ST_LNEW = 0x04, ST_RNEW = 0x08 };
+    enum {FT_DIR = 0x10000, FT_REG = 0x20000};
     QStringList dirs;
-    struct Node{
-        QString name;
-        QString status;
-        QString desc;        
-        void *ssh2_attr;
-    };
-    QHash<QString, QHash<QString, Node> > syncer;
+    QHash<QString, QHash<QString, int> > syncer;
 
     friend class SyncWalker;
+
+protected:
+    void closeEvent(QCloseEvent *evt);
 };
 
 #endif

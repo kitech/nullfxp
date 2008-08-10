@@ -35,7 +35,7 @@
 #include "synchronizewindow.h"
 
 SyncWalker::SyncWalker(QObject *parent)
-    :QThread(parent)
+    :QThread(0)
 {
     this->parent = static_cast<SynchronizeWindow*>(parent);
 }
@@ -71,13 +71,10 @@ void SyncWalker::run()
     ssh2_sess = (LIBSSH2_SESSION*)conn->get_ssh2_sess();
     delete conn; conn = NULL;
 
-    q_debug()<<"here?";
-    
     ssh2_sftp = libssh2_sftp_init(ssh2_sess);
     this->parent->dirs<<".";
-    q_debug()<<"here?";
+    this->parent->syncer.clear();
     while(this->parent->dirs.count() > 0) {
-        q_debug()<<"here?";
         dname = this->parent->remote_dir + "/" + this->parent->dirs.at(0);
         q_debug()<<dname;
         hsftp = libssh2_sftp_opendir(ssh2_sftp, dname.toAscii().data());
@@ -95,7 +92,7 @@ void SyncWalker::run()
         qDebug()<<local_list;
         for(int i = 0; i < local_list.count(); i++) {
             if(local_list.at(i) == "." || local_list.at(i) == "..") continue;
-            nodes.insert(local_list.at(i), 0);
+            nodes.insert(local_list.at(i), this->parent->ST_LZERO);
         }
 
         //remote
@@ -107,25 +104,94 @@ void SyncWalker::run()
                 dname = (this->parent->dirs.at(0) + "/" + QString(fname));
                 if(QDir().exists(this->parent->local_dir + "/" + QString(fname))) {
                     this->parent->dirs<<dname;
+                }else{
+                    QHash<QString, int> dodir;
+                    dodir.insert("...", this->parent->ST_RZERO);
+                    this->parent->syncer.insert(dname, dodir);
                 }
-            }
-            if(nodes.contains(QString(fname))) {
-                nodes[QString(fname)] = 1;
             }else{
-                nodes.insert(QString(fname), 0);
+                if(nodes.contains(QString(fname))) {
+                    //checking time stamp
+                    QFileInfo fi(this->parent->local_dir + "/" + this->parent->dirs.at(0) + "/" + QString(fname));
+                    time_t rtime = fi.lastModified().toTime_t();
+                    qDebug()<<rtime<<"=?"<<ssh2_attr.mtime;
+                    if(rtime == ssh2_attr.mtime) {
+                        nodes[QString(fname)] = this->parent->ST_LRSAME;
+                    }else if(rtime < ssh2_attr.mtime) {
+                        nodes[QString(fname)] = this->parent->ST_RNEW;
+                    }else/* if(rtime > ssh2_attr.mtime) */{
+                        nodes[QString(fname)] = this->parent->ST_LNEW;
+                    }
+                }else{
+                    nodes.insert(QString(fname), this->parent->ST_RZERO);
+                }
             }
         }
 
         qDebug()<<nodes;
+        QHash<QString, int>::iterator it;
+        QStringList delist;
+        for(it = nodes.begin(); it != nodes.end(); it++) {
+            if(it.value() == SynchronizeWindow::ST_LZERO) {
+                if(QFileInfo(this->parent->local_dir+"/"+this->parent->dirs.at(0)+"/"+it.key()).isDir()) {
+                    QHash<QString, int> lodir;
+                    lodir.insert("...", it.value());
+                    this->parent->syncer.insert(this->parent->dirs.at(0)+"/"+it.key(), lodir);
+                    //nodes.remove(it.key());
+                    delist<<it.key();
+                }
+            }
+        }
+        for(int i = 0; i < delist.count() ; i++) {
+            nodes.remove(delist.at(0));
+        }
+        this->parent->syncer.insert(this->parent->dirs.at(0), nodes);
 
         libssh2_sftp_closedir(hsftp);
-        q_debug()<<"here?";
         this->parent->dirs.removeFirst();
     }
     libssh2_sftp_shutdown(ssh2_sftp);
     libssh2_session_free(ssh2_sess);
 
-    q_debug()<<"here?";
+    qDebug()<<this->parent->syncer;
+    QHash<QString, QHash<QString, int> >::iterator hit;
+    for(hit = this->parent->syncer.begin(); hit != this->parent->syncer.end(); hit++) {
+        if(hit.value().count() == 1 && hit.value().begin().key() == "...") {
+            if(hit.value().begin().value() == SynchronizeWindow::ST_LZERO) {
+                qDebug()<<"=> "<<hit.key()<<"    upload only";
+            }else if(hit.value().begin().value() == SynchronizeWindow::ST_RZERO) {
+                qDebug()<<"=> "<<hit.key()<<"    download only";
+            }else{
+                Q_ASSERT(1 == 2);
+            }
+            continue;
+        }
+        qDebug()<<"=> "<<hit.key();
+        QHash<QString, int> dh = hit.value();
+        QHash<QString, int>::iterator it;
+        for(it = dh.begin(); it != dh.end(); it++) {
+            switch(it.value()) {
+            case SynchronizeWindow::ST_LZERO:
+                qDebug()<<"        "<<it.key()<<"    upload only";
+                break;
+            case SynchronizeWindow::ST_RZERO:
+                qDebug()<<"        "<<it.key()<<"    download only";
+                break;
+            case SynchronizeWindow::ST_LRSAME:
+                qDebug()<<"        "<<it.key()<<"    the same";
+                break;
+            case SynchronizeWindow::ST_LNEW:
+                qDebug()<<"        "<<it.key()<<"    local is newer";
+                break;
+            case SynchronizeWindow::ST_RNEW:
+                qDebug()<<"        "<<it.key()<<"    remote is newer";
+                break;
+            default:
+                Q_ASSERT(1 == 2);
+                break;
+            };
+        }
+    }
 }
 
 //////////////////////
@@ -136,12 +202,17 @@ SynchronizeWindow::SynchronizeWindow(QWidget *parent, Qt::WindowFlags flags)
     this->ui_win.setupUi(this);
     walker = new SyncWalker(this);
     QObject::connect(walker, SIGNAL(status_msg(QString)), this, SLOT(slot_status_msg(QString)));
+    QObject::connect(walker, SIGNAL(finished()), this, SLOT(slot_finished()));
     QObject::connect(this->ui_win.toolButton_4, SIGNAL(clicked()), this, SLOT(start()));
     this->running = false;
 }
 
 SynchronizeWindow::~SynchronizeWindow()
 {
+    q_debug()<<"destructured";    
+    if(this->walker->isRunning()) {
+        q_debug()<<"walker thread is running";
+    }
     delete this->walker;
 }
 
@@ -163,6 +234,11 @@ void SynchronizeWindow::start()
 }
 void SynchronizeWindow::stop()
 {
+    
+}
+void SynchronizeWindow::slot_finished()
+{
+    this->running = false;
 }
 
 void SynchronizeWindow::slot_status_msg(QString msg)
@@ -170,6 +246,11 @@ void SynchronizeWindow::slot_status_msg(QString msg)
     this->ui_win.label->setText(msg);
 }
 
-
+void SynchronizeWindow::closeEvent(QCloseEvent *evt)
+{
+    //q_debug()<<"";
+    this->deleteLater();
+    QWidget::closeEvent(evt);
+}
 
 

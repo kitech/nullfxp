@@ -31,7 +31,7 @@
         <item>
          <widget class="QLineEdit" name="lineEdit" >
           <property name="text" >
-           <string>/home/gzl/sshkey</string>
+           <string>/home/gzl/keytmp</string>
           </property>
          </widget>
         </item>
