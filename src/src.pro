@@ -73,7 +73,8 @@ SOURCES += main.cpp \
  rfsdirnode.cpp \
  completelineeditdelegate.cpp \
  synchronizeoptiondialog.cpp \
- synchronizewindow.cpp
+ synchronizewindow.cpp \
+ syncdiffermodel.cpp
 
 HEADERS += nullfxp.h \
  localview.h \
@@ -105,7 +106,8 @@ HEADERS += nullfxp.h \
  rfsdirnode.h \
  completelineeditdelegate.h \
  synchronizeoptiondialog.h \
- synchronizewindow.h
+ synchronizewindow.h \
+ syncdiffermodel.h
 
 DISTFILES += ../CMakeLists.txt \
 CMakeLists.txt \

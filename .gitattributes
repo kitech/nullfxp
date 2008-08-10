@@ -254,6 +254,8 @@ src/sessiondialog.cpp -text
 src/sessiondialog.h -text
 src/sftp.h -text
 src/src.pro -text
+src/syncdiffermodel.cpp -text
+src/syncdiffermodel.h -text
 src/synchronizeoptiondialog.cpp -text
 src/synchronizeoptiondialog.h -text
 src/synchronizeoptiondialog.ui -text
