@@ -87,31 +87,31 @@ public:
     QString get_status_desc(int status);
     void set_user_canceled();
     
-    signals:
-        void  connect_state_changed( QString state_desc );
+signals:
+    void  connect_state_changed( QString state_desc );
         
-    private:
-        QString user_name;
-        QString password;   //存储的密码为url编码过的
-        QString host_name ;
-        short   port;
-        QString pubkey_path;
-        int connect_status;
-        bool user_canceled;
-        
-        std::string user_home_path ;
-        
-        void * ssh2_sess;
-        int ssh2_sock;
-        void * ssh2_sftp ;
+private:
+    QString user_name;
+    QString password;   //存储的密码为url编码过的
+    QString host_name ;
+    short   port;
+    QString pubkey_path;
+    int connect_status;
+    bool user_canceled;
+    
+    std::string user_home_path ;
+    
+    void * ssh2_sess;
+    int ssh2_sock;
+    void * ssh2_sftp ;
         
     private slots:
-        void slot_finished()   ;
- private:
-	QString get_server_env_vars(char *cmd);
-
-    signals:
-        void connect_finished( int status , void * ssh2_sess , int ssh2_sock /*, void * ssh2_sftp*/ );
+    void slot_finished()   ;
+private:
+    QString get_server_env_vars(char *cmd);
+        
+signals:
+    void connect_finished( int status , void * ssh2_sess , int ssh2_sock /*, void * ssh2_sftp*/ );
 };
 
 #endif

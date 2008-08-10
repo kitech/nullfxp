@@ -29,7 +29,11 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEdit" />
+         <widget class="QLineEdit" name="lineEdit" >
+          <property name="text" >
+           <string>/home/gzl/sshkey</string>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QToolButton" name="toolButton" >
@@ -55,7 +59,11 @@
          </widget>
         </item>
         <item row="0" column="1" >
-         <widget class="QLineEdit" name="lineEdit_2" />
+         <widget class="QLineEdit" name="lineEdit_2" >
+          <property name="text" >
+           <string>localhost</string>
+          </property>
+         </widget>
         </item>
         <item row="0" column="2" >
          <widget class="QToolButton" name="toolButton_2" >
@@ -72,7 +80,11 @@
          </widget>
         </item>
         <item row="1" column="1" >
-         <widget class="QLineEdit" name="lineEdit_3" />
+         <widget class="QLineEdit" name="lineEdit_3" >
+          <property name="text" >
+           <string>/home/gzl/sshkey/</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>

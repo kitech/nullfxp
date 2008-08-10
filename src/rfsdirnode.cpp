@@ -119,7 +119,7 @@ directory_tree_item *directory_tree_item::childAt(int index)
     
     return NULL;
     */
-    return this->child_items.at(index);
+    return this->child_items[index];
 }
 QString directory_tree_item::filePath()
 {

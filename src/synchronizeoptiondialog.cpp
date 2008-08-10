@@ -29,6 +29,7 @@
 // 
 // 
 
+#include "utils.h"
 #include "basestorage.h"
 #include "synchronizewindow.h"
 #include "synchronizeoptiondialog.h"
@@ -50,7 +51,7 @@ SynchronizeOptionDialog::SynchronizeOptionDialog(QWidget *parent, Qt::WindowFlag
 
 SynchronizeOptionDialog::~SynchronizeOptionDialog()
 {
-
+    q_debug()<<"destructured";
 }
 
 void SynchronizeOptionDialog::slot_select_local_base_directory()
@@ -134,6 +135,6 @@ void SynchronizeOptionDialog::slot_option_accepted()
                             this->ui_dlg.checkBox->isChecked(),
                             this->ui_dlg.comboBox->currentIndex());
     syncwin->show();
-    
+    this->deleteLater();
 }
 
