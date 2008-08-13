@@ -40,7 +40,11 @@
 
 #include "ui_synchronizewindow.h"
 
+class SyncDifferModel;
 class SynchronizeWindow;
+
+//////////////
+//////////////
 class SyncWalker : public QThread
 {
     Q_OBJECT;
@@ -82,15 +86,18 @@ private:
     int way;
     QTimer progress_timer;
     bool running;
+
     SyncWalker *walker;
+    SyncDifferModel *model;
 
     enum {ST_LZERO = 0x00, ST_RZERO = 0x01, ST_LRSAME = 0x02, ST_LNEW = 0x04, ST_RNEW = 0x08 };
     enum {FT_DIR = 0x10000, FT_REG = 0x20000};
     QStringList dirs;
     QHash<QString, QHash<QString, int> > syncer;
+    QVector<QString>  synckeys;
 
     friend class SyncWalker;
-
+    friend class SyncDifferModel;
 protected:
     void closeEvent(QCloseEvent *evt);
 };

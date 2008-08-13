@@ -32,6 +32,8 @@
 #include "utils.h"
 #include "remotehostconnectthread.h"
 #include "basestorage.h"
+
+#include "syncdiffermodel.h"
 #include "synchronizewindow.h"
 
 SyncWalker::SyncWalker(QObject *parent)
@@ -146,6 +148,7 @@ void SyncWalker::run()
             nodes.remove(delist.at(0));
         }
         this->parent->syncer.insert(this->parent->dirs.at(0), nodes);
+        this->parent->synckeys.append(this->parent->dirs.at(0));
 
         libssh2_sftp_closedir(hsftp);
         this->parent->dirs.removeFirst();
@@ -154,6 +157,9 @@ void SyncWalker::run()
     libssh2_session_free(ssh2_sess);
 
     qDebug()<<this->parent->syncer;
+    qDebug()<<this->parent->synckeys;
+    Q_ASSERT(this->parent->syncer.count() == this->parent->synckeys.count());
+
     QHash<QString, QHash<QString, int> >::iterator hit;
     for(hit = this->parent->syncer.begin(); hit != this->parent->syncer.end(); hit++) {
         if(hit.value().count() == 1 && hit.value().begin().key() == "...") {
@@ -205,6 +211,9 @@ SynchronizeWindow::SynchronizeWindow(QWidget *parent, Qt::WindowFlags flags)
     QObject::connect(walker, SIGNAL(finished()), this, SLOT(slot_finished()));
     QObject::connect(this->ui_win.toolButton_4, SIGNAL(clicked()), this, SLOT(start()));
     this->running = false;
+
+    model = new SyncDifferModel(this);
+    this->ui_win.treeView->setModel(model);
 }
 
 SynchronizeWindow::~SynchronizeWindow()

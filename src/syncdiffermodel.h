@@ -32,6 +32,8 @@
 #include <QtCore>
 #include <QtGui>
 
+class SynchronizeWindow;
+
 class SyncDifferModel : public QAbstractItemModel
 {
     Q_OBJECT;
@@ -39,4 +41,15 @@ public:
     SyncDifferModel(QObject *parent = 0);
     ~SyncDifferModel();
 
+    //5个必须实现的虚函数
+    QModelIndex index(int, int, const QModelIndex &parent = QModelIndex()) const;
+    QModelIndex parent(const QModelIndex &index) const;
+    QVariant   data(const QModelIndex &index, int role = Qt::DisplayRole ) const;
+    int rowCount(const QModelIndex &index) const;
+    int columnCount(const QModelIndex &index) const;
+
+    //
+
+private:
+    SynchronizeWindow *sync_win;
 };
