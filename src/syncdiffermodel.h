@@ -49,6 +49,8 @@ public:
     int columnCount(const QModelIndex &index) const;
 
     //
+public slots:
+    void maybe_has_data();
 
 private:
     SynchronizeWindow *sync_win;

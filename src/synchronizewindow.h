@@ -53,6 +53,9 @@ public:
     ~SyncWalker();
     void run();
 
+signals:
+    void found_row();
+
 private:
     SynchronizeWindow *parent;
 
@@ -94,7 +97,9 @@ private:
     enum {FT_DIR = 0x10000, FT_REG = 0x20000};
     QStringList dirs;
     QHash<QString, QHash<QString, int> > syncer;
-    QVector<QString>  synckeys;
+    QVector<QPair<QString, int> >  synckeys;
+    //如果此pair的第二个值为 -1 表示，这个值有子结点，否则就是没有,那么其值就为 syncer中的int项值。
+    
 
     friend class SyncWalker;
     friend class SyncDifferModel;

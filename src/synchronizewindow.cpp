@@ -107,9 +107,11 @@ void SyncWalker::run()
                 if(QDir().exists(this->parent->local_dir + "/" + QString(fname))) {
                     this->parent->dirs<<dname;
                 }else{
-                    QHash<QString, int> dodir;
-                    dodir.insert("...", this->parent->ST_RZERO);
-                    this->parent->syncer.insert(dname, dodir);
+                    //QHash<QString, int> dodir;
+                    //dodir.insert("...", this->parent->ST_RZERO);
+                    //this->parent->syncer.insert(dname, dodir);
+                    //this->parent->synckeys.append(QPair<QString, int>(dname, this->parent->ST_RZERO));                   
+                    //emit found_row();
                 }
             }else{
                 if(nodes.contains(QString(fname))) {
@@ -136,33 +138,80 @@ void SyncWalker::run()
         for(it = nodes.begin(); it != nodes.end(); it++) {
             if(it.value() == SynchronizeWindow::ST_LZERO) {
                 if(QFileInfo(this->parent->local_dir+"/"+this->parent->dirs.at(0)+"/"+it.key()).isDir()) {
-                    QHash<QString, int> lodir;
-                    lodir.insert("...", it.value());
-                    this->parent->syncer.insert(this->parent->dirs.at(0)+"/"+it.key(), lodir);
-                    //nodes.remove(it.key());
+                    //QHash<QString, int> lodir;
+                    //lodir.insert("...", it.value());
+                    //this->parent->syncer.insert(this->parent->dirs.at(0)+"/"+it.key(), lodir);
+                    //lodir.insert(it.key(), it.value());
+                    QString path = this->parent->dirs.at(0)+"/"+it.key();
+                    this->parent->synckeys.append(QPair<QString, int>(path, it.value()));                   
                     delist<<it.key();
                 }
             }
         }
         for(int i = 0; i < delist.count() ; i++) {
-            nodes.remove(delist.at(0));
+            nodes.remove(delist.at(i));
         }
+        emit found_row();
+
         this->parent->syncer.insert(this->parent->dirs.at(0), nodes);
-        this->parent->synckeys.append(this->parent->dirs.at(0));
+        this->parent->synckeys.append(QPair<QString, int>(this->parent->dirs.at(0), -1));
 
         libssh2_sftp_closedir(hsftp);
         this->parent->dirs.removeFirst();
+
+        emit found_row();
     }
     libssh2_sftp_shutdown(ssh2_sftp);
     libssh2_session_free(ssh2_sess);
 
     qDebug()<<this->parent->syncer;
     qDebug()<<this->parent->synckeys;
-    Q_ASSERT(this->parent->syncer.count() == this->parent->synckeys.count());
+    //Q_ASSERT(this->parent->syncer.count() == this->parent->synckeys.count());
 
+    for(int i = 0; i < this->parent->synckeys.count(); i ++) {
+        QString first = this->parent->synckeys.at(i).first;
+        int second = this->parent->synckeys.at(i).second;
+        if(second == -1) {
+            qDebug()<<"=> "<<first;
+            QHash<QString, int> elem = this->parent->syncer.value(first);
+            QHash<QString, int>::iterator it;
+            for(it = elem.begin(); it != elem.end(); it++) {
+                switch(it.value()) {
+                case SynchronizeWindow::ST_LZERO:
+                    qDebug()<<"        "<<it.key()<<"    upload only";
+                    break;
+                case SynchronizeWindow::ST_RZERO:
+                    qDebug()<<"        "<<it.key()<<"    download only";
+                    break;
+                case SynchronizeWindow::ST_LRSAME:
+                    qDebug()<<"        "<<it.key()<<"    the same";
+                    break;
+                case SynchronizeWindow::ST_LNEW:
+                    qDebug()<<"        "<<it.key()<<"    local is newer";
+                    break;
+            case SynchronizeWindow::ST_RNEW:
+                qDebug()<<"        "<<it.key()<<"    remote is newer";
+                break;
+                default:
+                    Q_ASSERT(1 == 2);
+                    break;
+                };
+            }
+        }else{
+            if(second == SynchronizeWindow::ST_LZERO) {
+                qDebug()<<"=> "<<first<<"    upload only";
+            }else if(second == SynchronizeWindow::ST_RZERO) {
+                qDebug()<<"=> "<<first<<"    download only";
+            }else{
+                Q_ASSERT(1 == 2);
+            }            
+        }
+    }
+
+    /*
     QHash<QString, QHash<QString, int> >::iterator hit;
     for(hit = this->parent->syncer.begin(); hit != this->parent->syncer.end(); hit++) {
-        if(hit.value().count() == 1 && hit.value().begin().key() == "...") {
+        if(hit.) {
             if(hit.value().begin().value() == SynchronizeWindow::ST_LZERO) {
                 qDebug()<<"=> "<<hit.key()<<"    upload only";
             }else if(hit.value().begin().value() == SynchronizeWindow::ST_RZERO) {
@@ -198,6 +247,7 @@ void SyncWalker::run()
             };
         }
     }
+    */
 }
 
 //////////////////////
@@ -214,6 +264,8 @@ SynchronizeWindow::SynchronizeWindow(QWidget *parent, Qt::WindowFlags flags)
 
     model = new SyncDifferModel(this);
     this->ui_win.treeView->setModel(model);
+
+    //QObject::connect(walker, SIGNAL(found_row()), model, SLOT(maybe_has_data()));
 }
 
 SynchronizeWindow::~SynchronizeWindow()
