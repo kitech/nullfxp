@@ -58,6 +58,7 @@ void SyncWalker::run()
     QString dname;
     QStringList local_list, remote_list;    
     QHash<QString, int> nodes;
+    QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> >rfiles;
 
     QMap<QString, QString> host;
     BaseStorage *storage = BaseStorage::instance();
@@ -86,6 +87,7 @@ void SyncWalker::run()
         remote_list.clear();
         local_list.clear();
         nodes.clear();
+        rfiles.clear();
 
         //local first
         dname = this->parent->local_dir + "/" + this->parent->dirs.at(0);
@@ -101,29 +103,36 @@ void SyncWalker::run()
         while(libssh2_sftp_readdir(hsftp, fname, sizeof(fname), &ssh2_attr) > 0) {
             if(QString(fname) == "." || QString(fname) == "..") continue;
             qDebug()<<"rfname: "<< fname;
-            //remote_list<<QString(fname);
-            if(S_ISDIR(ssh2_attr.permissions)) {
-                dname = (this->parent->dirs.at(0) + "/" + QString(fname));
-                if(QDir().exists(this->parent->local_dir + "/" + QString(fname))) {
-                    this->parent->dirs<<dname;
+            LIBSSH2_SFTP_ATTRIBUTES *rf_attrib = (LIBSSH2_SFTP_ATTRIBUTES*)calloc(1, sizeof(LIBSSH2_SFTP_ATTRIBUTES));
+            memcpy(rf_attrib, &ssh2_attr, sizeof(LIBSSH2_SFTP_ATTRIBUTES));
+            rfiles.append(QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*>(QString(fname), rf_attrib));
+        }
+
+        for(int i = 0;i <rfiles.count(); i ++) {
+            dname = rfiles.at(i).first;
+            LIBSSH2_SFTP_ATTRIBUTES *rf_attrib = rfiles.at(i).second;
+            if(S_ISDIR(rf_attrib->permissions)) {
+                QString ldname = this->parent->local_dir + "/" + this->parent->dirs.at(0);
+                QString rname = this->parent->dirs.at(0) + "." + dname;
+                if(QFileInfo(ldname).isDir()) {
+                    if(QDir().exists(ldname)) {
+                        this->parent->dirs<<rname;
+                    }else{
+                        this->parent->synckeys.append(QPair<QString, int>(rname, this->parent->ST_RZERO));                                          emit found_row();                        
+                    }
                 }else{
-                    //QHash<QString, int> dodir;
-                    //dodir.insert("...", this->parent->ST_RZERO);
-                    //this->parent->syncer.insert(dname, dodir);
-                    //this->parent->synckeys.append(QPair<QString, int>(dname, this->parent->ST_RZERO));                   
-                    //emit found_row();
+                    q_debug()<<"remote is dir, but local is not dir???";
                 }
             }else{
-                if(nodes.contains(QString(fname))) {
-                    //checking time stamp
-                    QFileInfo fi(this->parent->local_dir + "/" + this->parent->dirs.at(0) + "/" + QString(fname));
+                if(nodes.contains(dname)) {                    
+                    QFileInfo fi(this->parent->local_dir + "/" + this->parent->dirs.at(0) + "/" + dname);
                     time_t rtime = fi.lastModified().toTime_t();
-                    qDebug()<<rtime<<"=?"<<ssh2_attr.mtime;
-                    if(rtime == ssh2_attr.mtime) {
+                    qDebug()<<rtime<<"=?"<<rf_attrib->mtime;
+                    if(rtime == rf_attrib->mtime) {
                         nodes[QString(fname)] = this->parent->ST_LRSAME;
-                    }else if(rtime < ssh2_attr.mtime) {
+                    }else if(rtime < rf_attrib->mtime) {
                         nodes[QString(fname)] = this->parent->ST_RNEW;
-                    }else/* if(rtime > ssh2_attr.mtime) */{
+                    }else/* if(rtime > rf_attrib->mtime) */{
                         nodes[QString(fname)] = this->parent->ST_LNEW;
                     }
                 }else{
@@ -131,7 +140,7 @@ void SyncWalker::run()
                 }
             }
         }
-
+        
         qDebug()<<nodes;
         QHash<QString, int>::iterator it;
         QStringList delist;
@@ -151,7 +160,6 @@ void SyncWalker::run()
         for(int i = 0; i < delist.count() ; i++) {
             nodes.remove(delist.at(i));
         }
-        emit found_row();
 
         this->parent->syncer.insert(this->parent->dirs.at(0), nodes);
         this->parent->synckeys.append(QPair<QString, int>(this->parent->dirs.at(0), -1));
