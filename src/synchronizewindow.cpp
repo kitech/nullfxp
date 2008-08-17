@@ -9,9 +9,9 @@
 // http://nullget.sourceforge.net
 // Created: 五  8月  8 13:44:42 2008 (CST)
 // Version: 
-// Last-Updated: 日  8月 10 11:57:41 2008 (CST)
+// Last-Updated: 日  8月 17 13:29:08 2008 (CST)
 //           By: 刘光照<liuguangzhao@users.sf.net>
-//     Update #: 1
+//     Update #: 2
 // URL: 
 // Keywords: 
 // Compatibility: 
@@ -59,6 +59,7 @@ void SyncWalker::run()
     QStringList local_list, remote_list;    
     QHash<QString, int> nodes;
     QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> >rfiles;
+    QHash<QString, int> local_entity;
 
     QMap<QString, QString> host;
     BaseStorage *storage = BaseStorage::instance();
@@ -78,6 +79,7 @@ void SyncWalker::run()
     this->parent->dirs<<".";
     this->parent->syncer.clear();
     while(this->parent->dirs.count() > 0) {
+        qDebug()<<"new xxxxxxxxxxxxx begin";
         dname = this->parent->remote_dir + "/" + this->parent->dirs.at(0);
         q_debug()<<dname;
         hsftp = libssh2_sftp_opendir(ssh2_sftp, dname.toAscii().data());
@@ -88,55 +90,63 @@ void SyncWalker::run()
         local_list.clear();
         nodes.clear();
         rfiles.clear();
+        local_entity.clear();
 
         //local first
         dname = this->parent->local_dir + "/" + this->parent->dirs.at(0);
         Q_ASSERT(QDir().exists(dname));
         local_list = QDir(dname).entryList();
-        qDebug()<<local_list;
-        for(int i = 0; i < local_list.count(); i++) {
-            if(local_list.at(i) == "." || local_list.at(i) == "..") continue;
-            nodes.insert(local_list.at(i), this->parent->ST_LZERO);
+        //qDebug()<<local_list;
+        for(int i = local_list.count() - 1; i >= 0 ; i--) {
+            if(local_list.at(i) == "." || local_list.at(i) == "..") {
+            }else{
+                //local_entity.insert(local_list.at(i), this->parent->ST_LZERO);
+                nodes.insert(local_list.at(i), this->parent->ST_LZERO);
+            }
         }
+        //qDebug()<<local_entity;
+        qDebug()<<nodes;
 
         //remote
         while(libssh2_sftp_readdir(hsftp, fname, sizeof(fname), &ssh2_attr) > 0) {
             if(QString(fname) == "." || QString(fname) == "..") continue;
-            qDebug()<<"rfname: "<< fname;
+            //qDebug()<<"rfname: "<< fname;
             LIBSSH2_SFTP_ATTRIBUTES *rf_attrib = (LIBSSH2_SFTP_ATTRIBUTES*)calloc(1, sizeof(LIBSSH2_SFTP_ATTRIBUTES));
             memcpy(rf_attrib, &ssh2_attr, sizeof(LIBSSH2_SFTP_ATTRIBUTES));
             rfiles.append(QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*>(QString(fname), rf_attrib));
         }
+        qDebug()<<rfiles;
 
         for(int i = 0;i <rfiles.count(); i ++) {
             dname = rfiles.at(i).first;
             LIBSSH2_SFTP_ATTRIBUTES *rf_attrib = rfiles.at(i).second;
             if(S_ISDIR(rf_attrib->permissions)) {
                 QString ldname = this->parent->local_dir + "/" + this->parent->dirs.at(0);
-                QString rname = this->parent->dirs.at(0) + "." + dname;
-                if(QFileInfo(ldname).isDir()) {
-                    if(QDir().exists(ldname)) {
+                QString rname = this->parent->dirs.at(0) + "/" + dname;
+                if(QFileInfo(ldname).exists()) {
+                    if(QFileInfo(ldname).isDir()) {
                         this->parent->dirs<<rname;
+                        nodes.remove(dname);
                     }else{
-                        this->parent->synckeys.append(QPair<QString, int>(rname, this->parent->ST_RZERO));                                          emit found_row();                        
+                        q_debug()<<"remote is dir, but local is not dir???";
                     }
                 }else{
-                    q_debug()<<"remote is dir, but local is not dir???";
+                    this->parent->synckeys.append(QPair<QString, int>(rname, this->parent->ST_RZERO));                                          emit found_row();                        
                 }
             }else{
                 if(nodes.contains(dname)) {                    
                     QFileInfo fi(this->parent->local_dir + "/" + this->parent->dirs.at(0) + "/" + dname);
                     time_t rtime = fi.lastModified().toTime_t();
-                    qDebug()<<rtime<<"=?"<<rf_attrib->mtime;
+                    qDebug()<<rtime<<"=?"<<rf_attrib->mtime<<" "<<dname;
                     if(rtime == rf_attrib->mtime) {
-                        nodes[QString(fname)] = this->parent->ST_LRSAME;
+                        nodes[dname] = this->parent->ST_LRSAME;
                     }else if(rtime < rf_attrib->mtime) {
-                        nodes[QString(fname)] = this->parent->ST_RNEW;
+                        nodes[dname] = this->parent->ST_RNEW;
                     }else/* if(rtime > rf_attrib->mtime) */{
-                        nodes[QString(fname)] = this->parent->ST_LNEW;
+                        nodes[dname] = this->parent->ST_LNEW;
                     }
                 }else{
-                    nodes.insert(QString(fname), this->parent->ST_RZERO);
+                    nodes.insert(QString(fname), this->parent->ST_RZERO);                    
                 }
             }
         }
@@ -160,6 +170,7 @@ void SyncWalker::run()
         for(int i = 0; i < delist.count() ; i++) {
             nodes.remove(delist.at(i));
         }
+        emit found_row();
 
         this->parent->syncer.insert(this->parent->dirs.at(0), nodes);
         this->parent->synckeys.append(QPair<QString, int>(this->parent->dirs.at(0), -1));
@@ -168,14 +179,16 @@ void SyncWalker::run()
         this->parent->dirs.removeFirst();
 
         emit found_row();
+        qDebug()<<"new xxxxxxxxxxxxx enddddddddddd";
     }
     libssh2_sftp_shutdown(ssh2_sftp);
     libssh2_session_free(ssh2_sess);
 
-    qDebug()<<this->parent->syncer;
-    qDebug()<<this->parent->synckeys;
+    //qDebug()<<this->parent->syncer;
+    //qDebug()<<this->parent->synckeys;
     //Q_ASSERT(this->parent->syncer.count() == this->parent->synckeys.count());
 
+    /*
     for(int i = 0; i < this->parent->synckeys.count(); i ++) {
         QString first = this->parent->synckeys.at(i).first;
         int second = this->parent->synckeys.at(i).second;
@@ -215,46 +228,6 @@ void SyncWalker::run()
             }            
         }
     }
-
-    /*
-    QHash<QString, QHash<QString, int> >::iterator hit;
-    for(hit = this->parent->syncer.begin(); hit != this->parent->syncer.end(); hit++) {
-        if(hit.) {
-            if(hit.value().begin().value() == SynchronizeWindow::ST_LZERO) {
-                qDebug()<<"=> "<<hit.key()<<"    upload only";
-            }else if(hit.value().begin().value() == SynchronizeWindow::ST_RZERO) {
-                qDebug()<<"=> "<<hit.key()<<"    download only";
-            }else{
-                Q_ASSERT(1 == 2);
-            }
-            continue;
-        }
-        qDebug()<<"=> "<<hit.key();
-        QHash<QString, int> dh = hit.value();
-        QHash<QString, int>::iterator it;
-        for(it = dh.begin(); it != dh.end(); it++) {
-            switch(it.value()) {
-            case SynchronizeWindow::ST_LZERO:
-                qDebug()<<"        "<<it.key()<<"    upload only";
-                break;
-            case SynchronizeWindow::ST_RZERO:
-                qDebug()<<"        "<<it.key()<<"    download only";
-                break;
-            case SynchronizeWindow::ST_LRSAME:
-                qDebug()<<"        "<<it.key()<<"    the same";
-                break;
-            case SynchronizeWindow::ST_LNEW:
-                qDebug()<<"        "<<it.key()<<"    local is newer";
-                break;
-            case SynchronizeWindow::ST_RNEW:
-                qDebug()<<"        "<<it.key()<<"    remote is newer";
-                break;
-            default:
-                Q_ASSERT(1 == 2);
-                break;
-            };
-        }
-    }
     */
 }
 
@@ -273,7 +246,7 @@ SynchronizeWindow::SynchronizeWindow(QWidget *parent, Qt::WindowFlags flags)
     model = new SyncDifferModel(this);
     this->ui_win.treeView->setModel(model);
 
-    //QObject::connect(walker, SIGNAL(found_row()), model, SLOT(maybe_has_data()));
+    QObject::connect(walker, SIGNAL(found_row()), model, SLOT(maybe_has_data()));
 }
 
 SynchronizeWindow::~SynchronizeWindow()
@@ -308,6 +281,7 @@ void SynchronizeWindow::stop()
 void SynchronizeWindow::slot_finished()
 {
     this->running = false;
+    this->ui_win.treeView->expandAll();
 }
 
 void SynchronizeWindow::slot_status_msg(QString msg)

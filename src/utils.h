@@ -35,6 +35,7 @@
 #include <map>
 #include <string>
 #include <dirent.h>
+#include <assert.h>
 
 #include <QMap>
 #include <QVector>
