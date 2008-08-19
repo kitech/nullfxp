@@ -83,23 +83,23 @@ SET(qtproject_QRCS nullfxp.qrc )
 QT4_ADD_RESOURCES(qtproject_QRC_SRCS ${qtproject_QRCS})
 
 SET(qtproject_UIS
-aboutnullfxp.ui  
-fileproperties.ui
-nullfxp.ui         
-remotehostconnectingstatusdialog.ui   
-remoteview.ui
-localview.ui     
-progressdialog.ui  
-remotehostquickconnectfinfodailog.ui
-globaloptionsdialog.ui
-forwardconnectdaemon.ui
-forwarddebugwindow.ui
-forwardconnectinfodialog.ui
-ui/hostlistdialog.ui
-ui/fileexistaskdialog.ui
-ui/encryptiondetaildialog.ui
+  aboutnullfxp.ui  
+  fileproperties.ui
+  nullfxp.ui         
+  remotehostconnectingstatusdialog.ui   
+  remoteview.ui
+  localview.ui     
+  progressdialog.ui  
+  remotehostquickconnectfinfodailog.ui
+  globaloptionsdialog.ui
+  forwardconnectdaemon.ui
+  forwarddebugwindow.ui
+  forwardconnectinfodialog.ui
+  ui/hostlistdialog.ui
+  ui/fileexistaskdialog.ui
+  ui/encryptiondetaildialog.ui
 # 
- )
+)
 QT4_WRAP_UI(qtproject_UIS_H ${qtproject_UIS})
 
 # 
