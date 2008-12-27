@@ -106,6 +106,15 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #define HAVE_UNISTD_H 1
 
+/* Define to 1 if you have the <windows.h> header file. */
+#define HAVE_WINDOWS_H 1
+
+/* Define to 1 if you have the <winsock2.h> header file. */
+#define HAVE_WINSOCK2_H 1
+
+/* Define to 1 if you have the <ws2tcpip.h> header file. */
+#define HAVE_WS2TCPIP_H 1
+
 /* Enable "none" cipher -- NOT RECOMMENDED */
 /* #undef LIBSSH2_CRYPT_NONE */
 
@@ -116,7 +125,7 @@
 /* #undef LIBSSH2_HAVE_ZLIB */
 
 /* Use libgcrypt */
-#define LIBSSH2_LIBGCRYPT 1
+#undef LIBSSH2_LIBGCRYPT
 
 /* Enable "none" MAC -- NOT RECOMMENDED */
 /* #undef LIBSSH2_MAC_NONE */
@@ -151,7 +160,7 @@
 #define STDC_HEADERS 1
 
 /* Version number of package */
-#define VERSION "0.17"
+#define VERSION "1.0"
 
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */

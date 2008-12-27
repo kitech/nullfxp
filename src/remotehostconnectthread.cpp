@@ -42,7 +42,9 @@
 #include <sys/types.h>
 
 #ifdef WIN32
+#include <windows.h>
 #include <winsock2.h>
+#include <ws2tcpip.h>
 #else
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -115,6 +117,14 @@ RemoteHostConnectThread::~RemoteHostConnectThread()
 {
 }
 
+void RemoteHostConnectThread::piClose(int sock)
+{
+#ifdef WIN32
+        ::closesocket(sock);
+#else
+        ::close(sock);
+#endif  
+}
 
 void RemoteHostConnectThread::run()
 {
@@ -220,6 +230,7 @@ void RemoteHostConnectThread::run()
         //assert( ret == 0 );
         return ;
     } else {
+#ifndef WIN32
         if(!FD_ISSET(this->ssh2_sock, &rdset) && !FD_ISSET(this->ssh2_sock, &set)) {
             qDebug()<<this->ssh2_sock<<ret<<errno<<codec->toUnicode(QByteArray(strerror(errno)));
         }
@@ -237,11 +248,19 @@ void RemoteHostConnectThread::run()
             
             return ;
         }
+#endif
     }    
 
 #ifdef WIN32
     sock_flag = 0;
-    ioctlsocket(this->ssh2_sock, FIONBIO, &sock_flag);
+    ret = ioctlsocket(this->ssh2_sock, FIONBIO, &sock_flag);
+    if(ret == SOCKET_ERROR){
+    		qDebug()<<"win connect error";
+    		emit connect_state_changed( QString("%1%2").arg(tr("Connect error: "))
+                           .arg(codec->toUnicode(QByteArray(strerror(ret)))));
+    	  this->connect_status = CONN_REFUSE ;
+    	  return ;
+    }
 #else
     fcntl(this->ssh2_sock, F_SETFL, sock_flag);
 #endif

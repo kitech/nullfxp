@@ -109,6 +109,7 @@ private:
     void slot_finished()   ;
 private:
     QString get_server_env_vars(char *cmd);
+    void piClose(int sock);
         
 signals:
     void connect_finished( int status , void * ssh2_sess , int ssh2_sock /*, void * ssh2_sftp*/ );
