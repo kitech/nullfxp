@@ -197,26 +197,48 @@ void RemoteHostConnectThread::run()
     fcntl(this->ssh2_sock, F_SETFL, sock_flag | O_NONBLOCK);
 #endif
     ret = ::connect( this->ssh2_sock,(struct sockaddr*)&serv_addr,sizeof(serv_addr));
+    QTextCodec *codec = QTextCodec::codecForName("UTF-8");
 
     struct timeval timeo = {10, 0};//连接超时10秒
-    fd_set set;
+    fd_set set, rdset, exset;
     FD_ZERO(&set);
     FD_SET(this->ssh2_sock, &set);
+    rdset = set;
+    exset = set;
 #ifdef WIN32
-    ret = select(this->ssh2_sock + 1, NULL, &set, NULL, &timeo);
+    ret = select(this->ssh2_sock + 1, &rdset, &set, &exset, &timeo);
 #else
-    ret = select(this->ssh2_sock + 1, NULL, &set, NULL, &timeo);
+    ret = select(this->ssh2_sock + 1, &rdset, &set, &exset, &timeo);
 #endif
-    if( ret == -1){
-        assert( 1==2);
-    }else if( ret == 0 ) {
+    if (ret == -1) {
+        assert(1==2);
+    } else if (ret == 0) {
         QString emsg = QString(tr( "Connect faild : (%1),%2 ").arg(errno).arg(strerror(errno)));
         emit connect_state_changed( emsg ) ;
         this->connect_status = CONN_REFUSE ;
         qDebug()<<emsg;
         //assert( ret == 0 );
         return ;
-    }
+    } else {
+        if(!FD_ISSET(this->ssh2_sock, &rdset) && !FD_ISSET(this->ssh2_sock, &set)) {
+            qDebug()<<this->ssh2_sock<<ret<<errno<<codec->toUnicode(QByteArray(strerror(errno)));
+        }
+        int myerrno = 888;
+        socklen_t mylen = 889;
+        if(getsockopt(this->ssh2_sock, SOL_SOCKET, SO_ERROR, &myerrno, &mylen) < 0) {
+            qDebug()<<"getsockopt error:";            
+        }
+        if(myerrno != 0) {
+
+            qDebug()<<"Connect faild: "<<codec->toUnicode(QByteArray(strerror(myerrno)));
+            emit connect_state_changed( QString("%1%2").arg(tr("Connect error: "))
+                                        .arg(codec->toUnicode(QByteArray(strerror(myerrno)))));
+            this->connect_status = CONN_REFUSE ;
+            
+            return ;
+        }
+    }    
+
 #ifdef WIN32
     sock_flag = 0;
     ioctlsocket(this->ssh2_sock, FIONBIO, &sock_flag);
@@ -237,7 +259,6 @@ void RemoteHostConnectThread::run()
     ssh2_sess = libssh2_session_init();
     //libssh2_trace((LIBSSH2_SESSION*)ssh2_sess , 64 );    
     ret = libssh2_session_startup((LIBSSH2_SESSION*)ssh2_sess,this->ssh2_sock);
-    printf("Received Banner: %s\n",libssh2_session_get_remote_version((LIBSSH2_SESSION*)ssh2_sess));
     if(ret != 0) {
         this->connect_status = CONN_SESS_ERROR;
 #ifdef WIN32
@@ -245,10 +266,19 @@ void RemoteHostConnectThread::run()
 #else
         ::close(this->ssh2_sock);
 #endif
-        assert( ret == 0 );
+        {
+            char * emsg = 0;
+            int  emsg_len = 0;
+            libssh2_session_last_error((LIBSSH2_SESSION*)ssh2_sess, &emsg, &emsg_len, 1);
+            qDebug()<<"Start ssh session error: "<<emsg;
+            emit connect_state_changed( QString("%1%2").arg(tr("Start ssh session: ")).arg(emsg));
+            if(emsg != 0) free(emsg);
+        }        
+        //assert( ret == 0 );
         return ;
     }
-    emit connect_state_changed( tr( "SSH session started ..."));
+    printf("Received Banner: %s\n", libssh2_session_get_remote_version((LIBSSH2_SESSION*)ssh2_sess));
+    emit connect_state_changed(tr("SSH session started ..."));
     
     ///////////
     //auth
