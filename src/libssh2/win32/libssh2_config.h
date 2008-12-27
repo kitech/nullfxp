@@ -16,43 +16,21 @@
 
 #define HAVE_WINSOCK2_H
 #define HAVE_IOCTLSOCKET
-
-/* same as WSABUF */
-struct iovec {
-	u_long iov_len;
-	char *iov_base;
-};
-
-#define inline __inline
-
-static inline int writev(int sock, struct iovec *iov, int nvecs)
-{
-	DWORD ret;
-	if (WSASend(sock, (LPWSABUF)iov, nvecs, &ret, 0, NULL, NULL) == 0) {
-		return ret;
-	}
-	return -1;
-}
-
-/* not really usleep, but safe for the way we use it in this lib */
-static inline int usleep(int udelay)
-{
-	Sleep(udelay / 1000);
-	return 0;
-}
+#define HAVE_SELECT
 
 #ifdef _MSC_VER
 #define snprintf _snprintf
+#if _MSC_VER < 1500
 #define vsnprintf _vsnprintf
+#else
+#define ssize_t SSIZE_T
+#define uint32_t UINT32
+#endif
 #define strncasecmp _strnicmp
 #define strcasecmp _stricmp
 #else
-#ifdef __MINGW32__
-#define WINSOCK_VERSION MAKEWORD(2,0)
-#else
 #define strncasecmp strnicmp
 #define strcasecmp stricmp
-#endif /* __MINGW32__ */
 #endif /* _MSC_VER */
 
 /* Compile in zlib support */

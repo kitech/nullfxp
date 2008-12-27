@@ -1,4 +1,4 @@
-/* Copyright (c) 2004-2007, Sara Golemon <sarag@libssh2.org>
+/* Copyright (c) 2004-2008, Sara Golemon <sarag@libssh2.org>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms,
@@ -82,12 +82,16 @@ typedef unsigned long long libssh2_uint64_t;
 typedef long long libssh2_int64_t;
 #endif
 
-#define LIBSSH2_VERSION "0.18"
+/* We use underscore instead of dash when appending CVS in dev versions just
+   to make the BANNER define (used by src/session.c) be a valid SSH
+   banner. Release versions have no appended strings and may of coruse not
+   have dashes either. */
+#define LIBSSH2_VERSION "1.0"
 
 /* The numeric version number is also available "in parts" by using these
    defines: */
-#define LIBSSH2_VERSION_MAJOR 0
-#define LIBSSH2_VERSION_MINOR 18
+#define LIBSSH2_VERSION_MAJOR 1
+#define LIBSSH2_VERSION_MINOR 0
 #define LIBSSH2_VERSION_PATCH 
 
 /* This is the numeric version of the libssh2 version number, meant for easier
@@ -105,7 +109,7 @@ typedef long long libssh2_int64_t;
    and it is always a greater number in a more recent release. It makes
    comparisons with greater than and less than work.
 */
-#define LIBSSH2_VERSION_NUM 0x001200
+#define LIBSSH2_VERSION_NUM 0x010000
 
 /*
  * This is the date and time when the full source package was created. The
@@ -116,7 +120,7 @@ typedef long long libssh2_int64_t;
  *
  * "Mon Feb 12 11:35:33 UTC 2007"
  */
-#define LIBSSH2_TIMESTAMP "Sun Nov 11 10:41:38 UTC 2007"
+#define LIBSSH2_TIMESTAMP "Fri Dec 26 21:35:07 UTC 2008"
 
 /* Part of every banner, user specified or not */
 #define LIBSSH2_SSH_BANNER                  "SSH-2.0-libssh2_" LIBSSH2_VERSION
@@ -240,6 +244,11 @@ typedef struct _LIBSSH2_POLLFD {
 #define LIBSSH2_POLLFD_CHANNEL_CLOSED   0x0080      /* Channel Disconnect */
 #define LIBSSH2_POLLFD_LISTENER_CLOSED  0x0080      /* Listener Disconnect */
 
+#define HAVE_LIBSSH2_SESSION_BLOCK_DIRECTION
+/* Block Direction Types */
+#define LIBSSH2_SESSION_BLOCK_INBOUND                  0x0001
+#define LIBSSH2_SESSION_BLOCK_OUTBOUND                 0x0002
+
 /* Hash Types */
 #define LIBSSH2_HOSTKEY_HASH_MD5                            1
 #define LIBSSH2_HOSTKEY_HASH_SHA1                           2
@@ -320,6 +329,7 @@ LIBSSH2_API int libssh2_session_method_pref(LIBSSH2_SESSION *session, int method
 LIBSSH2_API const char *libssh2_session_methods(LIBSSH2_SESSION *session, int method_type);
 LIBSSH2_API int libssh2_session_last_error(LIBSSH2_SESSION *session, char **errmsg, int *errmsg_len, int want_buf);
 LIBSSH2_API int libssh2_session_last_errno(LIBSSH2_SESSION *session);
+LIBSSH2_API int libssh2_session_block_directions(LIBSSH2_SESSION *session);
 
 LIBSSH2_API int libssh2_session_flag(LIBSSH2_SESSION *session, int flag, int value);
 
@@ -388,6 +398,9 @@ LIBSSH2_API int libssh2_channel_setenv_ex(LIBSSH2_CHANNEL *channel, const char *
 
 LIBSSH2_API int libssh2_channel_request_pty_ex(LIBSSH2_CHANNEL *channel, const char *term, unsigned int term_len, const char *modes, unsigned int modes_len, int width, int height, int width_px, int height_px);
 #define libssh2_channel_request_pty(channel, term)  libssh2_channel_request_pty_ex((channel), (term), strlen(term), NULL, 0, LIBSSH2_TERM_WIDTH, LIBSSH2_TERM_HEIGHT, LIBSSH2_TERM_WIDTH_PX, LIBSSH2_TERM_HEIGHT_PX)
+
+LIBSSH2_API int libssh2_channel_request_pty_size_ex(LIBSSH2_CHANNEL * channel, int width, int height, int width_px, int height_px);
+#define libssh2_channel_request_pty_size(channel, width, height) libssh2_channel_request_pty_size_ex( (channel), (width), (height), 0, 0)
 
 LIBSSH2_API int libssh2_channel_x11_req_ex(LIBSSH2_CHANNEL *channel, int single_connection, const char *auth_proto, const char *auth_cookie, int screen_number);
 #define libssh2_channel_x11_req(channel, screen_number) libssh2_channel_x11_req_ex((channel), 0, NULL, NULL, (screen_number))
@@ -469,9 +482,9 @@ LIBSSH2_API int libssh2_trace(LIBSSH2_SESSION *session, int bitmask);
 #define LIBSSH2_TRACE_ERROR (1<<7)
 #define LIBSSH2_TRACE_PUBLICKEY (1<<8)
 
-
 LIBSSH2_API char * libssh2_session_get_remote_version(LIBSSH2_SESSION *session);
 LIBSSH2_API char ** libssh2_session_get_remote_info(LIBSSH2_SESSION *session);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

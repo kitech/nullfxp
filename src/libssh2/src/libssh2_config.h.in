@@ -48,6 +48,15 @@
 /* Define if you have the gcrypt library. */
 #undef HAVE_LIBGCRYPT
 
+/* Define if you have the ssl library. */
+#undef HAVE_LIBSSL
+
+/* Define if you have the z library. */
+#undef HAVE_LIBZ
+
+/* Define to 1 if the compiler supports the 'long long' data type. */
+#undef HAVE_LONGLONG
+
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
@@ -60,7 +69,7 @@
 /* Define to 1 if you have the `poll' function. */
 #undef HAVE_POLL
 
-/* Define to 1 if you have the `select' function. */
+/* Define to 1 if you have the select function. */
 #undef HAVE_SELECT
 
 /* use SO_NONBLOCK for non-blocking sockets */
@@ -80,6 +89,9 @@
 
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
+
+/* Define to 1 if you have the `strtoll' function. */
+#undef HAVE_STRTOLL
 
 /* Define to 1 if you have the <sys/ioctl.h> header file. */
 #undef HAVE_SYS_IOCTL_H
@@ -104,6 +116,15 @@
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
+
+/* Define to 1 if you have the <windows.h> header file. */
+#undef HAVE_WINDOWS_H
+
+/* Define to 1 if you have the <winsock2.h> header file. */
+#undef HAVE_WINSOCK2_H
+
+/* Define to 1 if you have the <ws2tcpip.h> header file. */
+#undef HAVE_WS2TCPIP_H
 
 /* Enable "none" cipher -- NOT RECOMMENDED */
 #undef LIBSSH2_CRYPT_NONE

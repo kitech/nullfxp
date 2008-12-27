@@ -39,7 +39,7 @@ host_triplet = @host@
 DIST_COMMON = README $(am__configure_deps) $(include_HEADERS) \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/configure AUTHORS COPYING ChangeLog INSTALL NEWS \
-	config.guess config.rpath config.sub depcomp install-sh \
+	TODO config.guess config.rpath config.sub depcomp install-sh \
 	ltmain.sh missing
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -91,6 +91,7 @@ AMDEP_FALSE = @AMDEP_FALSE@
 AMDEP_TRUE = @AMDEP_TRUE@
 AMTAR = @AMTAR@
 AR = @AR@
+AS = @AS@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
@@ -107,6 +108,8 @@ CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
+DLLTOOL = @DLLTOOL@
+DSYMUTIL = @DSYMUTIL@
 ECHO = @ECHO@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
@@ -117,6 +120,8 @@ F77 = @F77@
 FFLAGS = @FFLAGS@
 GREP = @GREP@
 HAVE_LIBGCRYPT = @HAVE_LIBGCRYPT@
+HAVE_LIBSSL = @HAVE_LIBSSL@
+HAVE_LIBZ = @HAVE_LIBZ@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
@@ -128,14 +133,22 @@ LIBGCRYPT_PREFIX = @LIBGCRYPT_PREFIX@
 LIBGCRYPT_TRUE = @LIBGCRYPT_TRUE@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
+LIBSSL = @LIBSSL@
+LIBSSL_PREFIX = @LIBSSL_PREFIX@
 LIBTOOL = @LIBTOOL@
+LIBZ = @LIBZ@
+LIBZ_PREFIX = @LIBZ_PREFIX@
 LN_S = @LN_S@
 LTLIBGCRYPT = @LTLIBGCRYPT@
 LTLIBOBJS = @LTLIBOBJS@
+LTLIBSSL = @LTLIBSSL@
+LTLIBZ = @LTLIBZ@
 MAINT = @MAINT@
 MAINTAINER_MODE_FALSE = @MAINTAINER_MODE_FALSE@
 MAINTAINER_MODE_TRUE = @MAINTAINER_MODE_TRUE@
 MAKEINFO = @MAKEINFO@
+NMEDIT = @NMEDIT@
+OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
@@ -144,12 +157,13 @@ PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
-PKG_CONFIG = @PKG_CONFIG@
 RANLIB = @RANLIB@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
-SHLIB_SUFFIX_NAME = @SHLIB_SUFFIX_NAME@
+SSHD = @SSHD@
+SSHD_FALSE = @SSHD_FALSE@
+SSHD_TRUE = @SSHD_TRUE@
 STRIP = @STRIP@
 VERSION = @VERSION@
 ac_ct_CC = @ac_ct_CC@
@@ -199,8 +213,7 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-SUBDIRS = src 
-#example tests docs
+SUBDIRS = src example tests docs
 include_HEADERS = \
 	include/libssh2.h		\
 	include/libssh2_publickey.h	\
@@ -212,7 +225,13 @@ NETWAREFILES = nw/keepscreen.c \
  nw/nwlib.c \
  nw/test/Makefile.netware
 
-EXTRA_DIST = win32 buildconf $(NETWAREFILES) get_ver.awk HACKING maketgz NMakefile
+WIN32FILES = win32/libssh2_dll.dsp win32/libssh2.dsw win32/Makefile.win32      \
+win32/config.mk win32/Makefile win32/test/Makefile.win32 win32/libssh2_lib.dsp \
+win32/libssh2_config.h win32/tests.dsp win32/rules.mk
+
+EXTRA_DIST = $(WIN32FILES) buildconf $(NETWAREFILES) get_ver.awk HACKING \
+ maketgz NMakefile TODO
+
 ACLOCAL_AMFLAGS = -I m4
 all: all-recursive
 
@@ -413,7 +432,7 @@ distclean-tags:
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
-	$(mkdir_p) $(distdir)/include $(distdir)/m4 $(distdir)/nw $(distdir)/nw/test
+	$(mkdir_p) $(distdir)/include $(distdir)/m4 $(distdir)/nw $(distdir)/nw/test $(distdir)/win32 $(distdir)/win32/test
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
@@ -671,6 +690,29 @@ dist-hook:
 	  strip=`echo $$file | sed -e s/^$(srcdir)// -e s/\.dist//`; \
 	  cp $$file $(distdir)$$strip; \
 	done)
+
+# Code Coverage
+
+init-coverage:
+	make clean
+	lcov --directory . --zerocounters
+
+COVERAGE_CCOPTS ?= "-g --coverage"
+COVERAGE_OUT ?= docs/coverage
+
+build-coverage:
+	make CFLAGS=$(COVERAGE_CCOPTS) check
+	mkdir -p $(COVERAGE_OUT)
+	lcov --directory . --output-file $(COVERAGE_OUT)/$(PACKAGE).info \
+		--capture
+
+gen-coverage:
+	genhtml --output-directory $(COVERAGE_OUT) \
+		$(COVERAGE_OUT)/$(PACKAGE).info \
+		--highlight --frames --legend \
+		--title "$(PACKAGE_NAME)"
+
+coverage: init-coverage build-coverage gen-coverage
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

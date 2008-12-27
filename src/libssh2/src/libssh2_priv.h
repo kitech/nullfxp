@@ -1,4 +1,4 @@
-/* Copyright (c) 2004-2007, Sara Golemon <sarag@libssh2.org>
+/* Copyright (c) 2004-2008, Sara Golemon <sarag@libssh2.org>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms,
@@ -41,6 +41,17 @@
 #define LIBSSH2_LIBRARY
 #include "libssh2_config.h"
 
+#ifdef HAVE_WINDOWS_H
+#include <windows.h>
+#endif
+
+#ifdef HAVE_WS2TCPIP_H
+#include <ws2tcpip.h>
+#endif
+
+#include <stdio.h>
+#include <time.h>
+
 /* The following CPP block should really only be in session.c and
    packet.c.  However, AIX have #define's for 'events' and 'revents'
    and we are using those names in libssh2.h, so we need to include
@@ -51,12 +62,10 @@
    http://www.mail-archive.com/libssh2-devel%40lists.sourceforge.net/msg00003.html
    http://www.mail-archive.com/libssh2-devel%40lists.sourceforge.net/msg00224.html
 */
-#include <stdio.h>
-
 #ifdef HAVE_POLL
 # include <sys/poll.h>
 #else
-# ifdef HAVE_SELECT
+# if defined(HAVE_SELECT) && !defined(WIN32)
 # ifdef HAVE_SYS_SELECT_H
 # include <sys/select.h>
 # else
@@ -70,19 +79,31 @@
 #include "libssh2_publickey.h"
 #include "libssh2_sftp.h"
 
+/* Provide iovec / writev on WIN32 platform. */
+#ifdef WIN32
+
+/* same as WSABUF */
+struct iovec {
+	u_long iov_len;
+	char *iov_base;
+};
+
+#define inline __inline
+
+static inline int writev(int sock, struct iovec *iov, int nvecs)
+{
+	DWORD ret;
+	if (WSASend(sock, (LPWSABUF)iov, nvecs, &ret, 0, NULL, NULL) == 0) {
+		return ret;
+	}
+	return -1;
+}
+
+#endif /* WIN32 */
+
 /* Needed for struct iovec on some platforms */
 #ifdef HAVE_SYS_UIO_H
 #include <sys/uio.h>
-#else
-#ifdef WIN32
-struct iovec
-{
-    char *iov_base;
-    int iov_len;
-};
-#include <winsock2.h>
-#define  socklen_t size_t
-#endif
 #endif
 
 #ifdef HAVE_SYS_SOCKET_H
@@ -99,6 +120,26 @@ struct iovec
 #include "libgcrypt.h"
 #else
 #include "openssl.h"
+#endif
+
+#ifdef HAVE_WINSOCK2_H
+
+#include <winsock2.h>
+#include <mswsock.h>
+#include <ws2tcpip.h>
+
+#ifdef _MSC_VER
+/* "inline" keyword is valid only with C++ engine! */
+#define inline __inline
+#endif
+
+/* not really usleep, but safe for the way we use it in this lib */
+static inline int usleep(int udelay)
+{
+	Sleep(udelay / 1000);
+	return 0;
+}
+
 #endif
 
 /* RFC4253 section 6.1 Maximum Packet Length says:
@@ -491,12 +532,19 @@ struct _LIBSSH2_PUBLICKEY
     unsigned long listFetch_data_len;
 };
 
+#define SFTP_HANDLE_MAXLEN 256 /* according to spec! */
+
 struct _LIBSSH2_SFTP_HANDLE
 {
     LIBSSH2_SFTP *sftp;
     LIBSSH2_SFTP_HANDLE *prev, *next;
 
-    char *handle;
+    /* This is a pre-allocated buffer used for sending SFTP requests as the
+       whole thing might not get sent in one go. This buffer is used for read,
+       write, close and MUST thus be big enough to suit all these. */
+    unsigned char request_packet[SFTP_HANDLE_MAXLEN + 25];
+
+    char handle[SFTP_HANDLE_MAXLEN];
     int handle_len;
 
     char handle_type;
@@ -664,6 +712,7 @@ struct _LIBSSH2_SESSION
     int socket_fd;
     int socket_block;
     int socket_state;
+    int socket_block_directions;
 
     /* Error tracking */
     char *err_msg;
@@ -821,7 +870,14 @@ struct _LIBSSH2_SESSION
     unsigned char scpRecv_response[LIBSSH2_SCP_RESPONSE_BUFLEN];
     unsigned long scpRecv_response_len;
     long scpRecv_mode;
+#if defined(HAVE_LONGLONG) && defined(strtoll)
+    /* we have the type and we can parse such numbers */
+    long long scpRecv_size;
+#define scpsize_strtol strtoll
+#else
     long scpRecv_size;
+#define scpsize_strtol strtol
+#endif
     long scpRecv_mtime;
     long scpRecv_atime;
     char *scpRecv_err_msg;
@@ -843,6 +899,7 @@ struct _LIBSSH2_SESSION
 #define LIBSSH2_STATE_EXCHANGING_KEYS   0x00000001
 #define LIBSSH2_STATE_NEWKEYS           0x00000002
 #define LIBSSH2_STATE_AUTHENTICATED     0x00000004
+#define LIBSSH2_STATE_KEX_ACTIVE        0x00000008
 
 /* session.flag helpers */
 #ifdef MSG_NOSIGNAL
@@ -1146,7 +1203,7 @@ const LIBSSH2_MAC_METHOD **libssh2_mac_methods(void);
 int _libssh2_pem_parse(LIBSSH2_SESSION * session,
                        const char *headerbegin,
                        const char *headerend,
-                       FILE * fp, char **data, unsigned int *datalen);
+                       FILE * fp, unsigned char **data, unsigned int *datalen);
 int _libssh2_pem_decode_sequence(unsigned char **data, unsigned int *datalen);
 int _libssh2_pem_decode_integer(unsigned char **data, unsigned int *datalen,
                                 unsigned char **i, unsigned int *ilen);

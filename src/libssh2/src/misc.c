@@ -51,8 +51,7 @@ libssh2_ntohu32(const unsigned char *buf)
 /* }}} */
 
 /* {{{ libssh2_ntohu64
- * Note: Some 32-bit platforms have issues with bitops on long longs
- * Work around this by doing expensive (but safer) arithmetic ops with optimization defying parentheses
+ *
  */
 libssh2_uint64_t
 libssh2_ntohu64(const unsigned char *buf)
@@ -62,7 +61,7 @@ libssh2_ntohu64(const unsigned char *buf)
     msl = (buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3];
     lsl = (buf[4] << 24) | (buf[5] << 16) | (buf[6] << 8) | buf[7];
 
-    return ((msl * 65536) * 65536) + lsl;
+    return ((libssh2_uint64_t)msl <<32) | lsl;
 }
 
 /* }}} */
@@ -85,7 +84,7 @@ libssh2_htonu32(unsigned char *buf, unsigned long value)
 void
 libssh2_htonu64(unsigned char *buf, libssh2_uint64_t value)
 {
-    unsigned long msl = (value / 65536) / 65536;
+    unsigned long msl = ((libssh2_uint64_t)value >> 32);
 
     buf[0] = (msl >> 24) & 0xFF;
     buf[1] = (msl >> 16) & 0xFF;
