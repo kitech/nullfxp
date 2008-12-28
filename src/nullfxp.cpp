@@ -9,9 +9,9 @@
 // http://nullget.sourceforge.net
 // Created: 二  7月 22 21:18:03 2008 (CST)
 // Version: 
-// Last-Updated: 三  8月  6 20:53:52 2008 (CST)
+// Last-Updated: 日 12月 28 10:55:15 2008 (CST)
 //           By: 刘光照<liuguangzhao@users.sf.net>
-//     Update #: 1
+//     Update #: 8
 // URL: 
 // Keywords: 
 // Compatibility: 
@@ -152,10 +152,11 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
     storage->open();
     int host_count = storage->hostCount();
     //delete storage ;
-    if(host_count > 0)
+    if (host_count > 0) {
         this->slot_show_session_dialog();
-    else
+    } else {
         this->connect_to_remote_host();
+    }
 
     //////////////////////
     //this->mUIMain.action_Forward_connect->setVisible(false);
