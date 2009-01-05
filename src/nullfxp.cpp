@@ -327,24 +327,7 @@ void NullFXP::slot_connect_remote_host_finished ( int status,void * ssh2_sess , 
         //this->connect_status_dailog->setVisible(false);
         this->connect_status_dailog->stop_progress_bar();
     
-        QString emsg = QString(tr("No error."));
-        switch (status){
-        case RemoteHostConnectThread::CONN_REFUSE:
-            emsg = QString(tr("Remote host not usable."));
-            break;
-        case RemoteHostConnectThread::CONN_AUTH_ERROR:
-            emsg = QString(tr("Auth faild. Check your name and password and retry again."));
-            break;
-        case RemoteHostConnectThread::CONN_RESOLVE_ERROR:
-            emsg = QString(tr("Can not resolve host name."));
-            break;
-        case RemoteHostConnectThread::CONN_SESS_ERROR:
-            emsg = QString(tr("Can not initial SSH session."));
-            break;
-        default:
-            emsg = QString(tr("Unknown error."));
-            break;
-        }
+        QString emsg = conn_thread->get_status_desc(status);
         QMessageBox::critical(this,tr("Connect Error:"), emsg);
     }
     this->connect_status_dailog->accept();

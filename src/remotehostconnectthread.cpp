@@ -95,7 +95,6 @@ RemoteHostConnectThread::RemoteHostConnectThread(QString user_name, QString pass
 {
     this->user_name = user_name;
     this->password = password;
-    //this->decoded_password = QUrl::fromPercentEncoding(this->password.toAscii());
     this->host_name = host_name;
     this->port = port;
     this->pubkey_path = pubkey;
@@ -434,7 +433,23 @@ void RemoteHostConnectThread::run()
     emit connect_state_changed(tr("User auth successfully"));
     
     ssh2_sftp = libssh2_sftp_init((LIBSSH2_SESSION*)ssh2_sess );
-    assert( ssh2_sftp != NULL );
+    if(ssh2_sftp == NULL) {
+        this->connect_status = CONN_SFTP_ERROR;
+        QString msg;
+        char * emsg = 0;
+        int  emsg_len = 0;
+        libssh2_session_last_error((LIBSSH2_SESSION*)ssh2_sess, &emsg, &emsg_len, 1);
+        qDebug()<<"Init sftp error: "<<emsg;
+        if (emsg != 0) {
+            msg = QString(emsg);
+            free(emsg);
+        } else {
+            msg = QString(tr("Unknown SFTP error."));
+        }
+        emit connect_state_changed(tr( "Init sftp error: ") + msg);
+        return ;
+    }
+    Q_ASSERT(ssh2_sftp != NULL);
     char **server_info, **pptr;
     server_info = pptr = libssh2_session_get_remote_info((LIBSSH2_SESSION*)ssh2_sess);
     printf("Received SFTP Version: %d %s\n",libssh2_sftp_get_version((LIBSSH2_SFTP*)ssh2_sftp), server_info[0]);	
@@ -573,11 +588,34 @@ QString RemoteHostConnectThread::get_status_desc(int status)
         "CONN_SFTP_ERROR",
         "CONN_EXEC_ERROR"
     };
+
+    QString emsg = QString(tr("No error."));
+    switch (status){
+    case RemoteHostConnectThread::CONN_REFUSE:
+        emsg = QString(tr("Remote host not usable."));
+        break;
+    case RemoteHostConnectThread::CONN_AUTH_ERROR:
+        emsg = QString(tr("Auth faild. Check your name and password and retry again."));
+        break;
+    case RemoteHostConnectThread::CONN_RESOLVE_ERROR:
+        emsg = QString(tr("Can not resolve host name."));
+        break;
+    case RemoteHostConnectThread::CONN_SESS_ERROR:
+        emsg = QString(tr("Can not initial SSH session."));
+        break;
+    case RemoteHostConnectThread::CONN_SFTP_ERROR:
+        emsg = QString(tr("Can not initial SFTP handle."));
+        break;        
+    default:
+        emsg = QString(tr("Unknown error."));
+        break;
+    }
     
     if(status > sizeof(status_desc)/sizeof(char*) ) {
         return "Unknown status";
     }else{
-        return status_desc[status];
+        // return status_desc[status];
+        return emsg;
     }
 }
 
