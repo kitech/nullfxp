@@ -310,7 +310,11 @@ void TransferThread::run()
                
                 //这个远程目录属性应该和本地属性一样，所以就使用this->current_src_file_type
                 //不知道是不是有问题。
-                temp_remote_file_pair = QPair<QString,QString>( current_dest_url.toString() + "/" + this->current_src_file_name.split("/").at(this->current_src_file_name.split("/").count()-1)   ,  this->current_src_file_type  );
+                QUrl remote_full_uri = current_dest_url;
+                remote_full_uri.setPath(remote_full_uri.path() + "/" + this->current_src_file_name.split("/").at(this->current_src_file_name.split("/").count()-1) );
+                QString remote_full_path = remote_full_uri.toString();
+                //temp_remote_file_pair = QPair<QString,QString>( current_dest_url.toString() + "/" + this->current_src_file_name.split("/").at(this->current_src_file_name.split("/").count()-1)   ,  this->current_src_file_type  );
+                temp_remote_file_pair = QPair<QString,QString>(remote_full_path, this->current_src_file_type);
                 //为远程建立目录
                 memset(&ssh2_sftp_attrib,0,sizeof(ssh2_sftp_attrib));
                 transfer_ret = libssh2_sftp_mkdir(this->dest_ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode( QUrl(temp_remote_file_pair.first).path() ).data(), 0755);
