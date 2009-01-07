@@ -9,9 +9,9 @@
 // http://nullget.sourceforge.net
 // Created: 一  5月  5 21:22:01 2008 (CST)
 // Version: 
-// Last-Updated: 二  7月 22 21:17:20 2008 (CST)
-//           By: 刘光照<liuguangzhao@users.sf.net>
-//     Update #: 2
+// Last-Updated: 三  1月  7 14:19:25 2009 (+0000)
+//           By: <liuguangzhao@users.sf.net>
+//     Update #: 3
 // URL: 
 // Keywords: 
 // Compatibility: 
@@ -49,3 +49,20 @@ void EncryptionDetailFocusLabel::mouseDoubleClickEvent ( QMouseEvent * event )
   QLabel::mouseDoubleClickEvent(event);
 }
 
+
+//////////////////
+HostInfoDetailFocusLabel::HostInfoDetailFocusLabel ( const QString & text, QWidget * parent , Qt::WindowFlags f  )
+  :QLabel(text, parent, f)
+{
+  this->setPixmap(QPixmap(":/icons/computer.png").scaledToHeight(20));
+  this->setToolTip(tr("Show SSH host info."));
+}
+HostInfoDetailFocusLabel::~HostInfoDetailFocusLabel()
+{
+}
+
+void HostInfoDetailFocusLabel::mouseDoubleClickEvent ( QMouseEvent * event )
+{
+  emit this->mouseDoubleClick();
+  QLabel::mouseDoubleClickEvent(event);
+}

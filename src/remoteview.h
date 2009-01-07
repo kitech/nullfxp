@@ -156,6 +156,7 @@ private slots:
     void slot_dir_file_view_double_clicked( const QModelIndex & index );
 
     void encryption_focus_label_double_clicked();
+    void host_info_focus_label_double_clicked();
         
 protected:
     virtual void closeEvent ( QCloseEvent * event ) ;

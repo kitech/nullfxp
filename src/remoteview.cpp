@@ -61,6 +61,10 @@ RemoteView::RemoteView(QMdiArea * main_mdi_area ,LocalView * local_view ,QWidget
     this->status_bar->addPermanentWidget(this->enc_label = new EncryptionDetailFocusLabel("ENC", this));
     QObject::connect(this->enc_label, SIGNAL(mouseDoubleClick()),
                      this, SLOT(encryption_focus_label_double_clicked()));
+    HostInfoDetailFocusLabel *hi_label = new HostInfoDetailFocusLabel("HI", this);
+    this->status_bar->addPermanentWidget(hi_label);
+    QObject::connect(hi_label, SIGNAL(mouseDoubleClick()), 
+                    this, SLOT(host_info_focus_label_double_clicked()));
 
     ////////////
     
@@ -1019,5 +1023,46 @@ void RemoteView::encryption_focus_label_double_clicked()
         free(*pptr); pptr ++;
     }
     free(server_info);
+}
+
+void RemoteView::host_info_focus_label_double_clicked()
+{
+    HostInfoDetailFocusLabel *hi_label = (HostInfoDetailFocusLabel*)sender();
+    qDebug()<<"hehe"<<hi_label;
+
+    LIBSSH2_CHANNEL * ssh2_channel = 0;
+    int rv = -1;
+    char buff[1024] ;
+    QString evn_output;
+    QString uname_output;
+    const char * cmd = "uname -a";
+
+    ssh2_channel = libssh2_channel_open_session((LIBSSH2_SESSION*)this->ssh2_sess);
+    //libssh2_channel_set_blocking(ssh2_channel, 1);
+    rv = libssh2_channel_exec(ssh2_channel, cmd);
+    qDebug()<<"SSH2 exec: "<<rv;
+  
+    memset(buff, 0, sizeof(buff));
+    while( (rv = libssh2_channel_read(ssh2_channel, buff, 1000)) > 0){
+        qDebug()<<"Channel read: "<<rv<<" -->"<<buff;
+        uname_output += QString(buff);
+        memset(buff, 0, sizeof(buff));
+    }
+
+    libssh2_channel_close(ssh2_channel);
+    libssh2_channel_free(ssh2_channel);
+    
+    qDebug()<<"Host Info: "<<uname_output;
+    hi_label->setToolTip(uname_output);
+    
+    QDialog *dlg = new QDialog(this);
+    dlg->setFixedWidth(400);
+    dlg->setFixedHeight(100);
+    QLabel * label = new QLabel("", dlg);
+    label->setWordWrap(true);
+    label->setText(uname_output);
+    // dlg->layout()->addWidget(label);
+    dlg->exec();
+    delete dlg;
 }
 
