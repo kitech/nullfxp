@@ -156,6 +156,15 @@ int set_nonblock (int sock);
 
 #define q_debug()  qDebug()<<"DEBUG: "<<__FUNCTION__<<" at "<<__FILE__<<" on "<<__LINE__<<"\n    "
 
+#define q_debug()  qDebug()<<"DEBUG: "<<__FUNCTION__<<" at "<<__FILE__<<" on "<<__LINE__<<"\n    "
+
+#define q_warning()  qWarning()<<"DEBUG: "<<__FUNCTION__<<" at "<<__FILE__<<" on "<<__LINE__<<"\n    "
+
+#define q_cretical()  qCretical()<<"DEBUG: "<<__FUNCTION__<<" at "<<__FILE__<<" on "<<__LINE__<<"\n    "
+
+#define q_fetal()  qFetal()<<"DEBUG: "<<__FUNCTION__<<" at "<<__FILE__<<" on "<<__LINE__<<"\n    "
+
+
 /************* log end ********/
 
 #ifdef __cplusplush

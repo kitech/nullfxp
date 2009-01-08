@@ -230,14 +230,19 @@ void TransferThread::run()
         qDebug()<<this->current_dest_file_name;
         current_src_url = this->current_src_file_name ;
         current_dest_url = this->current_dest_file_name ;
-        this->current_src_file_name = current_src_url.path() ;
-        this->current_dest_file_name = current_dest_url.path() ;
-        if(this->current_src_file_name.at(2) == ':'){
-            this->current_src_file_name = this->current_src_file_name.right(this->current_src_file_name.length()-1);
-        }
-        if(this->current_dest_file_name.at(2) == ':'){
-            this->current_dest_file_name = this->current_dest_file_name.right(this->current_dest_file_name.length()-1);
-        }
+        this->current_src_file_name = current_src_url.hasFragment() ?
+            current_src_url.path() + "#" + current_src_url.fragment() : current_src_url.path() ;
+        this->current_dest_file_name = current_dest_url.hasFragment() ?
+            current_dest_url.path() + "#" + current_dest_url.fragment() : current_dest_url.path() ;
+
+        // 这个代码是什么意思？ 2009年 01月 08日 星期四 21:04:54 CST
+        // if(this->current_src_file_name.at(2) == ':'){
+        //     this->current_src_file_name = this->current_src_file_name.right(this->current_src_file_name.length()-1);
+        // }
+        // if(this->current_dest_file_name.at(2) == ':'){
+        //     this->current_dest_file_name = this->current_dest_file_name.right(this->current_dest_file_name.length()-1);
+        // }
+
         //这里有几种情况，全部都列出来
         // 上传:
         // local file type is file               remote file is file     error
@@ -281,14 +286,15 @@ void TransferThread::run()
                 delete rhct ; rhct = 0 ;
                 emit  transfer_log("Connect done.");
             }
-           
-            //将文件上传到目录
-            if( is_reg( GlobalOption::instance()->locale_codec->fromUnicode( this->current_src_file_name ).data() )
-                && remote_is_dir( this->dest_ssh2_sftp , this->current_dest_file_name ) )
+
+            // 将文件上传到目录
+            if (
+               //is_reg( GlobalOption::instance()->locale_codec->fromUnicode( this->current_src_file_name ).data() )
+                QFileInfo(this->current_src_file_name).isFile()
+               && remote_is_dir( this->dest_ssh2_sftp , this->current_dest_file_name ) )
             {
                 QString remote_full_path = this->current_dest_file_name + "/"
                     + this->current_src_file_name.split ( "/" ).at ( this->current_src_file_name.split ( "/" ).count()-1 ) ;
-
                 qDebug() << "local file: " << this->current_src_file_name
                          << "remote file:" << this->current_dest_file_name
                          << "remote full file path: "<< remote_full_path ;
@@ -296,8 +302,10 @@ void TransferThread::run()
                 transfer_ret = this->do_upload (  this->current_src_file_name , remote_full_path ,0 );
             }
             //将目录上传到目录
-            else if(is_dir( GlobalOption::instance()->locale_codec->fromUnicode( this->current_src_file_name ).data() )
-                    && remote_is_dir(  this->dest_ssh2_sftp , this->current_dest_file_name ) )
+            else if (
+                     //is_dir( GlobalOption::instance()->locale_codec->fromUnicode( this->current_src_file_name ).data() )
+                     QFileInfo(this->current_src_file_name).isDir()
+                     && remote_is_dir(  this->dest_ssh2_sftp , this->current_dest_file_name ) )
             {
                 qDebug()<<"uploding dir to dir ...";
                 //this->sleep(debug_sleep_time);
@@ -313,7 +321,7 @@ void TransferThread::run()
                 QUrl remote_full_uri = current_dest_url;
                 remote_full_uri.setPath(remote_full_uri.path() + "/" + this->current_src_file_name.split("/").at(this->current_src_file_name.split("/").count()-1) );
                 QString remote_full_path = remote_full_uri.toString();
-                //temp_remote_file_pair = QPair<QString,QString>( current_dest_url.toString() + "/" + this->current_src_file_name.split("/").at(this->current_src_file_name.split("/").count()-1)   ,  this->current_src_file_type  );
+
                 temp_remote_file_pair = QPair<QString,QString>(remote_full_path, this->current_src_file_type);
                 //为远程建立目录
                 memset(&ssh2_sftp_attrib,0,sizeof(ssh2_sftp_attrib));

@@ -60,6 +60,8 @@ private slots:
   void cleanupTestCase();
 
   void storageTest();
+
+  void testSpecialFileName();
 };
 
 

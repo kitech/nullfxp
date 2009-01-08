@@ -201,9 +201,8 @@ int is_reg(char *path)
 {
     struct stat sb;
 
-    if (stat(path, &sb) == -1)
-    {
-	fprintf(stderr, " is reg : %d %s %s \n" , errno,strerror(errno),path );
+    if (stat(path, &sb) == -1) {
+        fprintf(stderr, " is reg : %d %s %s \n" , errno,strerror(errno),path );
         return (0);
     }
     return(S_ISREG(sb.st_mode));

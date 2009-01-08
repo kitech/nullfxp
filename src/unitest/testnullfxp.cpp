@@ -48,7 +48,7 @@
 #include "testnullfxp.h"
 
 #include "basestorage.h"
-
+#include "utils.h"
 
 void TestNullfxp::initTestCase()
 {
@@ -95,6 +95,12 @@ void TestNullfxp::cleanupTestCase()
     QVERIFY(1 == 1);
 }
 
+void TestNullfxp::testSpecialFileName()
+{
+    QUrl u("file:///home/gzl/nxpt//#.newsrc-dribble#");
+    int rc = is_reg("/home/gzl/nxpt//#.newsrc-dribble#");
+    QVERIFY(rc != 0 ) ;
+}
 
 // 
 // testnullfxp.cpp ends here
