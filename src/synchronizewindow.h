@@ -57,7 +57,26 @@ signals:
     void found_row();
 
 private:
+    QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > getRemoteFiles();
+    QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > getLocalFiles();
+    bool checkLocalInfo();
+    bool connectToRemoteHost();
+    bool checkRemoteInfo();
+    bool disconnectFromRemoteHost();
+    LIBSSH2_SFTP_ATTRIBUTES * QFileInfoToLIBSSH2Attribute(QFileInfo &fi);
+    QFileInfo LIBSSH2AttributeToQFileInfo(LIBSSH2_SFTP_ATTRIBUTES *attr);
+
+private:
     SynchronizeWindow *parent;
+
+    LIBSSH2_SESSION *ssh2_sess ;
+    LIBSSH2_SFTP *ssh2_sftp ;
+    LIBSSH2_SFTP_ATTRIBUTES ssh2_attr;
+    LIBSSH2_SFTP_HANDLE *hsftp ;
+
+    QMap<QString, QString> remoteHost;
+    QString remoteBasePath;
+    QString localBasePath;
 
 signals:
     void file_got(QString file_name, LIBSSH2_SFTP_ATTRIBUTES *attr);
@@ -73,7 +92,7 @@ public:
 
     void set_sync_param(QString local_dir, QString sess_name, QString remote_dir, bool recursive, int way);
 
-    public slots:
+public slots:
     void slot_status_msg(QString msg);
     void slot_finished();
     private slots:
