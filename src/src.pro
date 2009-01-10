@@ -74,7 +74,8 @@ SOURCES += main.cpp \
  completelineeditdelegate.cpp \
  synchronizeoptiondialog.cpp \
  synchronizewindow.cpp \
- syncdiffermodel.cpp
+ syncdiffermodel.cpp \
+ sshfileinfo.cpp
 
 HEADERS += nullfxp.h \
  localview.h \

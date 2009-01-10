@@ -112,10 +112,17 @@ public:
 public slots:
     void slot_status_msg(QString msg);
     void slot_finished();
-    private slots:
+
+private slots:
     void start();
     void stop();
-    
+    void progress_timer_timeout();
+    void showCtxMenu(const QPoint & pos);
+    void showDiffFileInfo();
+
+private:
+    void initCtxMenu();
+
 private:
     Ui::SynchronizeWindow  ui_win;
     QString local_dir;
@@ -125,6 +132,7 @@ private:
     int way;
     QTimer progress_timer;
     bool running;
+    QMenu *ctxMenu;
 
     SyncWalker *walker;
     SyncDifferModel *model;

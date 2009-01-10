@@ -32,6 +32,7 @@
 #include "utils.h"
 #include "remotehostconnectthread.h"
 #include "basestorage.h"
+#include "sshfileinfo.h"
 
 #include "syncdiffermodel.h"
 #include "synchronizewindow.h"
@@ -422,7 +423,8 @@ void SyncWalker::run()
 //////////////////////
 /////////////////////
 SynchronizeWindow::SynchronizeWindow(QWidget *parent, Qt::WindowFlags flags)
-    :QWidget(parent, flags)
+    :QWidget(parent, flags),
+     ctxMenu(0)
 {
     this->ui_win.setupUi(this);
     walker = new SyncWalker(this);
@@ -435,6 +437,9 @@ SynchronizeWindow::SynchronizeWindow(QWidget *parent, Qt::WindowFlags flags)
     // this->ui_win.treeView->setModel(model);
     // QObject::connect(walker, SIGNAL(found_row()), model, SLOT(maybe_has_data()));
     this->ui_win.treeView->setModel(0);    
+    QObject::connect(&this->progress_timer, SIGNAL(timeout()), this, SLOT(progress_timer_timeout()));
+    QObject::connect(this->ui_win.treeView, SIGNAL(customContextMenuRequested ( const QPoint & )),
+                     this, SLOT(showCtxMenu(const QPoint &)));
 }
 
 SynchronizeWindow::~SynchronizeWindow()
@@ -453,6 +458,9 @@ void SynchronizeWindow::set_sync_param(QString local_dir, QString sess_name, QSt
     this->remote_dir = remote_dir;
     this->recursive = recursive;
     this->way = way;
+
+    this->ui_win.lineEdit->setText(local_dir);
+    this->ui_win.lineEdit_2->setText(sess_name + ":" + remote_dir);
 }
 
 void SynchronizeWindow::start()
@@ -460,7 +468,9 @@ void SynchronizeWindow::start()
     if(!this->running) {
         this->running = true;
         this->walker->start();
+        this->progress_timer.start(100);
     }
+    this->initCtxMenu();
 }
 void SynchronizeWindow::stop()
 {
@@ -475,6 +485,9 @@ void SynchronizeWindow::slot_finished()
     // QObject::connect(walker, SIGNAL(found_row()), model, SLOT(maybe_has_data()));
 
     this->ui_win.treeView->expandAll();
+
+    this->progress_timer.stop();
+    this->ui_win.progressBar->setValue(100);
 }
 
 void SynchronizeWindow::slot_status_msg(QString msg)
@@ -493,4 +506,68 @@ QString SynchronizeWindow::diffDesciption(unsigned long flags)
 {
     return this->walker->diffDesciption(flags);
 }
+
+void SynchronizeWindow::progress_timer_timeout()
+{
+    int val = this->ui_win.progressBar->value();
+    if (val == 100) {
+        val = 0;
+    }
+    val = val == 100 ? 0 : val + 5;
+    this->ui_win.progressBar->setValue(val);
+}
+
+void SynchronizeWindow::initCtxMenu()
+{
+    if (this->ctxMenu == NULL) {
+        this->ctxMenu = new QMenu(this);
+        QAction *action;
+        action = new QAction(tr("File info..."), this->ctxMenu);
+        this->ctxMenu->addAction(action);
+        QObject::connect(action, SIGNAL(triggered()), this, SLOT(showDiffFileInfo()));
+    }
+}
+
+void SynchronizeWindow::showCtxMenu(const QPoint & pos)
+{
+    if (this->ctxMenu == NULL) {
+        return ;
+    }
+    //if (this->model == NULL) {
+    //  return ;
+    //}
+    QPoint adjPos = this->ui_win.treeView->mapToGlobal(pos);
+    adjPos.setX(adjPos.x() + 5);
+    this->ctxMenu->popup(adjPos);
+}
+
+void SynchronizeWindow::showDiffFileInfo()
+{
+    QString info;
+    QItemSelectionModel *ism = NULL;
+    QModelIndexList mil;
+    QModelIndex idx ;
+    QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> file;
+
+    ism = this->ui_win.treeView->selectionModel();
+    if (ism != NULL) {
+        mil = ism->selectedIndexes();
+        idx = mil.at(0);
+        file = this->model->getFile(idx);
+        Q_ASSERT(file.isValid());
+        info = QString(tr("%1\nType: %2\nSize: %3\nLast modified: %4\nSync Status: %5"))
+            .arg(file.first, 
+                 SSHFileInfo(file.second).isDir() ? tr("Direcotry") : tr("File"),
+                 QString("%1").arg(file.second->filesize),
+                 QDateTime::fromTime_t(file.second->mtime).toString(),
+                 this->walker->diffDesciption(file.second->flags)
+                 );
+    }
+
+    QPoint pos = QCursor::pos();
+    //QWhatsThis::showText(pos, tr("sdfsdfsdfdsf\nsdfijsdfiowej"));
+    QWhatsThis::showText(pos, info);
+}
+
+
 

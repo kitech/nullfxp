@@ -255,6 +255,8 @@ src/sessiondialog.cpp -text
 src/sessiondialog.h -text
 src/sftp.h -text
 src/src.pro -text
+src/sshfileinfo.cpp -text
+src/sshfileinfo.h -text
 src/syncdiffermodel.cpp -text
 src/syncdiffermodel.h -text
 src/synchronizeoptiondialog.cpp -text

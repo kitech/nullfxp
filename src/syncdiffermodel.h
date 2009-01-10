@@ -53,6 +53,7 @@ public:
 
     //
     bool setDiffFiles(QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > files);
+    QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> getFile(const QModelIndex & index) const;
 
 public slots:
     void maybe_has_data();

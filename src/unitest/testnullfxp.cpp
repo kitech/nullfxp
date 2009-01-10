@@ -49,6 +49,9 @@
 
 #include "basestorage.h"
 #include "utils.h"
+#include "libssh2.h"
+#include "libssh2_sftp.h"
+#include "sshfileinfo.h"
 
 void TestNullfxp::initTestCase()
 {
@@ -100,6 +103,34 @@ void TestNullfxp::testSpecialFileName()
     QUrl u("file:///home/gzl/nxpt//#.newsrc-dribble#");
     int rc = is_reg("/home/gzl/nxpt//#.newsrc-dribble#");
     QVERIFY(rc != 0 ) ;
+}
+
+void TestNullfxp::testSSHFileInfo()
+{
+    LIBSSH2_SFTP_ATTRIBUTES attr;
+
+    memset(&attr, 0, sizeof(LIBSSH2_SFTP_ATTRIBUTES));
+    attr.filesize = 123456;
+    QVERIFY(SSHFileInfo(attr).size() == 123456);
+    attr.filesize = 1234567;
+    QVERIFY(SSHFileInfo(&attr).size() != 123456);
+    QVERIFY(SSHFileInfo(&attr).size() == 1234567);
+
+    attr.permissions = S_IFDIR;
+    QVERIFY(SSHFileInfo(attr).isDir() == true);
+    attr.permissions = S_IFREG;
+    QVERIFY(SSHFileInfo(attr).isDir() == false);
+    QVERIFY(SSHFileInfo(attr).isFile() == true);
+
+    QVERIFY(SSHFileInfo(attr).isSymLink() == false);
+    attr.permissions = S_IFLNK;
+    QVERIFY(SSHFileInfo(attr).isSymLink() == true);
+
+    QVERIFY(SSHFileInfo(0).isSymLink() == false);
+    QVERIFY(SSHFileInfo(0).isDir() == false);
+    QVERIFY(SSHFileInfo(0).isFile() == false);
+    QVERIFY(SSHFileInfo(0).size() == 0);
+
 }
 
 // 

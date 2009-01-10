@@ -202,3 +202,15 @@ bool SyncDifferModel::setDiffFiles(QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTE
     
     return true;
 }
+
+QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> SyncDifferModel::getFile(const QModelIndex & index) const
+{
+    QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> file;
+    if (index.row() >= this->rowCount(QModelIndex())) {
+        q_debug()<<"Invalid index";
+    } else {
+        file = this->mMergedFiles.at(index.row());
+    }
+    return file;
+}
+

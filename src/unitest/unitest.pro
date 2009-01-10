@@ -7,7 +7,7 @@ TARGET =
 DESTDIR = ../../bin
 DEPENDPATH += .
 INCLUDEPATH += .
-INCLUDEPATH += ..
+INCLUDEPATH += .. ../libssh2/include/
 
 QT += testlib
 
@@ -15,6 +15,7 @@ QT += testlib
 HEADERS += testnullfxp.h
 SOURCES += testmain.cpp testnullfxp.cpp
 
-SOURCES += ../basestorage.cpp ../utils.cpp ../globaloption.cpp
+SOURCES += ../basestorage.cpp ../utils.cpp ../globaloption.cpp \
+../sshfileinfo.cpp
 
 win32:LIBS += -lQtTest

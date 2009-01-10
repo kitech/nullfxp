@@ -62,6 +62,8 @@ private slots:
   void storageTest();
 
   void testSpecialFileName();
+
+  void testSSHFileInfo();
 };
 
 

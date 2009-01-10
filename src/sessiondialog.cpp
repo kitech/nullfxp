@@ -253,9 +253,12 @@ void SessionDialog::slot_show_no_item_tip()
 {
     QString msg = QString("<br>&nbsp;&nbsp;&nbsp;<b>") + tr("No selected host.") 
         + QString("&nbsp;&nbsp;</b><br>");
-    QPoint pos = this->sess_dlg.toolButton_3->pos();
-    pos.setY(pos.y() + 80);
-    QToolTip::showText(this->mapToGlobal(pos), msg, this);
+    // QPoint pos = this->sess_dlg.toolButton_3->pos();
+    // pos.setY(pos.y() + 80);
+    // QToolTip::showText(this->mapToGlobal(pos), msg, this);
+
+    QPoint pos = QCursor::pos();
+    QWhatsThis::showText(pos, msg);
 }
 
 //
