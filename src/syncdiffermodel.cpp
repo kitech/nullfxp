@@ -54,15 +54,18 @@ QModelIndex SyncDifferModel::index(int row, int column, const QModelIndex &paren
     if(!parent.isValid()) {
         idx = this->createIndex(row, column, -1);
     }else{
-        idx = this->createIndex(row, column, parent.row());
+        //idx = this->createIndex(row, column, parent.row());
         //qDebug()<<"create sub model"<<parent.row();
+        q_debug()<<"not possible now";
     }
     return idx;
 }
 QModelIndex SyncDifferModel::parent(const QModelIndex &index) const
 {
-    //q_debug()<<""<<index;
+    //q_debug()<<""<<index;    
     QModelIndex idx = QModelIndex();
+    return idx;
+
     if(!index.isValid()) {
 
     }else{
@@ -88,40 +91,56 @@ QVariant   SyncDifferModel::data(const QModelIndex &index, int role) const
     if(role != Qt::DisplayRole) {
         return QVariant();
     }
-
-    //    return QString("vsdf");
-    int row = index.internalId();
-    if(row == -1) {
-        row = index.row();
-    }
+    LIBSSH2_SFTP_ATTRIBUTES * attr = NULL;
     
-    QString key = this->sync_win->synckeys.at(row).first;
-    QHash<QString, int> elem = this->sync_win->syncer.value(key);
-
-    //qDebug()<<key;
-    //qDebug()<<elem;
-
     switch(index.column()) {
     case 0:
-        if (!index.parent().isValid()) {
-            //return "kkkkkkkkkkkkkk";
-            return key;
-        } else {
-            QString vv = elem.keys().at(index.row());
-            return vv;
-            //            qDebug()<<elem;
-            return "vasdfsdf";
-        }
+        return this->mMergedFiles.at(index.row()).first;
         break;
     case 1:
-        return "isdvsA";
+        attr = this->mMergedFiles.at(index.row()).second;
+        return this->sync_win->diffDesciption(attr->flags);
+        break;
     case 2:
-        return "vsdf";
+        return this->mTransferStatus.at(index.row());
         break;
     default:
-        q_debug()<<"that is impossible";
+        q_debug()<<"this is impossible:"<<index.row();
         break;
     };
+    
+    // int row = index.internalId();
+    // if(row == -1) {
+    //     row = index.row();
+    // }
+    
+    // QString key = this->sync_win->synckeys.at(row).first;
+    // QHash<QString, int> elem = this->sync_win->syncer.value(key);
+
+    // //qDebug()<<key;
+    // //qDebug()<<elem;
+
+    // switch(index.column()) {
+    // case 0:
+    //     if (!index.parent().isValid()) {
+    //         //return "kkkkkkkkkkkkkk";
+    //         return key;
+    //     } else {
+    //         QString vv = elem.keys().at(index.row());
+    //         return vv;
+    //         //            qDebug()<<elem;
+    //         return "vasdfsdf";
+    //     }
+    //     break;
+    // case 1:
+    //     return "isdvsA";
+    // case 2:
+    //     return "vsdf";
+    //     break;
+    // default:
+    //     q_debug()<<"that is impossible";
+    //     break;
+    // };
 
     return QVariant();
 }
@@ -130,30 +149,33 @@ int SyncDifferModel::rowCount(const QModelIndex &index) const
     //q_debug()<<""<<index;
 
     if(!index.isValid()) {
-        return this->sync_win->synckeys.count();
+        //return this->sync_win->synckeys.count();
+        return this->mMergedFiles.count();
     }else{
-        int row = index.internalId();
-        if(row == -1) {
-            row = index.row();
-        }else{
-            return 0;
-        }
-        //qDebug()<<"data of row:"<<row;
-        QString key = this->sync_win->synckeys.at(row).first;
-        int has_child = this->sync_win->synckeys.at(row).second;
-        if(has_child == -1) {
-            //有子结点
-            QHash<QString, int> elem = this->sync_win->syncer.value(key);
-            //qDebug()<<elem;
-            //Q_ASSERT(row >= 0 && row < elem.count());        
-            int subrows = elem.count() ;
-            //q_debug()<<key<<" should have "<<subrows<<" child row";
-            //return 1;
-            return subrows - 1;
-        } else {
-            return 0;
-        }
+        // int row = index.internalId();
+        // if(row == -1) {
+        //     row = index.row();
+        // }else{
+        //     return 0;
+        // }
+        // //qDebug()<<"data of row:"<<row;
+        // QString key = this->sync_win->synckeys.at(row).first;
+        // int has_child = this->sync_win->synckeys.at(row).second;
+        // if(has_child == -1) {
+        //     //有子结点
+        //     QHash<QString, int> elem = this->sync_win->syncer.value(key);
+        //     //qDebug()<<elem;
+        //     //Q_ASSERT(row >= 0 && row < elem.count());        
+        //     int subrows = elem.count() ;
+        //     //q_debug()<<key<<" should have "<<subrows<<" child row";
+        //     //return 1;
+        //     return subrows - 1;
+        // } else {
+        //     return 0;
+        // }
+        return 0;
     }
+    return 0;
 }
 int SyncDifferModel::columnCount(const QModelIndex &index) const
 {
@@ -163,6 +185,7 @@ int SyncDifferModel::columnCount(const QModelIndex &index) const
     }else{
         return 3;
     }
+    return 0;
 }
 
 void SyncDifferModel::maybe_has_data()
@@ -172,3 +195,10 @@ void SyncDifferModel::maybe_has_data()
 
 }
 
+bool SyncDifferModel::setDiffFiles(QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > files)
+{
+    this->mMergedFiles = files;
+    this->mTransferStatus.resize(files.count());
+    
+    return true;
+}

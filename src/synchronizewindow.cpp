@@ -142,6 +142,7 @@ SyncWalker::getRemoteFiles()
     char fnbuf[512] = {0};
     QString currDir;
     QString currFile;
+    QString nopFile;
     QStack<QString> dirStack;
     
     dirStack.push(this->remoteBasePath);
@@ -168,8 +169,11 @@ SyncWalker::getRemoteFiles()
                 dirStack.push(this->remoteBasePath + "/" + currFile);
             }
             attr = (LIBSSH2_SFTP_ATTRIBUTES*)malloc(sizeof(LIBSSH2_SFTP_ATTRIBUTES));
+            attr->flags |= FLAG_REMOTE_FILE;
             memcpy(attr, &ssh2_attr, sizeof(LIBSSH2_SFTP_ATTRIBUTES));
-            files.append(QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*>(currDir + "/" + currFile, attr));
+            nopFile = currDir + "/" + currFile;
+            nopFile = nopFile.right(nopFile.length() - this->remoteBasePath.length() - 1);
+            files.append(QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*>(nopFile, attr));
         }
         libssh2_sftp_closedir(hsftp);
     }
@@ -191,12 +195,16 @@ LIBSSH2_SFTP_ATTRIBUTES *SyncWalker::QFileInfoToLIBSSH2Attribute(QFileInfo &fi)
     attr->uid = fi.ownerId();
     attr->gid = fi.groupId();
 
+    attr->flags = LIBSSH2_SFTP_ATTR_SIZE | LIBSSH2_SFTP_ATTR_UIDGID
+        | LIBSSH2_SFTP_ATTR_PERMISSIONS | LIBSSH2_SFTP_ATTR_ACMODTIME ;
+
     return attr ;
 }
 
 QFileInfo SyncWalker::LIBSSH2AttributeToQFileInfo(LIBSSH2_SFTP_ATTRIBUTES *attr)
 {
     QFileInfo fi;
+    Q_UNUSED(attr);
     Q_ASSERT(1 == 2);
     return fi;
 }
@@ -208,6 +216,7 @@ SyncWalker::getLocalFiles()
     LIBSSH2_SFTP_ATTRIBUTES *attr ;
     QString currDir;
     QString currFile;
+    QString nopFile;
     QStack<QString> dirStack;
     
     dirStack.push(this->localBasePath);
@@ -227,45 +236,161 @@ SyncWalker::getLocalFiles()
             }
             attr = this->QFileInfoToLIBSSH2Attribute(fi);
             Q_ASSERT(attr != NULL);
-            files.append(QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*>(currFile, attr));
+            attr->flags |= FLAG_LOCAL_FILE;
+            nopFile = currFile.right(currFile.length() - this->localBasePath.length() - 1);
+            files.append(QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*>(nopFile, attr));
         }
     }
     q_debug()<<"done";
     return files;
 }
+bool SyncWalker::sameFileTime(unsigned long a, unsigned long b)
+{
+    if (a < b)
+        return b - a <= FILE_TIME_PRECISION;
+    else
+        return a - b <= FILE_TIME_PRECISION;    
+}
 
+QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > 
+SyncWalker::sortMerge(
+          QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > &rfiles,
+          QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > &lfiles)
+{
+    QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > files;
+    QString rfile;
+    QString lfile;
+    LIBSSH2_SFTP_ATTRIBUTES *rattr;
+    LIBSSH2_SFTP_ATTRIBUTES *lattr;
+    int rcnt = rfiles.count();
+    int lcnt = lfiles.count();
+    int  found;
+    
+    for (int i = 0 ; i < rcnt; ++i) {
+        rfile = rfiles.at(i).first;
+        rattr = rfiles.at(i).second;
+        found = -1;
+        for (int j = 0; j < lfiles.count(); ++j) {
+            lfile = lfiles.at(j).first;
+            lattr = lfiles.at(j).second;
+
+            // compare name
+            if (lfile == rfile) {
+                found = j;
+                break;
+            }
+        }
+        if (found != -1) {
+            // compare time
+            if (this->sameFileTime(rattr->mtime, lattr->mtime)) {
+                // compare size
+                if (rattr->filesize == lattr->filesize) {
+                    rattr->flags |= FLAG_FILE_EQUAL;
+                    lattr->flags |= FLAG_FILE_EQUAL;
+                } else {
+                    rattr->flags |= FLAG_FILE_DIFFERENT;
+                    lattr->flags |= FLAG_FILE_DIFFERENT;
+                }                
+            } else {
+                if (rattr->mtime > lattr->mtime) {
+                    rattr->flags |= FLAG_REMOTE_NEWER;
+                    lattr->flags |= FLAG_REMOTE_NEWER;
+                } else {
+                    rattr->flags |= FLAG_LOCAL_NEWER;
+                    lattr->flags |= FLAG_LOCAL_NEWER;
+                }
+            }
+            files.append(QPair<QString,LIBSSH2_SFTP_ATTRIBUTES*>(rfile,rattr));
+            // TODO free the mem of lattr
+            free(lattr); lattr = NULL;
+            lfiles.remove(found);
+        } else {
+            rattr->flags |= FLAG_REMOTE_ONLY;
+            files.append(QPair<QString,LIBSSH2_SFTP_ATTRIBUTES*>(rfile,rattr));
+        }
+    }
+
+    lcnt = lfiles.count();
+    if (lcnt > 0) {
+        for (int j = 0; j < lcnt; ++j) {
+            lfile = lfiles.at(j).first;
+            lattr = lfiles.at(j).second;
+            
+            lattr->flags |= FLAG_LOCAL_ONLY;
+            files.append(QPair<QString,LIBSSH2_SFTP_ATTRIBUTES*>(lfile,lattr));
+        }
+    }
+
+    rfiles.clear();
+    lfiles.clear();
+
+    return files;
+}
+
+bool SyncWalker::dumpMergeResult(QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > &files)
+{
+    QString file;
+    LIBSSH2_SFTP_ATTRIBUTES *attr;
+    QString fline;
+
+    for(int i = 0 ; i < files.count(); ++i) {
+        file = files.at(i).first;
+        attr = files.at(i).second;
+
+        fline = QString("%1").arg(i) + ": " + file + " [ ";
+        if (attr->flags & FLAG_LOCAL_ONLY) {
+            fline += QString("local only");
+        } 
+        if (attr->flags & FLAG_REMOTE_ONLY) {
+            fline += QString("remote only");
+        } 
+        if (attr->flags & FLAG_LOCAL_NEWER) {
+            fline += QString("local newer");            
+        } 
+        if (attr->flags & FLAG_REMOTE_NEWER) {
+            fline += QString("remote newer");
+        } 
+        if (attr->flags & FLAG_FILE_EQUAL) {
+            fline += QString("the same");
+        } 
+        if (attr->flags & FLAG_FILE_DIFFERENT) {
+            fline += QString("???");
+        }
+        fline += " ] ";
+
+        qDebug()<<fline;
+    }
+    return true;
+}
+QString SyncWalker::diffDesciption(unsigned long flags)
+{
+    QString fline;
+
+    if (flags & FLAG_LOCAL_ONLY) {
+        fline += QString("local only");
+    } 
+    if (flags & FLAG_REMOTE_ONLY) {
+        fline += QString("remote only");
+    } 
+    if (flags & FLAG_LOCAL_NEWER) {
+        fline += QString("local newer");            
+    } 
+    if (flags & FLAG_REMOTE_NEWER) {
+        fline += QString("remote newer");
+    } 
+    if (flags & FLAG_FILE_EQUAL) {
+        fline += QString("the same");
+    } 
+    if (flags & FLAG_FILE_DIFFERENT) {
+        fline += QString("???");
+    }
+
+    return fline;
+}
 /*
  */
 void SyncWalker::run()
 {
-    // LIBSSH2_SESSION *ssh2_sess = NULL;
-    // LIBSSH2_SFTP *ssh2_sftp = NULL;
-    // LIBSSH2_SFTP_ATTRIBUTES ssh2_attr;
-    // LIBSSH2_SFTP_HANDLE *hsftp = NULL;
-
-    char fname[512];
-    QString dname;
-    QStringList local_list, remote_list;    
-    QHash<QString, int> nodes;
-    QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> >rfiles;
-    QHash<QString, int> local_entity;
-
-    // QMap<QString, QString> host;
-    // BaseStorage *storage = BaseStorage::instance();
-    // storage->open();
-    // host = storage->getHost(this->parent->sess_name);
-    // q_debug()<<host;
-    // q_debug()<<this->parent->local_dir;
-    
-    // RemoteHostConnectThread *conn 
-    //     = new RemoteHostConnectThread(host["user_name"], host["password"], host["host_name"],
-    //                                   host["port"].toShort(), host["pubkey"]);
-    // conn->run();
-    // ssh2_sess = (LIBSSH2_SESSION*)conn->get_ssh2_sess();
-    // delete conn; conn = NULL;
-
-    // ssh2_sftp = libssh2_sftp_init(ssh2_sess);
-
     if (!this->checkLocalInfo()) {
         q_debug()<<"";
         return ;
@@ -277,125 +402,20 @@ void SyncWalker::run()
 
     QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > remoteFiles;
     QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > localFiles;
+    QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > mergedFiles;
 
     remoteFiles = this->getRemoteFiles();
     localFiles = this->getLocalFiles();
 
     q_debug()<<"Remote File count: "<<remoteFiles.count();
-    q_debug()<<"File count: "<<localFiles.count()<<localFiles;
-
-    // this->parent->dirs<<".";
-    // this->parent->syncer.clear();
-    // while(this->parent->dirs.count() > 0) {
-    //     qDebug()<<"new xxxxxxxxxxxxx begin";
-    //     dname = this->parent->remote_dir + "/" + this->parent->dirs.at(0);
-    //     q_debug()<<dname;
-    //     hsftp = libssh2_sftp_opendir(ssh2_sftp, dname.toAscii().data());
-    //     if(hsftp == NULL) {
-    //         Q_ASSERT(hsftp != NULL);
-    //     }
-    //     remote_list.clear();
-    //     local_list.clear();
-    //     nodes.clear();
-    //     rfiles.clear();
-    //     local_entity.clear();
-
-    //     //local first
-    //     dname = this->parent->local_dir + "/" + this->parent->dirs.at(0);
-    //     Q_ASSERT(QDir().exists(dname));
-    //     local_list = QDir(dname).entryList();
-    //     //qDebug()<<local_list;
-    //     for(int i = local_list.count() - 1; i >= 0 ; i--) {
-    //         if(local_list.at(i) == "." || local_list.at(i) == "..") {
-    //         }else{
-    //             //local_entity.insert(local_list.at(i), this->parent->ST_LZERO);
-    //             nodes.insert(local_list.at(i), this->parent->ST_LZERO);
-    //         }
-    //     }
-    //     //qDebug()<<local_entity;
-    //     qDebug()<<nodes;
-
-    //     //remote
-    //     while(libssh2_sftp_readdir(hsftp, fname, sizeof(fname), &ssh2_attr) > 0) {
-    //         if(QString(fname) == "." || QString(fname) == "..") continue;
-    //         //qDebug()<<"rfname: "<< fname;
-    //         LIBSSH2_SFTP_ATTRIBUTES *rf_attrib = (LIBSSH2_SFTP_ATTRIBUTES*)calloc(1, sizeof(LIBSSH2_SFTP_ATTRIBUTES));
-    //         memcpy(rf_attrib, &ssh2_attr, sizeof(LIBSSH2_SFTP_ATTRIBUTES));
-    //         rfiles.append(QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*>(QString(fname), rf_attrib));
-    //     }
-    //     qDebug()<<rfiles;
-
-    //     for(int i = 0;i <rfiles.count(); i ++) {
-    //         dname = rfiles.at(i).first;
-    //         LIBSSH2_SFTP_ATTRIBUTES *rf_attrib = rfiles.at(i).second;
-    //         if(S_ISDIR(rf_attrib->permissions)) {
-    //             QString ldname = this->parent->local_dir + "/" + this->parent->dirs.at(0);
-    //             QString rname = this->parent->dirs.at(0) + "/" + dname;
-    //             if(QFileInfo(ldname).exists()) {
-    //                 if(QFileInfo(ldname).isDir()) {
-    //                     this->parent->dirs<<rname;
-    //                     nodes.remove(dname);
-    //                 }else{
-    //                     q_debug()<<"remote is dir, but local is not dir???";
-    //                 }
-    //             }else{
-    //                 this->parent->synckeys.append(QPair<QString, int>(rname, this->parent->ST_RZERO));                                          emit found_row();                        
-    //             }
-    //         }else{
-    //             if(nodes.contains(dname)) {                    
-    //                 QFileInfo fi(this->parent->local_dir + "/" + this->parent->dirs.at(0) + "/" + dname);
-    //                 time_t rtime = fi.lastModified().toTime_t();
-    //                 qDebug()<<rtime<<"=?"<<rf_attrib->mtime<<" "<<dname;
-    //                 if(rtime == rf_attrib->mtime) {
-    //                     nodes[dname] = this->parent->ST_LRSAME;
-    //                 }else if(rtime < rf_attrib->mtime) {
-    //                     nodes[dname] = this->parent->ST_RNEW;
-    //                 }else/* if(rtime > rf_attrib->mtime) */{
-    //                     nodes[dname] = this->parent->ST_LNEW;
-    //                 }
-    //             }else{
-    //                 nodes.insert(QString(fname), this->parent->ST_RZERO);                    
-    //             }
-    //         }
-    //     }
-        
-    //     qDebug()<<nodes;
-    //     QHash<QString, int>::iterator it;
-    //     QStringList delist;
-    //     for(it = nodes.begin(); it != nodes.end(); it++) {
-    //         if(it.value() == SynchronizeWindow::ST_LZERO) {
-    //             if(QFileInfo(this->parent->local_dir+"/"+this->parent->dirs.at(0)+"/"+it.key()).isDir()) {
-    //                 //QHash<QString, int> lodir;
-    //                 //lodir.insert("...", it.value());
-    //                 //this->parent->syncer.insert(this->parent->dirs.at(0)+"/"+it.key(), lodir);
-    //                 //lodir.insert(it.key(), it.value());
-    //                 QString path = this->parent->dirs.at(0)+"/"+it.key();
-    //                 this->parent->synckeys.append(QPair<QString, int>(path, it.value()));                   
-    //                 delist<<it.key();
-    //             }
-    //         }
-    //     }
-    //     for(int i = 0; i < delist.count() ; i++) {
-    //         nodes.remove(delist.at(i));
-    //     }
-    //     emit found_row();
-
-    //     this->parent->syncer.insert(this->parent->dirs.at(0), nodes);
-    //     this->parent->synckeys.append(QPair<QString, int>(this->parent->dirs.at(0), -1));
-
-    //     libssh2_sftp_closedir(hsftp);
-    //     this->parent->dirs.removeFirst();
-
-    //     emit found_row();
-    //     qDebug()<<"new xxxxxxxxxxxxx enddddddddddd";
-    // }
-    // libssh2_sftp_shutdown(ssh2_sftp);
-    // libssh2_session_free(ssh2_sess);
-
-    //qDebug()<<this->parent->syncer;
-    //qDebug()<<this->parent->synckeys;
-    //Q_ASSERT(this->parent->syncer.count() == this->parent->synckeys.count());
-    
+    // q_debug()<<remoteFiles;
+    q_debug()<<"File count: "<<localFiles.count();
+    // q_debug()<<localFiles;
+    q_debug()<<"merging...";
+    mergedFiles = this->sortMerge(remoteFiles, localFiles);
+    this->dumpMergeResult(mergedFiles);
+    this->mMergedFiles = mergedFiles;
+   
     q_debug()<<"thread end";
 }
 
@@ -411,10 +431,10 @@ SynchronizeWindow::SynchronizeWindow(QWidget *parent, Qt::WindowFlags flags)
     QObject::connect(this->ui_win.toolButton_4, SIGNAL(clicked()), this, SLOT(start()));
     this->running = false;
 
-    model = new SyncDifferModel(this);
-    this->ui_win.treeView->setModel(model);
-
-    QObject::connect(walker, SIGNAL(found_row()), model, SLOT(maybe_has_data()));
+    // model = new SyncDifferModel(this);
+    // this->ui_win.treeView->setModel(model);
+    // QObject::connect(walker, SIGNAL(found_row()), model, SLOT(maybe_has_data()));
+    this->ui_win.treeView->setModel(0);    
 }
 
 SynchronizeWindow::~SynchronizeWindow()
@@ -449,6 +469,11 @@ void SynchronizeWindow::stop()
 void SynchronizeWindow::slot_finished()
 {
     this->running = false;
+    model = new SyncDifferModel(this);
+    model->setDiffFiles(this->walker->mMergedFiles);
+    this->ui_win.treeView->setModel(model);
+    // QObject::connect(walker, SIGNAL(found_row()), model, SLOT(maybe_has_data()));
+
     this->ui_win.treeView->expandAll();
 }
 
@@ -464,4 +489,8 @@ void SynchronizeWindow::closeEvent(QCloseEvent *evt)
     QWidget::closeEvent(evt);
 }
 
+QString SynchronizeWindow::diffDesciption(unsigned long flags)
+{
+    return this->walker->diffDesciption(flags);
+}
 

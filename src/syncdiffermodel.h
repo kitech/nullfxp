@@ -32,6 +32,9 @@
 #include <QtCore>
 #include <QtGui>
 
+#include "libssh2.h"
+#include "libssh2_sftp.h"
+
 class SynchronizeWindow;
 
 class SyncDifferModel : public QAbstractItemModel
@@ -49,9 +52,13 @@ public:
     int columnCount(const QModelIndex &index) const;
 
     //
+    bool setDiffFiles(QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > files);
+
 public slots:
     void maybe_has_data();
 
 private:
     SynchronizeWindow *sync_win;
+    QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > mMergedFiles;
+    QVector<QString>  mTransferStatus;
 };

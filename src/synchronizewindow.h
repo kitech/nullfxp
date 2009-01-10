@@ -53,6 +53,8 @@ public:
     ~SyncWalker();
     void run();
 
+    QString diffDesciption(unsigned long flags);
+    QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > mMergedFiles;
 signals:
     void found_row();
 
@@ -65,9 +67,23 @@ private:
     bool disconnectFromRemoteHost();
     LIBSSH2_SFTP_ATTRIBUTES * QFileInfoToLIBSSH2Attribute(QFileInfo &fi);
     QFileInfo LIBSSH2AttributeToQFileInfo(LIBSSH2_SFTP_ATTRIBUTES *attr);
+    QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > sortMerge(
+        QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > &rfiles,
+        QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > &lfiles);
+    bool sameFileTime(unsigned long a, unsigned long b);
+    bool dumpMergeResult(QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > &files);
 
 private:
     SynchronizeWindow *parent;
+    enum {FLAG_LOCAL_FILE=0x00100000,FLAG_REMOTE_FILE=0x00200000,
+          FLAG_LOCAL_ONLY=0x00400000,FLAG_REMOTE_ONLY=0x00800000,
+          FLAG_LOCAL_NEWER=0x01000000,FLAG_REMOTE_NEWER=0x02000000,
+          FLAG_FILE_EQUAL=0x04000000,FLAG_FILE_DIFFERENT=0x08000000,
+    };
+    // default is CMP_BY_TIME_SIZE
+    enum {CMP_BY_TIME_SIZE=0x0001, CMP_BY_CONTENT=0x0002};
+    // file times have precision of 2 seconds due to FAT/FAT32 file systems
+    static const int FILE_TIME_PRECISION = 2;
 
     LIBSSH2_SESSION *ssh2_sess ;
     LIBSSH2_SFTP *ssh2_sftp ;
@@ -91,6 +107,7 @@ public:
     ~SynchronizeWindow();
 
     void set_sync_param(QString local_dir, QString sess_name, QString remote_dir, bool recursive, int way);
+    QString diffDesciption(unsigned long flags);
 
 public slots:
     void slot_status_msg(QString msg);
