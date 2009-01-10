@@ -555,9 +555,13 @@ void SynchronizeWindow::showDiffFileInfo()
         idx = mil.at(0);
         file = this->model->getFile(idx);
         Q_ASSERT(file.isValid());
+        QString ftype;
+        QString fname=this->local_dir + "/" + file.first;
+        ftype = (QFile::exists(fname) ? QFileInfo(fname).isDir() : SSHFileInfo(file.second).isDir()) 
+        		? tr("Direcotry") : tr("File");
         info = QString(tr("%1\nType: %2\nSize: %3\nLast modified: %4\nSync Status: %5"))
             .arg(file.first, 
-                 SSHFileInfo(file.second).isDir() ? tr("Direcotry") : tr("File"),
+                 ftype,
                  QString("%1").arg(file.second->filesize),
                  QDateTime::fromTime_t(file.second->mtime).toString(),
                  this->walker->diffDesciption(file.second->flags)

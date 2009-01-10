@@ -18,4 +18,4 @@ SOURCES += testmain.cpp testnullfxp.cpp
 SOURCES += ../basestorage.cpp ../utils.cpp ../globaloption.cpp \
 ../sshfileinfo.cpp
 
-win32:LIBS += -lQtTest
+win32:LIBS += -lQtTest -lws2_32  -lgdi32 

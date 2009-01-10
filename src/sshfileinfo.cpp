@@ -28,6 +28,7 @@
 // 
 // 
 // 
+#include "utils.h"
 
 #include "sshfileinfo.h"
 
