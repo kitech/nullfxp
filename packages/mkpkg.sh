@@ -45,6 +45,8 @@ USED_KRB5SO=`ldd $dirname/../nullfxp/lib/nullfxp|grep libkrb5.so|awk '{print $3}
 USED_K5CRYPTO=`ldd $dirname/../nullfxp/lib/nullfxp|grep libk5crypto|awk '{print $3}'` 
 USED_KRB5SUPPORT=`ldd $dirname/../nullfxp/lib/nullfxp|grep libkrb5support|awk '{print $3}'` 
 USED_EXPAT=`ldd $dirname/../nullfxp/lib/nullfxp|grep libexpat|awk '{print $3}'` 
+USED_KEYUTILS=`ldd $dirname/../nullfxp/lib/nullfxp|grep libkeyutils|awk '{print $3}'`
+USED_SELINUX=`ldd $dirname/../nullfxp/lib/nullfxp|grep libselinux|awk '{print $3}'`
 
 echo $USED_OPENSSL_SSL $USED_OPENSSL_CRYPTO
 cp -v $USED_OPENSSL_SSL $dirname/../nullfxp/lib/
@@ -56,6 +58,8 @@ cp -v $USED_K5CRYPTO $dirname/../nullfxp/lib/
 cp -v $USED_KRB5SUPPORT $dirname/../nullfxp/lib/
 
 cp -v $USED_EXPAT $dirname/../nullfxp/lib/
+cp -v $USED_KEYUTILS $dirname/../nullfxp/lib/
+cp -v $USED_SELINUX $dirname/../nullfxp/lib/
 
 
 USED_QT=`ldd $dirname/../nullfxp/lib/nullfxp|grep libQt|awk '{print $3}'`
