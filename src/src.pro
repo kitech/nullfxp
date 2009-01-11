@@ -13,7 +13,7 @@ win32 {
 } else:solaris-g++ {
         QT -= webkit
 } else {
-	QT += webkit
+#	QT += webkit
 	CONFIG += debug release
 }
 QT += network 
@@ -75,7 +75,8 @@ SOURCES += main.cpp \
  synchronizeoptiondialog.cpp \
  synchronizewindow.cpp \
  syncdiffermodel.cpp \
- sshfileinfo.cpp
+ sshfileinfo.cpp \
+ synctransferthread.cpp
 
 HEADERS += nullfxp.h \
  localview.h \
@@ -108,7 +109,8 @@ HEADERS += nullfxp.h \
  completelineeditdelegate.h \
  synchronizeoptiondialog.h \
  synchronizewindow.h \
- syncdiffermodel.h
+ syncdiffermodel.h \
+ synctransferthread.h
 
 DISTFILES += ../CMakeLists.txt \
 CMakeLists.txt \

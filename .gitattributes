@@ -265,6 +265,8 @@ src/synchronizeoptiondialog.ui -text
 src/synchronizewindow.cpp -text
 src/synchronizewindow.h -text
 src/synchronizewindow.ui -text
+src/synctransferthread.cpp -text
+src/synctransferthread.h -text
 src/tmpmain.cpp -text
 src/transferthread.cpp -text
 src/transferthread.h -text

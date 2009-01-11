@@ -525,9 +525,35 @@ void SynchronizeWindow::initCtxMenu()
         action = new QAction(tr("File info..."), this->ctxMenu);
         this->ctxMenu->addAction(action);
         QObject::connect(action, SIGNAL(triggered()), this, SLOT(showDiffFileInfo()));
+
+        dlAction = new QAction(tr("&Download"), this->ctxMenu);
+        this->ctxMenu->addAction(dlAction);
+        QObject::connect(dlAction, SIGNAL(triggered()), this, SLOT(dlSelectedDiffFiles()));
+        
+        upAction = new QAction(tr("&Upload"), this->ctxMenu);
+        this->ctxMenu->addAction(upAction);
+        QObject::connect(upAction, SIGNAL(triggered()), this, SLOT(upSelectedDiffFiles()));
     }
 }
 
+QModelIndexList SynchronizeWindow::getSelectedModelIndexes()
+{
+    QItemSelectionModel *ism = NULL;
+    QModelIndexList mil;
+
+    ism = this->ui_win.treeView->selectionModel();
+    if (ism != NULL) {
+        mil = ism->selectedIndexes();
+    }
+
+    return mil;
+}
+void SynchronizeWindow::manualShowWhatsThis(QString what)
+{
+    QPoint pos = QCursor::pos();
+    //QWhatsThis::showText(pos, tr("sdfsdfsdfdsf\nsdfijsdfiowej"));
+    QWhatsThis::showText(pos, what);    
+}
 void SynchronizeWindow::showCtxMenu(const QPoint & pos)
 {
     if (this->ctxMenu == NULL) {
@@ -537,7 +563,8 @@ void SynchronizeWindow::showCtxMenu(const QPoint & pos)
     //  return ;
     //}
     QPoint adjPos = this->ui_win.treeView->mapToGlobal(pos);
-    adjPos.setX(adjPos.x() + 5);
+    adjPos.setX(adjPos.x() + 3);
+    adjPos.setY(adjPos.y() + 25);
     this->ctxMenu->popup(adjPos);
 }
 
@@ -554,7 +581,8 @@ void SynchronizeWindow::showDiffFileInfo()
         mil = ism->selectedIndexes();
         idx = mil.at(0);
         file = this->model->getFile(idx);
-        Q_ASSERT(file.isValid());
+        Q_ASSERT(file.second != NULL);
+
         QString ftype;
         QString fname=this->local_dir + "/" + file.first;
         ftype = (QFile::exists(fname) ? QFileInfo(fname).isDir() : SSHFileInfo(file.second).isDir()) 
@@ -568,9 +596,91 @@ void SynchronizeWindow::showDiffFileInfo()
                  );
     }
 
-    QPoint pos = QCursor::pos();
-    //QWhatsThis::showText(pos, tr("sdfsdfsdfdsf\nsdfijsdfiowej"));
-    QWhatsThis::showText(pos, info);
+    this->manualShowWhatsThis(info);
+    // QPoint pos = QCursor::pos();
+    // //QWhatsThis::showText(pos, tr("sdfsdfsdfdsf\nsdfijsdfiowej"));
+    // QWhatsThis::showText(pos, info);
+}
+
+void SynchronizeWindow::dlSelectedDiffFiles()
+{
+    QString lfname, rfname;
+    QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> file;
+    QModelIndex idx ;
+    QModelIndexList mil = this->getSelectedModelIndexes();
+    
+    if (mil.count() == 0) {
+        q_debug()<<"No item selected";
+        return;
+    }
+    
+    idx = mil.at(0);
+    file = this->model->getFile(idx);
+    Q_ASSERT(file.isValid());
+    q_debug()<<file;
+
+    unsigned long flags = file.second->flags;
+    if (flags & SyncWalker::FLAG_LOCAL_ONLY) {
+        //fline += QString("local only");
+        q_debug()<<QString("local only")<<", can not download";
+    } 
+    if (flags & SyncWalker::FLAG_REMOTE_ONLY) {
+        //fline += QString("remote only");
+    } 
+    if (flags & SyncWalker::FLAG_LOCAL_NEWER) {
+        //fline += QString("local newer");            
+    } 
+    if (flags & SyncWalker::FLAG_REMOTE_NEWER) {
+        //fline += QString("remote newer");
+    } 
+    if (flags & SyncWalker::FLAG_FILE_EQUAL) {
+        //fline += QString("the same");
+        q_debug()<<QString("the same")<<", download not needed";
+    } 
+    if (flags & SyncWalker::FLAG_FILE_DIFFERENT) {
+        //fline += QString("???");
+        q_debug()<<QString("???")<<", not possible";
+    }
+    
+}
+void SynchronizeWindow::upSelectedDiffFiles()
+{
+    QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> file;
+    QModelIndex idx ;
+    QModelIndexList mil = this->getSelectedModelIndexes();
+    
+    if (mil.count() == 0) {
+        q_debug()<<"No item selected";
+        return;
+    }
+    
+    idx = mil.at(0);
+    file = this->model->getFile(idx);
+    Q_ASSERT(file.isValid());
+    q_debug()<<file;
+
+    unsigned long flags = file.second->flags;
+    if (flags & SyncWalker::FLAG_LOCAL_ONLY) {
+        //fline += QString("local only");
+    } 
+    if (flags & SyncWalker::FLAG_REMOTE_ONLY) {
+        //fline += QString("remote only");
+        q_debug()<<QString("remote only")<<", can not upload";
+    } 
+    if (flags & SyncWalker::FLAG_LOCAL_NEWER) {
+        //fline += QString("local newer");            
+    } 
+    if (flags & SyncWalker::FLAG_REMOTE_NEWER) {
+        //fline += QString("remote newer");
+    } 
+    if (flags & SyncWalker::FLAG_FILE_EQUAL) {
+        //fline += QString("the same");
+        q_debug()<<QString("the same")<<", download not needed";
+    } 
+    if (flags & SyncWalker::FLAG_FILE_DIFFERENT) {
+        //fline += QString("???");
+        q_debug()<<QString("???")<<", not possible";
+    }
 }
 
 

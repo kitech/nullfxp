@@ -79,7 +79,13 @@ TAR_CMD=tar
 if [ x"${LINK_PLATFORM}" = x"SunOS" ]; then
     TAR_CMD=gtar
 fi
+if [ x"${LINK_PLATFORM}" = x"FreeBSD" ] ; then
+	FBSDVER=`uname -r`
+	FBSDVER=`echo $FBSDVER|cut -c 1`
+	LINK_PLATFORM="$LINK_PLATFORM""$FBSDVER"    
+	echo $LINK_PLATFORM
+fi
 
-
+MARCH=`uname -m`
 echo "package info: $LINK_PLATFORM $LINK_TYPE $VERSION"
-$TAR_CMD  jcvf $dirname/../nullfxp-$VERSION-$LINK_TYPE-qt4.i686.$LINK_PLATFORM.tar.bz2 $dirname/../nullfxp
+$TAR_CMD  jcvf $dirname/../nullfxp-$VERSION-$LINK_TYPE-qt4.$MARCH.$LINK_PLATFORM.tar.bz2 $dirname/../nullfxp

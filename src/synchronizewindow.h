@@ -55,6 +55,13 @@ public:
 
     QString diffDesciption(unsigned long flags);
     QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > mMergedFiles;
+
+    enum {FLAG_LOCAL_FILE=0x00100000,FLAG_REMOTE_FILE=0x00200000,
+          FLAG_LOCAL_ONLY=0x00400000,FLAG_REMOTE_ONLY=0x00800000,
+          FLAG_LOCAL_NEWER=0x01000000,FLAG_REMOTE_NEWER=0x02000000,
+          FLAG_FILE_EQUAL=0x04000000,FLAG_FILE_DIFFERENT=0x08000000,
+    };
+
 signals:
     void found_row();
 
@@ -75,11 +82,6 @@ private:
 
 private:
     SynchronizeWindow *parent;
-    enum {FLAG_LOCAL_FILE=0x00100000,FLAG_REMOTE_FILE=0x00200000,
-          FLAG_LOCAL_ONLY=0x00400000,FLAG_REMOTE_ONLY=0x00800000,
-          FLAG_LOCAL_NEWER=0x01000000,FLAG_REMOTE_NEWER=0x02000000,
-          FLAG_FILE_EQUAL=0x04000000,FLAG_FILE_DIFFERENT=0x08000000,
-    };
     // default is CMP_BY_TIME_SIZE
     enum {CMP_BY_TIME_SIZE=0x0001, CMP_BY_CONTENT=0x0002};
     // file times have precision of 2 seconds due to FAT/FAT32 file systems
@@ -119,9 +121,13 @@ private slots:
     void progress_timer_timeout();
     void showCtxMenu(const QPoint & pos);
     void showDiffFileInfo();
+    void dlSelectedDiffFiles();
+    void upSelectedDiffFiles();
 
 private:
     void initCtxMenu();
+    QModelIndexList getSelectedModelIndexes();
+    void manualShowWhatsThis(QString what);
 
 private:
     Ui::SynchronizeWindow  ui_win;
@@ -133,6 +139,8 @@ private:
     QTimer progress_timer;
     bool running;
     QMenu *ctxMenu;
+    QAction * dlAction;
+    QAction * upAction;
 
     SyncWalker *walker;
     SyncDifferModel *model;
