@@ -376,17 +376,17 @@ void RemoteView::closeEvent ( QCloseEvent * event )
     if( this->in_remote_dir_retrive_loop )
     {
         //TODO 怎么能友好的结束
-        //QMessageBox::warning(this,tr("attentions:"),tr("retriving remote directory tree,wait a minute please.") );
+        //QMessageBox::warning(this,tr("Attentions:"),tr("Retriving remote directory tree, wait a minute please.") );
         //return ;
         //如果说是在上传或者下载,则强烈建议用户先关闭传输窗口，再关闭连接
         if(  this->own_progress_dialog != 0 )
         {
-            QMessageBox::warning(this,tr("Attentions:"),tr("you can't close connection when transfer file.") );
+            QMessageBox::warning(this,tr("Attentions:"),tr("You can't close connection when transfering file.") );
             return ;
         }
     }
     //this->setVisible(false);
-    if( QMessageBox::question(this,tr("Attemp to close this window?"),tr("Are you sure  disconnect from %1?").arg(this->windowTitle()) ,QMessageBox::Ok|QMessageBox::Cancel,QMessageBox::Cancel ) == QMessageBox::Ok )
+    if( QMessageBox::question(this,tr("Attemp to close this window?"),tr("Are you sure disconnect from %1?").arg(this->windowTitle()) ,QMessageBox::Ok|QMessageBox::Cancel,QMessageBox::Cancel ) == QMessageBox::Ok )
     {
         this->setVisible(false);
         qDebug()<<"delete remote view";
@@ -629,7 +629,7 @@ void RemoteView::rm_file_or_directory_recursively()
     QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) ? this->remote_dir_sort_filter_model_ex->mapToSource(midx): this->remote_dir_sort_filter_model->mapToSource(midx) ;
     directory_tree_item * dti = (directory_tree_item*) aim_midx.internalPointer();
     if(QMessageBox::warning(this, tr("Warning:"), 
-                            tr("Are you sure remote this directory and it's subnodes"),
+                            tr("Are you sure remove this directory and it's subnodes"),
                             QMessageBox::Yes, QMessageBox::Cancel) == QMessageBox::Yes) {
         QModelIndex parent_model =  aim_midx.parent() ;
         directory_tree_item * parent_item = (directory_tree_item*)parent_model.internalPointer();

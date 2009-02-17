@@ -242,11 +242,17 @@ void LocalView::slot_local_new_upload_requested()
         //emit  new_upload_requested("/home/gzl/hehe.txt");
         //emit  new_upload_requested ( local_file_name , local_file_type );
         //加上协议前缀
-        local_file_name = QString("file://"
-#ifndef WIN32
-				  "/"
+#ifdef WIN32
+        local_file_name = QString("file://") + local_file_name ;
+#else
+        local_file_name = QString("file:///") + local_file_name ;
 #endif
-	    ) + local_file_name ;
+//         local_file_name = QString("file://"
+// #ifndef WIN32
+// 				  "/"
+                                  
+// #endif
+// 	    ) + local_file_name ;
         local_file_names << local_file_name;
 	qDebug()<< local_file_names ;
     }
