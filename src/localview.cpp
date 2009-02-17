@@ -9,9 +9,9 @@
 // http://nullget.sourceforge.net
 // Created: 六  5月 31 15:26:15 2008 (CST)
 // Version: 
-// Last-Updated: 二  7月 15 20:01:47 2008 (CST)
+// Last-Updated: 三  2月 18 05:05:00 2009 (CST)
 //           By: 刘光照<liuguangzhao@users.sf.net>
-//     Update #: 1
+//     Update #: 7
 // URL: 
 // Keywords: 
 // Compatibility: 
@@ -242,11 +242,12 @@ void LocalView::slot_local_new_upload_requested()
         //emit  new_upload_requested("/home/gzl/hehe.txt");
         //emit  new_upload_requested ( local_file_name , local_file_type );
         //加上协议前缀
-#ifdef WIN32
         local_file_name = QString("file://") + local_file_name ;
-#else
-        local_file_name = QString("file:///") + local_file_name ;
-#endif
+// #ifdef WIN32
+//         local_file_name = QString("file://") + local_file_name ;
+// #else
+//         local_file_name = QString("file:///") + local_file_name ;
+// #endif
 //         local_file_name = QString("file://"
 // #ifndef WIN32
 // 				  "/"
