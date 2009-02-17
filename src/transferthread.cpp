@@ -289,7 +289,7 @@ void TransferThread::run()
 
             // 将文件上传到目录
             if (
-               //is_reg( GlobalOption::instance()->locale_codec->fromUnicode( this->current_src_file_name ).data() )
+                // is_reg( GlobalOption::instance()->locale_codec->fromUnicode( this->current_src_file_name ).data() )
                 QFileInfo(this->current_src_file_name).isFile()
                && remote_is_dir( this->dest_ssh2_sftp , this->current_dest_file_name ) )
             {
@@ -303,7 +303,7 @@ void TransferThread::run()
             }
             //将目录上传到目录
             else if (
-                     //is_dir( GlobalOption::instance()->locale_codec->fromUnicode( this->current_src_file_name ).data() )
+                     // is_dir( GlobalOption::instance()->locale_codec->fromUnicode( this->current_src_file_name ).data() )
                      QFileInfo(this->current_src_file_name).isDir()
                      && remote_is_dir(  this->dest_ssh2_sftp , this->current_dest_file_name ) )
             {
