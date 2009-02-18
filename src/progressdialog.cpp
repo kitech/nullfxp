@@ -56,6 +56,7 @@
 #include <sys/uio.h>
 #endif
 
+#include "utils.h"
 #include "globaloption.h"
 #include "progressdialog.h"
 #include "fileexistaskdialog.h"
@@ -84,7 +85,7 @@ ProgressDialog::ProgressDialog(QWidget *parent )
                      this,SLOT(slot_transfer_log(QString)) );
 
     QObject::connect(this->sftp_transfer_thread, SIGNAL(dest_file_exists(QString, QString, QString, QString, QString, QString)),
-		     this,SLOT(slot_dest_file_exists(QString,QString, QString, QString, QString, QString)));
+                     this,SLOT(slot_dest_file_exists(QString,QString, QString, QString, QString, QString)));
     
     this->first_show = 1 ;
     this->ui_progress_dialog.progressBar->setValue(0);
@@ -108,34 +109,31 @@ void ProgressDialog::set_transfer_info(QStringList local_file_names,QStringList 
     QString local_file_name ;
     QString remote_file_name ;
     QString tmp_str ;
-    //this->transfer_type = type ;
     
     this->local_file_names = local_file_names;
     this->remote_file_names = remote_file_names ;
 
-    this->sftp_transfer_thread->set_transfer_info(/*type,*/local_file_names,remote_file_names  );
+    this->sftp_transfer_thread->set_transfer_info(local_file_names,remote_file_names);
     
-        QString local_full_path ;
-//         this->ui_progress_dialog.lineEdit->setText(tr("Downloading..."));
-        this->ui_progress_dialog.comboBox->clear();
-        this->ui_progress_dialog.comboBox_2->clear();
-//         this->ui_progress_dialog.comboBox_2->addItem( local_file_name );
-//         
-        for( int i = 0 ; i < remote_file_names.count() ; i ++ )
-        {
-            remote_file_name = remote_file_names.at(i);
-            local_full_path = local_file_name + "/"
-                + remote_file_name.split ( "/" ).at ( remote_file_name.split ( "/" ).count()-1 ) ;
-            //fixed: 当用户名或者密码中包含问号或者#号的时候 QUrl 类就处理不了了。 传递过来的密码都是urlencoded
-			tmp_str = QUrl(remote_file_name).path() ;
-			if( tmp_str.at(2) == ':'){
-				//assert it win32	"/G:/path/to/file.zip"
-				this->ui_progress_dialog.comboBox_2->addItem( QUrl(remote_file_name).path().right(QUrl(remote_file_name).path().length()-1) );
-			}else{
-				this->ui_progress_dialog.comboBox_2->addItem( QUrl(remote_file_name).path() );
-			}
-            this->ui_progress_dialog.lineEdit->setText(QUrl(local_file_names.at(0)).scheme()+"-->"+QUrl(remote_file_name).scheme());
+    QString local_full_path ;
+    
+    this->ui_progress_dialog.comboBox->clear();
+    this->ui_progress_dialog.comboBox_2->clear();
+
+    for (int i = 0 ; i < remote_file_names.count() ; i ++) {
+        remote_file_name = remote_file_names.at(i);
+        local_full_path = local_file_name + "/"
+            + remote_file_name.split ( "/" ).at ( remote_file_name.split ( "/" ).count()-1 ) ;
+        //fixed: 当用户名或者密码中包含问号或者#号的时候 QUrl 类就处理不了了。 传递过来的密码都是urlencoded
+        tmp_str = QUrl(remote_file_name).path() ;
+        if (tmp_str.at(2) == ':') {
+            //assert it win32	"/G:/path/to/file.zip"
+            this->ui_progress_dialog.comboBox_2->addItem( QUrl(remote_file_name).path().right(QUrl(remote_file_name).path().length()-1) );
+        }else{
+            this->ui_progress_dialog.comboBox_2->addItem( QUrl(remote_file_name).path() );
         }
+        this->ui_progress_dialog.lineEdit->setText(QUrl(local_file_names.at(0)).scheme()+"-->"+QUrl(remote_file_name).scheme());
+    }
 }
 
 void ProgressDialog::slot_set_transfer_percent(int percent  , int total_transfered,int transfer_delta )
@@ -197,8 +195,8 @@ void ProgressDialog::show ()
 
 void ProgressDialog::slot_new_file_transfer_started(QString new_file_name)
 {
-    
     QString u_new_file_name =  new_file_name  ;
+
     bool found = 0 ;
     for(int i = 0 ; i < this->ui_progress_dialog.comboBox->count() ; i ++ )
     {
