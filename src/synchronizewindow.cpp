@@ -35,6 +35,7 @@
 #include "sshfileinfo.h"
 
 #include "syncdiffermodel.h"
+#include "synctransferthread.h"
 #include "synchronizewindow.h"
 
 SyncWalker::SyncWalker(QObject *parent)
@@ -424,9 +425,10 @@ void SyncWalker::run()
 /////////////////////
 SynchronizeWindow::SynchronizeWindow(QWidget *parent, Qt::WindowFlags flags)
     :QWidget(parent, flags),
-     ctxMenu(0)
+     ctxMenu(0), transfer(0)
 {
     this->ui_win.setupUi(this);
+
     walker = new SyncWalker(this);
     QObject::connect(walker, SIGNAL(status_msg(QString)), this, SLOT(slot_status_msg(QString)));
     QObject::connect(walker, SIGNAL(finished()), this, SLOT(slot_finished()));
@@ -478,6 +480,10 @@ void SynchronizeWindow::stop()
 }
 void SynchronizeWindow::slot_finished()
 {
+    SyncWalker *sender_walker = (SyncWalker*)(sender());
+    Q_ASSERT(sender_walker == this->walker);
+    Q_UNUSED(sender_walker);
+
     this->running = false;
     model = new SyncDifferModel(this);
     model->setDiffFiles(this->walker->mMergedFiles);
@@ -488,6 +494,12 @@ void SynchronizeWindow::slot_finished()
 
     this->progress_timer.stop();
     this->ui_win.progressBar->setValue(100);
+
+    ////////
+    if (this->transfer == 0) {
+        this->transfer = new SyncTransferThread(this);
+        this->transfer->setRemoteSession(this->sess_name);
+    }
 }
 
 void SynchronizeWindow::slot_status_msg(QString msg)
@@ -623,25 +635,21 @@ void SynchronizeWindow::dlSelectedDiffFiles()
     if (flags & SyncWalker::FLAG_LOCAL_ONLY) {
         //fline += QString("local only");
         q_debug()<<QString("local only")<<", can not download";
-    } 
-    if (flags & SyncWalker::FLAG_REMOTE_ONLY) {
-        //fline += QString("remote only");
-    } 
-    if (flags & SyncWalker::FLAG_LOCAL_NEWER) {
+    } else if (flags & SyncWalker::FLAG_REMOTE_ONLY) {
+        //fline += QString("remote only");        
+    } else if (flags & SyncWalker::FLAG_LOCAL_NEWER) {
         //fline += QString("local newer");            
-    } 
-    if (flags & SyncWalker::FLAG_REMOTE_NEWER) {
+    } else if (flags & SyncWalker::FLAG_REMOTE_NEWER) {
         //fline += QString("remote newer");
-    } 
-    if (flags & SyncWalker::FLAG_FILE_EQUAL) {
+    } else if (flags & SyncWalker::FLAG_FILE_EQUAL) {
         //fline += QString("the same");
         q_debug()<<QString("the same")<<", download not needed";
-    } 
-    if (flags & SyncWalker::FLAG_FILE_DIFFERENT) {
+    } else if (flags & SyncWalker::FLAG_FILE_DIFFERENT) {
         //fline += QString("???");
         q_debug()<<QString("???")<<", not possible";
-    }
-    
+    } else {
+
+    }    
 }
 void SynchronizeWindow::upSelectedDiffFiles()
 {

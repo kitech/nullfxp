@@ -42,6 +42,7 @@
 
 class SyncDifferModel;
 class SynchronizeWindow;
+class SyncTransferThread;
 
 //////////////
 //////////////
@@ -60,6 +61,7 @@ public:
           FLAG_LOCAL_ONLY=0x00400000,FLAG_REMOTE_ONLY=0x00800000,
           FLAG_LOCAL_NEWER=0x01000000,FLAG_REMOTE_NEWER=0x02000000,
           FLAG_FILE_EQUAL=0x04000000,FLAG_FILE_DIFFERENT=0x08000000,
+          FLAG_WANT_DOWNLOAD=0x10000000,FLAG_WANT_UPLOAD=0x20000000,
     };
 
 signals:
@@ -85,7 +87,7 @@ private:
     // default is CMP_BY_TIME_SIZE
     enum {CMP_BY_TIME_SIZE=0x0001, CMP_BY_CONTENT=0x0002};
     // file times have precision of 2 seconds due to FAT/FAT32 file systems
-    static const int FILE_TIME_PRECISION = 2;
+    static const unsigned int FILE_TIME_PRECISION = 2;
 
     LIBSSH2_SESSION *ssh2_sess ;
     LIBSSH2_SFTP *ssh2_sftp ;
@@ -144,6 +146,7 @@ private:
 
     SyncWalker *walker;
     SyncDifferModel *model;
+    SyncTransferThread *transfer;
 
     enum {ST_LZERO = 0x00, ST_RZERO = 0x01, ST_LRSAME = 0x02, ST_LNEW = 0x04, ST_RNEW = 0x08 };
     enum {FT_DIR = 0x10000, FT_REG = 0x20000};

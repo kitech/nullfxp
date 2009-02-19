@@ -86,6 +86,9 @@ int SyncTransferThread::transfer_impl(QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> t
             return TASK_ERROR_CONN_FAILD;
         }
     }
+    
+    
+    
     return TASK_OK;
 }
 
