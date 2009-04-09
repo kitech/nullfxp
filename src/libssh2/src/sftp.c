@@ -562,7 +562,7 @@ static LIBSSH2_SFTP *sftp_init(LIBSSH2_SESSION *session)
     if (session->sftpInit_state == libssh2_NB_state_idle) {
         _libssh2_debug(session, LIBSSH2_DBG_SFTP,
                        "Initializing SFTP subsystem");
-
+        session->sftpInit_sftp = NULL;
         assert(session->sftpInit_sftp == NULL);
 
         session->sftpInit_sftp = NULL;
