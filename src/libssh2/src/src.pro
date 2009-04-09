@@ -14,7 +14,9 @@ scp.c \
 session.c \
 sftp.c \
 transport.c \
-userauth.c
+userauth.c \
+version.c 
+
 HEADERS += libgcrypt.h \
 libssh2_config.h \
 libssh2_priv.h \

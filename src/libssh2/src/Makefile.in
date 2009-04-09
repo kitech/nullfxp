@@ -64,12 +64,13 @@ libssh2_la_LIBADD =
 am__libssh2_la_SOURCES_DIST = channel.c comp.c crypt.c hostkey.c kex.c \
 	mac.c misc.c packet.c publickey.c scp.c session.c sftp.c \
 	userauth.c libssh2_priv.h openssl.h libgcrypt.h transport.c \
-	libgcrypt.c pem.c openssl.c
+	version.c transport.h channel.h comp.h mac.h libgcrypt.c pem.c \
+	openssl.c
 @LIBGCRYPT_TRUE@am__objects_1 = libgcrypt.lo pem.lo
 @LIBGCRYPT_FALSE@am__objects_2 = openssl.lo
 am_libssh2_la_OBJECTS = channel.lo comp.lo crypt.lo hostkey.lo kex.lo \
 	mac.lo misc.lo packet.lo publickey.lo scp.lo session.lo \
-	sftp.lo userauth.lo transport.lo $(am__objects_1) \
+	sftp.lo userauth.lo transport.lo version.lo $(am__objects_1) \
 	$(am__objects_2)
 libssh2_la_OBJECTS = $(am_libssh2_la_OBJECTS)
 DEFAULT_INCLUDES = 
@@ -168,7 +169,7 @@ SSHD = @SSHD@
 SSHD_FALSE = @SSHD_FALSE@
 SSHD_TRUE = @SSHD_TRUE@
 STRIP = @STRIP@
-VERSION = -version-info 1:0:0
+VERSION = -version-info 1:1:0
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
 ac_ct_F77 = @ac_ct_F77@
@@ -217,12 +218,13 @@ sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 
-# $Id: Makefile.am,v 1.13 2008/11/21 14:34:03 jas4711 Exp $
+# $Id: Makefile.am,v 1.19 2009/03/26 22:25:23 bagder Exp $
 AUTOMAKE_OPTIONS = foreign nostdinc
 libssh2_la_SOURCES = channel.c comp.c crypt.c hostkey.c kex.c mac.c \
 	misc.c packet.c publickey.c scp.c session.c sftp.c userauth.c \
-	libssh2_priv.h openssl.h libgcrypt.h transport.c \
-	$(am__append_1) $(am__append_2)
+	libssh2_priv.h openssl.h libgcrypt.h transport.c version.c \
+	transport.h channel.h comp.h mac.h $(am__append_1) \
+	$(am__append_2)
 EXTRA_DIST = libssh2_config.h.in NMakefile
 lib_LTLIBRARIES = libssh2.la
 
@@ -259,6 +261,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_builddir)/src
 # set age to 0. (c:r:a=0)
 #
 libssh2_la_LDFLAGS = $(VERSION) -no-undefined \
+	-export-symbols-regex '^libssh2_.*' \
 	$(LTLIBGCRYPT) $(LTLIBSSL) $(LTLIBZ)
 
 all: libssh2_config.h
@@ -365,6 +368,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sftp.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/transport.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/userauth.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/version.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
