@@ -23,7 +23,7 @@ int main(int argc, char **argv)
                 ep = strstr(vn, " \"");
                 assert(ep != 0);
                 *ep = '\0';
-                printf(vn+1);
+                printf("%s", vn+1);
                 break;
             }
         }

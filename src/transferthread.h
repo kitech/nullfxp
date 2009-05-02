@@ -61,7 +61,7 @@
 class TransferThread : public QThread
 {
     Q_OBJECT
-	public:
+public:
     
     enum { TRANSFER_MIN, TRANSFER_GET,TRANSFER_PUT,TRANSFER_EXCHANGE,TRANSFER_RETRIVE_TO_LOCAL,TRANSFER_RETRIVE_TO_REMOTE ,TRANSFER_MAX };
     enum { PROTO_MIN, PROTO_FILE , PROTO_NRSFTP , PROTO_NRFTP , PROTO_HTTP, PROTO_HTTPS,PROTO_FTP,PROTO_RSTP,PROTO_MMS , PROTO_MAX } ;
@@ -124,12 +124,12 @@ private:
     QStringList src_file_names ;
     QStringList dest_file_names;
         
-    uint64_t total_file_size ;
-    uint64_t total_transfered_file_length ; 
-    uint32_t total_file_count ;
-    uint32_t total_transfered_file_count ;
-    uint64_t current_file_size ;
-    uint64_t current_file_transfered_length ;
+    quint64 total_file_size ;
+    quint64 total_transfered_file_length ; 
+    quint32 total_file_count ;
+    quint32 total_transfered_file_count ;
+    quint64 current_file_size ;
+    quint64 current_file_transfered_length ;
     QString  current_src_file_name;
     QString  current_src_file_type;
     QString  current_dest_file_name;
