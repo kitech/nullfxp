@@ -143,7 +143,9 @@ int  RemoteDirRetriveThread::retrive_dir()
         LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib ;
         memset(&ssh2_sftp_attrib,0,sizeof(LIBSSH2_SFTP_ATTRIBUTES));
         LIBSSH2_SFTP_HANDLE * ssh2_sftp_handle = 0;
-        ssh2_sftp_handle = libssh2_sftp_opendir(this->ssh2_sftp,GlobalOption::instance()->remote_codec->fromUnicode(parent_item->strip_path+ ( "/" )).data());
+        ssh2_sftp_handle = libssh2_sftp_opendir(this->ssh2_sftp, 
+                                                GlobalOption::instance()->remote_codec->fromUnicode(parent_item->strip_path+ ( "/" )).data()
+                                                );
 
         // ssh2_sftp_handle == 0 是怎么回事呢？ 返回值 应该是
         // 1 . 这个file_name 是一个链接，但这个链接指向的是一个普通文件而不是目录时libssh2_sftp_opendir返回0 , 而 libssh2_sftp_last_error 返回值为 2 == SSH2_FX_NO_SUCH_FILE
@@ -170,7 +172,8 @@ int  RemoteDirRetriveThread::retrive_dir()
             }else{
                 new_item = new directory_tree_item();
                 new_item->parent_item = parent_item;
-                new_item->strip_path = parent_item->strip_path + QString("/") + file_name ;
+                // new_item->strip_path = parent_item->strip_path + QString("/") + file_name ;
+                new_item->strip_path = parent_item->strip_path + QString("/") + tmp ; // this is unicode
                 new_item->file_name = tmp;
                 new_item->attrib = ssh2_sftp_attrib;
                 new_item->retrived = (new_item->isDir()) ? POP_NO_NEED_NO_DATA : POP_NEWEST;
@@ -336,7 +339,7 @@ int  RemoteDirRetriveThread::rm_file_or_directory_recursively_ex( QString parent
     }
     
     //删除这个目录
-    abs_path = parent_path ;//+ "/" + parent_item->file_name ;
+    abs_path = GlobalOption::instance()->remote_codec->fromUnicode(parent_path) ;//+ "/" + parent_item->file_name ;
     //qDebug()<<"rmdir: "<< abs_path;
     exec_ret = libssh2_sftp_rmdir(ssh2_sftp, abs_path.toAscii().data());
     if( exec_ret != 0 ) //可能这是一个文件，不是目录，那么使用删除文件的指令
@@ -344,7 +347,7 @@ int  RemoteDirRetriveThread::rm_file_or_directory_recursively_ex( QString parent
         exec_ret = libssh2_sftp_unlink(ssh2_sftp, abs_path.toAscii().data());
         if( exec_ret != 0 )
         {
-            qDebug()<< "count remove file or directory ("<< libssh2_sftp_last_error(ssh2_sftp) <<"): "<< abs_path ;
+            qDebug()<< "Can't remove file or directory ("<< libssh2_sftp_last_error(ssh2_sftp) <<"): "<< abs_path ;
         }
     }
     
