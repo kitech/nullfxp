@@ -52,12 +52,12 @@ RemoteHostQuickConnectInfoDialog::~RemoteHostQuickConnectInfoDialog()
 
 QString RemoteHostQuickConnectInfoDialog::get_user_name ()
 {
-    return this->quick_connect_info_dialog.lineEdit_3->text();
+    return this->quick_connect_info_dialog.lineEdit_3->text().trimmed();
 }
 
 QString RemoteHostQuickConnectInfoDialog::get_host_name ()
 {
-    return this->quick_connect_info_dialog.lineEdit->text();
+    return this->quick_connect_info_dialog.lineEdit->text().trimmed();
 }
 
 QString RemoteHostQuickConnectInfoDialog::get_password()
@@ -68,7 +68,7 @@ QString RemoteHostQuickConnectInfoDialog::get_password()
 }
 short  RemoteHostQuickConnectInfoDialog::get_port()
 {
-    QString str_port = this->quick_connect_info_dialog.lineEdit_2->text();
+    QString str_port = this->quick_connect_info_dialog.lineEdit_2->text().trimmed();
     int port = str_port.toShort();
     
     return port;
@@ -86,8 +86,9 @@ void RemoteHostQuickConnectInfoDialog::set_active_host(QMap<QString,QString> hos
     QString password = host["password"];
     QString port = host["port"];
     QString pubkey_path ;//
-    if(host.contains("pubkey"))
+    if (host.contains("pubkey")) {
         pubkey_path = host["pubkey"];
+    }
     
     this->quick_connect_info_dialog.lineEdit->setText(host_name);
     this->quick_connect_info_dialog.lineEdit_2->setText(port);
@@ -100,36 +101,36 @@ void RemoteHostQuickConnectInfoDialog::set_active_host(QMap<QString,QString> hos
     this->show_name = show_name;
     this->pubkey_path = pubkey_path;
 
-    if(host.contains("pubkey")){
+    if (host.contains("pubkey")) {
         this->quick_connect_info_dialog.toolButton->setToolTip(QString(tr("Current key: ")) 
                                                                + this->pubkey_path);
-    }else{
+    } else {
         this->quick_connect_info_dialog.toolButton->setToolTip(tr("No key"));
     }
 }
 
 QMap<QString,QString> RemoteHostQuickConnectInfoDialog::get_host_map()
 {
-  QMap<QString,QString> host;
+    QMap<QString,QString> host;
 
-  host["show_name"] = this->show_name;
-  host["host_name"] = this->quick_connect_info_dialog.lineEdit->text();
-  host["user_name"] = this->quick_connect_info_dialog.lineEdit_3->text();
-  host["password"] = this->quick_connect_info_dialog.lineEdit_4->text();
-  host["password"] = QUrl::toPercentEncoding(host["password"]);
-  host["port"] = this->quick_connect_info_dialog.lineEdit_2->text();
-  if(this->pubkey_path != QString::null && this->pubkey_path.length() > 0) {
-      host["pubkey"] = this->pubkey_path;
-  }
+    host["show_name"] = this->show_name;
+    host["host_name"] = this->quick_connect_info_dialog.lineEdit->text().trimmed();
+    host["user_name"] = this->quick_connect_info_dialog.lineEdit_3->text().trimmed();
+    host["password"] = this->quick_connect_info_dialog.lineEdit_4->text();
+    host["password"] = QUrl::toPercentEncoding(host["password"]);
+    host["port"] = this->quick_connect_info_dialog.lineEdit_2->text().trimmed();
+    if (this->pubkey_path != QString::null && this->pubkey_path.length() > 0) {
+        host["pubkey"] = this->pubkey_path;
+    }
 
   return host;
 }
 
 void RemoteHostQuickConnectInfoDialog::slot_pubkey_checked(int state)
 {
-    if(state == Qt::Checked || state == Qt::PartiallyChecked) {
+    if (state == Qt::Checked || state == Qt::PartiallyChecked) {
         this->quick_connect_info_dialog.toolButton->setEnabled(true);
-    }else{
+    } else {
         this->quick_connect_info_dialog.toolButton->setEnabled(false);
     }
 }
@@ -147,17 +148,17 @@ void RemoteHostQuickConnectInfoDialog::slot_select_pubkey()
 
     path = QFileDialog::getOpenFileName ( this, tr("Publickey Select Dialog"),init_dir, tr("Public Key Files (*.pub);;All Files (*)"));
     qDebug()<<path;    
-    if(path == QString::null) {
+    if( path == QString::null) {
         //cancel
-    }else if(path.length() == 0){
+    } else if(path.length() == 0) {
         qDebug()<<"select null";
-    }else{
+    } else {
         //TODO 检查文件格式, 
         //TODO 简单检查是否是一个有效的public key 
         //TODO 检查key中的用户名及主机是否与上面输入的一致
         //检查对应的私钥文件;
         QString privkey = path.left(path.length() - 4);
-        if(!QFile::exists(privkey)) {
+        if (!QFile::exists(privkey)) {
             QMessageBox::warning(this, tr("Warning"), tr("Can not find related private key file."));
         }
         this->pubkey_path = path;
