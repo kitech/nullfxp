@@ -2,7 +2,7 @@
 <kdevelop>
   <general>
     <author>liuguangzhao</author>
-    <email>liuguangzhao@users.sourceforge.net</email>
+    <email>liuguangzhao@users.sf.net</email>
     <version>1.5.1</version>
     <projectmanagement>KDevTrollProject</projectmanagement>
     <primarylanguage>C++</primarylanguage>
@@ -250,7 +250,7 @@
     <licence>GPL2</licence>
     <summary/>
     <group/>
-    <packager>liuguangzhao@users.sourceforge.net</packager>
+    <packager>liuguangzhao@users.sf.net</packager>
     <description/>
     <changelog/>
     <devpackage>false</devpackage>

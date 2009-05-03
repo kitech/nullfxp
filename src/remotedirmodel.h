@@ -4,7 +4,7 @@
  * Description: 
  * Author: liuguangzhao
  * Maintainer: 
- * Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sf.net>
+ * Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
  * http://www.qtchina.net
  * http://nullget.sourceforge.net
  * Created: 日  5月 25 09:48:00 2008 (CST)
@@ -41,7 +41,7 @@
 class RFSDirNode;
 
 /**
-   @author liuguangzhao <liuguangzhao@users.sourceforge.net >
+   @author liuguangzhao <liuguangzhao@users.sf.net >
    
    这个model必须做成lazy模式的，因为它是远程目录，只有需要显示的时候才去取来远程目录结构
 */

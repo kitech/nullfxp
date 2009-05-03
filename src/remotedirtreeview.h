@@ -1,6 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2007 by liuguangzhao   *
- *   liuguangzhao@users.sourceforge.net   *
+ *   liuguangzhao@users.sf.net   *
  *
  *   http://www.qtchina.net                                                *
  *   http://nullget.sourceforge.net                                        *
@@ -25,7 +25,7 @@
 #include <QTreeView>
 
 /**
-	@author liuguangzhao <liuguangzhao@users.sourceforge.net >
+	@author liuguangzhao <liuguangzhao@users.sf.net >
 */
 class RemoteDirTreeView : public QTreeView
 {

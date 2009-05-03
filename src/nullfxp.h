@@ -4,7 +4,7 @@
  * Description: 
  * Author: liuguangzhao
  * Maintainer: 
- * Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sourceforge.net>
+ * Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
  * http://www.qtchina.net
  * http://nullget.sourceforge.net
  * Created: 二  5月  6 22:02:06 2008 (CST)

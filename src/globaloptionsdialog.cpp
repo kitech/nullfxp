@@ -1,6 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2007 by liuguangzhao   *
- *   liuguangzhao@users.sourceforge.net   *
+ *   liuguangzhao@users.sf.net   *
  *
  *   http://www.qtchina.net                                                *
  *   http://nullget.sourceforge.net                                        *

@@ -4,7 +4,7 @@
  * Description: 
  * Author: 刘光照<liuguangzhao@users.sf.net>
  * Maintainer: 
- * Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sf.net>
+ * Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
  * http://www.qtchina.net
  * http://nullget.sourceforge.net
  * Created: 五  8月  8 13:44:51 2008 (CST)

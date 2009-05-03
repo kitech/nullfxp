@@ -1,6 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2007 by liuguangzhao   *
- *   liuguangzhao@users.sourceforge.net   *
+ *   liuguangzhao@users.sf.net   *
  *
  *   http://www.qtchina.net                                                *
  *   http://nullget.sourceforge.net                                        *
@@ -81,7 +81,7 @@ class ForwardList: public QObject
 
 
 /**
-	@author liuguangzhao <liuguangzhao@users.sourceforge.net>
+	@author liuguangzhao <liuguangzhao@users.sf.net>
 */
 class ForwardConnectDaemon : public QWidget
 {

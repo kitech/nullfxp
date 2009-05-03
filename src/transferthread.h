@@ -4,7 +4,7 @@
  * Description: 
  * Author: liuguangzhao
  * Maintainer: 
- * Copyright (C) 2007-2008 liuguangzhao <liuguangzhao@users.sourceforge.net>
+ * Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
  * http://www.qtchina.net
  * http://nullget.sourceforge.net
  * Created: 二  5月  6 21:58:49 2008 (CST)
@@ -44,7 +44,7 @@
 #include "libssh2_sftp.h"
 
 /**
- * @author liuguangzhao <liuguangzhao@users.sourceforge.net>
+ * @author liuguangzhao <liuguangzhao@users.sf.net>
  * 
  * 此类实现不同主机之间的文件传输功能
  * 由于libssh2协议库的限制，程序无法在一个ssh连接上打开两个或者以上SFTP传输，在此类中选择每次传输

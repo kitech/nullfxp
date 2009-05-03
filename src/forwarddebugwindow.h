@@ -1,6 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2007 by liuguangzhao   *
- *   liuguangzhao@users.sourceforge.net   *
+ *   liuguangzhao@users.sf.net   *
  *
  *   http://www.qtchina.net                                                *
  *   http://nullget.sourceforge.net                                        *
@@ -44,7 +44,7 @@ class DebugMessage
 /**
 Port Forward Connection Debug Message Window Class
 
-	@author liuguangzhao <liuguangzhao@users.sourceforge.net>
+	@author liuguangzhao <liuguangzhao@users.sf.net>
 */
 class ForwardDebugWindow : public QDialog
 {
