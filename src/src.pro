@@ -3,13 +3,22 @@ CONFIG += qt thread console warn_on ordered
 TARGET = nullfxp
 DESTDIR = ../bin
 
-system(gcc -o gv.exe get_ver.c)
+win32-g++ {
+    system(gcc -o gv.exe get_ver.c)
+} else:win32 {
+    system(cl /Fegv.exe get_ver.c)
+} else {
+    system(gcc -o gv.exe get_ver.c)
+}
 !win32 {
     VERSION = $$system(./gv.exe nullfxp-version.h)
 }
 win32 {
 	CONFIG += release
     VERSION = $$system(gv nullfxp-version.h)
+    win32-g++ {
+         CONFIG -= embed_manifest_exe
+    }
 } else:solaris-g++ {
         QT -= webkit
 } else {
@@ -142,10 +151,19 @@ CONFIG(debug, debug|release) {
 }
 DEFINES -= NDEBUG QT_NO_DEBUG_OUTPUT
 
-HOST_MACHINE = $$system(gcc -dumpmachine)
-HOST_GCC_VERSION = $$system(gcc -dumpversion)
-DEFINES += GCC_MV=\"\\\"$$HOST_MACHINE-g++-$$HOST_GCC_VERSION\\\"\"
+win32-g++ {
+     
+} else:win32 {
+     DEFINES += LIBSSH2_WIN32
+} else {
 
+}
+
+!win32 {
+    HOST_MACHINE = $$system(gcc -dumpmachine)
+    HOST_GCC_VERSION = $$system(gcc -dumpversion)
+    DEFINES += GCC_MV=\"\\\"$$HOST_MACHINE-g++-$$HOST_GCC_VERSION\\\"\"
+}
 
 INCLUDEPATH += . ./libssh2/include
 

@@ -176,6 +176,9 @@ LIBSSH2_API char ** libssh2_session_get_remote_info(LIBSSH2_SESSION *session)
 	const LIBSSH2_HOSTKEY_METHOD *hostkey;
 	libssh2_endpoint_data *remote, *local;
 	char **info_vec = calloc(10, sizeof(char*));
+    char fingerprint[50], *fprint = fingerprint;
+    int i;
+
 	memset(info_vec, 0, 10 * sizeof(char*));
 		
 	kex = session->kex;
@@ -183,8 +186,6 @@ LIBSSH2_API char ** libssh2_session_get_remote_info(LIBSSH2_SESSION *session)
 	remote = &session->remote;
 	local = &session->local;
 	
-    char fingerprint[50], *fprint = fingerprint;
-    int i;
     for(i = 0; i < 16; i++, fprint += 3) {
       snprintf(fprint, 4, "%02x:", session->server_hostkey_md5[i]);
             }

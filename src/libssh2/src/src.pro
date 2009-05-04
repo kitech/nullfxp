@@ -51,6 +51,13 @@ win32 {
 DEFINES += HAVE_CONFIG_H \
  LIBSSH2DEBUG=1 LIBSSH2_MD5=1
 
+win32 {
+    !win32-g++ {
+        DEFINES += LIBSSH2_WIN32
+        INCLUDEPATH += Z:/librarys/vc-ssl/include Z:/librarys/vc-zlib/include
+    }
+}
+
 TARGET = ssh2
 
 
