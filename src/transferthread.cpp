@@ -30,16 +30,10 @@
 // 
 
  
-
-#include <unistd.h>
-
 #include <errno.h>
-#include <fcntl.h>
-#include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
 #include <sys/types.h>
 #include <sys/param.h>
 
@@ -52,12 +46,9 @@
 
 #ifdef WIN32
 #define jjjjjjjjj
+#include <winsock2.h>
 #else
 #include <sys/uio.h>
-#endif
-
-#ifdef WIN32
-#include <winsock2.h>
 #endif
 
 #include <cassert>

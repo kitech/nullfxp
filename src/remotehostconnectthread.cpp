@@ -30,16 +30,16 @@
 // 
 
 
-#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/stat.h>
-
 #include <sys/types.h>
 #include <errno.h>
-#include <signal.h>
-
 #include <sys/types.h>
+
+#ifndef _MSC_VER
+#include <fcntl.h>
+#endif
 
 #ifdef WIN32
 #include <windows.h>
@@ -52,7 +52,6 @@
 #include <netinet/in.h>
 #endif
 
-#include <fcntl.h>
 #include <assert.h>
 
 #include <QtCore>

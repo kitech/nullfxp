@@ -19,15 +19,12 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#include <unistd.h>
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/stat.h>
-
 #include <sys/types.h>
 #include <errno.h>
-#include <signal.h>
-
 #include <sys/types.h>
 
 #ifdef WIN32

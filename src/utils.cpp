@@ -33,9 +33,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <string.h>
-#include <unistd.h>
 #include <errno.h>
+
+#ifndef _MSC_VER 
+#include <unistd.h>
 #include <fcntl.h>
+#endif
 
 #include "globaloption.h"
 

@@ -29,14 +29,11 @@
 // 
 // 
 
-// #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/stat.h>
-
 #include <sys/types.h>
 #include <errno.h>
-#include <signal.h>
 
 #ifdef WIN32
 #include <winsock2.h>
