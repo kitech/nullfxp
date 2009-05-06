@@ -257,7 +257,9 @@ _libssh2_debug(LIBSSH2_SESSION * session, int context, const char *format, ...)
         /* no such output asked for */
         return;
     }
-    gettimeofday(&now, NULL);
+    #ifndef _MSC_VER
+		gettimeofday(&now, NULL);
+	#endif
     if(!firstsec) {
         firstsec = now.tv_sec;
     }

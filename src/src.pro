@@ -3,16 +3,20 @@ CONFIG += qt thread console warn_on ordered
 TARGET = nullfxp
 DESTDIR = ../bin
 
-win32-g++ {
-    system(gcc -o gv.exe get_ver.c)
-} else:win32 {
-    system(cl /Fegv.exe get_ver.c)
+win32 {
+    win32-g++ {
+        system(gcc -o gv.exe get_ver.c)
+    } else {
+	system(cl /Fegv.exe get_ver.c)
+    }
 } else {
     system(gcc -o gv.exe get_ver.c)
 }
+
 !win32 {
     VERSION = $$system(./gv.exe nullfxp-version.h)
 }
+
 win32 {
 	CONFIG += release
     VERSION = $$system(gv nullfxp-version.h)
@@ -127,15 +131,22 @@ libssh2/CMakeLists.txt
 
 
 win32 {
-    debug {
-        LIBPATH += ./libssh2/src/debug
-        LIBPATH += Z:/librarys/mw-ssl/lib
+    win32-g++ {
+	    debug {
+		LIBPATH += ./libssh2/src/debug
+		LIBPATH += Z:/librarys/mw-ssl/lib
+	    }
+	    release {
+		LIBPATH += ./libssh2/src/release 
+		LIBPATH += Z:/librarys/mw-ssl/lib
+	    }
+	    LIBS += -lssl -lcrypto -lws2_32  -lgdi32 
+    } else {
+		LIBPATH += ./libssh2/src/release 
+		LIBPATH += Z:/librarys/vc-ssl/lib Z:/librarys/vc-zlib/lib
+		LIBS += -lzlib -llibeay32 -lssleay32 -ladvapi32 -luser32 -lwsock32
     }
-    release {
-        LIBPATH += ./libssh2/src/release 
-        LIBPATH += Z:/librarys/mw-ssl/lib
-    }
-    LIBS += -lssh2  -lssl -lcrypto -lws2_32  -lgdi32 
+    LIBS += -lssh2 -lws2_32  -lgdi32 
     #-lgcrypt -lgpg-error 
 }else {
     LIBS += libssh2/src/libssh2.a -lssl -lcrypto
@@ -154,7 +165,8 @@ DEFINES -= NDEBUG QT_NO_DEBUG_OUTPUT
 win32-g++ {
      
 } else:win32 {
-     DEFINES += LIBSSH2_WIN32
+     DEFINES += LIBSSH2_WIN32 _CRT_SECURE_NO_DEPRECATE GCC_MV=\"\\\"MSCV2005\\\"\"
+     
 } else {
 
 }

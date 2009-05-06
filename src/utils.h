@@ -34,28 +34,26 @@
 #include <vector>
 #include <map>
 #include <string>
-#include <dirent.h>
 #include <assert.h>
+
+#ifndef _MSC_VER
+#include <dirent.h>
+#else
+#define PATH_MAX 512
+#endif
+
+#ifdef WIN32
+#include <windows.h>
+//#include <winsock2.h>
+#endif
 
 #include <QMap>
 #include <QVector>
 #include <QPair>
 #include <QtCore>
 
-// #ifndef S_ISDIR
-// # define S_ISDIR(mode)	(((mode) & (_S_IFMT)) == (_S_IFDIR))
-// #endif /* S_ISDIR */
-// 
-// #ifndef S_ISREG
-// # define S_ISREG(mode)	(((mode) & (_S_IFMT)) == (_S_IFREG))
-// #endif /* S_ISREG */
-// 
-
-
 
 #ifdef WIN32
-#include <windows.h>
-#include <winsock2.h>
 
 #ifndef S_ISLNK
 # define S_ISLNK(mode)	(((mode) & S_IFMT) == S_IFLNK)
@@ -63,6 +61,7 @@
 
 //#define	_IFMT		0170000	/* type of file */
 //#define		_IFDIR	0040000	/* directory */
+
 //#define		_IFCHR	0020000	/* character special */
 #define		_IFBLK	0060000	/* block special */
 //#define		_IFREG	0100000	/* regular */
@@ -81,13 +80,16 @@
 //#define	S_IEXEC		0000100	/* execute/search permission, owner */
 #define	S_ENFMT 	0002000	/* enforcement-mode locking */
 
+//#ifdef _MSC_VER
 //#define	S_IFMT		_IFMT
 //#define	S_IFDIR		_IFDIR
+//#endif
+
 //#define	S_IFCHR		_IFCHR
 //#define	S_IFBLK		_IFBLK
 //#define	S_IFREG		_IFREG
-#define	S_IFLNK		_IFLNK
-#define	S_IFSOCK	_IFSOCK
+//#define	S_IFLNK		_IFLNK
+//#define	S_IFSOCK	_IFSOCK
 //#define	S_IFIFO		_IFIFO
 
 //#define link(from, to) 0
@@ -95,8 +97,10 @@
 
 /* The Windows header files define _S_ forms of these, so we do too
    for easier portability.  */
+
 //#define _S_IFMT		_IFMT
 //#define _S_IFDIR	_IFDIR
+
 //#define _S_IFCHR	_IFCHR
 //#define _S_IFIFO	_IFIFO
 //#define _S_IFREG	_IFREG
@@ -111,7 +115,24 @@
 #define		S_IWOTH	0000002	/* write permission, other */
 #define		S_IXOTH 0000001/* execute/search permission, other */
 
+#endif
 
+#ifdef _MSC_VER
+ #ifndef S_ISDIR
+ # define S_ISDIR(mode)	(((mode) & (_S_IFMT)) == (_S_IFDIR))
+ #endif /* S_ISDIR */
+ 
+ #ifndef S_ISREG
+ # define S_ISREG(mode)	(((mode) & (_S_IFMT)) == (_S_IFREG))
+ #endif /* S_ISREG */
+ 
+
+ #define S_IFBLK _IFBLK
+ #define	S_IFSOCK	_IFSOCK
+ #define	S_IFLNK		_IFLNK
+ #define S_IRUSR _S_IREAD
+ #define S_IWUSR _S_IWRITE
+ #define S_IXUSR _S_IEXEC
 #endif
 
 #ifdef __cplusplush

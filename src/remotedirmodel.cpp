@@ -326,10 +326,14 @@ QVariant RemoteDirModel::data ( const QModelIndex &index, int role ) const
         ret_var = QString("%1").arg(item->attrib.filesize);
         break;
     case 3:
+#ifndef _MSC_VER
         ltime = localtime((time_t*)&item->attrib.mtime);
         if (ltime != NULL) {
             strftime(mem, sizeof(mem), "%Y/%m/%d %H:%M:%S", ltime);
         }
+#else
+		sprintf(mem, "0000/00/00 00:00:00");
+#endif
         ret_var = QString(mem);
         //ret_var = QVariant ( item->file_date );
         break;

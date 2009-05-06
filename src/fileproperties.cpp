@@ -36,10 +36,15 @@
 #include "remotedirretrivethread.h"
 #include "fileproperties.h"
 
+#ifndef _MSC_VER
 #warning "wrapper lower class, drop this include"
+#endif
 #include "rfsdirnode.h"
 
+#ifndef _MSC_VER
 #warning "maybe there is some way to drop this thread"
+#endif
+
 FilePropertiesRetriveThread::FilePropertiesRetriveThread(LIBSSH2_SFTP * ssh2_sftp ,QString file_path , QObject * parent): QThread(parent)
 {
     this->ssh2_sftp = ssh2_sftp ;
@@ -131,6 +136,9 @@ void FileProperties::slot_file_attr_abtained(QString file_name,  void * attr )
 	QString mode = digit_mode(sftp_attrib->permissions);
 	this->ui_file_prop_dialog.lineEdit_7->setText(mode);
 	
+#ifdef _MSC_VER
+	_snprintf(file_date, sizeof(file_date)-1, "0000/00/00 00:00:00");
+#else
 	struct tm *ltime = localtime ( ( time_t* ) &sftp_attrib->atime );
 	if(ltime != NULL) {
 		if ( time ( NULL ) - sftp_attrib->atime < ( 365*24*60*60 ) /2 )
@@ -138,7 +146,12 @@ void FileProperties::slot_file_attr_abtained(QString file_name,  void * attr )
 		else
 			strftime(file_date, sizeof (file_date), "%Y/%m/%d %H:%M:%S", ltime);
 	}
+#endif
 	this->ui_file_prop_dialog.lineEdit_6->setText(file_date);
+
+#ifdef _MSC_VER
+	_snprintf(file_date, sizeof(file_date)-1, "0000/00/00 00:00:00");
+#else
 	ltime = localtime((time_t*) &sftp_attrib->mtime);
 	if(ltime != NULL) {
 		if ( time ( NULL ) - sftp_attrib->mtime < ( 365*24*60*60 ) /2 )
@@ -146,6 +159,8 @@ void FileProperties::slot_file_attr_abtained(QString file_name,  void * attr )
 		else
 			strftime(file_date, sizeof(file_date), "%Y/%m/%d %H:%M:%S", ltime );
 	}
+#endif
+
 	this->ui_file_prop_dialog.lineEdit_5->setText(file_date);
     
 	if ( this->ui_file_prop_dialog.lineEdit_2->text() == "D" ) {

@@ -42,9 +42,9 @@
 #endif
 
 #ifdef WIN32
-#include <windows.h>
+//#include <windows.h>
 #include <winsock2.h>
-#include <ws2tcpip.h>
+//#include <ws2tcpip.h>
 #else
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -55,7 +55,9 @@
 #include <assert.h>
 
 #include <QtCore>
+#include <QtNetwork>
 
+#include "utils.h"
 #include "progressdialog.h"
 
 #include "remotehostconnectthread.h"

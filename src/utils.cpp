@@ -29,7 +29,6 @@
 // 
 // 
 
-#include "utils.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <string.h>
@@ -40,6 +39,7 @@
 #include <fcntl.h>
 #endif
 
+#include "utils.h"
 #include "globaloption.h"
 
 
@@ -73,7 +73,7 @@ strmode ( int mode, char *p )
 	break;
 //#endif
 //#ifdef S_IFIFO
-    case S_IFIFO:			/* fifo */
+    case _S_IFIFO:			/* fifo */
 	*p++ = 'p';
 	break;
 //#endif
@@ -210,7 +210,52 @@ int is_reg(char *path)
     }
     return(S_ISREG(sb.st_mode));
 }
+
 //
+#ifdef _MSC_VER
+void  fxp_local_do_ls( QString args , QVector<QMap<char, QString> > & fileinfos )
+{
+    int sz ;
+    QMap<char,QString> thefile;
+    char file_size[32];
+    char file_date[64];
+    char file_type[32];
+    char fname[PATH_MAX+1];
+    //char the_path[PATH_MAX+1];
+    QString the_path ;
+	QStringList entries;
+	QDir dh(args);
+
+	fileinfos.clear();
+	entries = dh.entryList();
+	for ( int i = 0 ; i < entries.count(); i++)
+	{
+        thefile.clear();
+		the_path = entries.at(i);
+		if (the_path == "." || the_path == "..")
+		{
+			goto out_point;
+		}
+		the_path = args + "/"  + the_path;
+		if (QFile::exists(the_path))
+		{
+			QFileInfo fi(the_path);
+			sprintf(file_size, "%llu", fi.size());
+			strcpy(file_type,"-rwxrwxrwx-");
+			sprintf(file_date, "%s", fi.lastModified().toString("yyyy/MM/dd hh:mm:ss"));
+
+			thefile.insert( 'N',(entries.at(i)));
+		    thefile.insert( 'T',QString(file_type) );
+			thefile.insert( 'S',QString(file_size ) );
+	        thefile.insert( 'D',QString( file_date ) );
+        
+		    fileinfos.push_back(thefile);
+		}
+
+	    out_point:	continue ;
+	}
+}
+#else
 void  fxp_local_do_ls( QString args , QVector<QMap<char, QString> > & fileinfos )
 {
     int sz ;
@@ -265,6 +310,8 @@ void  fxp_local_do_ls( QString args , QVector<QMap<char, QString> > & fileinfos 
     }
     closedir(dh);
 }
+#endif
+
 //
 int     fxp_local_do_mkdir(const char * path )
 {
@@ -272,12 +319,17 @@ int     fxp_local_do_mkdir(const char * path )
     const char * ptr =0;
 
 #ifdef WIN32
+#ifdef _MSC_VER
+	ret = QDir().mkpath(path);
+	ret = !ret;
+#else
     if(path[2] == ':'){
 	ptr = path + 1;
 	ret = mkdir(ptr);
     }else{
 	ret = mkdir(path);
     }
+#endif
 #else
     ret = mkdir(path,0777);
 #endif

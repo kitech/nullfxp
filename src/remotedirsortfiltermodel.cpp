@@ -33,7 +33,10 @@
 #include "remotedirmodel.h"
 #include "remotedirsortfiltermodel.h"
 
+#ifndef _MSC_VER
 #warning "wrapper lower class, drop this include"
+#endif
+
 #include "rfsdirnode.h"
 
 RemoteDirSortFilterModel::RemoteDirSortFilterModel(QObject *parent)

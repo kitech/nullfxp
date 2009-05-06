@@ -31,14 +31,14 @@
 
 
 #include <cassert>
-#include <stdint.h>
+// #include <stdint.h>
 
 #include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
-#include <sys/param.h>
+// #include <sys/param.h>
 
 #ifdef HAVE_SYS_STAT_H
 # include <sys/stat.h>

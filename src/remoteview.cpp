@@ -43,7 +43,10 @@
 #include "encryptiondetailfocuslabel.h"
 #include "encryptiondetaildialog.h"
 
+#ifndef _MSC_VER
 #warning "wrapper lower class, drop this include"
+#endif
+
 #include "rfsdirnode.h"
 
 #include "completelineeditdelegate.h"
@@ -323,8 +326,11 @@ QString RemoteView::get_selected_directory()
         }else{
         	  file_path = "" ;
         }
-        
+
+#ifndef _MSC_VER
 #warning "maybe gc code"
+#endif
+
         /*
         if( dti->file_type.at(0) == 'd' || dti->file_type.at(0) == 'D'
             || dti->file_type.at(0) == 'l' )

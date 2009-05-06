@@ -435,7 +435,9 @@ int RemoteDirRetriveThread::fxp_do_ls_dir ( QString path , QVector<QMap<char, QS
             //if( file_name[0] == '.' ) continue ;
             
             memset(file_size,0,sizeof(file_size )) ;
-            snprintf(file_size,sizeof(file_size) , "%llu",ssh2_sftp_attrib.filesize );
+
+#ifndef _MSC_VER
+            snprintf(file_size,sizeof(file_size)-1, "%llu",ssh2_sftp_attrib.filesize );
             
             struct tm *ltime = localtime((time_t*)&ssh2_sftp_attrib.mtime);
             if (ltime != NULL) 
@@ -445,6 +447,10 @@ int RemoteDirRetriveThread::fxp_do_ls_dir ( QString path , QVector<QMap<char, QS
                 else
                     strftime(file_date, sizeof file_date, "%Y/%m/%d %H:%M:%S", ltime);
             }
+#else
+			_snprintf(file_size,sizeof(file_size)-1 , "%llu",ssh2_sftp_attrib.filesize );
+			_snprintf(file_date, sizeof(file_date)-1, "0000/00/00 00:00:00");
+#endif
 
             strmode(ssh2_sftp_attrib.permissions,file_type );
             //printf(" ls dir : %s %s , date=%s , type=%s \n" , file_name , file_size , file_date , file_type );
