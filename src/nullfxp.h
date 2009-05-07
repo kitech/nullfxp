@@ -1,34 +1,12 @@
 /* nullfxp.h --- 
  * 
- * Filename: nullfxp.h
- * Description: 
  * Author: liuguangzhao
- * Maintainer: 
- * Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
- * http://www.qtchina.net
- * http://nullget.sourceforge.net
- * Created: 二  5月  6 22:02:06 2008 (CST)
- * Version: 
- * Last-Updated: 
- *           By: 
- *     Update #: 0
- * URL: 
- * Keywords: 
- * Compatibility: 
- * 
+ * Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+ * URL: http://www.qtchina.net http://nullget.sourceforge.net
+ * Created: 2008-05-06 22:02:06 +0800
+ * Last-Updated: 2009-05-07 23:16:48 +0800
+ * Version: $Id$
  */
-
-/* Commentary: 
- * 
- * 
- * 
- */
-
-/* Change log:
- * 
- * 
- */
-
 
 #ifndef NULLFXP_H
 #define NULLFXP_H

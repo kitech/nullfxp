@@ -89,7 +89,8 @@ SOURCES += main.cpp \
  synchronizewindow.cpp \
  syncdiffermodel.cpp \
  sshfileinfo.cpp \
- synctransferthread.cpp
+ synctransferthread.cpp \
+ taskpackage.cpp
 
 HEADERS += nullfxp.h \
  localview.h \

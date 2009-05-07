@@ -1,49 +1,25 @@
 // localview.cpp --- 
 // 
-// Filename: localview.cpp
-// Description: 
 // Author: liuguangzhao
-// Maintainer: 
-// Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
-// http://www.qtchina.net
-// http://nullget.sourceforge.net
-// Created: 六  5月 31 15:26:15 2008 (CST)
-// Version: 
-// Last-Updated: 三  2月 18 05:05:00 2009 (CST)
-//           By: 刘光照<liuguangzhao@users.sf.net>
-//     Update #: 7
-// URL: 
-// Keywords: 
-// Compatibility: 
-// 
-// 
-
-// Commentary: 
-// 
-// 
-// 
-// 
-
-// Change log:
-// 
-// 
+// Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+// URL: http://www.qtchina.net http://nullget.sourceforge.net
+// Created: 2008-05-31 15:26:15 +0800
+// Last-Updated: 2009-05-08 00:19:07 +0800
+// Version: $Id$
 // 
 
 #include <QtCore>
 
+#include "utils.h"
 #include "remoteview.h"
 #include "localview.h"
 #include "globaloption.h"
 #include "fileproperties.h"
 
-#include "utils.h"
-
-//#define REMOTE_CODEC "UTF-8"
-
-LocalView::LocalView ( QWidget *parent )
-    : QWidget ( parent )
+LocalView::LocalView(QWidget *parent )
+    : QWidget(parent)
 {
-    localView.setupUi ( this );
+    localView.setupUi(this);
     this->setObjectName("lv");
     ////
     this->status_bar = new QStatusBar();
@@ -63,34 +39,34 @@ LocalView::LocalView ( QWidget *parent )
     //     this->localView.treeView->setColumnHidden( 3, true);
     //this->localView.treeView->setRootIndex ( model->index ( QDir::homePath() ) );
     this->localView.treeView->setColumnWidth(0,this->localView.treeView->columnWidth(0)*2);    
-    this->expand_to_home_directory(this->localView.treeView->rootIndex (),1 );
+    this->expand_to_home_directory(this->localView.treeView->rootIndex (), 1);
   
     this->init_local_dir_tree_context_menu();
   
-    this->localView.tableView->setModel( this->model );
-    this->localView.tableView->setRootIndex( this->model->index( QDir::homePath() ) );
+    this->localView.tableView->setModel(this->model);
+    this->localView.tableView->setRootIndex( this->model->index(QDir::homePath()));
     this->localView.tableView->verticalHeader()->setVisible(false);
 
     //change row height of table 
-    if( this->model->rowCount( this->model->index( QDir::homePath() ) ) > 0 ){
-	this->table_row_height = this->localView.tableView->rowHeight(0)*2/3;
-    }else{
-	this->table_row_height = 20 ;
+    if (this->model->rowCount(this->model->index( QDir::homePath())) > 0) {
+        this->table_row_height = this->localView.tableView->rowHeight(0) * 2 / 3;
+    } else {
+        this->table_row_height = 20 ;
     }
-    for( int i = 0 ; i < this->model->rowCount( this->model->index( QDir::homePath() ) ); i ++ )
-    {
-	this->localView.tableView->setRowHeight( i, this->table_row_height );
+    for (int i = 0 ; i < this->model->rowCount(this->model->index(QDir::homePath())); i ++) {
+        this->localView.tableView->setRowHeight(i, this->table_row_height);
     }
   
-    this->localView.tableView->resizeColumnToContents( 0 );
+    this->localView.tableView->resizeColumnToContents(0);
     /////
     QObject::connect(this->localView.treeView,SIGNAL(clicked(const QModelIndex &)),
-                     this,SLOT( slot_dir_tree_item_clicked(const QModelIndex &))) ;
-    QObject::connect( this->localView.tableView,SIGNAL( doubleClicked ( const QModelIndex &  ) ) , this,SLOT( slot_dir_file_view_double_clicked ( const QModelIndex & ) ) );
+                     this,SLOT( slot_dir_tree_item_clicked(const QModelIndex &)));
+    QObject::connect(this->localView.tableView,SIGNAL(doubleClicked(const QModelIndex &)),
+                     this,SLOT( slot_dir_file_view_double_clicked(const QModelIndex &)));
     
     ////////ui area custom
-    this->localView.splitter->setStretchFactor(0,1);
-    this->localView.splitter->setStretchFactor(1,2);
+    this->localView.splitter->setStretchFactor(0, 1);
+    this->localView.splitter->setStretchFactor(1, 2);
     //this->localView.listView->setVisible(false);    //暂时没有功能在里面先隐藏掉
 
     //TODO localview 标题格式: Local(主机名) - 当前所在目录名
@@ -106,108 +82,102 @@ void LocalView::init_local_dir_tree_context_menu()
 {
     this->local_dir_tree_context_menu = new QMenu();
 
-    QAction *action = new QAction ( tr("Upload"),0 );
+    QAction *action = new QAction(tr("Upload"), 0);
 
-    this->local_dir_tree_context_menu->addAction ( action );
+    this->local_dir_tree_context_menu->addAction(action);
 
-    QObject::connect ( action,SIGNAL ( triggered() ), this,SLOT ( slot_local_new_upload_requested() ) );
+    QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_local_new_upload_requested()));
 
-    action = new QAction("",0);
+    action = new QAction("", 0);
     action->setSeparator(true);
-    this->local_dir_tree_context_menu->addAction ( action );
+    this->local_dir_tree_context_menu->addAction(action);
     
     ////reresh action
-    action = new QAction ( tr("Refresh"),0 );
-    this->local_dir_tree_context_menu->addAction ( action );
+    action = new QAction(tr("Refresh"), 0);
+    this->local_dir_tree_context_menu->addAction(action);
     
-    QObject::connect ( action,SIGNAL ( triggered() ),
-		       this,SLOT ( slot_refresh_directory_tree() ) );
+    QObject::connect(action, SIGNAL(triggered()),
+                     this, SLOT(slot_refresh_directory_tree()));
                        
-    action = new QAction(tr("Properties..."),0);
+    action = new QAction(tr("Properties..."), 0);
     this->local_dir_tree_context_menu->addAction(action);
-    QObject::connect(action,SIGNAL(triggered()),this,SLOT(slot_show_properties()));
+    QObject::connect(action,SIGNAL(triggered()), this, SLOT(slot_show_properties()));
     //////
-    action = new QAction ( tr("Show Hidden"),0);
+    action = new QAction(tr("Show Hidden"), 0);
     action->setCheckable(true);
-    this->local_dir_tree_context_menu->addAction ( action );
+    this->local_dir_tree_context_menu->addAction(action);
     QObject::connect(action, SIGNAL(toggled(bool)), this, SLOT(slot_show_hidden(bool)));
-    action = new QAction("",0);
+    action = new QAction("", 0);
     action->setSeparator(true);
-    this->local_dir_tree_context_menu->addAction ( action );
-
-    action = new QAction(tr("Copy &Path"),0);
     this->local_dir_tree_context_menu->addAction(action);
-    QObject::connect(action,SIGNAL(triggered()),this,SLOT(slot_copy_path_url()));
+
+    action = new QAction(tr("Copy &Path"), 0);
+    this->local_dir_tree_context_menu->addAction(action);
+    QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_copy_path_url()));
     
-    action = new QAction(tr("Create directory..."),0);
+    action = new QAction(tr("Create directory..."), 0);
     this->local_dir_tree_context_menu->addAction(action);
-    QObject::connect(action,SIGNAL(triggered()),this,SLOT(slot_mkdir()));
+    QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_mkdir()));
 
-    action = new QAction(tr("Delete directory"),0);
+    action = new QAction(tr("Delete directory"), 0);
     this->local_dir_tree_context_menu->addAction(action);
-    QObject::connect(action,SIGNAL(triggered()),this,SLOT(slot_rmdir()));
+    QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_rmdir()));
     action = new QAction(tr("Remove"), 0);
     this->local_dir_tree_context_menu->addAction(action);
     QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_remove()));
 
-    action = new QAction ( tr("Rename ..."),0);
-    this->local_dir_tree_context_menu->addAction ( action );
-    QObject::connect(action, SIGNAL(triggered()),this,SLOT(slot_rename()));
-    action = new QAction("",0);
+    action = new QAction(tr("Rename ..."), 0);
+    this->local_dir_tree_context_menu->addAction(action);
+    QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_rename()));
+    action = new QAction("", 0);
     action->setSeparator(true);
-    this->local_dir_tree_context_menu->addAction ( action );
+    this->local_dir_tree_context_menu->addAction(action);
     
     //递归删除目录功能，删除文件的用户按钮
 //     action = new QAction(tr("Remove recursively !!!"),0);
 //     this->local_dir_tree_context_menu->addAction(action);
 //     QObject::connect(action,SIGNAL(triggered()),this,SLOT(rm_file_or_directory_recursively()));
     
-    QObject::connect ( this->localView.treeView,SIGNAL ( customContextMenuRequested ( const QPoint & ) ),
-                       this , SLOT ( slot_local_dir_tree_context_menu_request ( const QPoint & ) ) );
-    QObject::connect ( this->localView.tableView,SIGNAL ( customContextMenuRequested ( const QPoint & ) ),
-                       this , SLOT ( slot_local_dir_tree_context_menu_request ( const QPoint & ) ) );
+    QObject::connect(this->localView.treeView, SIGNAL(customContextMenuRequested(const QPoint &)),
+                     this, SLOT(slot_local_dir_tree_context_menu_request(const QPoint &)));
+    QObject::connect(this->localView.tableView,SIGNAL ( customContextMenuRequested(const QPoint &)),
+                     this, SLOT(slot_local_dir_tree_context_menu_request (const QPoint &)));
 }
 //仅会被调用一次，在该实例的构造函数中
-void LocalView::expand_to_home_directory( QModelIndex parent_model,int level )
+void LocalView::expand_to_home_directory(QModelIndex parent_model, int level)
 {
     int row_cnt = this->dir_file_model->rowCount(parent_model) ;
     QString home_path = QDir::homePath();
     QStringList home_path_grade = home_path.split('/');
     //qDebug()<<home_path_grade << level << row_cnt;
     QModelIndex curr_model ;
-    for( int i = 0 ; i < row_cnt ; i ++)
-    {
+    for (int i = 0 ; i < row_cnt ; i ++) {
         curr_model = this->dir_file_model->index(i,0,parent_model) ;
         QString file_name = this->dir_file_model->data(curr_model).toString();
         //qDebug()<<file_name;
-        if( file_name == home_path_grade.at(level) )
-        {
+        if (file_name == home_path_grade.at(level)) {
             this->localView.treeView->expand(curr_model);
-            if( level == home_path_grade.count()-1)
-            {
+            if (level == home_path_grade.count() - 1) {
                 break;
-            }
-            else
-            {
-                this->expand_to_home_directory(curr_model,level+1);
+            } else {
+                this->expand_to_home_directory(curr_model, level+1);
                 break;
             }
         }
     }
-    if( level == 1 )
-    {
-        this->localView.treeView->scrollTo( curr_model );
+    if (level == 1) {
+        this->localView.treeView->scrollTo(curr_model);
     }
     //qDebug()<<" root row count:"<< row_cnt ;
 }
 
-void LocalView::slot_local_dir_tree_context_menu_request ( const QPoint & pos )
+void LocalView::slot_local_dir_tree_context_menu_request(const QPoint & pos)
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     this->curr_item_view = static_cast<QAbstractItemView*>(sender());
     QPoint real_pos = this->curr_item_view->mapToGlobal(pos);
-    real_pos = QPoint(real_pos.x()+2,real_pos.y()+32);
-    this->local_dir_tree_context_menu->popup ( real_pos );
+    real_pos = QPoint(real_pos.x()+2, real_pos.y() + 32);
+    this->local_dir_tree_context_menu->popup(real_pos);
     
 }
 
@@ -215,7 +185,8 @@ void LocalView::slot_local_new_upload_requested()
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     //QTextCodec * codec = QTextCodec::codecForName(REMOTE_CODEC);
-    
+
+    TaskPackage pkg(PROTO_FILE);
     QStringList local_file_names ;
     QString local_file_name;
     QByteArray ba;
@@ -227,12 +198,11 @@ void LocalView::slot_local_new_upload_requested()
 
     qDebug() << mil ;
 
-    for( int i = 0 ; i < mil.count() ; i += this->curr_item_view->model()->columnCount(QModelIndex()) )
-    {
-        qDebug() << (static_cast<QDirModel*>(this->curr_item_view->model()))->fileName ( mil.at ( i ) );
-        qDebug() << (static_cast<QDirModel*>(this->curr_item_view->model()))->filePath ( mil.at ( i ) );
+    for (int i = 0 ; i < mil.count() ; i += this->curr_item_view->model()->columnCount(QModelIndex())) {
+        qDebug() << (static_cast<QDirModel*>(this->curr_item_view->model()))->fileName(mil.at(i));
+        qDebug() << (static_cast<QDirModel*>(this->curr_item_view->model()))->filePath(mil.at(i));
     
-        local_file_name = (static_cast<QDirModel*>(this->curr_item_view->model()))->filePath ( mil.at ( i ) );
+        local_file_name = (static_cast<QDirModel*>(this->curr_item_view->model()))->filePath(mil.at(i));
         
 	//ba = codec->toUnicode(local_file_name.toAscii()).toAscii();
 	//下面这句说明了什么呢？在Mingw平台下，控制台输入正常时即为 Unicode编码，也就是DirModel返回的路径是Unicode编码的
@@ -243,53 +213,49 @@ void LocalView::slot_local_new_upload_requested()
         //emit  new_upload_requested ( local_file_name , local_file_type );
         //加上协议前缀
 
-#ifdef WIN32
-        local_file_name = QString("file:///") + local_file_name ;
-#else
-        local_file_name = QString("file://") + local_file_name ;
-#endif
-        local_file_names << local_file_name;
-        qDebug()<< local_file_names ;
+// #ifdef WIN32
+//         local_file_name = QString("file:///") + local_file_name ;
+// #else
+//         local_file_name = QString("file://") + local_file_name ;
+// #endif
+//         local_file_names << local_file_name;
+//         qDebug()<< local_file_names ;
+        pkg.files<<local_file_name;
     }
-    emit   new_upload_requested( local_file_names );
+    // emit   new_upload_requested( local_file_names );
+    emit   new_upload_requested(pkg);
 }
 
 QString LocalView::get_selected_directory()
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
-   
     QString local_path ;
     QItemSelectionModel * ism = this->localView.treeView->selectionModel();
 
-    if( ism == 0 )
-    {        
+    if (ism == 0) {        
         return QString();
     }
     
-    
     QModelIndexList mil = ism->selectedIndexes();
 
-    if(mil.count() == 0 )
-    {
+    if (mil.count() == 0) {
         return QString();
     }
     
     //qDebug() << mil ;
-
     //qDebug() << model->fileName ( mil.at ( 0 ) );
     //qDebug() << model->filePath ( mil.at ( 0 ) );
 
-    QString local_file = this->dir_file_model->filePath ( mil.at ( 0 ) );
+    QString local_file = this->dir_file_model->filePath(mil.at(0));
 
-    local_path = this->dir_file_model->filePath ( mil.at ( 0 ) );
+    local_path = this->dir_file_model->filePath(mil.at(0));
 
     //QByteArray ba = codec->fromUnicode(local_path);
     //qDebug()<<" orginal name:"<< local_path
     //        <<" unicode name:"<< QString(ba.data() );
     //local_path = ba ;
     return local_path ;
-
 }
 
 void LocalView::slot_refresh_directory_tree()
@@ -298,13 +264,12 @@ void LocalView::slot_refresh_directory_tree()
 
     QItemSelectionModel * ism = this->localView.treeView->selectionModel();
 
-    if ( ism !=0 )
-    {
+    if (ism !=0) {
 	QModelIndexList mil = ism->selectedIndexes();
-        if( mil.count() > 0 )
-	    model->refresh ( mil.at ( 0 ) );
+        if (mil.count() > 0)
+            model->refresh(mil.at(0));
     }
-    this->dir_file_model->refresh( this->localView.tableView->rootIndex());
+    this->dir_file_model->refresh(this->localView.tableView->rootIndex());
 }
 void LocalView::update_layout()
 {
@@ -314,27 +279,27 @@ void LocalView::update_layout()
     this->slot_refresh_directory_tree();
 }
 
-void LocalView::closeEvent ( QCloseEvent * event )
+void LocalView::closeEvent(QCloseEvent * event)
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     event->ignore ();
     //this->setVisible(false); 
-    QMessageBox::information(this,tr("Attemp to close this window?"),tr("You can't close this window."));
+    QMessageBox::information(this, tr("Attemp to close this window?"), tr("You can't close this window."));
 }
 
-void LocalView::slot_dir_tree_item_clicked( const QModelIndex & index)
+void LocalView::slot_dir_tree_item_clicked(const QModelIndex & index)
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     QString file_path ;
     
     file_path = this->dir_file_model->filePath(index);
-    this->localView.tableView->setRootIndex( this->model->index( file_path )) ;
-    for( int i = 0 ; i < this->model->rowCount( this->model->index( file_path ) ); i ++ )
-        this->localView.tableView->setRowHeight(i,this->table_row_height );
-    this->localView.tableView->resizeColumnToContents ( 0 );
+    this->localView.tableView->setRootIndex(this->model->index(file_path));
+    for (int i = 0 ; i < this->model->rowCount(this->model->index(file_path)); i ++)
+        this->localView.tableView->setRowHeight(i, this->table_row_height);
+    this->localView.tableView->resizeColumnToContents(0);
 }
 
-void LocalView::slot_dir_file_view_double_clicked( const QModelIndex & index )
+void LocalView::slot_dir_file_view_double_clicked(const QModelIndex & index)
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     //TODO if the clicked item is direcotry ,
@@ -345,16 +310,13 @@ void LocalView::slot_dir_file_view_double_clicked( const QModelIndex & index )
     //2。对于远程主机，　如果是目录，则打开这个目录，如果是文件，则提示是否要下载它。
     QString file_path ;
     
-    if( this->model->isDir( index ) )
-    {
+    if (this->model->isDir(index)) {
         this->localView.treeView->expand( this->dir_file_model->index(this->model->filePath(index)).parent());        
         this->localView.treeView->expand( this->dir_file_model->index(this->model->filePath(index)));
         this->slot_dir_tree_item_clicked(this->dir_file_model->index(this->model->filePath(index)));
         this->localView.treeView->selectionModel()->clearSelection();
         this->localView.treeView->selectionModel()->select(this->dir_file_model->index(this->model->filePath(index)), QItemSelectionModel::Select ) ;
-    }
-    else
-    {
+    } else {
         qDebug()<<" double clicked a regular file , no op now,only now";
     }
 }
@@ -362,10 +324,9 @@ void LocalView::slot_dir_file_view_double_clicked( const QModelIndex & index )
 
 void LocalView::slot_show_hidden(bool show)
 {
-    if(show){
+    if (show) {
         this->model->setFilter(QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot);
-    }
-    else{
+    } else {
         this->model->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot );
     }
 }
@@ -376,46 +337,40 @@ void LocalView::slot_mkdir()
     
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     QModelIndexList mil;
-    if(ism == 0 || ism->selectedIndexes().count() == 0)
-    {
+    if (ism == 0 || ism->selectedIndexes().count() == 0) {
         qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
-        QMessageBox::critical(this,tr("Waring..."),tr("No item selected"));
+        QMessageBox::critical(this, tr("Waring..."), tr("No item selected"));
         return ;
     }    
     mil = ism->selectedIndexes() ;
 
     QModelIndex midx = mil.at(0);
-    QModelIndex aim_midx = (this->curr_item_view == this->localView.treeView) ? this->dir_file_model->mapToSource(midx): midx ;
+    QModelIndex aim_midx = (this->curr_item_view == this->localView.treeView)
+        ? this->dir_file_model->mapToSource(midx): midx ;
 
     //检查所选择的项是不是目录
-    if(!this->model->isDir(aim_midx))
-    {
-        QMessageBox::critical(this,tr("Waring..."),tr("The selected item is not a directory."));
+    if (!this->model->isDir(aim_midx)) {
+        QMessageBox::critical(this, tr("Waring..."), tr("The selected item is not a directory."));
         return ;
     }
     
     dir_name = QInputDialog::getText(this,tr("Create directory:"),
                                      tr("Input directory name:")
-				     +"                                                        ",
-				     QLineEdit::Normal,
-				     tr("new_direcotry") );
-    if( dir_name == QString::null )
-    {
+                                     +"                                                        ",
+                                     QLineEdit::Normal,
+                                     tr("new_direcotry") );
+    if (dir_name == QString::null) {
         return ;
     } 
-    if(  dir_name.length () == 0 )
-    {
+    if (dir_name.length () == 0) {
         qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
-        QMessageBox::critical(this,tr("Waring..."),tr("No directory name supplyed."));
+        QMessageBox::critical(this, tr("Waring..."), tr("No directory name supplyed."));
         return;
     }
 
-    if(!QDir().mkdir(this->model->filePath(aim_midx) + "/" + dir_name))
-    {
-        QMessageBox::critical(this,tr("Waring..."),tr("Create directory faild."));
-    }
-    else
-    {
+    if (!QDir().mkdir(this->model->filePath(aim_midx) + "/" + dir_name)) {
+        QMessageBox::critical(this, tr("Waring..."), tr("Create directory faild."));
+    } else {
         this->slot_refresh_directory_tree();
     }
 }
@@ -426,35 +381,30 @@ void LocalView::slot_rmdir()
     
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     QModelIndexList mil;
-    if(ism == 0 || ism->selectedIndexes().count() == 0)
-    {
+    if (ism == 0 || ism->selectedIndexes().count() == 0) {
         qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
-        QMessageBox::critical(this,tr("Waring..."),tr("No item selected"));
+        QMessageBox::critical(this, tr("Waring..."), tr("No item selected"));
         return ;
     }    
     mil = ism->selectedIndexes() ;
 
     QModelIndex midx = mil.at(0);
-    QModelIndex aim_midx = (this->curr_item_view == this->localView.treeView) ? this->dir_file_model->mapToSource(midx): midx ;
+    QModelIndex aim_midx = (this->curr_item_view == this->localView.treeView) 
+        ? this->dir_file_model->mapToSource(midx): midx ;
 
     //检查所选择的项是不是目录
-    if(!this->model->isDir(aim_midx))
-    {
-        QMessageBox::critical(this,tr("Waring..."),tr("The selected item is not a directory."));
+    if (!this->model->isDir(aim_midx)) {
+        QMessageBox::critical(this, tr("Waring..."), tr("The selected item is not a directory."));
         return ;
     }
     qDebug()<<QDir(this->model->filePath(aim_midx)).count();
-    if(QDir(this->model->filePath(aim_midx)).count() > 2)
-    {
-        QMessageBox::critical(this,tr("Waring..."),tr("Selected director not empty."));
+    if (QDir(this->model->filePath(aim_midx)).count() > 2) {
+        QMessageBox::critical(this, tr("Waring..."), tr("Selected director not empty."));
         return;
     }
-    if(!QDir().rmdir(this->model->filePath(aim_midx) ))
-    {
-        QMessageBox::critical(this,tr("Waring..."),tr("Delete directory faild."));
-    }
-    else
-    {
+    if (!QDir().rmdir(this->model->filePath(aim_midx))) {
+        QMessageBox::critical(this, tr("Waring..."), tr("Delete directory faild."));
+    } else {
         this->slot_refresh_directory_tree();
     }
 }
@@ -463,20 +413,20 @@ void LocalView::slot_remove()
 {
     QModelIndexList mil;
     QItemSelectionModel * ism = this->curr_item_view->selectionModel();
-    if( ism == 0 || ism->selectedIndexes().count() == 0) {
-        QMessageBox::critical(this,tr("Waring..."),tr("No item selected")+"                    ");
+    if (ism == 0 || ism->selectedIndexes().count() == 0) {
+        QMessageBox::critical(this, tr("Waring..."), tr("No item selected") + "                    ");
         return ;
     }
     mil = ism->selectedIndexes();
 
     QString local_file = this->curr_item_view==this->localView.treeView?this->dir_file_model->filePath ( mil.at ( 0 ) ) : this->model->filePath(mil.at(0));
 
-    if(QMessageBox::question(this, tr("Question..."), 
+    if (QMessageBox::question(this, tr("Question..."), 
                              QString("%1\n\t%2").arg(QString(tr("Are you sure remove it?"))).arg(local_file),
                              QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes) {
-        if(QFile::remove(local_file)) {
+        if (QFile::remove(local_file)) {
             this->slot_refresh_directory_tree();    
-        }else{
+        } else {
             q_debug()<<"can not remove file:"<<local_file;
         }
     }
@@ -487,39 +437,38 @@ void LocalView::slot_rename()
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     QModelIndexList mil;
     QItemSelectionModel * ism = this->curr_item_view->selectionModel();
-    if( ism == 0 || ism->selectedIndexes().count() == 0)
-    {
-        QMessageBox::critical(this,tr("Waring..."),tr("No item selected")+"                         ");
+    if (ism == 0 || ism->selectedIndexes().count() == 0) {
+        QMessageBox::critical(this, tr("Waring..."), tr("No item selected")+"                         ");
         return ;
     }
     mil = ism->selectedIndexes();
 
-    QString local_file = this->curr_item_view==this->localView.treeView?this->dir_file_model->filePath ( mil.at ( 0 ) ) : this->model->filePath(mil.at(0));
-    QString file_name = this->curr_item_view==this->localView.treeView?this->dir_file_model->fileName ( mil.at ( 0 ) ) : this->model->fileName(mil.at(0));
+    QString local_file = this->curr_item_view==this->localView.treeView
+        ? this->dir_file_model->filePath(mil.at(0)) : this->model->filePath(mil.at(0));
+    QString file_name = this->curr_item_view==this->localView.treeView
+        ? this->dir_file_model->fileName(mil.at(0)) : this->model->fileName(mil.at(0));
     //QByteArray ba = codec->fromUnicode(local_path);
     //qDebug()<<" orginal name:"<< local_path
     //        <<" unicode name:"<< QString(ba.data() );
     //local_path = ba ;
     QString rename_to ;
-    rename_to = QInputDialog::getText(this,tr("Rename to:"),  tr("Input new name:")
-				      +"                                                        ",
-				      QLineEdit::Normal, file_name );
+    rename_to = QInputDialog::getText(this, tr("Rename to:"), tr("Input new name:")
+                                      +"                                                        ",
+                                      QLineEdit::Normal, file_name );
      
-    if(  rename_to  == QString::null )
-    {
+    if (rename_to  == QString::null) {
         //qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
         //QMessageBox::critical(this,tr("Waring..."),tr("No new name supplyed "));
         return;
     }
-    if( rename_to.length() == 0 )
-    {
-        QMessageBox::critical(this,tr("Waring..."),tr("No new name supplyed "));
+    if (rename_to.length() == 0) {
+        QMessageBox::critical(this, tr("Waring..."), tr("No new name supplyed "));
         return ;
     }
     QTextCodec * codec = GlobalOption::instance()->locale_codec;
     QString file_path = local_file.left(local_file.length()-file_name.length());
     rename_to = file_path + rename_to;
-    ::rename( codec->fromUnicode(local_file).data(), codec->fromUnicode(rename_to).data());
+    ::rename(codec->fromUnicode(local_file).data(), codec->fromUnicode(rename_to).data());
     
     this->slot_refresh_directory_tree();
 }
@@ -527,18 +476,18 @@ void LocalView::slot_copy_path_url()
 {
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
-    if(ism == 0) {
+    if (ism == 0) {
         qDebug()<<" why???? no QItemSelectionModel??";        
         return ;
     }
     
     QModelIndexList mil = ism->selectedIndexes()   ;
-    if( mil.count() == 0 ){
+    if (mil.count() == 0) {
         qDebug()<<" why???? no QItemSelectionModel??";
         return;
     }
     QString local_file = this->curr_item_view==this->localView.treeView
-	?this->dir_file_model->filePath ( mil.at ( 0 ) ) : this->model->filePath(mil.at(0));
+        ? this->dir_file_model->filePath(mil.at(0)) : this->model->filePath(mil.at(0));
     
     QApplication::clipboard()->setText(local_file);
 }
@@ -548,18 +497,18 @@ void LocalView::slot_show_properties()
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
-    if(ism == 0) {
+    if (ism == 0) {
         qDebug()<<" why???? no QItemSelectionModel??";        
         return ;
     }
     
     QModelIndexList mil = ism->selectedIndexes()   ;
-    if( mil.count() == 0 ){
+    if (mil.count() == 0 ) {
         qDebug()<<" why???? no QItemSelectionModel??";
         return;
     }
     QString local_file = this->curr_item_view==this->localView.treeView
-	?this->dir_file_model->filePath ( mil.at ( 0 ) ) : this->model->filePath(mil.at(0));
+        ? this->dir_file_model->filePath(mil.at(0)) : this->model->filePath(mil.at(0));
     //  文件类型，大小，几个时间，文件权限
     //TODO 从模型中取到这些数据并显示在属性对话框中。
     LocalFileProperties * fp = new LocalFileProperties(this);
