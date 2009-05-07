@@ -18,4 +18,11 @@ SOURCES += testmain.cpp testnullfxp.cpp
 SOURCES += ../basestorage.cpp ../utils.cpp ../globaloption.cpp \
 ../sshfileinfo.cpp
 
+win32 {
+    win32-g++ {
+    } else {
+        DEFINES += LIBSSH2_WIN32
+    }
+}
+
 win32:LIBS += -lQtTest -lws2_32  -lgdi32 
