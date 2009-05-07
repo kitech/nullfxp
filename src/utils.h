@@ -67,7 +67,7 @@
 //#define		_IFREG	0100000	/* regular */
 #define		_IFLNK	0120000	/* symbolic link */
 #define		_IFSOCK	0140000	/* socket */
-//#define		_IFIFO	0010000	/* fifo */
+#define		_IFIFO	0010000	/* fifo */
 
 #define 	S_BLKSIZE  1024 /* size of a block */
 
@@ -130,6 +130,7 @@
  #define S_IFBLK _IFBLK
  #define	S_IFSOCK	_IFSOCK
  #define	S_IFLNK		_IFLNK
+ #define    S_IFIFO     _IFIFO
  #define S_IRUSR _S_IREAD
  #define S_IWUSR _S_IWRITE
  #define S_IXUSR _S_IEXEC

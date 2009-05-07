@@ -46,112 +46,111 @@
 
 /* XXX mode should be mode_t */
 
-void
-strmode ( int mode, char *p )
+void strmode ( int mode, char *p )
 {
     /* print type */
     switch ( mode & S_IFMT )
     {
     case S_IFDIR:			/* directory */
-	*p++ = 'd';
-	break;
+        *p++ = 'd';
+        break;
     case S_IFCHR:			/* character special */
-	*p++ = 'c';
-	break;
+        *p++ = 'c';
+        break;
     case S_IFBLK:			/* block special */
-	*p++ = 'b';
-	break;
+        *p++ = 'b';
+        break;
     case S_IFREG:			/* regular */
-	*p++ = '-';
-	break;
+        *p++ = '-';
+        break;
     case S_IFLNK:			/* symbolic link */
-	*p++ = 'l';
-	break;
-//#ifdef S_IFSOCK
+        *p++ = 'l';
+        break;
+        //#ifdef S_IFSOCK
     case S_IFSOCK:			/* socket */
-	*p++ = 's';
-	break;
-//#endif
-//#ifdef S_IFIFO
-    case _S_IFIFO:			/* fifo */
-	*p++ = 'p';
-	break;
-//#endif
+        *p++ = 's';
+        break;
+        //#endif
+        //#ifdef S_IFIFO
+    case S_IFIFO:			/* fifo */
+        *p++ = 'p';
+        break;
+        //#endif
     default:			/* unknown */
-	*p++ = '?';
-	break;
+        *p++ = '?';
+        break;
     }
     /* usr */
     if ( mode & S_IRUSR )
-	*p++ = 'r';
+        *p++ = 'r';
     else
-	*p++ = '-';
+        *p++ = '-';
     if ( mode & S_IWUSR )
-	*p++ = 'w';
+        *p++ = 'w';
     else
-	*p++ = '-';
+        *p++ = '-';
     switch ( mode & ( S_IXUSR | S_ISUID ) )
     {
     case 0:
-	*p++ = '-';
-	break;
+        *p++ = '-';
+        break;
     case S_IXUSR:
-	*p++ = 'x';
-	break;
+        *p++ = 'x';
+        break;
     case S_ISUID:
-	*p++ = 'S';
-	break;
+        *p++ = 'S';
+        break;
     case S_IXUSR | S_ISUID:
-	*p++ = 's';
-	break;
+        *p++ = 's';
+        break;
     }
     /* group */
     if ( mode & S_IRGRP )
-	*p++ = 'r';
+        *p++ = 'r';
     else
-	*p++ = '-';
+        *p++ = '-';
     if ( mode & S_IWGRP )
-	*p++ = 'w';
+        *p++ = 'w';
     else
-	*p++ = '-';
+        *p++ = '-';
     switch ( mode & ( S_IXGRP | S_ISGID ) )
     {
     case 0:
-	*p++ = '-';
-	break;
+        *p++ = '-';
+        break;
     case S_IXGRP:
-	*p++ = 'x';
-	break;
+        *p++ = 'x';
+        break;
     case S_ISGID:
-	*p++ = 'S';
-	break;
+        *p++ = 'S';
+        break;
     case S_IXGRP | S_ISGID:
-	*p++ = 's';
-	break;
+        *p++ = 's';
+        break;
     }
     /* other */
     if ( mode & S_IROTH )
-	*p++ = 'r';
+        *p++ = 'r';
     else
-	*p++ = '-';
+        *p++ = '-';
     if ( mode & S_IWOTH )
-	*p++ = 'w';
+        *p++ = 'w';
     else
-	*p++ = '-';
+        *p++ = '-';
     switch ( mode & ( S_IXOTH | S_ISVTX ) )
     {
     case 0:
-	*p++ = '-';
-	break;
+        *p++ = '-';
+        break;
     case S_IXOTH:
-	*p++ = 'x';
-	break;
+        *p++ = 'x';
+        break;
     case S_ISVTX:
-	*p++ = 'T';
-	break;
+        *p++ = 'T';
+        break;
     case S_IXOTH | S_ISVTX:
-	*p++ = 't';
-	break;
+        *p++ = 't';
+        break;
     }
     *p++ = ' ';		/* will be a '+' if ACL's implemented */
     *p = '\0';
@@ -313,7 +312,7 @@ void  fxp_local_do_ls( QString args , QVector<QMap<char, QString> > & fileinfos 
 #endif
 
 //
-int     fxp_local_do_mkdir(const char * path )
+int fxp_local_do_mkdir(const char * path )
 {
     int ret = 0 ;
     const char * ptr =0;
