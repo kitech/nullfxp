@@ -29,13 +29,16 @@
 #include <QSystemTrayIcon>
 #include <QPalette>
 
- class QAction;
- class QMenu;
- class QMdiArea;
- class QMdiSubWindow;
- class MdiChild;
- class QSignalMapper;
- 
+class QAction;
+class QMenu;
+class QMdiArea;
+class QMdiSubWindow;
+class MdiChild;
+class QSignalMapper;
+
+
+#include "taskpackage.h"
+#include "aboutnullfxp.h" 
 #include "ui_nullfxp.h"
 
 // #include "localview.h"
@@ -43,14 +46,13 @@
 // #include "remotehostconnectingstatusdialog.h"
 // #include "remotehostquickconnectinfodialog.h"
 // #include "remotehostconnectthread.h"
-class LocalView;
-         class RemoteView;
-         class RemoteHostConnectingStatusDialog;
-         class RemoteHostQuickConnectInfoDialog;
-         class RemoteHostConnectThread ;
-         class ForwardConnectDaemon;
 
-#include "aboutnullfxp.h"
+class LocalView;
+class RemoteView;
+class RemoteHostConnectingStatusDialog;
+class RemoteHostQuickConnectInfoDialog;
+class RemoteHostConnectThread ;
+class ForwardConnectDaemon;
                  
 /**
 	@author liuguangzhao <gzl@localhost>
@@ -75,16 +77,10 @@ public:
         void connect_to_remote_host(QMap<QString,QString> host) ;
         void slot_disconnect_from_remote_host();
         void slot_cancel_connect();
-        void slot_connect_remote_host_finished(int status,void * ssh2_sess , int ssh2_sock /*, void * ssh2_sftp */);
+        void slot_connect_remote_host_finished(int status, void * ssh2_sess, int ssh2_sock);
         
-        void slot_new_upload_requested(QStringList local_file_names);        
-
-        //void slot_new_upload_requested(QStringList local_file_names,QStringList remote_file_names );
-        //void slot_new_download_requested(QStringList remote_file_names );
-
-        //void slot_new_download_requested(QStringList local_file_names, QStringList remote_file_names );
-        
-        //void slot_transfer_finished(int status );
+        // void slot_new_upload_requested(QStringList local_file_names);        
+        void slot_new_upload_requested(TaskPackage local_pkg);
         
         void slot_show_local_view(bool);
         void slot_show_remote_view(bool);

@@ -1,34 +1,12 @@
 /* progressdialog.h --- 
  * 
- * Filename: progressdialog.h
- * Description: 
  * Author: liuguangzhao
- * Maintainer: 
- * Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
- * http://www.qtchina.net
- * http://nullget.sourceforge.net
- * Created: 二  5月  6 21:59:33 2008 (CST)
- * Version: 
- * Last-Updated: 一  7月 14 21:52:38 2008 (CST)
- *           By: 刘光照<liuguangzhao@users.sf.net>
- *     Update #: 3
- * URL: 
- * Keywords: 
- * Compatibility: 
- * 
+ * Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+ * URL: http://www.qtchina.net http://nullget.sourceforge.net
+ * Created: 2008-05-06 22:13:23 +0800
+ * Last-Updated: 
+ * Version: $Id$
  */
-
-/* Commentary: 
- * 
- * 
- * 
- */
-
-/* Change log:
- * 
- * 
- */
-
 
 #ifndef PROGRESSDIALOG_H
 #define PROGRESSDIALOG_H
@@ -37,29 +15,21 @@
 #include <QtGui>
 #include <QDialog>
 
+#include "taskpackage.h"
 #include "transferthread.h"
-
 #include "ui_progressdialog.h"
-
-/**
-   @author liuguangzhao <gzl@localhost>
-*/
 
 class ProgressDialog : public QWidget
 {
-    Q_OBJECT
-	public:
-    
-    ProgressDialog(QWidget *parent = 0  );
-
+    Q_OBJECT;
+ public:    
+    ProgressDialog(QWidget *parent = 0);
     ~ProgressDialog();
 
-    //void set_remote_connection(void* ssh2_sess );
+    // void set_transfer_info(QStringList local_file_names,QStringList remote_file_names  ) ;
+    void set_transfer_info(TaskPackage local_pkg, TaskPackage remote_pkg);
     
-    //type 可以是 TANSFER_GET,TRANSFER_PUT
-    void set_transfer_info(/*int type,*/QStringList local_file_names,QStringList remote_file_names  ) ;
-    
-    public slots:
+public slots:
     void slot_set_transfer_percent(int percent , int total_transfered ,int transfer_delta );
     void slot_transfer_thread_finished() ;
     void slot_new_file_transfer_started(QString new_file_name);

@@ -1,44 +1,19 @@
 // progressdialog.cpp --- 
 // 
-// Filename: progressdialog.cpp
-// Description: 
 // Author: liuguangzhao
-// Maintainer: 
-// Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
-// http://www.qtchina.net
-// http://nullget.sourceforge.net
-// Created: 二  5月  6 21:59:14 2008 (CST)
-// Version: 
-// Last-Updated: 一  7月 14 21:52:31 2008 (CST)
-//           By: 刘光照<liuguangzhao@users.sf.net>
-//     Update #: 3
-// URL: 
-// Keywords: 
-// Compatibility: 
+// Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+// URL: http://www.qtchina.net http://nullget.sourceforge.net
+// Created: 2008-05-06 22:14:59 +0800
+// Last-Updated: 
+// Version: $Id$
 // 
-// 
-
-// Commentary: 
-// 
-// 
-// 
-// 
-
-// Change log:
-// 
-// 
-// 
-
 
 #include <cassert>
-// #include <stdint.h>
-
 #include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
-// #include <sys/param.h>
 
 #ifdef HAVE_SYS_STAT_H
 # include <sys/stat.h>
@@ -95,13 +70,12 @@ ProgressDialog::ProgressDialog(QWidget *parent )
     QObject::connect(&this->time_cacl_timer, SIGNAL(timeout()), this, SLOT(slot_speed_timer_timeout()));
 }
 
-
 ProgressDialog::~ProgressDialog()
 {
     delete this->sftp_transfer_thread;
 }
 
-void ProgressDialog::set_transfer_info(QStringList local_file_names,QStringList remote_file_names  ) 
+void ProgressDialog::set_transfer_info(TaskPackage local_pkg, TaskPackage remote_pkg)
 {
     QString local_file_name ;
     QString remote_file_name ;

@@ -1,32 +1,11 @@
 // nullfxp.cpp --- 
 // 
-// Filename: nullfxp.cpp
-// Description: 
-// Author: 刘光照<liuguangzhao@users.sf.net>
-// Maintainer: 
-// Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
-// http://www.qtchina.net
-// http://nullget.sourceforge.net
-// Created: 二  7月 22 21:18:03 2008 (CST)
-// Version: 
-// Last-Updated: 日 12月 28 10:55:15 2008 (CST)
-//           By: 刘光照<liuguangzhao@users.sf.net>
-//     Update #: 8
-// URL: 
-// Keywords: 
-// Compatibility: 
-// 
-// 
-
-// Commentary: 
-// 
-// 
-// 
-// 
-
-// Change log:
-// 
-// 
+// Author: liuguangzhao
+// Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+// URL: http://www.qtchina.net http://nullget.sourceforge.net
+// Created: 2008-07-22 21:57:47 +0800
+// Last-Updated: 2009-05-08 21:58:17 +0800
+// Version: $Id$
 // 
 
 #include <stdlib.h>
@@ -102,10 +81,10 @@ NullFXP::NullFXP ( QWidget * parent , Qt::WindowFlags flags )
 
     localView = new LocalView();
 
-    mdiArea->addSubWindow ( localView );
+    mdiArea->addSubWindow (localView);
 
-    QObject::connect ( localView,SIGNAL ( new_upload_requested ( QStringList ) ),
-                       this,SLOT ( slot_new_upload_requested ( QStringList ) ) );
+    QObject::connect(localView, SIGNAL(new_upload_requested(TaskPackage)),
+                     this, SLOT(slot_new_upload_requested(TaskPackage)));
 
     //
     QObject::connect ( this->mUIMain.action_Local_Window,SIGNAL ( triggered(bool) ),
@@ -307,7 +286,7 @@ void NullFXP::slot_connect_remote_host_finished ( int status,void * ssh2_sess , 
         //local_sub_win->setGeometry( local_sub_win->x(),local_sub_win->y(), mdiArea->width()/2,  mdiArea->height()*18/19 );
         local_sub_win->resize(mdiArea->width()/2, mdiArea->height()*18/19) ;
         
-        remote_view->set_ssh2_handler(ssh2_sess/*,ssh2_sftp*/ ,ssh2_sock);
+        remote_view->set_ssh2_handler(ssh2_sess, ssh2_sock);
         remote_view->set_user_home_path ( this->remote_conn_thread->get_user_home_path() );
         remote_view->set_host_info(conn_thread->get_host_name(),
                                    conn_thread->get_user_name(),
@@ -339,19 +318,18 @@ void NullFXP::slot_cancel_connect()
     this->remote_conn_thread->set_user_canceled();
 }
 
-void NullFXP::slot_new_upload_requested ( QStringList local_file_names )
+void NullFXP::slot_new_upload_requested(TaskPackage local_pkg)
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     //QString remote_file_name ;
     //QStringList remote_file_names ;
 
     RemoteView * remote_view = this->get_top_most_remote_view() ;
-    if( remote_view == 0 )
-    {
+    if (remote_view == 0) {
         qDebug()<<" may be not connected ";
         return ;
     }
-    remote_view->slot_new_upload_requested( local_file_names ) ;
+    remote_view->slot_new_upload_requested(local_pkg);
 
 }
 

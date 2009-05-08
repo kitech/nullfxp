@@ -1,32 +1,11 @@
 /* remoteview.h --- 
  * 
- * Filename: remoteview.h
- * Description: 
  * Author: liuguangzhao
- * Maintainer: 
- * Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
- * http://www.qtchina.net
- * http://nullget.sourceforge.net
- * Created: 一  5月  5 22:09:15 2008 (CST)
- * Version: 
- * Last-Updated: 六  5月 31 15:25:48 2008 (CST)
- *           By: liuguangzhao
- *     Update #: 2
- * URL: 
- * Keywords: 
- * Compatibility: 
- * 
- */
-
-/* Commentary: 
- * 
- * 
- * 
- */
-
-/* Change log:
- * 
- * 
+ * Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+ * URL: http://www.qtchina.net http://nullget.sourceforge.net
+ * Created: 2008-05-31 22:09:15 +0800
+ * Last-Updated: 2009-05-08 21:47:47 +0800
+ * Version: $Id$
  */
 
 
@@ -38,17 +17,17 @@
 #include <QVector>
 #include <QPair>
 
-class ProgressDialog;
-class RemoteDirSortFilterModel ;
-class RemoteDirSortFilterModelEX ;
-
-#include "ui_remoteview.h"
-
-#include "remotedirmodel.h"
-
 #include "libssh2.h"
 #include "libssh2_sftp.h"
 
+#include "taskpackage.h"
+#include "remotedirmodel.h"
+
+#include "ui_remoteview.h"
+
+class ProgressDialog;
+class RemoteDirSortFilterModel ;
+class RemoteDirSortFilterModelEX ;
 class LocalView ;
 class EncryptionDetailFocusLabel;
 
@@ -114,10 +93,14 @@ public slots:
         
     void slot_dir_tree_customContextMenuRequested ( const QPoint & pos );
     void slot_new_transfer();
-    void slot_new_upload_requested(QStringList local_file_names, QStringList remote_file_names);
-    void slot_new_upload_requested( QStringList local_file_names ) ;
-    void slot_new_download_requested(QStringList local_file_names, QStringList remote_file_names);
-    void slot_new_download_requested( QStringList remote_file_names ) ;
+    // void slot_new_upload_requested(QStringList local_file_names, QStringList remote_file_names);
+    // void slot_new_upload_requested( QStringList local_file_names ) ;
+    void slot_new_upload_requested(TaskPackage local_pkg, TaskPackage remote_pkg);
+    void slot_new_upload_requested(TaskPackage local_pkg) ;
+    // void slot_new_download_requested(QStringList local_file_names, QStringList remote_file_names);
+    // void slot_new_download_requested( QStringList remote_file_names ) ;
+    void slot_new_download_requested(TaskPackage local_pkg, TaskPackage remote_pkg);
+    void slot_new_download_requested(TaskPackage remote_pkg);
         
     //////////ui
     void slot_show_fxp_command_log(bool show);
