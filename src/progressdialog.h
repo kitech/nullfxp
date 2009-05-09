@@ -4,7 +4,7 @@
  * Copyright (C) 2007-2010 liuguangzhao@users.sf.net
  * URL: http://www.qtchina.net http://nullget.sourceforge.net
  * Created: 2008-05-06 22:13:23 +0800
- * Last-Updated: 
+ * Last-Updated: 2009-05-09 08:50:37 +0800
  * Version: $Id$
  */
 
@@ -30,16 +30,18 @@ class ProgressDialog : public QWidget
     void set_transfer_info(TaskPackage local_pkg, TaskPackage remote_pkg);
     
 public slots:
-    void slot_set_transfer_percent(int percent , int total_transfered ,int transfer_delta );
-    void slot_transfer_thread_finished() ;
+    void slot_set_transfer_percent(int percent, int total_transfered, int transfer_delta);
+    void slot_transfer_thread_finished();
     void slot_new_file_transfer_started(QString new_file_name);
         
     void exec ();
-    void show () ;
+    void show ();
     void slot_cancel_button_clicked();
-    void slot_transfer_got_file_size( int size );
+    void slot_transfer_got_file_size(int size);
     void slot_transfer_log(QString log);
-    void slot_dest_file_exists(QString src_path, QString src_file_size, QString src_file_date,QString dest_path, QString dest_file_size, QString dest_file_date);
+    void slot_dest_file_exists(QString src_path, QString src_file_size, 
+                               QString src_file_date, QString dest_path,
+                               QString dest_file_size, QString dest_file_date);
     void slot_ask_accepted(int which);
     private slots:
     void slot_speed_timer_timeout();
@@ -49,9 +51,10 @@ signals:
         
 private:
 
-    //int transfer_type ;
-    QStringList local_file_names ;
-    QStringList remote_file_names ;
+    /* QStringList local_file_names ; */
+    /* QStringList remote_file_names ; */
+    TaskPackage local_pkg;
+    TaskPackage remote_pkg;
 
     TransferThread * sftp_transfer_thread ;
     bool   first_show ;
@@ -74,7 +77,7 @@ private:
     QString type(QString file_name);
 
 protected:
-    void closeEvent ( QCloseEvent * event ) ;
+    void closeEvent(QCloseEvent * event);
 };
 
 #endif

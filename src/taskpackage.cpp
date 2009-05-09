@@ -10,17 +10,27 @@
 
 #include "taskpackage.h"
 
+TaskPackage::TaskPackage()
+{
+}
+
 TaskPackage::TaskPackage(int scheme)
     : scheme(scheme)
 {
-
 }
 
 TaskPackage::~TaskPackage()
 {
 
 }
+int TaskPackage::setFile(QString file)
+{
+    int current_file_count = this->files.count();
+    this->files.clear();
+    this->files<<file;
 
+    return current_file_count;
+}
 void TaskPackage::dump(TaskPackage &pkg)
 {
     qDebug()<<"==== task package >>>";
@@ -40,6 +50,20 @@ bool TaskPackage::isValid(TaskPackage &pkg)
     }
     return true;
 }
+
+#ifndef QT_NO_DEBUG_STREAM
+QDebug operator<<(QDebug dbg, const TaskPackage &pkg)
+{
+    dbg.nospace() <<"(TaskPackage: "
+                  <<"scheme: "<<TaskPackage::getProtocolNameById(pkg.scheme)
+                  <<"host info: "<<pkg.username<<":"<<pkg.password<<"@"
+                  <<pkg.host<<": "<<pkg.port
+                  <<"pubkey: "<<pkg.pubkey
+                  <<")";
+   
+    return dbg.space();
+}
+#endif
 
 QString TaskPackage::getProtocolNameById(int protocol_id)
 {

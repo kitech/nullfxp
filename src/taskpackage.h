@@ -31,9 +31,11 @@ enum { PROTO_MIN,
 class TaskPackage 
 {
  public:
+    TaskPackage();
     TaskPackage(int scheme);
     ~TaskPackage();
-
+    
+    int setFile(QString file);
     static void dump(TaskPackage &pkg);
     static bool isValid(TaskPackage &kg);
     static QString getProtocolNameById(int protocol_id);
@@ -46,5 +48,9 @@ class TaskPackage
     QString password;
     QString pubkey;
 };
+
+#ifndef QT_NO_DEBUG_STREAM
+Q_CORE_EXPORT QDebug operator<<(QDebug, const TaskPackage &);
+#endif
         
 #endif /* _TASKPACKAGE_H_ */

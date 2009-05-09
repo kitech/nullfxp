@@ -1,34 +1,12 @@
 /* transferthread.h --- 
  * 
- * Filename: transferthread.h
- * Description: 
  * Author: liuguangzhao
- * Maintainer: 
- * Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
- * http://www.qtchina.net
- * http://nullget.sourceforge.net
- * Created: 二  5月  6 21:58:49 2008 (CST)
- * Version: 
- * Last-Updated: 
- *           By: 
- *     Update #: 0
- * URL: 
- * Keywords: 
- * Compatibility: 
- * 
+ * Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+ * URL: http://www.qtchina.net http://nullget.sourceforge.net
+ * Created: 2008-06-14 09:02:05 +0800
+ * Last-Updated: 2009-05-09 09:06:21 +0800
+ * Version: $Id$
  */
-
-/* Commentary: 
- * 
- * 
- * 
- */
-
-/* Change log:
- * 
- * 
- */
-
 
 #ifndef TRANSFERTHREAD_H
 #define TRANSFERTHREAD_H
@@ -37,12 +15,12 @@
 #include <map>
 
 #include <QtCore>
-
 #include <QThread>
 
 #include "libssh2.h"
 #include "libssh2_sftp.h"
 
+#include "taskpackage.h"
 /**
  * @author liuguangzhao <liuguangzhao@users.sf.net>
  * 
@@ -63,50 +41,47 @@ class TransferThread : public QThread
     Q_OBJECT
 public:
     
-    enum { TRANSFER_MIN, TRANSFER_GET,TRANSFER_PUT,TRANSFER_EXCHANGE,TRANSFER_RETRIVE_TO_LOCAL,TRANSFER_RETRIVE_TO_REMOTE ,TRANSFER_MAX };
+    enum {TRANSFER_MIN, TRANSFER_GET,TRANSFER_PUT,TRANSFER_EXCHANGE,TRANSFER_RETRIVE_TO_LOCAL,TRANSFER_RETRIVE_TO_REMOTE ,TRANSFER_MAX };
     enum {OW_UNKNOWN,OW_CANCEL, OW_YES,OW_YES_ALL,OW_RESUME,OW_NO, OW_NO_ALL};
     enum {ERRNO_BASE=100};
     
-    
     TransferThread(QObject *parent = 0);
-
     ~TransferThread();
 
     void run();
     
-    //void set_remote_connection( void* ssh2_sess  );
-    
     //说明，在上传的时候local_file_names.count()可以大于1个，而remote_file_names.count()必须等于1
     //在下载的时候：local_file_names.count()必须等于1,而remote_file_names.count()可以大于1个
-    //type 可以是 TANSFER_GET,TRANSFER_PUT
-    void set_transfer_info(/*int type,*/QStringList src_file_names,QStringList dest_file_names ) ;
+    // void set_transfer_info(QStringList src_file_names,QStringList dest_file_names ) ;
+    void set_transfer_info(TaskPackage src_pkg, TaskPackage dest_pkg);
     
-    int do_upload ( QString src_path, QString dest_path, int pflag );
-    int  do_download ( QString src_path, QString dest_path,   int pflag )   ;
-    int do_nrsftp_exchange( QString src_path , QString dest_path );
+    int do_upload(QString src_path, QString dest_path, int pflag);
+    int do_download(QString src_path, QString dest_path, int pflag);
+    int do_nrsftp_exchange(QString src_path, QString dest_path);
     
-    int   get_error_code () { return this->error_code ;} 
+    int get_error_code () { return this->error_code ;} 
     QString get_error_message(int error_code){ (void)error_code; return this->errorString;}
     void set_user_cancel( bool cancel );
 
     void user_response_result(int result);
 
 private :
-    int remote_is_dir( LIBSSH2_SFTP * ssh2_sftp, QString path );
-    int remote_is_reg( LIBSSH2_SFTP * ssh2_sftp, QString path ); 
-    int fxp_do_ls_dir (LIBSSH2_SFTP * ssh2_sftp, QString parent_path  , QVector<QMap<char, QString> > & fileinfos    );
+    int remote_is_dir(LIBSSH2_SFTP * ssh2_sftp, QString path);
+    int remote_is_reg(LIBSSH2_SFTP * ssh2_sftp, QString path); 
+    int fxp_do_ls_dir(LIBSSH2_SFTP * ssh2_sftp, QString parent_path, QVector<QMap<char, QString> > & fileinfos);
 
     void wait_user_response();
 
 signals:
-    void  transfer_percent_changed( int percent , int total_transfered ,int transfer_delta );
+    void  transfer_percent_changed(int percent, int total_transfered, int transfer_delta);
     void  transfer_new_file_started(QString new_file_name);
-    void  transfer_got_file_size( int size );
+    void  transfer_got_file_size(int size);
     void  transfer_log(QString log);
-    void dest_file_exists(QString src_file, QString src_file_size, QString src_file_date, QString dest_file, QString dest_file_size, QString dest_file_date);
+    void dest_file_exists(QString src_file, QString src_file_size,
+                          QString src_file_date, QString dest_file,
+                          QString dest_file_size, QString dest_file_date);
         
 private:
-        
     LIBSSH2_SESSION * dest_ssh2_sess;
     LIBSSH2_SFTP * dest_ssh2_sftp;
     int dest_ssh2_sock ;
@@ -118,10 +93,10 @@ private:
     bool user_canceled ;
     int file_exist_over_write_method;
         
-    //int transfer_type ;
-
-    QStringList src_file_names ;
-    QStringList dest_file_names;
+    /* QStringList src_file_names ; */
+    /* QStringList dest_file_names; */
+    TaskPackage src_pkg;
+    TaskPackage dest_pkg;
         
     quint64 total_file_size ;
     quint64 total_transfered_file_length ; 
@@ -130,13 +105,15 @@ private:
     quint64 current_file_size ;
     quint64 current_file_transfered_length ;
     QString  current_src_file_name;
-    QString  current_src_file_type;
+    // QString  current_src_file_type;
     QString  current_dest_file_name;
-    QString  current_dest_file_type;
+    // QString  current_dest_file_type;
 
-    QVector<QPair<QPair<QString,QString> , QPair<QString,QString> > > transfer_ready_queue;
-    QVector<QPair<QPair<QString,QString> , QPair<QString,QString> > > transfer_done_queue;
-    QVector<QPair<QPair<QString,QString> , QPair<QString,QString> > > transfer_error_queue;
+    //QVector<QPair<QPair<QString,QString> , QPair<QString,QString> > > transfer_ready_queue;
+    // QVector<QPair<QPair<QString,QString> , QPair<QString,QString> > > transfer_done_queue;
+    // QVector<QPair<QPair<QString,QString> , QPair<QString,QString> > > transfer_error_queue;
+    QVector<QPair<TaskPackage, TaskPackage> > transfer_ready_queue;
+    QVector<QPair<TaskPackage, TaskPackage> > transfer_done_queue;
     //
     int error_code ;
     QString errorString;
