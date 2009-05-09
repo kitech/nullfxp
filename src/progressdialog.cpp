@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-05-06 22:14:59 +0800
-// Last-Updated: 2009-05-09 17:57:40 +0800
+// Last-Updated: 2009-05-09 22:48:00 +0800
 // Version: $Id$
 // 
 
@@ -96,7 +96,8 @@ void ProgressDialog::set_transfer_info(TaskPackage local_pkg, TaskPackage remote
             + remote_file_name.split("/").at(remote_file_name.split("/").count()-1);
         this->ui_progress_dialog.lineEdit->setText(local_pkg.getProtocolNameById(local_pkg.scheme)
                                                    + "-->" 
-                                                   + local_pkg.getProtocolNameById(local_pkg.scheme));
+                                                   + remote_pkg.getProtocolNameById(remote_pkg.scheme));
+        this->ui_progress_dialog.comboBox_2->addItem(remote_file_name);
     }
 }
 

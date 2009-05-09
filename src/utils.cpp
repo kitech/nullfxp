@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-06-01 09:58:24 +0800
-// Last-Updated: 2009-05-09 18:04:28 +0800
+// Last-Updated: 2009-05-09 23:14:28 +0800
 // Version: $Id$
 // 
 
@@ -280,34 +280,6 @@ void  fxp_local_do_ls( QString args , QVector<QMap<char, QString> > & fileinfos 
     closedir(dh);
 }
 #endif
-
-//depcreated using QDir::mkdir(), QDir()::mkpath() instead
-// int fxp_local_do_mkdir(const char * path )
-// {
-//     int ret = 0 ;
-//     const char * ptr =0;
-
-// #ifdef WIN32
-// #ifdef _MSC_VER
-// 	ret = QDir().mkpath(path);
-// 	ret = !ret;
-// #else
-//     if(path[2] == ':'){
-// 	ptr = path + 1;
-// 	ret = mkdir(ptr);
-//     }else{
-// 	ret = mkdir(path);
-//     }
-// #endif
-// #else
-//     ret = mkdir(path,0777);
-// #endif
-//     if( ret == -1 )
-//     {
-// 	fprintf(stderr, " fxp_local_do_mkdir : %d %s %s \n" , errno,strerror(errno),path );
-//     }
-//     return ret ;
-// }
 
 long fxp_getpid()
 {

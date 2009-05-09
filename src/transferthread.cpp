@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-06-14 09:06:28 +0800
-// Last-Updated: 2009-05-09 17:50:26 +0800
+// Last-Updated: 2009-05-09 23:01:34 +0800
 // Version: $Id$
 // 
 
@@ -322,7 +322,7 @@ void TransferThread::run()
                 transfer_ret = this->do_download(this->current_src_file_name, local_full_path, 0);
             }
             //将目录下载到目录
-            else if (is_dir( GlobalOption::instance()->locale_codec->fromUnicode(this->current_dest_file_name ).data())
+            else if (is_dir(GlobalOption::instance()->locale_codec->fromUnicode(this->current_dest_file_name ).data())
                      && remote_is_dir(this->src_ssh2_sftp, this->current_src_file_name)) {
                 qDebug()<<"downloading dir to dir ...";
                 //this->sleep(debug_sleep_time);
@@ -332,17 +332,17 @@ void TransferThread::run()
                 transfer_ret = fxp_do_ls_dir(this->src_ssh2_sftp, this->current_src_file_name + "/", fileinfos);
                 qDebug()<<"ret:"<<transfer_ret<<" file count:"<<fileinfos.size();
                 // local dir = curr local dir +  curr remote dir 的最后一层目录
-                temp_src_atom_pkg = src_atom_pkg;
-                temp_src_atom_pkg.setFile(this->current_src_file_name + "/" +
+                temp_dest_atom_pkg = dest_atom_pkg;
+                temp_dest_atom_pkg.setFile(this->current_dest_file_name + "/" +
                                           this->current_src_file_name.split("/").at(this->current_src_file_name.split("/").count()-1));
                 
                 //确保本地有这个目录。
-                transfer_ret = QDir().mkpath(temp_src_atom_pkg.files.at(0));
-                qDebug()<<" fxp_local_do_mkdir: "<<transfer_ret <<" "<< temp_src_atom_pkg.files.at(0) ;
+                transfer_ret = QDir().mkpath(temp_dest_atom_pkg.files.at(0));
+                qDebug()<<" fxp_local_do_mkdir: "<<transfer_ret <<" "<< temp_dest_atom_pkg.files.at(0) ;
                 //加入到任务队列
                 for (int i = 0 ; i < fileinfos.size() ; i ++) {
-                    temp_dest_atom_pkg = dest_atom_pkg;
-                    temp_dest_atom_pkg.setFile(this->current_dest_file_name + "/" + fileinfos.at(i)['N']);
+                    temp_src_atom_pkg = src_atom_pkg;
+                    temp_src_atom_pkg.setFile(this->current_src_file_name + "/" + fileinfos.at(i)['N']);
                     
                     this->transfer_ready_queue.push_back(QPair<TaskPackage, TaskPackage>
                                                          (temp_src_atom_pkg, temp_dest_atom_pkg));

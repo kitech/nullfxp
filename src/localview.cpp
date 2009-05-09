@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-05-31 15:26:15 +0800
-// Last-Updated: 2009-05-09 18:18:38 +0800
+// Last-Updated: 2009-05-09 23:13:44 +0800
 // Version: $Id$
 // 
 
@@ -122,21 +122,26 @@ void LocalView::init_local_dir_tree_context_menu()
     action = new QAction(tr("Delete directory"), 0);
     this->local_dir_tree_context_menu->addAction(action);
     QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_rmdir()));
-    action = new QAction(tr("Remove"), 0);
+    action = new QAction(tr("Remove file"), 0);
     this->local_dir_tree_context_menu->addAction(action);
     QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_remove()));
+
+    action = new QAction("", 0);
+    action->setSeparator(true);
+    this->local_dir_tree_context_menu->addAction(action);
+  
+    //递归删除目录，删除文件的用户功能按钮
+    // action = new QAction(tr("Remove recursively !!!"), 0);
+    // this->local_dir_tree_context_menu->addAction(action);
+    // QObject::connect(action, SIGNAL(triggered()), this, SLOT(rm_file_or_directory_recursively()));
+
+    // action = new QAction("", 0);
+    // action->setSeparator(true);
+    // this->local_dir_tree_context_menu->addAction(action);
 
     action = new QAction(tr("Rename ..."), 0);
     this->local_dir_tree_context_menu->addAction(action);
     QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_rename()));
-    action = new QAction("", 0);
-    action->setSeparator(true);
-    this->local_dir_tree_context_menu->addAction(action);
-    
-    //递归删除目录功能，删除文件的用户按钮
-//     action = new QAction(tr("Remove recursively !!!"),0);
-//     this->local_dir_tree_context_menu->addAction(action);
-//     QObject::connect(action,SIGNAL(triggered()),this,SLOT(rm_file_or_directory_recursively()));
     
     QObject::connect(this->localView.treeView, SIGNAL(customContextMenuRequested(const QPoint &)),
                      this, SLOT(slot_local_dir_tree_context_menu_request(const QPoint &)));

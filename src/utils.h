@@ -4,7 +4,7 @@
  * Copyright (C) 2007-2010 liuguangzhao@users.sf.net
  * URL: http://www.qtchina.net http://nullget.sourceforge.net
  * Created: 2008-06-01 09:58:33 +0800
- * Last-Updated: 2009-05-09 18:03:55 +0800
+ * Last-Updated: 2009-05-09 23:14:31 +0800
  * Version: $Id$
  */
 
@@ -129,9 +129,6 @@ extern "C"{
 
     void fxp_local_do_ls(QString args , QVector<QMap<char, QString> > & fileinfos);
 
-    //depcreated, using QDir::mkdir(), QDir()::mkpath() instead
-    // int  fxp_local_do_mkdir(const char * path );
-    
     long fxp_getpid();
 
     /*

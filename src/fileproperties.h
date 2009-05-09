@@ -1,32 +1,11 @@
 /* fileproperties.h --- 
  * 
- * Filename: fileproperties.h
- * Description: 
- * Author: 刘光照<liuguangzhao@users.sf.net>
- * Maintainer: 
- * Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
- * http://www.qtchina.net
- * http://nullget.sourceforge.net
- * Created: 六  7月 19 14:43:21 2008 (CST)
- * Version: 
+ * Author: liuguangzhao
+ * Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+ * URL: http://www.qtchina.net http://nullget.sourceforge.net
+ * Created: 2008-07-19 14:43:21 +0800
  * Last-Updated: 
- *           By: 
- *     Update #: 0
- * URL: 
- * Keywords: 
- * Compatibility: 
- * 
- */
-
-/* Commentary: 
- * 
- * 
- * 
- */
-
-/* Change log:
- * 
- * 
+ * Version: $Id$
  */
 
 #ifndef FILEPROPERTIES_H
@@ -45,14 +24,14 @@ class FilePropertiesRetriveThread : public QThread
 {
     Q_OBJECT;
 public:
-        FilePropertiesRetriveThread( LIBSSH2_SFTP * ssh2_sftp , QString file_path , QObject * parent = 0 );
-        ~FilePropertiesRetriveThread();
-        virtual void run ();
-    signals:
-        void file_attr_abtained(QString file_name, void * attr );
-    private:
-        LIBSSH2_SFTP * ssh2_sftp ;
-        QString file_path ;
+    FilePropertiesRetriveThread(LIBSSH2_SFTP * ssh2_sftp, QString file_path, QObject * parent = 0);
+    ~FilePropertiesRetriveThread();
+    virtual void run ();
+signals:
+    void file_attr_abtained(QString file_name, void * attr);
+private:
+    LIBSSH2_SFTP * ssh2_sftp ;
+    QString file_path ;
 };
 
 /**
@@ -63,21 +42,20 @@ class FileProperties : public  QDialog
     Q_OBJECT;
 public:
     FileProperties(QWidget *parent = 0);
-
     ~FileProperties();
-    void set_ssh2_sftp( void * ssh2_sftp );
+    void set_ssh2_sftp(void * ssh2_sftp);
     
     void set_file_info_model_list(QModelIndexList &mil);
 
-    public slots:
-        void slot_prop_thread_finished();
-        void slot_file_attr_abtained(QString file_name, void * attr );
+public slots:
+    void slot_prop_thread_finished();
+    void slot_file_attr_abtained(QString file_name, void * attr);
         
-    private:
-        void update_perm_table( QString file_perm );
-        QString type(QString file_name);
-        Ui::FileProperties ui_file_prop_dialog;
-        LIBSSH2_SFTP * ssh2_sftp ;
+private:
+    void update_perm_table( QString file_perm);
+    QString type(QString file_name);
+    Ui::FileProperties ui_file_prop_dialog;
+    LIBSSH2_SFTP * ssh2_sftp ;
 };
 
 class LocalFileProperties: public QDialog
@@ -85,19 +63,17 @@ class LocalFileProperties: public QDialog
     Q_OBJECT;
 public:
     LocalFileProperties(QWidget *parent = 0);
-
     ~LocalFileProperties();
-    //void set_file_info_model_list(QModelIndexList &mil);
     void set_file_info_model_list(QString file_name);
 
-    public slots:
+public slots:
 
-    private:
-        void update_perm_table( QString file_name );
-        QString type(QString file_name);
-        QString digit_mode(int mode);
-        Ui::FileProperties ui_file_prop_dialog;
-        QString file_name;
+private:
+    void update_perm_table( QString file_name);
+    QString type(QString file_name);
+    QString digit_mode(int mode);
+    Ui::FileProperties ui_file_prop_dialog;
+    QString file_name;
 };
 
 #endif
