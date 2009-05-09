@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-05-31 15:26:15 +0800
-// Last-Updated: 2009-05-08 00:19:07 +0800
+// Last-Updated: 2009-05-09 18:18:38 +0800
 // Version: $Id$
 // 
 
@@ -184,10 +184,7 @@ void LocalView::slot_local_dir_tree_context_menu_request(const QPoint & pos)
 void LocalView::slot_local_new_upload_requested()
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    //QTextCodec * codec = QTextCodec::codecForName(REMOTE_CODEC);
-
     TaskPackage pkg(PROTO_FILE);
-    QStringList local_file_names ;
     QString local_file_name;
     QByteArray ba;
     
@@ -203,26 +200,8 @@ void LocalView::slot_local_new_upload_requested()
         qDebug() << (static_cast<QDirModel*>(this->curr_item_view->model()))->filePath(mil.at(i));
     
         local_file_name = (static_cast<QDirModel*>(this->curr_item_view->model()))->filePath(mil.at(i));
-        
-	//ba = codec->toUnicode(local_file_name.toAscii()).toAscii();
-	//下面这句说明了什么呢？在Mingw平台下，控制台输入正常时即为 Unicode编码，也就是DirModel返回的路径是Unicode编码的
-	//qDebug()<<codec->canEncode(local_file_name)<<"桌面"<< GlobalOption::instance()->remote_codec->toUnicode("桌面");
-        //qDebug()<<" orginal name:"<< local_file_name <<" unicode name:"<< QString(ba.data() );
-        //local_file_name = ba ;
-        //emit  new_upload_requested("/home/gzl/hehe.txt");
-        //emit  new_upload_requested ( local_file_name , local_file_type );
-        //加上协议前缀
-
-// #ifdef WIN32
-//         local_file_name = QString("file:///") + local_file_name ;
-// #else
-//         local_file_name = QString("file://") + local_file_name ;
-// #endif
-//         local_file_names << local_file_name;
-//         qDebug()<< local_file_names ;
         pkg.files<<local_file_name;
     }
-    // emit   new_upload_requested( local_file_names );
     emit   new_upload_requested(pkg);
 }
 
@@ -251,10 +230,6 @@ QString LocalView::get_selected_directory()
 
     local_path = this->dir_file_model->filePath(mil.at(0));
 
-    //QByteArray ba = codec->fromUnicode(local_path);
-    //qDebug()<<" orginal name:"<< local_path
-    //        <<" unicode name:"<< QString(ba.data() );
-    //local_path = ba ;
     return local_path ;
 }
 
@@ -447,10 +422,6 @@ void LocalView::slot_rename()
         ? this->dir_file_model->filePath(mil.at(0)) : this->model->filePath(mil.at(0));
     QString file_name = this->curr_item_view==this->localView.treeView
         ? this->dir_file_model->fileName(mil.at(0)) : this->model->fileName(mil.at(0));
-    //QByteArray ba = codec->fromUnicode(local_path);
-    //qDebug()<<" orginal name:"<< local_path
-    //        <<" unicode name:"<< QString(ba.data() );
-    //local_path = ba ;
     QString rename_to ;
     rename_to = QInputDialog::getText(this, tr("Rename to:"), tr("Input new name:")
                                       +"                                                        ",

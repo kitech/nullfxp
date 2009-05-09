@@ -1,32 +1,11 @@
 // utils.cpp --- 
 // 
-// Filename: utils.cpp
-// Description: 
 // Author: liuguangzhao
-// Maintainer: 
-// Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
-// http://www.qtchina.net
-// http://nullget.sourceforge.net
-// Created: 日  6月  1 09:58:24 2008 (CST)
-// Version: 
-// Last-Updated: 
-//           By: 
-//     Update #: 0
-// URL: 
-// Keywords: 
-// Compatibility: 
-// 
-// 
-
-// Commentary: 
-// 
-// 
-// 
-// 
-
-// Change log:
-// 
-// 
+// Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+// URL: http://www.qtchina.net http://nullget.sourceforge.net
+// Created: 2008-06-01 09:58:24 +0800
+// Last-Updated: 2009-05-09 18:04:28 +0800
+// Version: $Id$
 // 
 
 #include <sys/types.h>
@@ -42,10 +21,7 @@
 #include "utils.h"
 #include "globaloption.h"
 
-
-
 /* XXX mode should be mode_t */
-
 void strmode ( int mode, char *p )
 {
     /* print type */
@@ -156,15 +132,14 @@ void strmode ( int mode, char *p )
     *p = '\0';
 }
 //
-int     is_dir(char *path)
+int  is_dir(char *path)
 {
     struct stat sb;
 
     /* XXX: report errors? */
-    if (stat(path, &sb) == -1)
-    {
-	fprintf(stderr, " is dir : %d %s %s \n" , errno,strerror(errno),path );
-	return(0);
+    if (stat(path, &sb) == -1) {
+        fprintf(stderr, " is dir : %d %s %s \n" , errno,strerror(errno),path );
+        return(0);
     }
 
     return(S_ISDIR(sb.st_mode));
@@ -188,7 +163,7 @@ const char *digit_mode(int mode)
     };
     char dmode[5] = {0};
     int i = 0, v = 0;;
-    for(i =0 ;i < 4 ; i++) {
+    for (i =0 ;i < 4 ; i++) {
         v = 0;
         if(mode & keys[i*3]) v += 4;
         if(mode & keys[i*3+1]) v += 2;
@@ -227,17 +202,15 @@ void  fxp_local_do_ls( QString args , QVector<QMap<char, QString> > & fileinfos 
 
 	fileinfos.clear();
 	entries = dh.entryList();
-	for ( int i = 0 ; i < entries.count(); i++)
+	for (int i = 0 ; i < entries.count(); i++)
 	{
         thefile.clear();
 		the_path = entries.at(i);
-		if (the_path == "." || the_path == "..")
-		{
+		if (the_path == "." || the_path == "..") {
 			goto out_point;
 		}
 		the_path = args + "/"  + the_path;
-		if (QFile::exists(the_path))
-		{
+		if (QFile::exists(the_path)) {
 			QFileInfo fi(the_path);
 			sprintf(file_size, "%llu", fi.size());
 			strcpy(file_type,"-rwxrwxrwx-");
@@ -250,8 +223,7 @@ void  fxp_local_do_ls( QString args , QVector<QMap<char, QString> > & fileinfos 
         
 		    fileinfos.push_back(thefile);
 		}
-
-	    out_point:	continue ;
+    out_point:	continue ;
 	}
 }
 #else
@@ -280,11 +252,11 @@ void  fxp_local_do_ls( QString args , QVector<QMap<char, QString> > & fileinfos 
         //strcpy(the_path,args);
         //strcat(the_path,"/");
         //strcat(the_path,entry->d_name);
-	the_path = args + "/"  + GlobalOption::instance()->locale_codec->toUnicode(entry->d_name);
+        the_path = args + "/"  + GlobalOption::instance()->locale_codec->toUnicode(entry->d_name);
         if(strcmp(entry->d_name,".") == 0) goto out_point;
         if(strcmp(entry->d_name,"..") == 0) goto out_point ;
 
-	if(stat( GlobalOption::instance()->locale_codec->fromUnicode(the_path ) , &thestat) != 0 ) continue;
+        if(stat( GlobalOption::instance()->locale_codec->fromUnicode(the_path ) , &thestat) != 0 ) continue;
         ltime = localtime(&thestat.st_mtime);
         
         sprintf(file_size,"%llu", thestat.st_size);
@@ -296,48 +268,47 @@ void  fxp_local_do_ls( QString args , QVector<QMap<char, QString> > & fileinfos 
                 sz = strftime(file_date, sizeof file_date, "%Y/%m/%d %H:%M:%S", ltime);
         } 
         strcpy(fname,entry->d_name);
-	thefile.insert( 'N',GlobalOption::instance()->locale_codec->toUnicode(fname) );
+        thefile.insert( 'N',GlobalOption::instance()->locale_codec->toUnicode(fname) );
         thefile.insert( 'T',QString(file_type) );
         thefile.insert( 'S',QString(file_size ) );
         thefile.insert( 'D',QString( file_date ) );
         
         fileinfos.push_back(thefile);
         
-    out_point:
-
-	continue ;
+    out_point: continue ;
     }
     closedir(dh);
 }
 #endif
 
-//
-int fxp_local_do_mkdir(const char * path )
-{
-    int ret = 0 ;
-    const char * ptr =0;
+//depcreated using QDir::mkdir(), QDir()::mkpath() instead
+// int fxp_local_do_mkdir(const char * path )
+// {
+//     int ret = 0 ;
+//     const char * ptr =0;
 
-#ifdef WIN32
-#ifdef _MSC_VER
-	ret = QDir().mkpath(path);
-	ret = !ret;
-#else
-    if(path[2] == ':'){
-	ptr = path + 1;
-	ret = mkdir(ptr);
-    }else{
-	ret = mkdir(path);
-    }
-#endif
-#else
-    ret = mkdir(path,0777);
-#endif
-    if( ret == -1 )
-    {
-	fprintf(stderr, " fxp_local_do_mkdir : %d %s %s \n" , errno,strerror(errno),path );
-    }
-    return ret ;
-}
+// #ifdef WIN32
+// #ifdef _MSC_VER
+// 	ret = QDir().mkpath(path);
+// 	ret = !ret;
+// #else
+//     if(path[2] == ':'){
+// 	ptr = path + 1;
+// 	ret = mkdir(ptr);
+//     }else{
+// 	ret = mkdir(path);
+//     }
+// #endif
+// #else
+//     ret = mkdir(path,0777);
+// #endif
+//     if( ret == -1 )
+//     {
+// 	fprintf(stderr, " fxp_local_do_mkdir : %d %s %s \n" , errno,strerror(errno),path );
+//     }
+//     return ret ;
+// }
+
 long fxp_getpid()
 {
     long pid = 0 ;

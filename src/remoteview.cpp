@@ -231,7 +231,6 @@ void RemoteView::slot_new_transfer()
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
      
     QString file_path   ;
-    QStringList remote_file_names;
     TaskPackage remote_pkg(PROTO_SFTP);
     
     if (this->in_remote_dir_retrive_loop) {
@@ -256,20 +255,6 @@ void RemoteView::slot_new_transfer()
              : (this->remote_dir_sort_filter_model_ex->mapToSource(midx ).internalPointer()));
         qDebug()<<dti->file_name<<" "<<dti->file_type<<" "<<dti->strip_path;
         file_path = dti->strip_path;
-        // //file_type = dti->file_type  ;
-        // file_path = QString("nrsftp://%1:%2@%3:%4").arg(this->user_name).arg("").arg(this->host_name).arg(this->port) + file_path;
-
-        // QUrl uu(file_path);
-        // qDebug()<<"vvvvvvvvv"<<this->password;
-        // uu.setEncodedPassword(this->password.toAscii());
-        // QList<QPair<QString, QString> > query_items;
-        // query_items<<QPair<QString, QString>("pubkey",this->pubkey);
-        // uu.setQueryItems(query_items);
-        // q_debug()<<uu;
-        // file_path = uu.toEncoded();//toString();
-        // //q_debug()<<file_path;
-
-        // remote_file_names << file_path ;
         remote_pkg.files<<file_path;
     }
 
@@ -279,11 +264,6 @@ void RemoteView::slot_new_transfer()
     remote_pkg.password = this->password;
     remote_pkg.pubkey = this->pubkey;
 
-    //emit new_transfer_requested("/vmlinuz-2.6.18.2-34-xen");
-    //emit new_transfer_requested(file_path,file_type );
-    //emit new_transfer_requested(remote_file_names);
-    //这里是指的下载文件
-    // this->slot_new_download_requested( remote_file_names ) ;
     this->slot_new_download_requested(remote_pkg);
 }
 
@@ -293,53 +273,33 @@ QString RemoteView::get_selected_directory()
     
     QItemSelectionModel *ism = this->remoteview.treeView->selectionModel();
     
-    if(ism == 0)
-    {
-        QMessageBox::critical(this,tr("Waring..."),tr("Maybe you haven't connected"));                
+    if (ism == 0) {
+        QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
         return file_path ;
     }
     
-    QModelIndexList mil = ism->selectedIndexes()   ;
+    QModelIndexList mil = ism->selectedIndexes();
     
-    for(int i = 0 ; i < mil.size(); i +=4 )
-    {
+    for (int i = 0 ; i < mil.size(); i +=4) {
         QModelIndex midx = mil.at(i);
         qDebug()<<midx ;
         QModelIndex aim_midx =  this->remote_dir_sort_filter_model->mapToSource( midx)  ;
         directory_tree_item * dti = (directory_tree_item*) aim_midx.internalPointer();
         qDebug()<<dti->file_name <<" "<<dti->file_type 
                 <<" "<< dti->strip_path  ;
-        if(this->remote_dir_sort_filter_model->isDir(midx)) {
-        	  file_path = dti->strip_path ;	
-        }else{
+        if (this->remote_dir_sort_filter_model->isDir(midx)) {
+        	  file_path = dti->strip_path;	
+        } else {
         	  file_path = "" ;
         }
-
-#ifndef _MSC_VER
-#warning "maybe gc code"
-#endif
-
-        /*
-        if( dti->file_type.at(0) == 'd' || dti->file_type.at(0) == 'D'
-            || dti->file_type.at(0) == 'l' )
-        {
-            //TODO dti->file_type.at(0) == 'l' ，这时不一定是目录，可能会出错。
-        }
-        else
-        {
-            file_path = "" ;
-        }
-        */
     }
     
     return file_path ;
-
 }
 
-void RemoteView::set_ssh2_handler( void * ssh2_sess /*, void * ssh2_sftp*/ , int ssh2_sock )
+void RemoteView::set_ssh2_handler( void * ssh2_sess, int ssh2_sock )
 {
     this->ssh2_sess = (LIBSSH2_SESSION*) ssh2_sess ;
-    //     this->ssh2_sftp = (LIBSSH2_SFTP * ) ssh2_sftp ;
     this->ssh2_sftp = libssh2_sftp_init( this->ssh2_sess );
     assert( this->ssh2_sftp != 0 );
     
@@ -367,20 +327,18 @@ void RemoteView::closeEvent ( QCloseEvent * event )
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     event->ignore();
-    if( this->in_remote_dir_retrive_loop )
-    {
+    if (this->in_remote_dir_retrive_loop) {
         //TODO 怎么能友好的结束
         //QMessageBox::warning(this,tr("Attentions:"),tr("Retriving remote directory tree, wait a minute please.") );
         //return ;
         //如果说是在上传或者下载,则强烈建议用户先关闭传输窗口，再关闭连接
-        if(  this->own_progress_dialog != 0 )
-        {
-            QMessageBox::warning(this,tr("Attentions:"),tr("You can't close connection when transfering file.") );
+        if (this->own_progress_dialog != 0) {
+            QMessageBox::warning(this, tr("Attentions:"), tr("You can't close connection when transfering file."));
             return ;
         }
     }
     //this->setVisible(false);
-    if( QMessageBox::question(this,tr("Attemp to close this window?"),tr("Are you sure disconnect from %1?").arg(this->windowTitle()) ,QMessageBox::Ok|QMessageBox::Cancel,QMessageBox::Cancel ) == QMessageBox::Ok )
+    if (QMessageBox::question(this, tr("Attemp to close this window?"),tr("Are you sure disconnect from %1?").arg(this->windowTitle()), QMessageBox::Ok|QMessageBox::Cancel, QMessageBox::Cancel ) == QMessageBox::Ok )
     {
         this->setVisible(false);
         qDebug()<<"delete remote view";
@@ -711,7 +669,6 @@ void RemoteView::slot_new_upload_requested(TaskPackage local_pkg, TaskPackage re
     RemoteView * remote_view = this ;
     ProgressDialog * pdlg = new ProgressDialog();
 
-    // pdlg->set_transfer_info(local_file_names , remote_file_names ) ;
     pdlg->set_transfer_info(local_pkg, remote_pkg);
 
     QObject::connect(pdlg, SIGNAL(transfer_finished(int, QString)),
@@ -725,7 +682,6 @@ void RemoteView::slot_new_upload_requested(TaskPackage local_pkg, TaskPackage re
 void RemoteView::slot_new_upload_requested(TaskPackage local_pkg)
 {
     QString remote_file_name ;
-    QStringList remote_file_names ;
     RemoteView * remote_view = this ;
     TaskPackage remote_pkg(PROTO_SFTP);
 
@@ -743,18 +699,6 @@ void RemoteView::slot_new_upload_requested(TaskPackage local_pkg)
         remote_pkg.port = QString("%1").arg(this->port);
         remote_pkg.pubkey = this->pubkey;
 
-        // remote_file_name = QString("nrsftp://%1:%2@%3:%4").arg(this->user_name).arg("").arg(this->host_name).arg(this->port) + remote_file_name ;
-        // //q_debug()<<remote_file_name<<QUrl::toPercentEncoding(this->password);
-        // QUrl uu = QUrl::fromEncoded(remote_file_name.toAscii(), QUrl::StrictMode);
-        // uu.setEncodedPassword(this->password.toAscii());
-        // QList<QPair<QString, QString> > query_items;
-        // query_items<<QPair<QString, QString>("pubkey",this->pubkey);
-        // uu.setQueryItems(query_items);
-        // //q_debug()<<uu;
-        // remote_file_name = uu.toEncoded();//uu.toString();
-        // //q_debug()<<remote_file_name;
-        // remote_file_names << remote_file_name ;
-        // this->slot_new_upload_requested( local_file_names , remote_file_names );
         this->slot_new_upload_requested(local_pkg, remote_pkg);
     }
 }
@@ -762,8 +706,6 @@ void RemoteView::slot_new_upload_requested(TaskPackage local_pkg)
 void RemoteView::slot_new_download_requested(TaskPackage local_pkg, TaskPackage remote_pkg)
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    // qDebug() << local_file_names << remote_file_names ;
-    
     RemoteView * remote_view = this ;
         
     ProgressDialog *pdlg = new ProgressDialog(0);
@@ -779,7 +721,6 @@ void RemoteView::slot_new_download_requested(TaskPackage remote_pkg)
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
-    QStringList local_file_names ;
     QString local_file_path  ;        
     RemoteView * remote_view = this;
     TaskPackage local_pkg(PROTO_FILE);
@@ -788,17 +729,10 @@ void RemoteView::slot_new_download_requested(TaskPackage remote_pkg)
     
     qDebug()<<local_file_path;
     if (local_file_path.length() == 0 
-        || !is_dir( GlobalOption::instance()->locale_codec->fromUnicode(local_file_path).data())) {
-        qDebug() <<" selected a local file directory  please";
-        QMessageBox::critical (this, tr("waring..."), tr("you should selecte a local file directory."));
+        || !is_dir(GlobalOption::instance()->locale_codec->fromUnicode(local_file_path).data())) {
+        qDebug()<<" selected a local file directory  please";
+        QMessageBox::critical(this, tr("waring..."), tr("you should selecte a local file directory."));
     } else {
-//         local_file_path = QString("file://"
-// #ifdef WIN32
-//                                   "/"
-// #endif
-//                                   ) + local_file_path ;
-//         local_file_names << local_file_path ;
-//         this->slot_new_download_requested( local_file_names,remote_file_names);
         local_pkg.files<<local_file_path;
         this->slot_new_download_requested(local_pkg, remote_pkg);
     }
@@ -930,8 +864,6 @@ bool RemoteView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction actio
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
-    QStringList local_file_names;
-    QStringList remote_file_names ;
     TaskPackage local_pkg(PROTO_FILE);
     TaskPackage remote_pkg(PROTO_SFTP);
 
@@ -940,24 +872,13 @@ bool RemoteView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction actio
     directory_tree_item * aim_item = static_cast<directory_tree_item*>(parent.internalPointer());
         
     QString remote_file_name = aim_item->strip_path ;
-    // remote_file_name = QString("nrsftp://%1:%2@%3:%4").arg(this->user_name).arg("").arg(this->host_name).arg(this->port) + remote_file_name ;
-    // QUrl uu(remote_file_name);
-    // uu.setEncodedPassword(this->password.toAscii());
-    // QList<QPair<QString, QString> > query_items;
-    // query_items<<QPair<QString, QString>("pubkey",this->pubkey);
-    // uu.setQueryItems(query_items);
-    // //q_debug()<<uu;
-    // remote_file_name = uu.toEncoded();//toString();
-    // //q_debug()<<remote_file_name;
 
-    // remote_file_names << remote_file_name ;
     remote_pkg.files<<remote_file_name;
     remote_pkg.host = this->host_name;
     remote_pkg.username = this->user_name;
     remote_pkg.password = this->password;
     remote_pkg.port = QString("%1").arg(this->port);
-    remote_pkg.pubkey = this->pubkey;
-    
+    remote_pkg.pubkey = this->pubkey;    
     
     QList<QUrl> urls = data->urls();
     qDebug() << urls << " action: " << action <<" "<< parent << data->text() <<"remote file:"<< remote_file_name  ;
@@ -972,7 +893,6 @@ bool RemoteView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction actio
         qDebug()<<urls.at(i).toString()<<urls.at(i).scheme();
         if (urls.at(i).scheme() == "nrsftp") {
             qDebug()<<" my scheme nrsftp";
-            // local_file_names << urls.at(i).toString() ;
             local_pkg.files<<urls.at(i).path();
             local_pkg.host = urls.at(i).host();
             local_pkg.username = urls.at(i).userName();
@@ -980,8 +900,6 @@ bool RemoteView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction actio
             local_pkg.port = QString("%1").arg(urls.at(i).port(22));
             local_pkg.pubkey = urls.at(i).queryItemValue("pubkey");
         }else if( urls.at(i).scheme() == "file") {
-            //file_name = urls.at(i).toEncoded();//toString() ;            
-            // local_file_names << file_name ;
             local_pkg.files<<urls.at(i).path();
         }else{
             qDebug()<<"Not support shemem";
@@ -990,9 +908,6 @@ bool RemoteView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction actio
     if (local_pkg.isValid(local_pkg)) {
         this->slot_new_upload_requested(local_pkg, remote_pkg);
     }
-    // if( local_file_names.count() > 0 ) {
-    //     this->slot_new_upload_requested ( local_file_names,remote_file_names );
-    // }
     qDebug() <<"drop mime data processed ";
     
     return true ;

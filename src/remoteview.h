@@ -4,7 +4,7 @@
  * Copyright (C) 2007-2010 liuguangzhao@users.sf.net
  * URL: http://www.qtchina.net http://nullget.sourceforge.net
  * Created: 2008-05-31 22:09:15 +0800
- * Last-Updated: 2009-05-08 21:47:47 +0800
+ * Last-Updated: 2009-05-09 18:08:21 +0800
  * Version: $Id$
  */
 
@@ -40,8 +40,8 @@ public:
     ~RemoteView();
     QString get_selected_directory();
     //
-    void set_host_info ( QString host_name ,QString user_name, QString password, short port, QString pubkey);
-    void set_ssh2_handler( void * ssh2_sess /*, void * ssh2_sftp*/, int ssh2_sock );
+    void set_host_info(QString host_name, QString user_name, QString password, short port, QString pubkey);
+    void set_ssh2_handler(void * ssh2_sess, int ssh2_sock );
     void set_user_home_path(std::string user_home_path);
     
     bool is_in_remote_dir_retrive_loop() 
@@ -63,14 +63,14 @@ private:
         
     QMenu * dir_tree_context_menu ;
         
-    void init_popup_context_menu() ;
+    void init_popup_context_menu();
         
-    std::string user_home_path ;    
+    std::string user_home_path;
         
     QCursor orginal_cursor ;
     bool    in_remote_dir_retrive_loop ;
     ProgressDialog * own_progress_dialog ;
-        
+    
     //
     int     ssh2_sock ;
     LIBSSH2_SESSION * ssh2_sess ;
@@ -93,12 +93,8 @@ public slots:
         
     void slot_dir_tree_customContextMenuRequested ( const QPoint & pos );
     void slot_new_transfer();
-    // void slot_new_upload_requested(QStringList local_file_names, QStringList remote_file_names);
-    // void slot_new_upload_requested( QStringList local_file_names ) ;
     void slot_new_upload_requested(TaskPackage local_pkg, TaskPackage remote_pkg);
     void slot_new_upload_requested(TaskPackage local_pkg) ;
-    // void slot_new_download_requested(QStringList local_file_names, QStringList remote_file_names);
-    // void slot_new_download_requested( QStringList remote_file_names ) ;
     void slot_new_download_requested(TaskPackage local_pkg, TaskPackage remote_pkg);
     void slot_new_download_requested(TaskPackage remote_pkg);
         
@@ -121,7 +117,6 @@ public slots:
     void slot_show_hidden(bool show);
 	
 signals:
-    void new_transfer_requested(QStringList local_file_names,QStringList remote_file_names);
         
 private slots:
 

@@ -4,7 +4,7 @@
  * Copyright (C) 2007-2010 liuguangzhao@users.sf.net
  * URL: http://www.qtchina.net http://nullget.sourceforge.net
  * Created: 2008-05-06 22:02:06 +0800
- * Last-Updated: 2009-05-07 23:16:48 +0800
+ * Last-Updated: 2009-05-09 18:21:04 +0800
  * Version: $Id$
  */
 
@@ -71,7 +71,6 @@ public:
         //void test();
         //void do_init();
         //void do_ls () ;
-        //void local_init_dir_view();
         
         void connect_to_remote_host() ;
         void connect_to_remote_host(QMap<QString,QString> host) ;
@@ -79,7 +78,6 @@ public:
         void slot_cancel_connect();
         void slot_connect_remote_host_finished(int status, void * ssh2_sess, int ssh2_sock);
         
-        // void slot_new_upload_requested(QStringList local_file_names);        
         void slot_new_upload_requested(TaskPackage local_pkg);
         
         void slot_show_local_view(bool);

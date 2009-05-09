@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-07-22 21:57:47 +0800
-// Last-Updated: 2009-05-08 21:58:17 +0800
+// Last-Updated: 2009-05-09 18:21:01 +0800
 // Version: $Id$
 // 
 
@@ -321,9 +321,6 @@ void NullFXP::slot_cancel_connect()
 void NullFXP::slot_new_upload_requested(TaskPackage local_pkg)
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    //QString remote_file_name ;
-    //QStringList remote_file_names ;
-
     RemoteView * remote_view = this->get_top_most_remote_view() ;
     if (remote_view == 0) {
         qDebug()<<" may be not connected ";
@@ -339,6 +336,7 @@ void NullFXP::slot_show_transfer_queue ( bool show )
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     transfer_queue_list_view->setVisible ( show );
 }
+
 void NullFXP::slot_show_fxp_command_log ( bool show )
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;

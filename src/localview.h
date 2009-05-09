@@ -4,7 +4,7 @@
  * Copyright (C) 2007-2010 liuguangzhao@users.sf.net
  * URL: http://www.qtchina.net http://nullget.sourceforge.net
  * Created: 2008-05-31 15:26:31 +0800
- * Last-Updated: 2009-05-07 23:54:56 +0800
+ * Last-Updated: 2009-05-09 18:16:07 +0800
  * Version: $Id$
  */
 
@@ -29,7 +29,7 @@ class RemoteView ;
 
 class LocalView : public QWidget
 {
-    Q_OBJECT
+    Q_OBJECT;
 public:
     LocalView(QWidget *parent = 0);
     ~LocalView();
@@ -38,7 +38,6 @@ public:
     void update_layout();
     
 signals:
-    // void new_upload_requested(QStringList local_file_names);
     void new_upload_requested(TaskPackage pkg);
 
 public slots:        
@@ -72,8 +71,6 @@ private:
         
     void expand_to_home_directory(QModelIndex parent_model, int level);
     void init_local_dir_tree_context_menu();
-    
-
 };
 
 #endif

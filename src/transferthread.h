@@ -52,7 +52,6 @@ public:
     
     //说明，在上传的时候local_file_names.count()可以大于1个，而remote_file_names.count()必须等于1
     //在下载的时候：local_file_names.count()必须等于1,而remote_file_names.count()可以大于1个
-    // void set_transfer_info(QStringList src_file_names,QStringList dest_file_names ) ;
     void set_transfer_info(TaskPackage src_pkg, TaskPackage dest_pkg);
     
     int do_upload(QString src_path, QString dest_path, int pflag);
@@ -93,8 +92,6 @@ private:
     bool user_canceled ;
     int file_exist_over_write_method;
         
-    /* QStringList src_file_names ; */
-    /* QStringList dest_file_names; */
     TaskPackage src_pkg;
     TaskPackage dest_pkg;
         
@@ -105,13 +102,8 @@ private:
     quint64 current_file_size ;
     quint64 current_file_transfered_length ;
     QString  current_src_file_name;
-    // QString  current_src_file_type;
     QString  current_dest_file_name;
-    // QString  current_dest_file_type;
 
-    //QVector<QPair<QPair<QString,QString> , QPair<QString,QString> > > transfer_ready_queue;
-    // QVector<QPair<QPair<QString,QString> , QPair<QString,QString> > > transfer_done_queue;
-    // QVector<QPair<QPair<QString,QString> , QPair<QString,QString> > > transfer_error_queue;
     QVector<QPair<TaskPackage, TaskPackage> > transfer_ready_queue;
     QVector<QPair<TaskPackage, TaskPackage> > transfer_done_queue;
     //

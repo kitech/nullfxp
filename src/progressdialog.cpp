@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-05-06 22:14:59 +0800
-// Last-Updated: 2009-05-09 08:50:34 +0800
+// Last-Updated: 2009-05-09 17:57:40 +0800
 // Version: $Id$
 // 
 
@@ -80,12 +80,9 @@ void ProgressDialog::set_transfer_info(TaskPackage local_pkg, TaskPackage remote
     QString remote_file_name ;
     QString tmp_str ;
     
-    // this->local_file_names = local_file_names;
-    // this->remote_file_names = remote_file_names ;
     this->local_pkg = local_pkg;
     this->remote_pkg = remote_pkg;
 
-    // this->sftp_transfer_thread->set_transfer_info(local_file_names,remote_file_names);
     this->sftp_transfer_thread->set_transfer_info(local_pkg, remote_pkg);
     
     QString local_full_path ;
@@ -97,15 +94,6 @@ void ProgressDialog::set_transfer_info(TaskPackage local_pkg, TaskPackage remote
         remote_file_name = remote_pkg.files.at(i);
         local_full_path = local_file_name + "/"
             + remote_file_name.split("/").at(remote_file_name.split("/").count()-1);
-        //fixed: 当用户名或者密码中包含问号或者#号的时候 QUrl 类就处理不了了。 传递过来的密码都是urlencoded
-        // tmp_str = QUrl(remote_file_name).path();
-        // if (tmp_str.at(2) == ':') {
-        //     //assert it win32	"/G:/path/to/file.zip"
-        //     this->ui_progress_dialog.comboBox_2->addItem(QUrl(remote_file_name).path().right(QUrl(remote_file_name).path().length()-1));
-        // } else {
-        //     this->ui_progress_dialog.comboBox_2->addItem(QUrl(remote_file_name).path());
-        // }        
-        // this->ui_progress_dialog.lineEdit->setText(QUrl(local_file_names.at(0)).scheme()+"-->"+QUrl(remote_file_name).scheme());
         this->ui_progress_dialog.lineEdit->setText(local_pkg.getProtocolNameById(local_pkg.scheme)
                                                    + "-->" 
                                                    + local_pkg.getProtocolNameById(local_pkg.scheme));

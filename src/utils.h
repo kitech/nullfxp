@@ -1,33 +1,13 @@
 /* utils.h --- 
  * 
- * Filename: utils.h
- * Description: 
  * Author: liuguangzhao
- * Maintainer: 
- * Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
- * http://www.qtchina.net
- * http://nullget.sourceforge.net
- * Created: 日  6月  1 09:58:33 2008 (CST)
- * Version: 
- * Last-Updated: 
- *           By: 
- *     Update #: 0
- * URL: 
- * Keywords: 
- * Compatibility: 
- * 
+ * Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+ * URL: http://www.qtchina.net http://nullget.sourceforge.net
+ * Created: 2008-06-01 09:58:33 +0800
+ * Last-Updated: 2009-05-09 18:03:55 +0800
+ * Version: $Id$
  */
 
-/* Commentary: 
- * 
- * 
- * 
- */
-
-/* Change log:
- * 
- * 
- */
 #ifndef UTILS_H
 #define UTILS_H
 
@@ -143,20 +123,21 @@ extern "C"{
     void strmode(int mode, char *p);
     const char *digit_mode(int mode);
 
-int is_reg(char *path);
+    int is_reg(char *path);
 
-int     is_dir(char *path) ;
+    int is_dir(char *path) ;
 
-void  fxp_local_do_ls( QString args , QVector<QMap<char, QString> > & fileinfos  );
+    void fxp_local_do_ls(QString args , QVector<QMap<char, QString> > & fileinfos);
 
-int  fxp_local_do_mkdir(const char * path );
+    //depcreated, using QDir::mkdir(), QDir()::mkpath() instead
+    // int  fxp_local_do_mkdir(const char * path );
+    
+    long fxp_getpid();
 
-long fxp_getpid();
-
-/*
- * Sets a socket to non-blocking operation.
- */
-int set_nonblock (int sock);
+    /*
+     * Sets a socket to non-blocking operation.
+     */
+    int set_nonblock (int sock);
 
 
 /*******************/
