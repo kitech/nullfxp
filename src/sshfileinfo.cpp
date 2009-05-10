@@ -1,33 +1,13 @@
 // sshfileinfo.cpp --- 
 // 
-// Filename: sshfileinfo.cpp
-// Description: 
-// Author: 刘光照<liuguangzhao@users.sf.net>
-// Maintainer: 
-// Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
-// http://www.qtchina.net
-// http://nullget.sourceforge.net
-// Created: 六  1月 10 11:10:22 2009 (CST)
-// Version: 
-// Last-Updated: 
-//           By: 
-//     Update #: 0
-// URL: 
-// Keywords: 
-// Compatibility: 
-// 
+// Author: liuguangzhao
+// Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+// URL: http://www.qtchina.net http://nullget.sourceforge.net
+// Created: 2009-01-10 11:10:22 +0800
+// Last-Updated: 2009-05-10 10:53:31 +0800
+// Version: $Id$
 // 
 
-// Commentary: 
-// 
-// 
-// 
-// 
-
-// Change log:
-// 
-// 
-// 
 #include "utils.h"
 
 #include "sshfileinfo.h"
@@ -91,6 +71,13 @@ qint64 SSHFileInfo::size () const
     return this->mAttr.filesize;
 }
 
+QString SSHFileInfo::stringMode() const
+{
+    QString mode;
 
+    
+    
+    return mode;
+}
 
 

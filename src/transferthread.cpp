@@ -972,7 +972,7 @@ int TransferThread::do_download ( QString remote_path, QString local_path,  int 
 }
 
 
-int TransferThread::do_upload ( QString local_path, QString remote_path, int pflag )
+int TransferThread::do_upload(QString local_path, QString remote_path, int pflag)
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
     qDebug()<< "remote_path = "<<  remote_path  << " , local_path = " << local_path ;
@@ -982,22 +982,20 @@ int TransferThread::do_upload ( QString local_path, QString remote_path, int pfl
     int file_size , tran_len = 0   ;
     LIBSSH2_SFTP_HANDLE * sftp_handle ;
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
-    struct stat     file_stat ;
     char buff[5120] = {0};
     int ret = 0;
     
-    //char native_path [PATH_MAX+1] = {0};
     //TODO 检测文件是否存在
     memset(&ssh2_sftp_attrib, 0, sizeof(LIBSSH2_SFTP_ATTRIBUTES));
     ret = libssh2_sftp_stat(this->dest_ssh2_sftp,
-                            GlobalOption::instance()->remote_codec->fromUnicode( remote_path ),
+                            GlobalOption::instance()->remote_codec->fromUnicode(remote_path),
                             &ssh2_sftp_attrib);
-    if(ret == 0){
-        if(this->user_canceled) return 1;
-        if(this->file_exist_over_write_method == OW_UNKNOWN 
+    if (ret == 0) {
+        if (this->user_canceled) return 1;
+        if (this->file_exist_over_write_method == OW_UNKNOWN 
            || this->file_exist_over_write_method == OW_YES
            || this->file_exist_over_write_method == OW_RESUME
-           || this->file_exist_over_write_method == OW_NO){
+           || this->file_exist_over_write_method == OW_NO) {
             //TODO 通知用户远程文件已经存在，再做处理。
             QString local_file_size, local_file_date;
             QString remote_file_size, remote_file_date;
@@ -1008,29 +1006,29 @@ int TransferThread::do_upload ( QString local_path, QString remote_path, int pfl
             QDateTime remote_mtime ;
             remote_mtime.setTime_t(ssh2_sftp_attrib.mtime);
             remote_file_date = remote_mtime.toString();
-            emit this->dest_file_exists(local_path,local_file_size,local_file_date, remote_path, remote_file_size, remote_file_date);
+            emit this->dest_file_exists(local_path, local_file_size, local_file_date, 
+                                        remote_path, remote_file_size, remote_file_date);
             this->wait_user_response();
         }
-        if(this->user_canceled || this->file_exist_over_write_method == OW_CANCEL) return 1;
-        if(this->file_exist_over_write_method == OW_YES){}//go on
-        if(this->file_exist_over_write_method == OW_NO) return 1;
-        if(this->file_exist_over_write_method == OW_NO_ALL){
+        if (this->user_canceled || this->file_exist_over_write_method == OW_CANCEL) return 1;
+        if (this->file_exist_over_write_method == OW_YES){}//go on
+        if (this->file_exist_over_write_method == OW_NO) return 1;
+        if (this->file_exist_over_write_method == OW_NO_ALL) {
             this->user_canceled = true;
             return 1;
         }
         qDebug()<<"Remote file exists, cover it.";
-    }else{
+    } else {
         //文件不存在
     }
     //TODO 检查文件可写属性
-    sftp_handle = libssh2_sftp_open( this->dest_ssh2_sftp,
+    sftp_handle = libssh2_sftp_open(this->dest_ssh2_sftp,
                                      GlobalOption::instance()->remote_codec->fromUnicode( remote_path ) ,
                                      LIBSSH2_FXF_READ|LIBSSH2_FXF_WRITE|LIBSSH2_FXF_CREAT|LIBSSH2_FXF_TRUNC,0666 ) ;
-    if( sftp_handle == NULL )
-    {
+    if (sftp_handle == NULL) {
         //TODO 错误消息通知用户。
         qDebug()<<"open sftp file error :"<< libssh2_sftp_last_error(this->dest_ssh2_sftp);
-        if( libssh2_sftp_last_error(this->dest_ssh2_sftp) == LIBSSH2_FX_PERMISSION_DENIED){
+        if (libssh2_sftp_last_error(this->dest_ssh2_sftp) == LIBSSH2_FX_PERMISSION_DENIED) {
             this->errorString = QString(tr("Open file faild, Permission denied"));
             qDebug()<<this->errorString;
         }
@@ -1043,32 +1041,20 @@ int TransferThread::do_upload ( QString local_path, QString remote_path, int pfl
     //libssh2_sftp_fstat(sftp_handle,&ssh2_sftp_attrib);
     //file_size = ssh2_sftp_attrib.filesize;
     //qDebug()<<" remote file size :"<< file_size ;
-    memset(&file_stat,0,sizeof(struct stat));
-    ::stat( GlobalOption::instance()->locale_codec->fromUnicode(local_path) , &file_stat );
-    file_size = file_stat.st_size;
+    QFileInfo local_fi(local_path);
+    file_size = local_fi.size();
     qDebug()<<"local file size:" << file_size ;
-    emit this->transfer_got_file_size( file_size ) ;
+    emit this->transfer_got_file_size(file_size);
     
-    //local_fd = ::open(native_path,O_RDONLY );
-    //local_handle = ::fopen( native_path , "r");
     // 本地编码 --> Qt 内部编码
     QFile q_file(  local_path  ) ;
-    if( ! q_file.open( QIODevice::ReadOnly) )
-        //if( local_fd <= 0 )
-        //if( local_handle == 0 )
-    {
+    if (!q_file.open( QIODevice::ReadOnly)) {
         //TODO 错误消息通知用户。
         qDebug()<<"open local file error:"<< q_file.errorString()  ;
         //printf("open local file error:%s\n", strerror( errno ) );        
-    }
-    else
-    {
-        //fseek(local_handle, 0L, SEEK_SET)	;
+    } else {
         //read local file and then write to remote file
-        while( ! q_file.atEnd()  )
-        {
-            //rlen = ::read(local_fd,buff,sizeof(buff));
-            //rlen = ::fread(  buff , 1  , sizeof(buff) , local_handle );
+        while (!q_file.atEnd()) {
             rlen = q_file.read( buff, sizeof( buff ) );
             if( rlen <= 0 )
             {
@@ -1082,12 +1068,9 @@ int TransferThread::do_upload ( QString local_path, QString remote_path, int pfl
             //qDebug()<<" local read : "<< rlen << " sftp write :"<<wlen <<" up len :"<< tran_len ;
             // 			qDebug() <<" read len :"<< rlen <<" , write len: "<< wlen 
             //                    << " tran len: "<< tran_len ;
-            if( file_size == 0 )
-            {
-                emit this->transfer_percent_changed ( 100, tran_len , wlen );
-            }
-            else
-            {
+            if (file_size == 0 ) {
+                emit this->transfer_percent_changed(100, tran_len, wlen);
+            } else {
                 pcnt = 100.0 *((double)tran_len  / (double)file_size);
                 //qDebug()<< QString("100.0 *((double)%1  / (double)%2)").arg(tran_len).arg(file_size)<<" = "<<pcnt ;
                 emit this->transfer_percent_changed ( pcnt , tran_len ,wlen  );

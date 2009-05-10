@@ -121,7 +121,7 @@ extern "C"{
 #endif
     
     void strmode(int mode, char *p);
-    const char *digit_mode(int mode);
+    QString digit_mode(int mode);
 
     int is_reg(char *path);
 

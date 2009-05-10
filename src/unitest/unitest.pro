@@ -21,7 +21,7 @@ SOURCES += ../basestorage.cpp ../utils.cpp ../globaloption.cpp \
 win32 {
     win32-g++ {
     } else {
-        DEFINES += LIBSSH2_WIN32
+        DEFINES += LIBSSH2_WIN32 _CRT_SECURE_NO_DEPRECATE
     }
 }
 

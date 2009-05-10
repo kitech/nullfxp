@@ -144,7 +144,7 @@ int  is_dir(char *path)
 
     return(S_ISDIR(sb.st_mode));
 }
-const char *digit_mode(int mode)
+QString digit_mode(int mode)
 {
     int keys[] = {
         S_ISUID,
@@ -161,16 +161,18 @@ const char *digit_mode(int mode)
         S_IXOTH,
         NULL
     };
-    char dmode[5] = {0};
+    char dmode[16] = {0};
     int i = 0, v = 0;;
     for (i =0 ;i < 4 ; i++) {
         v = 0;
-        if(mode & keys[i*3]) v += 4;
-        if(mode & keys[i*3+1]) v += 2;
-        if(mode & keys[i*3+2]) v += 1;
-        sprintf(dmode+strlen(dmode), "%d", v);
+        if (mode & keys[i*3]) v += 4;
+        if (mode & keys[i*3+1]) v += 2;
+        if (mode & keys[i*3+2]) v += 1;
+        sprintf(dmode+i, "%d", v);
+        dmode[i+1] = '\0';
     }
-    return dmode;
+    qDebug()<<"File digit mode: "<<QString(dmode);
+    return QString(dmode);
 }
 
 //

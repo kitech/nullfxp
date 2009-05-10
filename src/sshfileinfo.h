@@ -1,32 +1,11 @@
 /* sshfileinfo.h --- 
  * 
- * Filename: sshfileinfo.h
- * Description: 
- * Author: 刘光照<liuguangzhao@users.sf.net>
- * Maintainer: 
- * Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
- * http://www.qtchina.net
- * http://nullget.sourceforge.net
- * Created: 六  1月 10 11:09:52 2009 (CST)
- * Version: 
- * Last-Updated: 
- *           By: 
- *     Update #: 0
- * URL: 
- * Keywords: 
- * Compatibility: 
- * 
- */
-
-/* Commentary: 
- * 
- * 
- * 
- */
-
-/* Change log:
- * 
- * 
+ * Author: liuguangzhao
+ * Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+ * URL: http://www.qtchina.net http://nullget.sourceforge.net
+ * Created: 2009-01-10 11:09:52 +0800
+ * Last-Updated: 2009-05-10 10:53:34 +0800
+ * Version: $Id$
  */
 
 #ifndef SSH_FILE_INFO_H
@@ -53,6 +32,7 @@ public:
     QDateTime lastRead () const;
     uint ownerId () const;
     qint64 size () const;
+    QString stringMode() const;
 
 private:
     LIBSSH2_SFTP_ATTRIBUTES mAttr;
