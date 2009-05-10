@@ -879,7 +879,7 @@ int TransferThread::do_download ( QString remote_path, QString local_path,  int 
     int file_size , tran_len = 0   ;
     LIBSSH2_SFTP_HANDLE * sftp_handle ;
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
-    char buff[5120] = {0};
+    char buff[8192] = {0};
     
     sftp_handle = libssh2_sftp_open(this->src_ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(remote_path),LIBSSH2_FXF_READ,0);
     if( sftp_handle == NULL )
@@ -1055,14 +1055,17 @@ int TransferThread::do_upload(QString local_path, QString remote_path, int pflag
     } else {
         //read local file and then write to remote file
         while (!q_file.atEnd()) {
-            rlen = q_file.read( buff, sizeof( buff ) );
-            if( rlen <= 0 )
-            {
+            qDebug()<<"Read local ... ";
+            rlen = q_file.read(buff, sizeof(buff));
+            qDebug()<<"Read local done ";
+            if (rlen <= 0) {
                 //qDebug()<<"errno: "<<errno<<" err msg:"<< strerror( errno) << ftell( local_handle) ;
                 break ;
             }
-            wlen = libssh2_sftp_write(sftp_handle,buff,rlen);
-            
+            qDebug()<<"write to sftp ... ";
+            wlen = libssh2_sftp_write(sftp_handle, buff, rlen);
+            qDebug()<<"write to sftp done ";
+            Q_ASSERT(wlen == rlen);
             tran_len += wlen ;
             
             //qDebug()<<" local read : "<< rlen << " sftp write :"<<wlen <<" up len :"<< tran_len ;
@@ -1072,15 +1075,16 @@ int TransferThread::do_upload(QString local_path, QString remote_path, int pflag
                 emit this->transfer_percent_changed(100, tran_len, wlen);
             } else {
                 pcnt = 100.0 *((double)tran_len  / (double)file_size);
-                //qDebug()<< QString("100.0 *((double)%1  / (double)%2)").arg(tran_len).arg(file_size)<<" = "<<pcnt ;
-                emit this->transfer_percent_changed ( pcnt , tran_len ,wlen  );
+                // qDebug()<< QString("100.0 *((double)%1  / (double)%2)").arg(tran_len).arg(file_size)<<" = "<<pcnt ;
+                emit this->transfer_percent_changed(pcnt, tran_len, wlen);
             }
-            if(user_canceled == true){
+            if (user_canceled == true) {
                 break;
             }
         }
         q_file.close();
     }
+    qDebug()<<"out cycle, close sftp...";
     libssh2_sftp_close(sftp_handle);
     
     return ( 0 );

@@ -4,11 +4,12 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-05-31 15:26:15 +0800
-// Last-Updated: 2009-05-10 19:56:51 +0800
+// Last-Updated: 2009-05-10 21:41:49 +0800
 // Version: $Id$
 // 
 
 #include <QtCore>
+#include <QtGui>
 
 #include "utils.h"
 #include "remoteview.h"
@@ -385,6 +386,10 @@ void LocalView::slot_rmdir()
     if (!QDir().rmdir(this->model->filePath(aim_midx))) {
         QMessageBox::critical(this, tr("Waring..."), tr("Delete directory faild."));
     } else {
+        if (this->curr_item_view == this->localView.treeView) {
+            QModelIndex tree_midx = this->dir_file_model->mapFromSource(aim_midx);
+            this->slot_dir_tree_item_clicked(tree_midx.parent());
+        }
         this->slot_refresh_directory_tree();
     }
 }

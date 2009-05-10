@@ -164,12 +164,10 @@ CONFIG(debug, debug|release) {
 }
 DEFINES -= NDEBUG QT_NO_DEBUG_OUTPUT
 
-win32-g++ {
-     
+win32-g++ {     
 } else:win32 {
-     DEFINES += LIBSSH2_WIN32 _CRT_SECURE_NO_DEPRECATE GCC_MV=\"\\\"MSCV2005\\\"\"
+     DEFINES += LIBSSH2_WIN32 _CRT_SECURE_NO_DEPRECATE GCC_MV=\"\\\"MSVC 2005 Express Edition\\\"\"
 } else {
-
 }
 
 !win32 {
