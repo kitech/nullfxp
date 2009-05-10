@@ -20,8 +20,9 @@ win32 {
 win32 {
 	CONFIG += release
     VERSION = $$system(gv nullfxp-version.h)
-    win32-g++ {
+    !win32-g++ {
          CONFIG -= embed_manifest_exe
+         CONFIG -= embed_manifest_dll
     }
 } else:solaris-g++ {
         QT -= webkit
@@ -167,7 +168,6 @@ win32-g++ {
      
 } else:win32 {
      DEFINES += LIBSSH2_WIN32 _CRT_SECURE_NO_DEPRECATE GCC_MV=\"\\\"MSCV2005\\\"\"
-     
 } else {
 
 }

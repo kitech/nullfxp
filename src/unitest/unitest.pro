@@ -22,6 +22,8 @@ win32 {
     win32-g++ {
     } else {
         DEFINES += LIBSSH2_WIN32 _CRT_SECURE_NO_DEPRECATE
+         CONFIG -= embed_manifest_exe
+         CONFIG -= embed_manifest_dll
     }
 }
 

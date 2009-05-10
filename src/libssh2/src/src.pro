@@ -53,7 +53,7 @@ DEFINES += HAVE_CONFIG_H \
 
 win32 {
     !win32-g++ {
-        DEFINES += LIBSSH2_WIN32
+        DEFINES += LIBSSH2_WIN32 _CRT_SECURE_NO_DEPRECATE
         INCLUDEPATH += Z:/librarys/vc-ssl/include Z:/librarys/vc-zlib/include
     }
 }
