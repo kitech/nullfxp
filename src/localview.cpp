@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-05-31 15:26:15 +0800
-// Last-Updated: 2009-05-09 23:13:44 +0800
+// Last-Updated: 2009-05-10 19:56:51 +0800
 // Version: $Id$
 // 
 
@@ -192,19 +192,19 @@ void LocalView::slot_local_new_upload_requested()
     TaskPackage pkg(PROTO_FILE);
     QString local_file_name;
     QByteArray ba;
-    
-    //QItemSelectionModel * ism = this->localView.treeView->selectionModel();
+
     QItemSelectionModel * ism = this->curr_item_view->selectionModel();
     
     QModelIndexList mil = ism->selectedIndexes();
 
-    qDebug() << mil ;
-
     for (int i = 0 ; i < mil.count() ; i += this->curr_item_view->model()->columnCount(QModelIndex())) {
-        qDebug() << (static_cast<QDirModel*>(this->curr_item_view->model()))->fileName(mil.at(i));
-        qDebug() << (static_cast<QDirModel*>(this->curr_item_view->model()))->filePath(mil.at(i));
-    
-        local_file_name = (static_cast<QDirModel*>(this->curr_item_view->model()))->filePath(mil.at(i));
+        QModelIndex midx = mil.at(i);
+        if (this->curr_item_view==this->localView.treeView) {
+            midx = this->dir_file_model->mapToSource(midx);
+        }
+        qDebug()<<this->model->fileName(midx);
+        qDebug()<<this->model->filePath(midx);
+        local_file_name = this->model->filePath(midx);
         pkg.files<<local_file_name;
     }
     emit   new_upload_requested(pkg);
@@ -399,7 +399,8 @@ void LocalView::slot_remove()
     }
     mil = ism->selectedIndexes();
 
-    QString local_file = this->curr_item_view==this->localView.treeView?this->dir_file_model->filePath ( mil.at ( 0 ) ) : this->model->filePath(mil.at(0));
+    QString local_file = this->curr_item_view==this->localView.treeView
+        ? this->dir_file_model->filePath(mil.at(0)) : this->model->filePath(mil.at(0));
 
     if (QMessageBox::question(this, tr("Question..."), 
                              QString("%1\n\t%2").arg(QString(tr("Are you sure remove it?"))).arg(local_file),
