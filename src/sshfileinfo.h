@@ -4,7 +4,7 @@
  * Copyright (C) 2007-2010 liuguangzhao@users.sf.net
  * URL: http://www.qtchina.net http://nullget.sourceforge.net
  * Created: 2009-01-10 11:09:52 +0800
- * Last-Updated: 2009-05-10 10:53:34 +0800
+ * Last-Updated: 2009-05-13 23:06:24 +0800
  * Version: $Id$
  */
 
@@ -33,7 +33,9 @@ public:
     uint ownerId () const;
     qint64 size () const;
     QString stringMode() const;
-
+   
+    static SSHFileInfo fromQFileInfo(QFileInfo &fi);
+    
 private:
     LIBSSH2_SFTP_ATTRIBUTES mAttr;
 };

@@ -1,32 +1,11 @@
 // synchronizewindow.cpp --- 
 // 
-// Filename: synchronizewindow.cpp
-// Description: 
-// Author: 刘光照<liuguangzhao@users.sf.net>
-// Maintainer: 
-// Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
-// http://www.qtchina.net
-// http://nullget.sourceforge.net
-// Created: 五  8月  8 13:44:42 2008 (CST)
-// Version: 
-// Last-Updated: 日  8月 17 13:29:08 2008 (CST)
-//           By: 刘光照<liuguangzhao@users.sf.net>
-//     Update #: 2
-// URL: 
-// Keywords: 
-// Compatibility: 
-// 
-// 
-
-// Commentary: 
-// 
-// 
-// 
-// 
-
-// Change log:
-// 
-// 
+// Author: liuguangzhao
+// Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+// URL: http://www.qtchina.net http://nullget.sourceforge.net
+// Created: 2008-08-08 13:44:42 +0800
+// Last-Updated: 2009-05-13 22:58:15 +0800
+// Version: $Id$
 // 
 
 #include "utils.h"
@@ -136,12 +115,13 @@ SyncWalker::getRemoteFiles()
 {
     q_debug()<<"";
 
+    // files is relative path just after this->remoteBasePath
     QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > files;
     LIBSSH2_SFTP_ATTRIBUTES *attr ;
     LIBSSH2_SFTP_HANDLE *hsftp = NULL;
 
     int rc = 0;
-    char fnbuf[512] = {0};
+    char fnbuf[5120] = {0};
     QString currDir;
     QString currFile;
     QString nopFile;
@@ -150,16 +130,23 @@ SyncWalker::getRemoteFiles()
     dirStack.push(this->remoteBasePath);
 
     while (!dirStack.empty()) {
-        currDir = dirStack.pop();
+        currDir = dirStack.pop(); // currDir is absolute dir path
         hsftp = libssh2_sftp_opendir(ssh2_sftp, currDir.toAscii().data());
         if (hsftp == NULL) {
             q_debug()<<"opendir error:"<<currDir;
             continue;
         }
         while (true) {
-            rc = libssh2_sftp_readdir(hsftp, fnbuf, sizeof(fnbuf), &ssh2_attr);
-            if (rc <= 0) {
-                q_debug()<<"readdir error:"<<currDir;
+            memset(fnbuf, 0, sizeof(fnbuf));
+            rc = libssh2_sftp_readdir(hsftp, fnbuf, sizeof(fnbuf)-1, &ssh2_attr);
+            if (rc == -1) {
+                q_debug()<<"readdir error:"<<libssh2_sftp_last_error(ssh2_sftp)
+                         <<", "<<currDir;
+                break;
+            }
+            // no entry left
+            if (rc == 0) {
+                q_debug()<<"read 0 len file, readdir end.";
                 break;
             }
             if ((rc == 1 && fnbuf[0] == '.') || (rc == 2 && fnbuf[0] == '.' && fnbuf[1] == '.')) {
@@ -168,7 +155,7 @@ SyncWalker::getRemoteFiles()
             fnbuf[rc] = '\0';
             currFile = QString(fnbuf);
             if (S_ISDIR(ssh2_attr.permissions)) {
-                dirStack.push(this->remoteBasePath + "/" + currFile);
+                dirStack.push(currDir + "/" + currFile);
             }
             attr = (LIBSSH2_SFTP_ATTRIBUTES*)malloc(sizeof(LIBSSH2_SFTP_ATTRIBUTES));
             attr->flags |= FLAG_REMOTE_FILE;
@@ -178,6 +165,7 @@ SyncWalker::getRemoteFiles()
             files.append(QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*>(nopFile, attr));
         }
         libssh2_sftp_closedir(hsftp);
+        hsftp = NULL;
     }
     q_debug()<<"return ";
     return files;
@@ -267,6 +255,10 @@ SyncWalker::sortMerge(
     int rcnt = rfiles.count();
     int lcnt = lfiles.count();
     int  found;
+    int upCount = 0;
+    int downloadCount = 0;
+    int newerCount = 0;
+    int olderCount = 0;
     
     for (int i = 0 ; i < rcnt; ++i) {
         rfile = rfiles.at(i).first;
@@ -303,7 +295,6 @@ SyncWalker::sortMerge(
                 }
             }
             files.append(QPair<QString,LIBSSH2_SFTP_ATTRIBUTES*>(rfile,rattr));
-            // TODO free the mem of lattr
             free(lattr); lattr = NULL;
             lfiles.remove(found);
         } else {
@@ -325,6 +316,11 @@ SyncWalker::sortMerge(
 
     rfiles.clear();
     lfiles.clear();
+
+    // 应该首先显示需要更新的文件，而不是先显示相同的文件。
+    // make statusMessage, show in status bar
+    QString statusMessage = QString("LC: %1, RC: %2, UC: %3, DC: %4, NC: %5, OC: %6")
+        .arg(lcnt).arg(rcnt).arg(upCount).arg(downloadCount).arg(newerCount).arg(olderCount);
 
     return files;
 }
@@ -453,7 +449,8 @@ SynchronizeWindow::~SynchronizeWindow()
     delete this->walker;
 }
 
-void SynchronizeWindow::set_sync_param(QString local_dir, QString sess_name, QString remote_dir, bool recursive, int way)
+void SynchronizeWindow::set_sync_param(QString local_dir, QString sess_name, 
+                                       QString remote_dir, bool recursive, int way)
 {
     this->local_dir = local_dir;
     this->sess_name = sess_name;
@@ -534,7 +531,7 @@ void SynchronizeWindow::initCtxMenu()
     if (this->ctxMenu == NULL) {
         this->ctxMenu = new QMenu(this);
         QAction *action;
-        action = new QAction(tr("File info..."), this->ctxMenu);
+        action = new QAction(tr("File &info..."), this->ctxMenu);
         this->ctxMenu->addAction(action);
         QObject::connect(action, SIGNAL(triggered()), this, SLOT(showDiffFileInfo()));
 

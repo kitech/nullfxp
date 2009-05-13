@@ -1,33 +1,13 @@
 /* synchronizewindow.h --- 
  * 
- * Filename: synchronizewindow.h
- * Description: 
- * Author: 刘光照<liuguangzhao@users.sf.net>
- * Maintainer: 
- * Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
- * http://www.qtchina.net
- * http://nullget.sourceforge.net
- * Created: 五  8月  8 13:44:51 2008 (CST)
- * Version: 
- * Last-Updated: 日  8月 10 11:57:51 2008 (CST)
- *           By: 刘光照<liuguangzhao@users.sf.net>
- *     Update #: 1
- * URL: 
- * Keywords: 
- * Compatibility: 
- * 
+ * Author: liuguangzhao
+ * Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+ * URL: http://www.qtchina.net http://nullget.sourceforge.net
+ * Created: 2008-08-08 13:44:51 +0800
+ * Last-Updated: 2009-05-13 22:58:18 +0800
+ * Version: $Id$
  */
 
-/* Commentary: 
- * 
- * 
- * 
- */
-
-/* Change log:
- * 
- * 
- */
 #ifndef SYNCHRONIZEWINDOW_H
 #define SYNCHRONIZEWINDOW_H
 

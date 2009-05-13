@@ -255,8 +255,10 @@ void RemoteHostConnectThread::run()
     	  return ;
     }
 #else
+    sock_flag = 0;
     fcntl(this->ssh2_sock, F_SETFL, sock_flag);
 #endif
+
     if (this->user_canceled == true) {
         this->connect_status = 2 ;
 #ifdef WIN32

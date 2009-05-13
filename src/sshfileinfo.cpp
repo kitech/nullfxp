@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2009-01-10 11:10:22 +0800
-// Last-Updated: 2009-05-10 10:53:31 +0800
+// Last-Updated: 2009-05-13 23:06:20 +0800
 // Version: $Id$
 // 
 
@@ -74,10 +74,17 @@ qint64 SSHFileInfo::size () const
 QString SSHFileInfo::stringMode() const
 {
     QString mode;
-
-    
     
     return mode;
 }
 
+SSHFileInfo SSHFileInfo::fromQFileInfo(QFileInfo &fi)
+{
+    LIBSSH2_SFTP_ATTRIBUTES attr;
+    memset(&attr, 0, sizeof(attr));
 
+    attr.filesize = fi.size();
+
+    SSHFileInfo sshFi(attr);
+    return sshFi;
+}
