@@ -1,33 +1,13 @@
 /* synctransferthread.h --- 
  * 
- * Filename: synctransferthread.h
- * Description: 
- * Author: 刘光照<liuguangzhao@users.sf.net>
- * Maintainer: 
- * Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
- * http://www.qtchina.net
- * http://nullget.sourceforge.net
- * Created: 日  1月 11 10:19:18 2009 (CST)
- * Version: 
- * Last-Updated: 
- *           By: 
- *     Update #: 0
- * URL: 
- * Keywords: 
- * Compatibility: 
- * 
+ * Author: liuguangzhao
+ * Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+ * URL: http://www.qtchina.net http://nullget.sourceforge.net
+ * Created: 2009-01-11 10:19:18 +0800
+ * Last-Updated: 2009-05-14 23:03:52 +0800
+ * Version: $Id$
  */
 
-/* Commentary: 
- * 
- * 
- * 
- */
-
-/* Change log:
- * 
- * 
- */
 #ifndef SYNC_TRANSFER_THREAD_H
 #define SYNC_TRANSFER_THREAD_H
 
@@ -35,6 +15,34 @@
 
 #include "libssh2.h"
 #include "libssh2_sftp.h"
+
+class SyncTaskPackage
+{
+ public:
+    SyncTaskPackage(QString fileName, LIBSSH2_SFTP_ATTRIBUTES * pattr, int direct) {
+        this->msFileName = fileName;
+        this->mpAttr = pattr;
+        this->mnDirect = direct;
+    }
+    // 拷贝构造函数
+    SyncTaskPackage(const SyncTaskPackage &pkg) {
+        *this = pkg;
+    }
+    // 赋值操作符重载
+    SyncTaskPackage & operator=(const SyncTaskPackage &pkg) {
+        this->msFileName = pkg.msFileName;
+        this->mpAttr = pkg.mpAttr;
+        this->mnDirect = pkg.mnDirect;
+
+        return *this;
+    }
+    SyncTaskPackage(){}
+    ~SyncTaskPackage(){}
+    
+    QString msFileName;
+    LIBSSH2_SFTP_ATTRIBUTES *mpAttr;
+    int mnDirect;
+};
 
 class SyncTransferThread : public QThread
 {
@@ -47,17 +55,28 @@ public:
     
     // must call before run
     bool setRemoteSession(QString sess);
-    bool addTask(QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> task);
-    bool connectToRemoteHost();
+    bool setBasePath(QString local, QString remote);
     
     enum {TASK_UPLOAD = 1, TASK_DOWNLOAD=2};
     enum {TASK_OK = 0, TASK_ERROR_CONN_FAILD=1, TASK_ERROR_OTHER=2};
 
-private:
-    int transfer_impl(QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> task);
+public slots:
+    void slot_syncDownload(QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> task);
+    void slot_syncUpload(QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> task);
     
 private:
-    QQueue<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > taskQueue;
+    bool connectToRemoteHost();
+    bool addTask(SyncTaskPackage task);
+
+    int transfer_impl(SyncTaskPackage task);
+    int do_download(QString remote_path, QString local_path);
+    int do_upload(QString local_path, QString remote_path);
+    int do_touch_local_file_with_time(QString fileName, QDateTime time);
+    int do_touch_sftp_file_with_time(QString fileName, QDateTime time);
+
+private:
+    // QQueue<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > taskQueue;
+    QQueue<SyncTaskPackage> taskQueue;
     QWaitCondition wc;
     QMutex   wcMutex;
     QMutex   tMutex; // task modify mutex
@@ -69,6 +88,8 @@ private:
 
     QMap<QString, QString> remoteHost;
     QString sess_name;
+    QString local_base_path;
+    QString remote_base_path;
 };
 
 

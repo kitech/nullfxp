@@ -43,7 +43,7 @@ public:
           FLAG_FILE_EQUAL=0x04000000,FLAG_FILE_DIFFERENT=0x08000000,
           FLAG_WANT_DOWNLOAD=0x10000000,FLAG_WANT_UPLOAD=0x20000000,
     };
-
+   
 signals:
     void found_row();
 
@@ -140,6 +140,10 @@ private:
     friend class SyncDifferModel;
 protected:
     void closeEvent(QCloseEvent *evt);
+
+signals:
+    void syncDownload(QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> file);
+    void syncUpload(QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> file);
 };
 
 #endif

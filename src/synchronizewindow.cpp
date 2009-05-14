@@ -496,6 +496,9 @@ void SynchronizeWindow::slot_finished()
     if (this->transfer == 0) {
         this->transfer = new SyncTransferThread(this);
         this->transfer->setRemoteSession(this->sess_name);
+        this->transfer->setBasePath(this->local_dir, this->remote_dir);
+        QObject::connect(this, SIGNAL(syncDownload(QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*>)),
+                         this->transfer, SLOT(slot_syncDownload(QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*>)));
     }
 }
 
@@ -646,7 +649,9 @@ void SynchronizeWindow::dlSelectedDiffFiles()
         q_debug()<<QString("???")<<", not possible";
     } else {
 
-    }    
+    }
+
+    emit syncDownload(file);
 }
 void SynchronizeWindow::upSelectedDiffFiles()
 {
@@ -686,6 +691,8 @@ void SynchronizeWindow::upSelectedDiffFiles()
         //fline += QString("???");
         q_debug()<<QString("???")<<", not possible";
     }
+
+    emit syncUpload(file);
 }
 
 
