@@ -384,7 +384,7 @@ void LocalView::slot_rmdir()
         return;
     }
     if (!QDir().rmdir(this->model->filePath(aim_midx))) {
-        QMessageBox::critical(this, tr("Waring..."), tr("Delete directory faild."));
+        QMessageBox::critical(this, tr("Waring..."), tr("Delete directory faild. Mayby the directory is not empty."));
     } else {
         if (this->curr_item_view == this->localView.treeView) {
             QModelIndex tree_midx = this->dir_file_model->mapFromSource(aim_midx);
