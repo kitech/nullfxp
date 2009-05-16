@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-08-08 13:44:42 +0800
-// Last-Updated: 2009-05-13 22:58:15 +0800
+// Last-Updated: 2009-05-16 12:58:43 +0800
 // Version: $Id$
 // 
 
@@ -499,6 +499,8 @@ void SynchronizeWindow::slot_finished()
         this->transfer->setBasePath(this->local_dir, this->remote_dir);
         QObject::connect(this, SIGNAL(syncDownload(QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*>)),
                          this->transfer, SLOT(slot_syncDownload(QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*>)));
+        QObject::connect(this, SIGNAL(syncUpload(QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*>)),
+                         this->transfer, SLOT(slot_syncUpload(QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*>)));
     }
 }
 

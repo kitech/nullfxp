@@ -4,14 +4,20 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2009-01-11 10:19:22 +0800
-// Last-Updated: 2009-05-14 23:03:49 +0800
+// Last-Updated: 2009-05-16 14:25:36 +0800
 // Version: $Id$
 // 
+
+#define HAVE_SYS_TIME_H
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
 
 #include "utils.h"
 #include "globaloption.h"
 #include "remotehostconnectthread.h"
 #include "basestorage.h"
+#include "sshfileinfo.h"
 
 #include "synctransferthread.h"
 
@@ -128,10 +134,11 @@ int SyncTransferThread::do_download(QString remote_path, QString local_path)
         }
         q_file.close();
     }
-    // libssh2_sftp_close(sftp_handle);
+    libssh2_sftp_close(sftp_handle);
     q_debug()<<"syncDownload done.";
+    this->do_touch_local_file_with_time(local_path, SSHFileInfo(ssh2_sftp_attrib).lastModified());
 
-    return (0);
+    return 0;
 }
 
 int SyncTransferThread::do_upload(QString local_path, QString remote_path)
@@ -145,7 +152,6 @@ int SyncTransferThread::do_upload(QString local_path, QString remote_path)
     LIBSSH2_SFTP_HANDLE * sftp_handle ;
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
     char buff[5120] = {0};
-    int ret = 0;
     
     //TODO 检查文件可写属性
     sftp_handle = libssh2_sftp_open(this->ssh2_sftp,
@@ -203,21 +209,23 @@ int SyncTransferThread::do_upload(QString local_path, QString remote_path)
         }
         q_file.close();
     }
-    qDebug()<<"out cycle, close sftp...";
-    // libssh2_sftp_close(sftp_handle);
+    // qDebug()<<"out cycle, close sftp...";
+    libssh2_sftp_close(sftp_handle);
+    q_debug()<<"syncUpload done.";
+    this->do_touch_sftp_file_with_time(remote_path, QFileInfo(local_path).lastModified());
 
-    return ( 0 );
+    return 0;
 }
 
 int SyncTransferThread::do_touch_local_file_with_time(QString fileName, QDateTime time)
 {
-    Q_UNUSED(fileName);
-    Q_UNUSED(time);
-
     // Linux 上可以使用 utime 或者 utimes 函数, - change file last access and modification times
     // Windows 上文件 SetFileTime（）函数设置文件的创建时间、最近一次访问时间以及最近一次修改的时间等
     // Windows 目录 两个函数GetDirTime()和SetDirTime()来实现对文件夹时间信息
     // Qt 中好像是没有修改文件时间属性的方法。
+
+    int ret;
+    QFileInfo fi(fileName);
 
 #ifdef WIN32    
     // SYSTEMTIME systime;
@@ -243,6 +251,12 @@ int SyncTransferThread::do_touch_local_file_with_time(QString fileName, QDateTim
     //                     NULL);            
     // SetFileTime(hFile, (LPFILETIME) NULL, (LPFILETIME) NULL, &ftUTC);
     // CloseHandle(hFile);
+#else
+    struct timeval tv[2] = {{0,0}, {0,0}};
+    tv[0].tv_sec = fi.lastRead().toTime_t();
+    tv[1].tv_sec = time.toTime_t();
+    ret = utimes(GlobalOption::instance()->remote_codec->fromUnicode(fileName), tv);
+    assert(ret == 0);    
 #endif
 
     return 0;
@@ -250,14 +264,33 @@ int SyncTransferThread::do_touch_local_file_with_time(QString fileName, QDateTim
 
 int SyncTransferThread::do_touch_sftp_file_with_time(QString fileName, QDateTime time)
 {
-    Q_UNUSED(fileName);
-    Q_UNUSED(time);
-
     // sftp_open, 可以得到当前的文件属性
     // sftp_close,
     // 修改LIBSSH2_SFTP_ATTRIBUTE中的最后修改日期
     // sftp_set_stat, 修改文件的最后修改日期。
 
+    LIBSSH2_SFTP_ATTRIBUTES attr;
+    int ret;
+
+    ret = libssh2_sftp_stat(this->ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(fileName), &attr);
+    if (ret != 0) {
+        //int libssh2_session_last_error(LIBSSH2_SESSION *session, char **errmsg, int *errmsg_len, int want_buf
+        char errmsg[200] = {0};
+        int emlen = 0;
+        libssh2_session_last_error(this->ssh2_sess, (char **)&errmsg, &emlen, 0);
+        q_debug()<<"sftp set stat error: "<<errmsg;
+    }
+
+    attr.flags = LIBSSH2_SFTP_ATTR_ACMODTIME;
+    attr.mtime = time.toTime_t();
+
+    ret = libssh2_sftp_setstat(this->ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(fileName), &attr);
+    if (ret != 0) {
+        char errmsg[200] = {0};
+        int emlen = 0;
+        libssh2_session_last_error(this->ssh2_sess, (char **)&errmsg, &emlen, 0);
+        q_debug()<<"sftp set stat error: "<<errmsg;
+    }
     return 0;
 }
 

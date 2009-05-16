@@ -91,7 +91,8 @@ SOURCES += main.cpp \
  syncdiffermodel.cpp \
  sshfileinfo.cpp \
  synctransferthread.cpp \
- taskpackage.cpp
+ taskpackage.cpp \
+ sftpfile.cpp
 
 HEADERS += nullfxp.h \
  localview.h \
@@ -125,12 +126,12 @@ HEADERS += nullfxp.h \
  synchronizeoptiondialog.h \
  synchronizewindow.h \
  syncdiffermodel.h \
- synctransferthread.h
+ synctransferthread.h \
+ sftpfile.h
 
 DISTFILES += ../CMakeLists.txt \
 CMakeLists.txt \
 libssh2/CMakeLists.txt
-
 
 win32 {
     win32-g++ {
@@ -150,7 +151,7 @@ win32 {
     }
     LIBS += -lssh2 -lws2_32  -lgdi32 
     #-lgcrypt -lgpg-error 
-}else {
+} else {
     LIBS += libssh2/src/libssh2.a -lssl -lcrypto
     TARGETDEPS += libssh2/src/libssh2.a
 }
@@ -179,3 +180,14 @@ win32-g++ {
 INCLUDEPATH += . ./libssh2/include
 
 RESOURCES = nullfxp.qrc
+
+# install settings
+# DISTFILES += ./bin/nullfxp ./bin/unitest
+document.path = /usr/share/docs
+document.files = ../INSTALL ../README ../AUTHORS ../ChangeLog
+
+icons.path = /usr/share/icons
+icons.files = ./icons/*
+
+target.path += /usr/bin
+INSTALLS += target document icons

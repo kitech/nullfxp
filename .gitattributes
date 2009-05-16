@@ -15,6 +15,7 @@ packages/gentoo/nullfxp/files/digest-nullfxp-1.5.2 -text
 packages/gentoo/nullfxp/nullfxp-1.5.2.ebuild -text
 packages/mkpkg.sh -text
 packages/nullfxp -text
+packages/opensuse_buildservice/nullfxp.spec -text
 src/CMakeLists.txt -text
 src/ReadMe -text
 src/aboutnullfxp.cpp -text
@@ -365,6 +366,8 @@ src/rfsdirnode.h -text
 src/sessiondialog.cpp -text
 src/sessiondialog.h -text
 src/sftp.h -text
+src/sftpfile.cpp -text
+src/sftpfile.h -text
 src/src.pro -text
 src/sshfileinfo.cpp -text
 src/sshfileinfo.h -text

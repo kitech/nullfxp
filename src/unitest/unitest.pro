@@ -28,3 +28,6 @@ win32 {
 }
 
 win32:LIBS += -lQtTest -lws2_32  -lgdi32 
+
+target.path = /usr/bin
+INSTALLS += target
