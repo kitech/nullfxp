@@ -1,34 +1,12 @@
 // remotehostconnectthread.cpp --- 
 // 
-// Filename: remotehostconnectthread.cpp
-// Description: 
-// Author: 刘光照<liuguangzhao@users.sf.net>
-// Maintainer: 
-// Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
-// http://www.qtchina.net
-// http://nullget.sourceforge.net
-// Created: 六  6月 14 22:29:50 2008 (CST)
-// Version: 
+// Author: liuguangzhao
+// Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+// URL: http://www.qtchina.net http://nullget.sourceforge.net
+// Created: 2008-06-14 22:29:50 +0800
 // Last-Updated: 
-//           By: 
-//     Update #: 0
-// URL: 
-// Keywords: 
-// Compatibility: 
+// Version: $Id$
 // 
-// 
-
-// Commentary: 
-// 
-// 
-// 
-// 
-
-// Change log:
-// 
-// 
-// 
-
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -42,9 +20,7 @@
 #endif
 
 #ifdef WIN32
-//#include <windows.h>
 #include <winsock2.h>
-//#include <ws2tcpip.h>
 #else
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -88,7 +64,7 @@ static void kbd_callback(const char *name, int name_len,
 } /* kbd_callback */
 
 
-RemoteHostConnectThread::RemoteHostConnectThread(QString user_name, QString password, 
+RemoteHostConnectThread::RemoteHostConnectThread(QString user_name, QString password,
                                                  QString host_name, short port, QString pubkey,  
                                                  QObject* parent)
     : QThread(parent)
@@ -98,16 +74,16 @@ RemoteHostConnectThread::RemoteHostConnectThread(QString user_name, QString pass
     this->host_name = host_name;
     this->port = port;
     this->pubkey_path = pubkey;
-    if(this->pubkey_path.length() == 0) {
+    if (this->pubkey_path.length() == 0) {
         this->pubkey_path = QString::null;
     }
-    if(!this->pubkey_path.isEmpty() && !QFile::exists(this->pubkey_path)) {
+    if (!this->pubkey_path.isEmpty() && !QFile::exists(this->pubkey_path)) {
         qDebug()<<"Warning: pubkey setted, but file not exist.";
     }
     this->connect_status = CONN_OK;
     this->user_canceled = false;
     ////////////////
-    QObject::connect(this,SIGNAL(finished()) ,this , SLOT(slot_finished()) );
+    QObject::connect(this, SIGNAL(finished()), this, SLOT(slot_finished()));
     //this->start();
 }
 
@@ -133,7 +109,6 @@ void RemoteHostConnectThread::run()
     char home_path[PATH_MAX+1] = {0};
     char host_ipaddr[60] = {0};
     
-    
 #ifdef WIN32
 #define WINSOCK_VERSION 2.0
     WSADATA wsadata;
@@ -143,7 +118,7 @@ void RemoteHostConnectThread::run()
 
     //create socket 
     struct sockaddr_in serv_addr ;
-    memset( & serv_addr , 0 , sizeof( serv_addr )) ;
+    memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(this->port);
     
@@ -153,34 +128,35 @@ void RemoteHostConnectThread::run()
     int counter = 0 ;
     if (remote_host_ipaddrs == 0) {
 #ifdef WIN32
-        emit connect_state_changed( tr( "Resoving host faild : (%1),%2  ").arg(errno).arg(strerror(errno)) ) ;
+        emit connect_state_changed(tr( "Resoving host faild : (%1),%2  ").arg(errno).arg(strerror(errno)));
 #else
-        emit connect_state_changed( tr( "Resoving host faild : (%1),%2 ").arg(h_errno).arg(hstrerror(h_errno)) ) ;
+        emit connect_state_changed(tr( "Resoving host faild : (%1),%2 ").arg(h_errno).arg(hstrerror(h_errno)));
 #endif
         this->connect_status = CONN_RESOLVE_ERROR ;
         //assert( ret == 0 );
         return ;
     }
-    printf("remote_host name is : %s \n",remote_host_ipaddrs->h_name);
+    printf("remote_host name is : %s \n", remote_host_ipaddrs->h_name);
 
     ent_pos_c = remote_host_ipaddrs->h_addr_list[0];
     while (ent_pos_c != NULL) {
 #ifdef WIN32
-        struct in_addr tmp_in_addr ;
-        memset(&tmp_in_addr,0,sizeof(struct in_addr));
-        memcpy(&tmp_in_addr,ent_pos_c,sizeof(struct in_addr));
-        printf("host addr: %s -> %s \n", ent_pos_c , inet_ntoa( tmp_in_addr ) );
-        strcpy( host_ipaddr,inet_ntoa( tmp_in_addr ) );
+        struct in_addr tmp_in_addr;
+        memset(&tmp_in_addr, 0, sizeof(struct in_addr));
+        memcpy(&tmp_in_addr, ent_pos_c, sizeof(struct in_addr));
+        printf("host addr: %s -> %s \n", ent_pos_c , inet_ntoa(tmp_in_addr));
+        strcpy( host_ipaddr,inet_ntoa(tmp_in_addr));
 #else
-        printf("host addr: %s -> %s  \n", ent_pos_c , inet_ntop(AF_INET,ent_pos_c,host_ipaddr , sizeof(host_ipaddr) ) );
+        printf("host addr: %s -> %s  \n", ent_pos_c, inet_ntop(AF_INET, ent_pos_c, host_ipaddr, sizeof(host_ipaddr)));
 #endif  
         ent_pos_c =  remote_host_ipaddrs->h_addr_list[++counter];
-        emit connect_state_changed( tr("Remote host IP: %1").arg(host_ipaddr) );    }
+        emit connect_state_changed(tr("Remote host IP: %1").arg(host_ipaddr));
+    }
     
 #ifdef WIN32
-    serv_addr.sin_addr.s_addr = (unsigned long)inet_addr ( host_ipaddr ) ;
+    serv_addr.sin_addr.s_addr = (unsigned long)inet_addr(host_ipaddr);
 #else
-    ret = inet_pton(AF_INET , host_ipaddr ,&serv_addr.sin_addr.s_addr);
+    ret = inet_pton(AF_INET, host_ipaddr, &serv_addr.sin_addr.s_addr);
     printf(" inet_pton ret: %d \n" , ret );
 #endif
     if (this->user_canceled == true) {
@@ -188,8 +164,8 @@ void RemoteHostConnectThread::run()
         return;
     }   
 
-    emit connect_state_changed( tr("Connecting to %1 ( %2:%3 ) ").arg(this->host_name).arg(host_ipaddr).arg(this->port) );
-    this->ssh2_sock = socket(AF_INET,SOCK_STREAM,0);
+    emit connect_state_changed(tr("Connecting to %1 ( %2:%3 ) ").arg(this->host_name).arg(host_ipaddr).arg(this->port));
+    this->ssh2_sock = socket(AF_INET, SOCK_STREAM, 0);
     assert(this->ssh2_sock > 0);
 
     //设置连接超时
@@ -215,17 +191,17 @@ void RemoteHostConnectThread::run()
     ret = select(this->ssh2_sock + 1, &rdset, &set, &exset, &timeo);
 #endif
     if (ret == -1) {
-        assert(1==2);
+        assert(1 == 2);
     } else if (ret == 0) {
-        QString emsg = QString(tr( "Connect faild : (%1),%2 ").arg(errno).arg(strerror(errno)));
-        emit connect_state_changed( emsg ) ;
+        QString emsg = QString(tr("Connect faild : (%1),%2 ").arg(errno).arg(strerror(errno)));
+        emit connect_state_changed(emsg) ;
         this->connect_status = CONN_REFUSE ;
         qDebug()<<emsg;
         //assert( ret == 0 );
         return ;
     } else {
 #ifndef WIN32
-        if(!FD_ISSET(this->ssh2_sock, &rdset) && !FD_ISSET(this->ssh2_sock, &set)) {
+        if (!FD_ISSET(this->ssh2_sock, &rdset) && !FD_ISSET(this->ssh2_sock, &set)) {
             qDebug()<<this->ssh2_sock<<ret<<errno<<codec->toUnicode(QByteArray(strerror(errno)));
         }
         int myerrno = 888;
@@ -234,10 +210,9 @@ void RemoteHostConnectThread::run()
             qDebug()<<"getsockopt error:";            
         }
         if (myerrno != 0) {
-
             qDebug()<<"Connect faild: "<<codec->toUnicode(QByteArray(strerror(myerrno)));
-            emit connect_state_changed( QString("%1%2").arg(tr("Connect error: "))
-                                        .arg(codec->toUnicode(QByteArray(strerror(myerrno)))));
+            emit connect_state_changed(QString("%1%2").arg(tr("Connect error: "))
+                                       .arg(codec->toUnicode(QByteArray(strerror(myerrno)))));
             this->connect_status = CONN_REFUSE ;            
             return ;
         }
@@ -249,8 +224,8 @@ void RemoteHostConnectThread::run()
     ret = ioctlsocket(this->ssh2_sock, FIONBIO, &sock_flag);
     if (ret == SOCKET_ERROR) {
     		qDebug()<<"win connect error";
-    		emit connect_state_changed( QString("%1%2").arg(tr("Connect error: "))
-                           .arg(codec->toUnicode(QByteArray(strerror(ret)))));
+    		emit connect_state_changed(QString("%1%2").arg(tr("Connect error: "))
+                                       .arg(codec->toUnicode(QByteArray(strerror(ret)))));
     	  this->connect_status = CONN_REFUSE ;
     	  return ;
     }
@@ -260,7 +235,7 @@ void RemoteHostConnectThread::run()
 #endif
 
     if (this->user_canceled == true) {
-        this->connect_status = 2 ;
+        this->connect_status = 2;
 #ifdef WIN32
         ::closesocket(this->ssh2_sock);
 #else
@@ -271,8 +246,8 @@ void RemoteHostConnectThread::run()
 
     //create session
     ssh2_sess = libssh2_session_init();
-    //libssh2_trace((LIBSSH2_SESSION*)ssh2_sess , 64 );    
-    ret = libssh2_session_startup((LIBSSH2_SESSION*)ssh2_sess,this->ssh2_sock);
+    libssh2_trace((LIBSSH2_SESSION*)ssh2_sess, 64);
+    ret = libssh2_session_startup((LIBSSH2_SESSION*)ssh2_sess, this->ssh2_sock);
     if (ret != 0) {
         this->connect_status = CONN_SESS_ERROR;
 #ifdef WIN32
@@ -285,25 +260,26 @@ void RemoteHostConnectThread::run()
             int  emsg_len = 0;
             libssh2_session_last_error((LIBSSH2_SESSION*)ssh2_sess, &emsg, &emsg_len, 1);
             qDebug()<<"Start ssh session error: "<<emsg;
-            emit connect_state_changed( QString("%1%2").arg(tr("Start ssh session: ")).arg(emsg));
-            if(emsg != 0) free(emsg);
+            emit connect_state_changed(QString("%1%2").arg(tr("Start ssh session: ")).arg(emsg));
+            if (emsg != 0) free(emsg);
         }        
         //assert( ret == 0 );
-        return ;
+        return;
     }
     printf("Received Banner: %s\n", libssh2_session_get_remote_version((LIBSSH2_SESSION*)ssh2_sess));
     emit connect_state_changed(tr("SSH session started ..."));
     
     ///////////
     //auth
-    char * auth_list = libssh2_userauth_list((LIBSSH2_SESSION*)ssh2_sess,this->user_name.toAscii().data(),strlen(this->user_name.toAscii().data()) );
-    printf("user auth list : %s \n" , auth_list) ;
+    char * auth_list = libssh2_userauth_list((LIBSSH2_SESSION*)ssh2_sess,
+                                             this->user_name.toAscii().data(), 
+                                             strlen(this->user_name.toAscii().data()));
+    printf("user auth list : %s \n" , auth_list);
 
     ret = libssh2_userauth_hostbased_fromfile((LIBSSH2_SESSION*)ssh2_sess, 
                                               this->user_name.toAscii().data(),
                                               this->pubkey_path.toAscii().data(),
                                               this->pubkey_path.left(this->pubkey_path.length()-4).toAscii().data(),
-                                              //this->decoded_password.toAscii().data(),
                                               QUrl::fromPercentEncoding(this->password.toAscii()).toAscii().data(),
                                               this->host_name.toAscii().data());
     //qDebug()<<this->user_name<<this->pubkey_path<<this->pubkey_path.left(this->pubkey_path.length()-4)
@@ -315,19 +291,19 @@ void RemoteHostConnectThread::run()
         libssh2_session_last_error((LIBSSH2_SESSION*)ssh2_sess, &emsg, &emsg_len, 1);
         qDebug()<<"Host based public key auth error: "<<emsg;
         emit connect_state_changed( QString("%1%2").arg(tr("Host based public key auth error: ")).arg(emsg));
-        if(emsg != 0) free(emsg);        
-    }else{
+        if (emsg != 0) free(emsg);        
+    } else {
         qDebug()<<"Host based public key auth successful";
         emit connect_state_changed( QString("%1").arg(tr("Host based public key auth successful")));
     }
 
-    if(ret == -1) {
-        if(this->pubkey_path != QString::null && this->pubkey_path.length() != 0) {
+    if (ret == -1) {
+        if (this->pubkey_path != QString::null && this->pubkey_path.length() != 0) {
             //publickey auth
             emit connect_state_changed(QString(tr("User authing(PublicKey: %1)...")).arg(this->pubkey_path));
-            if( this->user_canceled == true ){
+            if (this->user_canceled == true) {
                 this->connect_status = 2 ;
-                libssh2_session_disconnect((LIBSSH2_SESSION*)ssh2_sess,"");
+                libssh2_session_disconnect((LIBSSH2_SESSION*)ssh2_sess, "");
                 libssh2_session_free((LIBSSH2_SESSION*)ssh2_sess);
 #ifdef WIN32
                 ::closesocket(this->ssh2_sock);
@@ -340,35 +316,33 @@ void RemoteHostConnectThread::run()
                                                       this->user_name.toAscii().data(),
                                                       this->pubkey_path.toAscii().data(),
                                                       this->pubkey_path.left(this->pubkey_path.length()-4).toAscii().data(),
-                                                      //this->decoded_password.toAscii().data());
                                                       QUrl::fromPercentEncoding(this->password.toAscii()).toAscii().data());                                                     
-
 
             //qDebug()<<this->user_name<<this->pubkey_path<<this->pubkey_path.left(this->pubkey_path.length()-4)
             //      <<this->decoded_password;
-        }else{
+        } else {
             ret = -1;
         }
     }
-    if(ret == 0) {
+    if (ret == 0) {
         qDebug()<<"PublicKey auth successfully";
     }
-    if(ret == -1) {
+    if (ret == -1) {
         //password auth
-        if(this->pubkey_path == QString::null || this->pubkey_path.length() == 0) {
-            emit connect_state_changed( tr( "User authing (Password)...") );    
-        }else{
+        if (this->pubkey_path == QString::null || this->pubkey_path.length() == 0) {
+            emit connect_state_changed(tr("User authing (Password)..."));
+        } else {
             char * emsg = 0;
             int  emsg_len = 0;
             libssh2_session_last_error((LIBSSH2_SESSION*)ssh2_sess, &emsg, &emsg_len, 1);
             qDebug()<<"PublicKey auth error: "<<emsg;
-            if(emsg != 0) free(emsg);
+            if (emsg != 0) free(emsg);
             
-            emit connect_state_changed( tr( "User auth faild(PublicKey). Trying (Password)...") );    
+            emit connect_state_changed(tr( "User auth faild(PublicKey). Trying (Password)..."));
         }
-        if( this->user_canceled == true ){
+        if (this->user_canceled == true) {
             this->connect_status = 2 ;
-            libssh2_session_disconnect((LIBSSH2_SESSION*)ssh2_sess,"");
+            libssh2_session_disconnect((LIBSSH2_SESSION*)ssh2_sess, "");
             libssh2_session_free((LIBSSH2_SESSION*)ssh2_sess);
 #ifdef WIN32
             ::closesocket(this->ssh2_sock);
@@ -378,26 +352,25 @@ void RemoteHostConnectThread::run()
             return;
         }   
 
-        ret = libssh2_userauth_password((LIBSSH2_SESSION*)ssh2_sess,this->user_name.toAscii().data(),
-                                        //this->decoded_password.toAscii().data());
+        ret = libssh2_userauth_password((LIBSSH2_SESSION*)ssh2_sess, this->user_name.toAscii().data(),
                                         QUrl::fromPercentEncoding(this->password.toAscii()).toAscii().data());
-        qDebug()<<"Keyboard Interactive :"<<ret ;
+        qDebug()<<"Keyboard Interactive :"<<ret;
 
-        if( ret == -1 ) {
-            emit connect_state_changed( tr( "User auth faild (Password). Trying (Keyboard Interactive) ...") );
+        if (ret == -1) {
+            emit connect_state_changed(tr("User auth faild (Password). Trying (Keyboard Interactive) ..."));
             ssh2_kbd_cb_mutex.lock();
             strncpy(ssh2_password, 
-                    //this->decoded_password.toAscii().data(),
                     QUrl::fromPercentEncoding(this->password.toAscii()).toAscii().data(),
                     sizeof(ssh2_password));
-            ret = libssh2_userauth_keyboard_interactive((LIBSSH2_SESSION*)ssh2_sess,this->user_name.toAscii().data(),&kbd_callback) ;
-            memset( ssh2_password,0,sizeof(ssh2_password));
+            ret = libssh2_userauth_keyboard_interactive((LIBSSH2_SESSION*)ssh2_sess,
+                                                        this->user_name.toAscii().data(), &kbd_callback) ;
+            memset(ssh2_password, 0, sizeof(ssh2_password));
             ssh2_kbd_cb_mutex.unlock();
             qDebug()<<"Keyboard interactive :"<<ret ;
         }
-        if( this->user_canceled == true ){
+        if (this->user_canceled == true) {
             this->connect_status = 2 ;
-            libssh2_session_disconnect((LIBSSH2_SESSION*)ssh2_sess,"");
+            libssh2_session_disconnect((LIBSSH2_SESSION*)ssh2_sess, "");
             libssh2_session_free((LIBSSH2_SESSION*)ssh2_sess);
 #ifdef WIN32
             ::closesocket(this->ssh2_sock);
@@ -408,15 +381,15 @@ void RemoteHostConnectThread::run()
         }   
     }
     ret = libssh2_userauth_authenticated((LIBSSH2_SESSION*)ssh2_sess);
-    if( ret == 0 ) {
+    if (ret == 0 ) {
         this->connect_status = CONN_AUTH_ERROR ;
         qDebug()<<"User auth faild";
-        emit connect_state_changed( tr( "User faild (Keyboard Interactive)(Password ).") );
+        emit connect_state_changed(tr("User faild (Keyboard Interactive)(Password )."));
         return ;
     }
-    if( this->user_canceled == true ){
+    if (this->user_canceled == true ) {
         this->connect_status = CONN_CANCEL ;
-        libssh2_session_disconnect((LIBSSH2_SESSION*)ssh2_sess,"");
+        libssh2_session_disconnect((LIBSSH2_SESSION*)ssh2_sess, "");
         libssh2_session_free((LIBSSH2_SESSION*)ssh2_sess);
 #ifdef WIN32
         ::closesocket(this->ssh2_sock);
@@ -428,8 +401,8 @@ void RemoteHostConnectThread::run()
     
     emit connect_state_changed(tr("User auth successfully"));
     
-    ssh2_sftp = libssh2_sftp_init((LIBSSH2_SESSION*)ssh2_sess );
-    if(ssh2_sftp == NULL) {
+    ssh2_sftp = libssh2_sftp_init((LIBSSH2_SESSION*)ssh2_sess);
+    if (ssh2_sftp == NULL) {
         this->connect_status = CONN_SFTP_ERROR;
         QString msg;
         char * emsg = 0;
@@ -448,26 +421,25 @@ void RemoteHostConnectThread::run()
     Q_ASSERT(ssh2_sftp != NULL);
     char **server_info, **pptr;
     server_info = pptr = libssh2_session_get_remote_info((LIBSSH2_SESSION*)ssh2_sess);
-    printf("Received SFTP Version: %d %s\n",libssh2_sftp_get_version((LIBSSH2_SFTP*)ssh2_sftp), server_info[0]);	
-    while(*pptr != NULL){
-        free(*pptr); pptr++;
+    printf("Received SFTP Version: %d %s\n", libssh2_sftp_get_version((LIBSSH2_SFTP*)ssh2_sftp), server_info[0]);
+    while (*pptr != NULL) {
+        free(*pptr); 
+        pptr++;
     }
     free(server_info);
     
-    ret = libssh2_sftp_realpath((LIBSSH2_SFTP*)ssh2_sftp,".",home_path,PATH_MAX);
-    if(ret != 0 )
-    {
-        qDebug()<<" realpath : "<< ret  
-                << " err code : " << libssh2_sftp_last_error((LIBSSH2_SFTP*)ssh2_sftp) 
-                << home_path ;
-        
-        assert( ret >= 0 );
+    ret = libssh2_sftp_realpath((LIBSSH2_SFTP*)ssh2_sftp, ".", home_path, PATH_MAX);
+    if (ret != 0 ) {
+        qDebug()<<" realpath : "<<ret
+                << " err code : "<<libssh2_sftp_last_error((LIBSSH2_SFTP*)ssh2_sftp)
+                <<home_path;
+        assert(ret >= 0);
     }
-    this->user_home_path = std::string( home_path );
-    libssh2_sftp_shutdown( (LIBSSH2_SFTP*) this->ssh2_sftp );
+    this->user_home_path = std::string(home_path);
+    libssh2_sftp_shutdown((LIBSSH2_SFTP*)this->ssh2_sftp);
     this->connect_status = 0 ;
     
-    if( this->user_canceled == true ){
+    if (this->user_canceled == true) {
         this->connect_status = CONN_CANCEL ;
         libssh2_session_disconnect((LIBSSH2_SESSION*)ssh2_sess,"");
         libssh2_session_free((LIBSSH2_SESSION*)ssh2_sess);
@@ -500,7 +472,7 @@ QString RemoteHostConnectThread::get_server_env_vars(char *cmd)
     qDebug()<<"SSH2 exec: "<<rv;
   
     memset(buff, 0, sizeof(buff));
-    while( (rv = libssh2_channel_read(ssh2_channel, buff, 1000)) > 0){
+    while ((rv = libssh2_channel_read(ssh2_channel, buff, 1000)) > 0) {
         qDebug()<<"Channel read: "<<rv<<" -->"<<buff;
         memset(buff, 0, sizeof(buff));
     }
@@ -513,7 +485,7 @@ QString RemoteHostConnectThread::get_server_env_vars(char *cmd)
 
 void RemoteHostConnectThread::slot_finished()
 {
-    emit this->connect_finished(this->connect_status,this->ssh2_sess,this->ssh2_sock);
+    emit this->connect_finished(this->connect_status, this->ssh2_sess, this->ssh2_sock);
 }
 
 void RemoteHostConnectThread::do_init()
@@ -526,7 +498,7 @@ void RemoteHostConnectThread::diconnect_ssh_connection()
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 }
 
-std::string RemoteHostConnectThread::get_user_home_path () 
+std::string RemoteHostConnectThread::get_user_home_path()
 {
     return this->user_home_path ;
 }
@@ -540,11 +512,11 @@ QString RemoteHostConnectThread::get_user_name()
 {
     return this->user_name ;
 }
-QString RemoteHostConnectThread::get_password ()
+QString RemoteHostConnectThread::get_password()
 {
     return this->password  ;
 }
-short   RemoteHostConnectThread::get_port()
+short RemoteHostConnectThread::get_port()
 {
     return this->port;
 }
@@ -586,7 +558,7 @@ QString RemoteHostConnectThread::get_status_desc(int status)
     };
 
     QString emsg = QString(tr("No error."));
-    switch (status){
+    switch (status) {
     case RemoteHostConnectThread::CONN_REFUSE:
         emsg = QString(tr("Remote host not usable."));
         break;
@@ -607,9 +579,9 @@ QString RemoteHostConnectThread::get_status_desc(int status)
         break;
     }
     
-    if(status > sizeof(status_desc)/sizeof(char*) ) {
+    if (status > sizeof(status_desc)/sizeof(char*)) {
         return "Unknown status";
-    }else{
+    } else {
         // return status_desc[status];
         return emsg;
     }
