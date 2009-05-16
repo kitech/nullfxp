@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-08-08 13:44:42 +0800
-// Last-Updated: 2009-05-16 12:58:43 +0800
+// Last-Updated: 2009-05-16 18:13:56 +0800
 // Version: $Id$
 // 
 
@@ -540,13 +540,33 @@ void SynchronizeWindow::initCtxMenu()
         this->ctxMenu->addAction(action);
         QObject::connect(action, SIGNAL(triggered()), this, SLOT(showDiffFileInfo()));
 
-        dlAction = new QAction(tr("&Download"), this->ctxMenu);
+        dlAction = new QAction(tr("&Download selected files"), this->ctxMenu);
         this->ctxMenu->addAction(dlAction);
         QObject::connect(dlAction, SIGNAL(triggered()), this, SLOT(dlSelectedDiffFiles()));
         
-        upAction = new QAction(tr("&Upload"), this->ctxMenu);
+        upAction = new QAction(tr("&Upload selected files"), this->ctxMenu);
         this->ctxMenu->addAction(upAction);
         QObject::connect(upAction, SIGNAL(triggered()), this, SLOT(upSelectedDiffFiles()));
+
+        upAction = new QAction(tr("&Sync download all files"), this->ctxMenu);
+        this->ctxMenu->addAction(upAction);
+        QObject::connect(upAction, SIGNAL(triggered()), this, SLOT(downloadAllFiles()));
+
+        upAction = new QAction(tr("&Sync upload all files"), this->ctxMenu);
+        this->ctxMenu->addAction(upAction);
+        QObject::connect(upAction, SIGNAL(triggered()), this, SLOT(uploadAllFiles()));
+
+        upAction = new QAction(tr("&Download remote only files"), this->ctxMenu);
+        this->ctxMenu->addAction(upAction);
+        QObject::connect(upAction, SIGNAL(triggered()), this, SLOT(downloadRemoteOnlyFiles()));
+
+        upAction = new QAction(tr("&Upload local only files"), this->ctxMenu);
+        this->ctxMenu->addAction(upAction);
+        QObject::connect(upAction, SIGNAL(triggered()), this, SLOT(uploadLocalOnlyFiles()));
+
+        upAction = new QAction(tr("&Sync all files"), this->ctxMenu);
+        this->ctxMenu->addAction(upAction);
+        QObject::connect(upAction, SIGNAL(triggered()), this, SLOT(syncAllFiles()));
     }
 }
 
@@ -602,8 +622,7 @@ void SynchronizeWindow::showDiffFileInfo()
         ftype = (QFile::exists(fname) ? QFileInfo(fname).isDir() : SSHFileInfo(file.second).isDir()) 
         		? tr("Direcotry") : tr("File");
         info = QString(tr("%1\nType: %2\nSize: %3\nLast modified: %4\nSync Status: %5"))
-            .arg(file.first, 
-                 ftype,
+            .arg(file.first, ftype,
                  QString("%1").arg(file.second->filesize),
                  QDateTime::fromTime_t(file.second->mtime).toString(),
                  this->walker->diffDesciption(file.second->flags)
@@ -697,5 +716,87 @@ void SynchronizeWindow::upSelectedDiffFiles()
     emit syncUpload(file);
 }
 
+void SynchronizeWindow::syncAllFiles()
+{
+    this->syncAllFiles(SyncTransferThread::TASK_BOTH);
+}
 
+void SynchronizeWindow::syncAllFiles(int direct)
+{
+    int list_count = 0;
+    int download_count = 0;
+    int upload_count = 0;
+    QModelIndex idx;
+    LIBSSH2_SFTP_ATTRIBUTES *pattr;
+    QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> file;
+    unsigned long flags;
 
+    Q_ASSERT(this->model != NULL);
+    list_count = this->model->rowCount(QModelIndex());
+    q_debug()<<"files count: "<<list_count;
+    for (int i = 0; i < list_count ; i++) {
+        idx = this->model->index(i, 0, QModelIndex());
+        file = this->model->getFile(idx);
+        pattr = file.second;
+        Q_ASSERT(pattr != NULL);
+        // q_debug()<<file.first<<file.second;
+        flags = pattr->flags;
+        if (flags & SyncWalker::FLAG_LOCAL_ONLY) {
+            if (direct == SyncTransferThread::TASK_UPLOAD
+                || direct == SyncTransferThread::TASK_BOTH) {
+                emit syncUpload(file);
+            }
+            if (direct == SyncTransferThread::TASK_UPLOAD_LOCAL_ONLY) {
+                emit syncUpload(file);
+            }
+        } 
+        if (flags & SyncWalker::FLAG_REMOTE_ONLY) {
+            // q_debug()<<QString("remote only")<<", can not upload";
+            if (direct == SyncTransferThread::TASK_DOWNLOAD
+                || direct == SyncTransferThread::TASK_BOTH) {
+                emit syncDownload(file);
+            }
+            if (direct == SyncTransferThread::TASK_DOWNLOAD_REMOTE_ONLY) {
+                emit syncDownload(file);
+            }
+        } 
+        if (flags & SyncWalker::FLAG_LOCAL_NEWER) {
+            if (direct == SyncTransferThread::TASK_UPLOAD
+                || direct == SyncTransferThread::TASK_BOTH) {
+                emit syncUpload(file);
+            }
+        } 
+        if (flags & SyncWalker::FLAG_REMOTE_NEWER) {
+            if (direct == SyncTransferThread::TASK_DOWNLOAD
+                || direct == SyncTransferThread::TASK_BOTH) {
+                emit syncDownload(file);
+            }
+        } 
+        if (flags & SyncWalker::FLAG_FILE_EQUAL) {
+            // q_debug()<<QString("the same")<<", sync not needed";
+        } 
+        if (flags & SyncWalker::FLAG_FILE_DIFFERENT) {
+            q_debug()<<QString("???")<<", not possible";
+        }
+    }
+}
+
+void SynchronizeWindow::downloadAllFiles()
+{
+    this->syncAllFiles(SyncTransferThread::TASK_DOWNLOAD);
+}
+
+void SynchronizeWindow::uploadAllFiles()
+{
+    this->syncAllFiles(SyncTransferThread::TASK_UPLOAD);
+}
+
+void SynchronizeWindow::downloadRemoteOnlyFiles()
+{
+    this->syncAllFiles(SyncTransferThread::TASK_DOWNLOAD_REMOTE_ONLY);
+}
+
+void SynchronizeWindow::uploadLocalOnlyFiles()
+{
+    this->syncAllFiles(SyncTransferThread::TASK_UPLOAD_LOCAL_ONLY);
+}

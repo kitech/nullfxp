@@ -4,7 +4,7 @@
  * Copyright (C) 2007-2010 liuguangzhao@users.sf.net
  * URL: http://www.qtchina.net http://nullget.sourceforge.net
  * Created: 2008-08-08 13:44:51 +0800
- * Last-Updated: 2009-05-13 22:58:18 +0800
+ * Last-Updated: 2009-05-16 17:56:30 +0800
  * Version: $Id$
  */
 
@@ -105,6 +105,12 @@ private slots:
     void showDiffFileInfo();
     void dlSelectedDiffFiles();
     void upSelectedDiffFiles();
+    void syncAllFiles();
+    void syncAllFiles(int direct);
+    void downloadAllFiles();
+    void uploadAllFiles();
+    void downloadRemoteOnlyFiles();
+    void uploadLocalOnlyFiles();
 
 private:
     void initCtxMenu();

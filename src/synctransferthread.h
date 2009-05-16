@@ -4,7 +4,7 @@
  * Copyright (C) 2007-2010 liuguangzhao@users.sf.net
  * URL: http://www.qtchina.net http://nullget.sourceforge.net
  * Created: 2009-01-11 10:19:18 +0800
- * Last-Updated: 2009-05-14 23:03:52 +0800
+ * Last-Updated: 2009-05-16 18:01:09 +0800
  * Version: $Id$
  */
 
@@ -57,7 +57,7 @@ public:
     bool setRemoteSession(QString sess);
     bool setBasePath(QString local, QString remote);
     
-    enum {TASK_UPLOAD = 1, TASK_DOWNLOAD=2};
+    enum {TASK_UPLOAD = 1, TASK_DOWNLOAD=2, TASK_BOTH=3, TASK_UPLOAD_LOCAL_ONLY, TASK_DOWNLOAD_REMOTE_ONLY};
     enum {TASK_OK = 0, TASK_ERROR_CONN_FAILD=1, TASK_ERROR_OTHER=2};
 
 public slots:
