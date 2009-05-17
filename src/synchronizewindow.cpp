@@ -4,11 +4,12 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-08-08 13:44:42 +0800
-// Last-Updated: 2009-05-16 18:13:56 +0800
+// Last-Updated: 2009-05-17 11:52:54 +0800
 // Version: $Id$
 // 
 
 #include "utils.h"
+#include "globaloption.h"
 #include "remotehostconnectthread.h"
 #include "basestorage.h"
 #include "sshfileinfo.h"
@@ -131,7 +132,7 @@ SyncWalker::getRemoteFiles()
 
     while (!dirStack.empty()) {
         currDir = dirStack.pop(); // currDir is absolute dir path
-        hsftp = libssh2_sftp_opendir(ssh2_sftp, currDir.toAscii().data());
+        hsftp = libssh2_sftp_opendir(ssh2_sftp, gOpt->remote_codec->fromUnicode(currDir).data());
         if (hsftp == NULL) {
             q_debug()<<"opendir error:"<<currDir;
             continue;
@@ -153,7 +154,7 @@ SyncWalker::getRemoteFiles()
                 continue;
             }
             fnbuf[rc] = '\0';
-            currFile = QString(fnbuf);
+            currFile = gOpt->remote_codec->toUnicode(QByteArray(fnbuf));
             if (S_ISDIR(ssh2_attr.permissions)) {
                 dirStack.push(currDir + "/" + currFile);
             }

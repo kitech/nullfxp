@@ -4,14 +4,19 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2009-01-11 10:19:22 +0800
-// Last-Updated: 2009-05-16 14:25:36 +0800
+// Last-Updated: 2009-05-17 11:52:49 +0800
 // Version: $Id$
 // 
 
+#ifndef _MSC_VER
 #define HAVE_SYS_TIME_H
+#endif
+
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
+
+#include <sys/utime.h>
 
 #include "utils.h"
 #include "globaloption.h"
@@ -132,6 +137,7 @@ int SyncTransferThread::do_download(QString remote_path, QString local_path)
                 // emit this->transfer_percent_changed ( pcnt , tran_len ,wlen );
             }
         }
+        q_file.flush();
         q_file.close();
     }
     libssh2_sftp_close(sftp_handle);
@@ -227,35 +233,51 @@ int SyncTransferThread::do_touch_local_file_with_time(QString fileName, QDateTim
     int ret;
     QFileInfo fi(fileName);
 
-#ifdef WIN32    
-    // SYSTEMTIME systime;
-    // FILETIME ft, ftUTC;
-    // HANDLE hFile;
+#ifdef WIN32
+    // method 1, ok
+    QFile q_file(fileName);
+    if (!q_file.open(QIODevice::ReadWrite)) {
+        q_debug()<<"open file error:"<<q_file.errorString();
+    } else {
+        int fp = q_file.handle();
+        struct _utimbuf ub;
+        ub.actime = fi.lastRead().toTime_t();
+        ub.modtime = time.toTime_t();
+        ret = _futime(fp, &ub);
+        q_debug()<<"_futime ret: "<<ret<<fileName
+                 <<strerror(ret);
+        q_file.close();
+    }
+    return 0;
 
-    // systime.wYear = l_year;
-    // systime.wMonth = l_month;
-    // systime.wDay = l_day;
-    // systime.wHour = l_hour;
-    // systime.wMinute = l_minute;
-    // systime.wSecond = l_second;
-    // systime.wMilliseconds = l_millsecond;                
+    // method 2, english ok, chinese faild
+    const char *filePathName = gOpt->locale_codec->fromUnicode(QDir::toNativeSeparators(fileName)).constData();
+    struct _utimbuf ub;
+    ub.actime = fi.lastRead().toTime_t();
+    ub.modtime = time.toTime_t();
+    ret = _utime(filePathName, &ub);
+    q_debug()<<"_utime ret: "<<ret<<filePathName<<fileName
+             <<strerror(ret);
+    return 0;
 
-    // SystemTimeToFileTime(&systime, &ft);
-    // LocalFileTimeToFileTime(&ft,&ftUTC);
+    // method 2, english ok, chinese faild
+    QString appPath = QCoreApplication::applicationDirPath();
+    QString procFilePath = appPath + "/touch.exe";
+    QStringList args;
+    args<<"-m";
+    args<<"-t";
+    args<<time.toString("yyyyMMddhhmm.ss");
+    args<<QDir::toNativeSeparators(fileName);
+    q_debug()<<args;
+    QProcess proc;
+    proc.start(procFilePath, args);
+    ret = proc.waitForFinished();
 
-    // hFile = CreateFile( filePathName, GENERIC_READ | GENERIC_WRITE,
-    //                     FILE_SHARE_READ| FILE_SHARE_WRITE,
-    //                     NULL,
-    //                     OPEN_EXISTING,
-    //                     FILE_ATTRIBUTE_NORMAL,
-    //                     NULL);            
-    // SetFileTime(hFile, (LPFILETIME) NULL, (LPFILETIME) NULL, &ftUTC);
-    // CloseHandle(hFile);
 #else
     struct timeval tv[2] = {{0,0}, {0,0}};
     tv[0].tv_sec = fi.lastRead().toTime_t();
     tv[1].tv_sec = time.toTime_t();
-    ret = utimes(GlobalOption::instance()->remote_codec->fromUnicode(fileName), tv);
+    ret = utimes(GlobalOption::instance()->locale_codec->fromUnicode(fileName), tv);
     assert(ret == 0);    
 #endif
 
