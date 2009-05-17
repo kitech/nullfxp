@@ -28,6 +28,9 @@ src/basestorage.cpp -text
 src/basestorage.h -text
 src/completelineeditdelegate.cpp -text
 src/completelineeditdelegate.h -text
+src/config_linux.h -text
+src/config_win32_g++.h -text
+src/config_win32_msvc.h -text
 src/encryptiondetaildialog.cpp -text
 src/encryptiondetaildialog.h -text
 src/encryptiondetailfocuslabel.cpp -text
@@ -243,6 +246,7 @@ src/nullfxp.cpp -text
 src/nullfxp.h -text
 src/nullfxp.qrc -text
 src/nullfxp.ui -text
+src/nullfxp_config.h -text
 src/nullfxpext.cpp -text
 src/plink/Makefile -text
 src/plink/be_all_s.c -text
