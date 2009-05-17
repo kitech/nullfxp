@@ -16,7 +16,9 @@
 #include <sys/time.h>
 #endif
 
+#ifdef _MSC_VER
 #include <sys/utime.h>
+#endif
 
 #include "utils.h"
 #include "globaloption.h"
