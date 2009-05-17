@@ -4,7 +4,7 @@
  * Copyright (C) 2007-2010 liuguangzhao@users.sf.net
  * URL: http://www.qtchina.net http://nullget.sourceforge.net
  * Created: 2008-08-08 13:44:51 +0800
- * Last-Updated: 2009-05-16 17:56:30 +0800
+ * Last-Updated: 2009-05-17 16:34:22 +0800
  * Version: $Id$
  */
 
@@ -116,6 +116,8 @@ private:
     void initCtxMenu();
     QModelIndexList getSelectedModelIndexes();
     void manualShowWhatsThis(QString what);
+    void acquireBusyControl();
+    void releaseBusyControl();
 
 private:
     Ui::SynchronizeWindow  ui_win;
@@ -127,8 +129,8 @@ private:
     QTimer progress_timer;
     bool running;
     QMenu *ctxMenu;
-    QAction * dlAction;
-    QAction * upAction;
+    QAction *dlAction;
+    QAction *upAction;
 
     SyncWalker *walker;
     SyncDifferModel *model;
@@ -140,7 +142,7 @@ private:
     QHash<QString, QHash<QString, int> > syncer;
     QVector<QPair<QString, int> >  synckeys;
     //如果此pair的第二个值为 -1 表示，这个值有子结点，否则就是没有,那么其值就为 syncer中的int项值。
-    
+    bool busy; // 是否正在执行互拆任务
 
     friend class SyncWalker;
     friend class SyncDifferModel;

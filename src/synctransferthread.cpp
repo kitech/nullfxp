@@ -105,6 +105,7 @@ int SyncTransferThread::do_download(QString remote_path, QString local_path)
     LIBSSH2_SFTP_HANDLE * sftp_handle ;
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
     char buff[8192] = {0};
+    QString currFile;
     
     sftp_handle = libssh2_sftp_open(this->ssh2_sftp,
                                     GlobalOption::instance()->remote_codec->fromUnicode(remote_path), LIBSSH2_FXF_READ, 0);
@@ -118,6 +119,9 @@ int SyncTransferThread::do_download(QString remote_path, QString local_path)
     libssh2_sftp_fstat(sftp_handle,&ssh2_sftp_attrib);
     file_size = ssh2_sftp_attrib.filesize;
     qDebug()<<" remote file size :"<< file_size ;
+
+    currFile = local_path.right(local_path.length() - this->local_base_path.length() - 1);
+    emit this->syncFileStarted(currFile, file_size);
 
     // 本地编码 --> Qt 内部编码
     QFile q_file(local_path);
@@ -133,10 +137,10 @@ int SyncTransferThread::do_download(QString remote_path, QString local_path)
                      <<" tran len: "<<tran_len ;
             //my progress signal
             if (file_size == 0) {
-                // emit this->transfer_percent_changed ( 100 , tran_len , wlen );
+                emit this->transfer_percent_changed(currFile, 100, tran_len, wlen);
             } else {
                 pcnt = 100.0 *((double)tran_len  / (double)file_size);
-                // emit this->transfer_percent_changed ( pcnt , tran_len ,wlen );
+                emit this->transfer_percent_changed(currFile, pcnt, tran_len, wlen);
             }
         }
         q_file.flush();
@@ -145,6 +149,8 @@ int SyncTransferThread::do_download(QString remote_path, QString local_path)
     libssh2_sftp_close(sftp_handle);
     q_debug()<<"syncDownload done.";
     this->do_touch_local_file_with_time(local_path, SSHFileInfo(ssh2_sftp_attrib).lastModified());
+
+    emit this->syncFileStopped(currFile, 0);
 
     return 0;
 }
@@ -160,6 +166,7 @@ int SyncTransferThread::do_upload(QString local_path, QString remote_path)
     LIBSSH2_SFTP_HANDLE * sftp_handle ;
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
     char buff[5120] = {0};
+    QString currFile;
     
     //TODO 检查文件可写属性
     sftp_handle = libssh2_sftp_open(this->ssh2_sftp,
@@ -167,12 +174,18 @@ int SyncTransferThread::do_upload(QString local_path, QString remote_path)
                                     LIBSSH2_FXF_READ|LIBSSH2_FXF_WRITE|LIBSSH2_FXF_CREAT|LIBSSH2_FXF_TRUNC, 0666);
     if (sftp_handle == NULL) {
         //TODO 错误消息通知用户。
-        qDebug()<<"open sftp file error :"<< libssh2_sftp_last_error(this->ssh2_sftp);
+        char errmsg[200] = {0};
+        int emlen = 0;
+        libssh2_session_last_error(this->ssh2_sess, (char **)&errmsg, &emlen, 0);
+        
+        qDebug()<<"open sftp file error :"<< libssh2_sftp_last_error(this->ssh2_sftp)
+                <<QString(errmsg);
         if (libssh2_sftp_last_error(this->ssh2_sftp) == LIBSSH2_FX_PERMISSION_DENIED) {
             // this->errorString = QString(tr("Open file faild, Permission denied"));
             // qDebug()<<this->errorString;
         }
         // this->error_code = ERRNO_BASE + libssh2_sftp_last_error(this->ssh2_sftp);
+        emit this->syncFileStopped(currFile, -1);
         return -1 ;
     }
     
@@ -180,7 +193,9 @@ int SyncTransferThread::do_upload(QString local_path, QString remote_path)
     QFileInfo local_fi(local_path);
     file_size = local_fi.size();
     qDebug()<<"local file size:" << file_size ;
-    // emit this->transfer_got_file_size(file_size);
+
+    currFile = local_path.right(local_path.length() - this->local_base_path.length() - 1);
+    emit this->syncFileStarted(currFile, file_size);
     
     // 本地编码 --> Qt 内部编码
     QFile q_file(local_path);
@@ -208,11 +223,11 @@ int SyncTransferThread::do_upload(QString local_path, QString remote_path)
             // 			qDebug() <<" read len :"<< rlen <<" , write len: "<< wlen 
             //                    << " tran len: "<< tran_len ;
             if (file_size == 0 ) {
-                // emit this->transfer_percent_changed(100, tran_len, wlen);
+                emit this->transfer_percent_changed(currFile, 100, tran_len, wlen);
             } else {
                 pcnt = 100.0 *((double)tran_len  / (double)file_size);
                 // qDebug()<< QString("100.0 *((double)%1  / (double)%2)").arg(tran_len).arg(file_size)<<" = "<<pcnt ;
-                // emit this->transfer_percent_changed(pcnt, tran_len, wlen);
+                emit this->transfer_percent_changed(currFile, pcnt, tran_len, wlen);
             }
         }
         q_file.close();
@@ -221,6 +236,8 @@ int SyncTransferThread::do_upload(QString local_path, QString remote_path)
     libssh2_sftp_close(sftp_handle);
     q_debug()<<"syncUpload done.";
     this->do_touch_sftp_file_with_time(remote_path, QFileInfo(local_path).lastModified());
+
+    emit this->syncFileStopped(currFile, 0);
 
     return 0;
 }

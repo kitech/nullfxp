@@ -4,7 +4,7 @@
  * Copyright (C) 2007-2010 liuguangzhao@users.sf.net
  * URL: http://www.qtchina.net http://nullget.sourceforge.net
  * Created: 2009-01-11 10:19:18 +0800
- * Last-Updated: 2009-05-16 18:01:09 +0800
+ * Last-Updated: 2009-05-17 15:04:25 +0800
  * Version: $Id$
  */
 
@@ -75,7 +75,6 @@ private:
     int do_touch_sftp_file_with_time(QString fileName, QDateTime time);
 
 private:
-    // QQueue<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > taskQueue;
     QQueue<SyncTaskPackage> taskQueue;
     QWaitCondition wc;
     QMutex   wcMutex;
@@ -90,6 +89,12 @@ private:
     QString sess_name;
     QString local_base_path;
     QString remote_base_path;
+
+signals:
+    void syncFileStarted(QString fileName, quint64 fileSize);
+    void syncFileStopped(QString fileName, int status);
+    void transfer_percent_changed(QString fileName, int percent, quint64 transferLength, quint64 lastBlockLength);
+    void syncTaskFinished(int status);
 };
 
 

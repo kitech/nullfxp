@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-08-08 13:44:42 +0800
-// Last-Updated: 2009-05-17 11:52:54 +0800
+// Last-Updated: 2009-05-17 16:34:15 +0800
 // Version: $Id$
 // 
 
@@ -422,7 +422,7 @@ void SyncWalker::run()
 /////////////////////
 SynchronizeWindow::SynchronizeWindow(QWidget *parent, Qt::WindowFlags flags)
     :QWidget(parent, flags),
-     ctxMenu(0), transfer(0)
+     ctxMenu(0), transfer(0), busy(false)
 {
     this->ui_win.setupUi(this);
 
@@ -439,6 +439,12 @@ SynchronizeWindow::SynchronizeWindow(QWidget *parent, Qt::WindowFlags flags)
     QObject::connect(&this->progress_timer, SIGNAL(timeout()), this, SLOT(progress_timer_timeout()));
     QObject::connect(this->ui_win.treeView, SIGNAL(customContextMenuRequested ( const QPoint & )),
                      this, SLOT(showCtxMenu(const QPoint &)));
+    QObject::connect(this->ui_win.toolButton, SIGNAL(triggered()),
+                     this, SLOT(syncAllFiles()));
+    QObject::connect(this->ui_win.toolButton_2, SIGNAL(triggered()),
+                     this, SLOT(uploadAllFiles()));
+    QObject::connect(this->ui_win.toolButton_3, SIGNAL(triggered()),
+                     this, SLOT(downloadAllFiles()));
 }
 
 SynchronizeWindow::~SynchronizeWindow()
@@ -486,9 +492,10 @@ void SynchronizeWindow::slot_finished()
     model = new SyncDifferModel(this);
     model->setDiffFiles(this->walker->mMergedFiles);
     this->ui_win.treeView->setModel(model);
-    // QObject::connect(walker, SIGNAL(found_row()), model, SLOT(maybe_has_data()));
 
     this->ui_win.treeView->expandAll();
+    this->ui_win.treeView->setColumnWidth(0, 360);
+    this->ui_win.treeView->setColumnWidth(2, 100);
 
     this->progress_timer.stop();
     this->ui_win.progressBar->setValue(100);
@@ -502,6 +509,15 @@ void SynchronizeWindow::slot_finished()
                          this->transfer, SLOT(slot_syncDownload(QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*>)));
         QObject::connect(this, SIGNAL(syncUpload(QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*>)),
                          this->transfer, SLOT(slot_syncUpload(QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*>)));
+
+        // update status
+        QObject::connect(this->transfer, SIGNAL(syncFileStarted(QString, quint64)),
+                         this->model, SLOT(startSyncFile(QString, quint64)));
+        QObject::connect(this->transfer, SIGNAL(syncFileStopped(QString, int)),
+                         this->model, SLOT(stopSyncFile(QString, int)));
+        QObject::connect(this->transfer, SIGNAL(transfer_percent_changed(QString, int, quint64, quint64)),
+                         this->model, SLOT(changeTransferedPercent(QString, int, quint64, quint64)));
+
     }
 }
 
@@ -647,33 +663,35 @@ void SynchronizeWindow::dlSelectedDiffFiles()
         q_debug()<<"No item selected";
         return;
     }
-    
-    idx = mil.at(0);
-    file = this->model->getFile(idx);
-    Q_ASSERT(file.isValid());
-    q_debug()<<file;
 
-    unsigned long flags = file.second->flags;
-    if (flags & SyncWalker::FLAG_LOCAL_ONLY) {
-        //fline += QString("local only");
-        q_debug()<<QString("local only")<<", can not download";
-    } else if (flags & SyncWalker::FLAG_REMOTE_ONLY) {
-        //fline += QString("remote only");        
-    } else if (flags & SyncWalker::FLAG_LOCAL_NEWER) {
-        //fline += QString("local newer");            
-    } else if (flags & SyncWalker::FLAG_REMOTE_NEWER) {
-        //fline += QString("remote newer");
-    } else if (flags & SyncWalker::FLAG_FILE_EQUAL) {
-        //fline += QString("the same");
-        q_debug()<<QString("the same")<<", download not needed";
-    } else if (flags & SyncWalker::FLAG_FILE_DIFFERENT) {
-        //fline += QString("???");
-        q_debug()<<QString("???")<<", not possible";
-    } else {
+    for (int i = 0 ; i < mil.count(); i ++) {
+        idx = mil.at(i);
+        file = this->model->getFile(idx);
+        Q_ASSERT(file.isValid());
+        q_debug()<<file;
 
+        unsigned long flags = file.second->flags;
+        if (flags & SyncWalker::FLAG_LOCAL_ONLY) {
+            //fline += QString("local only");
+            q_debug()<<QString("local only")<<", can not download";
+        } else if (flags & SyncWalker::FLAG_REMOTE_ONLY) {
+            //fline += QString("remote only");        
+        } else if (flags & SyncWalker::FLAG_LOCAL_NEWER) {
+            //fline += QString("local newer");            
+        } else if (flags & SyncWalker::FLAG_REMOTE_NEWER) {
+            //fline += QString("remote newer");
+        } else if (flags & SyncWalker::FLAG_FILE_EQUAL) {
+            //fline += QString("the same");
+            q_debug()<<QString("the same")<<", download not needed";
+        } else if (flags & SyncWalker::FLAG_FILE_DIFFERENT) {
+            //fline += QString("???");
+            q_debug()<<QString("???")<<", not possible";
+        } else {
+
+        }
+
+        emit syncDownload(file);
     }
-
-    emit syncDownload(file);
 }
 void SynchronizeWindow::upSelectedDiffFiles()
 {
@@ -685,36 +703,37 @@ void SynchronizeWindow::upSelectedDiffFiles()
         q_debug()<<"No item selected";
         return;
     }
-    
-    idx = mil.at(0);
-    file = this->model->getFile(idx);
-    Q_ASSERT(file.isValid());
-    q_debug()<<file;
+    for (int i = 0 ; i < mil.count() ; i ++) {
+        idx = mil.at(i);
+        file = this->model->getFile(idx);
+        Q_ASSERT(file.isValid());
+        q_debug()<<file;
 
-    unsigned long flags = file.second->flags;
-    if (flags & SyncWalker::FLAG_LOCAL_ONLY) {
-        //fline += QString("local only");
-    } 
-    if (flags & SyncWalker::FLAG_REMOTE_ONLY) {
-        //fline += QString("remote only");
-        q_debug()<<QString("remote only")<<", can not upload";
-    } 
-    if (flags & SyncWalker::FLAG_LOCAL_NEWER) {
-        //fline += QString("local newer");            
-    } 
-    if (flags & SyncWalker::FLAG_REMOTE_NEWER) {
-        //fline += QString("remote newer");
-    } 
-    if (flags & SyncWalker::FLAG_FILE_EQUAL) {
-        //fline += QString("the same");
-        q_debug()<<QString("the same")<<", download not needed";
-    } 
-    if (flags & SyncWalker::FLAG_FILE_DIFFERENT) {
-        //fline += QString("???");
-        q_debug()<<QString("???")<<", not possible";
+        unsigned long flags = file.second->flags;
+        if (flags & SyncWalker::FLAG_LOCAL_ONLY) {
+            //fline += QString("local only");
+        } 
+        if (flags & SyncWalker::FLAG_REMOTE_ONLY) {
+            //fline += QString("remote only");
+            q_debug()<<QString("remote only")<<", can not upload";
+        } 
+        if (flags & SyncWalker::FLAG_LOCAL_NEWER) {
+            //fline += QString("local newer");            
+        } 
+        if (flags & SyncWalker::FLAG_REMOTE_NEWER) {
+            //fline += QString("remote newer");
+        } 
+        if (flags & SyncWalker::FLAG_FILE_EQUAL) {
+            //fline += QString("the same");
+            q_debug()<<QString("the same")<<", download not needed";
+        } 
+        if (flags & SyncWalker::FLAG_FILE_DIFFERENT) {
+            //fline += QString("???");
+            q_debug()<<QString("???")<<", not possible";
+        }
+
+        emit syncUpload(file);
     }
-
-    emit syncUpload(file);
 }
 
 void SynchronizeWindow::syncAllFiles()
@@ -725,8 +744,8 @@ void SynchronizeWindow::syncAllFiles()
 void SynchronizeWindow::syncAllFiles(int direct)
 {
     int list_count = 0;
-    int download_count = 0;
-    int upload_count = 0;
+    // int download_count = 0;
+    // int upload_count = 0;
     QModelIndex idx;
     LIBSSH2_SFTP_ATTRIBUTES *pattr;
     QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> file;
@@ -801,3 +820,22 @@ void SynchronizeWindow::uploadLocalOnlyFiles()
 {
     this->syncAllFiles(SyncTransferThread::TASK_UPLOAD_LOCAL_ONLY);
 }
+
+void SynchronizeWindow::acquireBusyControl()
+{
+    bool enable = false;
+    this->ui_win.toolButton->setEnabled(enable);
+    this->ui_win.toolButton_2->setEnabled(enable);
+    this->ui_win.toolButton_3->setEnabled(enable);
+    this->ui_win.toolButton_4->setEnabled(enable);
+}
+
+void SynchronizeWindow::releaseBusyControl()
+{
+    bool enable = true;
+    this->ui_win.toolButton->setEnabled(enable);
+    this->ui_win.toolButton_2->setEnabled(enable);
+    this->ui_win.toolButton_3->setEnabled(enable);
+    this->ui_win.toolButton_4->setEnabled(enable);
+}
+

@@ -1,32 +1,11 @@
 // syncdiffermodel.cpp --- 
 // 
-// Filename: syncdiffermodel.cpp
-// Description: 
-// Author: 刘光照<liuguangzhao@users.sf.net>
-// Maintainer: 
-// Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
-// http://www.qtchina.net
-// http://nullget.sourceforge.net
-// Created: 日  8月 10 21:13:15 2008 (CST)
-// Version: 
-// Last-Updated: 日  8月 17 13:29:14 2008 (CST)
-//           By: 刘光照<liuguangzhao@users.sf.net>
-//     Update #: 1
-// URL: 
-// Keywords: 
-// Compatibility: 
-// 
-// 
-
-// Commentary: 
-// 
-// 
-// 
-// 
-
-// Change log:
-// 
-// 
+// Author: liuguangzhao
+// Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+// URL: http://www.qtchina.net http://nullget.sourceforge.net
+// Created: 2008-08-10 21:13:15 +0800
+// Last-Updated: 2009-05-17 16:34:18 +0800
+// Version: $Id$
 // 
 
 #include "utils.h"
@@ -51,9 +30,9 @@ QModelIndex SyncDifferModel::index(int row, int column, const QModelIndex &paren
     assert(row >= 0);
 
     QModelIndex idx = QModelIndex();
-    if(!parent.isValid()) {
+    if (!parent.isValid()) {
         idx = this->createIndex(row, column, -1);
-    }else{
+    } else {
         //idx = this->createIndex(row, column, parent.row());
         //qDebug()<<"create sub model"<<parent.row();
         q_debug()<<"not possible now";
@@ -66,15 +45,15 @@ QModelIndex SyncDifferModel::parent(const QModelIndex &index) const
     QModelIndex idx = QModelIndex();
     return idx;
 
-    if(!index.isValid()) {
+    if (!index.isValid()) {
 
-    }else{
+    } else {
         //idx = index((int)(index.internalPointer()), 0, idx);
         //idx = createIndex(0,0,0);
         int row = index.internalId();
-        if(row == -1) {
-        }else{
-            assert( row != -1);
+        if (row == -1) {
+        } else {
+            assert(row != -1);
             idx = this->index(row, 0, idx);        
         }
     }
@@ -83,17 +62,17 @@ QModelIndex SyncDifferModel::parent(const QModelIndex &index) const
 
 QVariant   SyncDifferModel::data(const QModelIndex &index, int role) const
 {
-    if(!index.isValid()) {
+    if (!index.isValid()) {
         assert(1 == 2);
     }
 
     //q_debug()<<""<<index;
-    if(role != Qt::DisplayRole) {
+    if (role != Qt::DisplayRole) {
         return QVariant();
     }
     LIBSSH2_SFTP_ATTRIBUTES * attr = NULL;
     
-    switch(index.column()) {
+    switch (index.column()) {
     case 0:
         return this->mMergedFiles.at(index.row()).first;
         break;
@@ -109,70 +88,16 @@ QVariant   SyncDifferModel::data(const QModelIndex &index, int role) const
         break;
     };
     
-    // int row = index.internalId();
-    // if(row == -1) {
-    //     row = index.row();
-    // }
-    
-    // QString key = this->sync_win->synckeys.at(row).first;
-    // QHash<QString, int> elem = this->sync_win->syncer.value(key);
-
-    // //qDebug()<<key;
-    // //qDebug()<<elem;
-
-    // switch(index.column()) {
-    // case 0:
-    //     if (!index.parent().isValid()) {
-    //         //return "kkkkkkkkkkkkkk";
-    //         return key;
-    //     } else {
-    //         QString vv = elem.keys().at(index.row());
-    //         return vv;
-    //         //            qDebug()<<elem;
-    //         return "vasdfsdf";
-    //     }
-    //     break;
-    // case 1:
-    //     return "isdvsA";
-    // case 2:
-    //     return "vsdf";
-    //     break;
-    // default:
-    //     q_debug()<<"that is impossible";
-    //     break;
-    // };
-
     return QVariant();
 }
 int SyncDifferModel::rowCount(const QModelIndex &index) const
 {
     //q_debug()<<""<<index;
 
-    if(!index.isValid()) {
+    if (!index.isValid()) {
         //return this->sync_win->synckeys.count();
         return this->mMergedFiles.count();
-    }else{
-        // int row = index.internalId();
-        // if(row == -1) {
-        //     row = index.row();
-        // }else{
-        //     return 0;
-        // }
-        // //qDebug()<<"data of row:"<<row;
-        // QString key = this->sync_win->synckeys.at(row).first;
-        // int has_child = this->sync_win->synckeys.at(row).second;
-        // if(has_child == -1) {
-        //     //有子结点
-        //     QHash<QString, int> elem = this->sync_win->syncer.value(key);
-        //     //qDebug()<<elem;
-        //     //Q_ASSERT(row >= 0 && row < elem.count());        
-        //     int subrows = elem.count() ;
-        //     //q_debug()<<key<<" should have "<<subrows<<" child row";
-        //     //return 1;
-        //     return subrows - 1;
-        // } else {
-        //     return 0;
-        // }
+    } else {
         return 0;
     }
     return 0;
@@ -187,12 +112,52 @@ int SyncDifferModel::columnCount(const QModelIndex &index) const
     }
     return 0;
 }
+bool SyncDifferModel::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    if (!index.isValid()) {
+        return false;
+    }
+    if (role == Qt::EditRole) {        
+    }
+    
+    if (index.column() == 2) {
+        this->mTransferStatus[index.row()] = value.toString();
+        emit dataChanged(index, index);
+    } else {
+        q_debug()<<"Not impled";
+        return true;
+    }
+
+    return true;
+}
+
+QVariant SyncDifferModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    Q_UNUSED(orientation);
+
+    if (role != Qt::DisplayRole) {
+        return QVariant();
+    }
+    switch (section) {
+    case 0:
+        return QString(tr("File Name"));
+        break;
+    case 1:
+        return QString(tr("Diff status"));
+        break;
+    case 2:
+        return QString(tr("Sync status"));
+        break;
+    default:
+        break;
+    };
+    return QVariant();
+}
 
 void SyncDifferModel::maybe_has_data()
 {
     qDebug()<<"aaaaaaaaaa";
     emit layoutChanged ();
-
 }
 
 bool SyncDifferModel::setDiffFiles(QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > files)
@@ -212,5 +177,48 @@ QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> SyncDifferModel::getFile(const QModelIn
         file = this->mMergedFiles.at(index.row());
     }
     return file;
+}
+
+int SyncDifferModel::getRowNumberByFileName(QString fileName)
+{
+    int rowno = 0;
+    int rowCount = this->rowCount(QModelIndex());
+
+    for (int i = 0 ; i < rowCount; i++) {
+        if (this->mMergedFiles.at(i).first == fileName) {
+            rowno = i;
+            break;
+        }
+    }
+
+    return rowno;
+}
+
+void SyncDifferModel::startSyncFile(QString fileName, quint64 fileSize)
+{
+    int rowno = this->getRowNumberByFileName(fileName);
+    QModelIndex idx = this->index(rowno, 2, QModelIndex());
+    QString statusLine = QString(tr("Starting sync %1 Bytes ...")).arg(fileSize);
+    this->setData(idx, statusLine);
+}
+void SyncDifferModel::stopSyncFile(QString fileName, int status)
+{
+    Q_UNUSED(status);
+
+    int rowno = this->getRowNumberByFileName(fileName);
+    QModelIndex idx = this->index(rowno, 2, QModelIndex());
+    QString statusLine = QString(tr("Sync success"));
+    this->setData(idx, statusLine);
+}
+void SyncDifferModel::changeTransferedPercent(QString fileName, int percent, 
+                                              quint64 transferdLength, quint64 lastBlockLength)
+{
+    Q_UNUSED(transferdLength);
+    Q_UNUSED(lastBlockLength);
+
+    int rowno = this->getRowNumberByFileName(fileName);
+    QModelIndex idx = this->index(rowno, 2, QModelIndex());
+    QString statusLine = QString(tr("Synced %1% ...")).arg(percent);
+    this->setData(idx, statusLine);    
 }
 
