@@ -8,11 +8,12 @@
 // Version: $Id$
 // 
 
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstdlib>
+#include <cstdio>
+#include <cassert>
+#include <cerrno>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <errno.h>
 #include <sys/types.h>
 
 #ifndef _MSC_VER
@@ -27,8 +28,6 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #endif
-
-#include <assert.h>
 
 #include <QtCore>
 #include <QtNetwork>

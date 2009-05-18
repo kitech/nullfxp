@@ -11,8 +11,8 @@
 #ifndef GLOBALOPTION_H
 #define GLOBALOPTION_H
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include <vector>
 #include <map>
 #include <string>

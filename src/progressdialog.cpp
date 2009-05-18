@@ -9,10 +9,10 @@
 // 
 
 #include <cassert>
-#include <errno.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <string.h>
+#include <cerrno>
+#include <cstdarg>
+#include <cstdio>
+#include <cstring>
 #include <sys/types.h>
 
 #ifdef HAVE_SYS_STAT_H

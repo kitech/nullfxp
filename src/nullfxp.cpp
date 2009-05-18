@@ -8,11 +8,11 @@
 // Version: $Id$
 // 
 
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstdlib>
+#include <cstdio>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <errno.h>
+#include <cerrno>
 
 #ifdef WIN32
 #include <winsock2.h>
@@ -22,8 +22,8 @@
 
 #include <QtNetwork>
 #include <QCoreApplication>
-#include "nullfxp.h"
 
+#include "nullfxp.h"
 #include "localview.h"
 #include "remoteview.h"
 #include "progressdialog.h"
