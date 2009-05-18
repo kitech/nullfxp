@@ -25,6 +25,7 @@ win32 {
          CONFIG -= embed_manifest_exe
          CONFIG -= embed_manifest_dll
     }
+    RC_FILE = unitest.rc
 }
 
 win32:LIBS += -lQtTest -lws2_32  -lgdi32 

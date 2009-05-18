@@ -168,6 +168,7 @@ DEFINES -= NDEBUG QT_NO_DEBUG_OUTPUT
 win32-g++ {     
 } else:win32 {
      DEFINES += LIBSSH2_WIN32 _CRT_SECURE_NO_DEPRECATE GCC_MV=\"\\\"MSVC 2005 Express Edition\\\"\"
+     RC_FILE = nullfxp.rc 
 } else {
 }
 
