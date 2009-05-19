@@ -180,6 +180,7 @@ win32-g++ {
      DEFINES += LIBSSH2_WIN32 _CRT_SECURE_NO_DEPRECATE GCC_MV=\"\\\"MSVC 2005 Express Edition\\\"\"
      RC_FILE = nullfxp.rc 
 } else {
+#  QMAKE_CXXFLAGS += -std=c++0x
 }
 
 !win32 {

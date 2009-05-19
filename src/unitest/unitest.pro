@@ -32,6 +32,8 @@ win32 {
          CONFIG -= embed_manifest_dll
     }
     RC_FILE = unitest.rc
+} else {
+    QMAKE_CXXFLAGS += -std=c++0x
 }
 
 win32:LIBS += -lQtTest -lws2_32  -lgdi32 

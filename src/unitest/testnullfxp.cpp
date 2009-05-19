@@ -1,49 +1,12 @@
 // testnullfxp.cpp --- 
 // 
-// Filename: testnullfxp.cpp
-// Description: 
 // Author: liuguangzhao
-// Maintainer: 
-// Created: 五  4月  4 13:05:32 2008 (CST)
-// Version: 
-// Last-Updated: 
-//           By: 
-//     Update #: 0
-// URL: 
-// Keywords: 
-// Compatibility: 
+// Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+// URL: http://www.qtchina.net http://nullget.sourceforge.net
+// Created: 2008-04-04 13:05:32 +0800
+// Last-Updated: 2009-05-19 14:04:25 +0800
+// Version: $Id$
 // 
-// 
-
-// Commentary: 
-// 
-// 
-// 
-// 
-
-// Change log:
-// 
-// 
-// 
-// 
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 3, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-// General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program; see the file COPYING.  If not, write to
-// the Free Software Foundation, Inc., 51 Franklin Street, Fifth
-// Floor, Boston, MA 02110-1301, USA.
-// 
-// 
-
-// Code:
 
 #include "testnullfxp.h"
 
@@ -133,5 +96,40 @@ void TestNullfxp::testSSHFileInfo()
 
 }
 
-// 
-// testnullfxp.cpp ends here
+void TestNullfxp::testCXXBaseSyntax()
+{
+    char *str = new char[100];
+    QVERIFY(str != NULL);
+    delete [] str;
+    int *ia = new int[50];
+    QVERIFY(ia != NULL);
+    QVERIFY(ia[0] != 0);
+    memset(ia, 0, sizeof(int)*50);
+    QVERIFY(ia[0] == 0);
+    delete [] ia;
+    
+    ia = (int*)calloc(50, sizeof(int));
+    QVERIFY(ia[0] == 0);
+    free(ia);
+    ia = (int*)malloc(sizeof(int)*50);
+    QVERIFY(ia[0] != 0);
+    memset(ia, 0, sizeof(int)*50);
+    QVERIFY(ia[0] == 0);
+    free(ia);
+}
+
+#include <tr1/array>
+void TestNullfxp::testCXX0XSyntax()
+{
+    std::tr1::array<int, 0> tr1arr;
+    QVERIFY(tr1arr.size() == 0);
+    tr1arr[0] = 5;
+    qDebug()<<"array size:"<<tr1arr.size();
+    QVERIFY(tr1arr.size() == 0);
+    tr1arr[1] = 6;
+    QVERIFY(tr1arr.size() == 0);
+    qDebug()<<"a[1]="<<tr1arr[1];
+    //这个数组模板个数很奇怪啊。
+    
+    
+}
