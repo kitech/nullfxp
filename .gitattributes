@@ -18,7 +18,6 @@ packages/mkpkg.sh -text
 packages/nullfxp -text
 packages/opensuse_buildservice/nullfxp.spec -text
 src/CMakeLists.txt -text
-src/ReadMe -text
 src/aboutnullfxp.cpp -text
 src/aboutnullfxp.h -text
 src/aboutnullfxp.ui -text
@@ -241,6 +240,10 @@ src/localview.cpp -text
 src/localview.h -text
 src/localview.ui -text
 src/main.cpp -text
+src/nscp/nscp.cpp -text
+src/nscp/nscp.pro -text
+src/nscp/nscp_p.cpp -text
+src/nscp/nscp_p.h -text
 src/nullfxp-version.h -text
 src/nullfxp.cpp -text
 src/nullfxp.h -text
