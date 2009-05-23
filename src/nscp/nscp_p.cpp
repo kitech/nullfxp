@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2009-05-19 21:07:41 +0800
-// Last-Updated: 2009-05-19 22:27:11 +0800
+// Last-Updated: 2009-05-23 21:05:38 +0800
 // Version: $Id$
 // 
 
@@ -135,6 +135,11 @@ int scp_file_to_server_on_sftp(ssh_conn_t *conn, char *local_file, char *remote_
 
     conn->sftp = libssh2_sftp_init(conn->sess);
     assert(conn->sftp != NULL);
+    rc = libssh2_sftp_shutdown(conn->sftp);
+    fprintf(stderr, "SFTP shutdown: %d\n", rc);
+    assert(rc == 0);
+    conn->sftp = libssh2_sftp_init(conn->sess);
+    assert(conn->sftp != NULL);
 
     hsftp = libssh2_sftp_open(conn->sftp, remote_file, 
                               LIBSSH2_FXF_WRITE | LIBSSH2_FXF_CREAT | LIBSSH2_FXF_TRUNC , 0755);
@@ -156,5 +161,40 @@ int scp_file_to_server_on_sftp(ssh_conn_t *conn, char *local_file, char *remote_
 
     fclose(fp);
     
+    return 0;
+}
+
+int scp_file_to_server_on_scp(ssh_conn_t *conn, char *local_file, char *remote_file)
+{
+    LIBSSH2_CHANNEL *channel = NULL;
+    struct stat fileinfo;
+    FILE *fp = NULL;
+    int rlen;
+    int rc;
+
+    
+    stat(local_file, &fileinfo);
+    channel = libssh2_scp_send(conn->sess, remote_file, 0755, (unsigned long)fileinfo.st_size);
+    assert(channel != NULL);
+
+    fp = fopen(local_file, "r");
+    assert(fp != NULL);
+    
+    do {
+        char mem[1000];
+        rlen = fread(mem, 1, sizeof(mem), fp);
+        if (rlen > 0) {
+            rc = libssh2_channel_write(channel, mem, rlen);
+            // fprintf(stderr, "Write SCP: %d/%d\n", rc, rlen);
+            assert(rc == rlen);
+        } else {
+            break;
+        }        
+    } while (1);
+    libssh2_channel_send_eof(channel);
+    libssh2_channel_close(channel);
+
+    fclose(fp);
+
     return 0;
 }

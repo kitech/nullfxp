@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2009-05-19 20:50:20 +0800
-// Last-Updated: 2009-05-19 22:27:21 +0800
+// Last-Updated: 2009-05-23 21:05:47 +0800
 // Version: $Id$
 // 
 
@@ -43,9 +43,13 @@ int main(int argc, char **argv)
         exit(2);
     }
     
-    rc = scp_file_to_server_on_sftp(conn, "/home/gzleo/download/goalbit-0.4.2.tar.bz2",
-                                    "/home/kitsoft/goalbit-0.4.2.tar.bz2");
+     rc = scp_file_to_server_on_sftp(conn, "/home/gzleo/download/goalbit-0.4.2.tar.bz2",
+                                     "/home/kitsoft/goalbit-0.4.2.tar.bz2");
+
+    // rc = scp_file_to_server_on_scp(conn, "/home/gzleo/download/goalbit-0.4.2.tar.bz2",
+    //                                "/home/kitsoft/goalbit-0.4.2.tar.bz2");
     
+    disconnect_from_host(conn);
 
     return 0;
 }

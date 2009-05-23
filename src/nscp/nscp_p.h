@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2009-05-19 21:07:29 +0800
-// Last-Updated: 2009-05-19 22:27:14 +0800
+// Last-Updated: 2009-05-23 21:05:41 +0800
 // Version: $Id$
 // 
 
@@ -55,5 +55,6 @@ int  disconnect_from_host(ssh_conn_t *conn);
 
 int connect_auth_password(ssh_conn_t *conn, char *user, char *password);
 int scp_file_to_server_on_sftp(ssh_conn_t *conn, char *local_file, char *remote_file);
+int scp_file_to_server_on_scp(ssh_conn_t *conn, char *local_file, char *remote_file);
 
 #endif /* _NSCP_P_H_ */
