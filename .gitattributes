@@ -240,9 +240,11 @@ src/localview.cpp -text
 src/localview.h -text
 src/localview.ui -text
 src/main.cpp -text
-src/nscp/nscp.cpp -text
+src/nscp/nscp.c -text
 src/nscp/nscp.pro -text
-src/nscp/nscp_p.cpp -text
+src/nscp/nscp_o.c -text
+src/nscp/nscp_o.h -text
+src/nscp/nscp_p.c -text
 src/nscp/nscp_p.h -text
 src/nullfxp-version.h -text
 src/nullfxp.cpp -text

@@ -43,6 +43,8 @@
 #include "libssh2.h"
 #include "libssh2_sftp.h"
 
+#include "nscp_o.h"
+
 typedef struct ssh_conn
 {
     LIBSSH2_SESSION *sess;
@@ -56,5 +58,14 @@ int  disconnect_from_host(ssh_conn_t *conn);
 int connect_auth_password(ssh_conn_t *conn, char *user, char *password);
 int scp_file_to_server_on_sftp(ssh_conn_t *conn, char *local_file, char *remote_file);
 int scp_file_to_server_on_scp(ssh_conn_t *conn, char *local_file, char *remote_file);
+
+/**
+ * nscp controller function, mkdir, scp files one by one
+ *
+ * @param conn ssh connection instance
+ * @param nopt nscp option instance
+ * @return int 0 for success, -1 for error
+ */
+int do_scp(ssh_conn_t *conn, nscp_option_t *nopt);
 
 #endif /* _NSCP_P_H_ */

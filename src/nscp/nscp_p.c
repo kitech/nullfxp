@@ -4,13 +4,14 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2009-05-19 21:07:41 +0800
-// Last-Updated: 2009-05-23 21:05:38 +0800
+// Last-Updated: 2009-05-24 19:59:06 +0800
 // Version: $Id$
 // 
 
-#include <cstdlib>
-#include <cstdio>
-#include <cassert>
+#include <stdlib.h>
+#include <stdio.h>
+#include <assert.h>
+#include <errno.h>
 
 #include "nscp_p.h"
 
@@ -41,6 +42,7 @@ ssh_conn_t *connect_to_host(char *host, short port)
     unsigned long hostaddr;
     int rc;
 
+    fprintf(stderr, "Connecting: %s ...\n", host);
     conn = (ssh_conn_t*)calloc(1, sizeof(ssh_conn_t));
 #ifdef WIN32
     WSADATA wsadata;
@@ -55,7 +57,7 @@ ssh_conn_t *connect_to_host(char *host, short port)
     sin.sin_addr.s_addr = hostaddr;
     if (connect(conn->sock, (struct sockaddr*)(&sin),
                 sizeof(struct sockaddr_in)) != 0) {
-        fprintf(stderr, "failed to connect!\n");
+        fprintf(stderr, "connect faild: %s!\n", strerror(errno));
         free(conn);
         return NULL;
     }
@@ -197,4 +199,60 @@ int scp_file_to_server_on_scp(ssh_conn_t *conn, char *local_file, char *remote_f
     fclose(fp);
 
     return 0;
+}
+
+int do_scp(ssh_conn_t *conn, nscp_option_t *nopt)
+{
+    assert(conn != NULL);
+    assert(nopt != NULL);
+
+    nscp_path_t *np;
+    char *s_path;
+    char *d_path;
+    int rc;
+    LIBSSH2_SFTP_ATTRIBUTES attr;
+    LIBSSH2_SFTP *sftp;
+    struct stat file_info;
+
+    sftp = libssh2_sftp_init(conn->sess);
+    assert(sftp != NULL);
+    d_path = nopt->d_path->path;
+    if (nopt->direct == DIRECT_UPLOAD) {
+        // dest path must be a directory and must exists
+        rc = libssh2_sftp_stat(sftp, d_path, &attr);
+        if (rc != 0) {
+            rc = -1;
+            return -1; // here return is bad
+        }
+        if (!S_ISDIR(attr.permissions)) {
+            fprintf(stderr, "The destination is not a directory.\n");
+            rc = -1;
+            return -1; // here return is bad
+        }
+        for (int i = 0; i < nopt->s_path_count; i++) {
+            np = nopt->s_paths[i];
+            s_path = np->path;
+            assert(np->path_type == PATH_FILE);
+            rc = stat(s_path, &file_info);
+            if (rc != 0) {
+                fprintf(stderr, "get source file error: %s.\n", strerror(errno));
+                return -1;
+            }
+            if (S_ISDIR(file_info.st_mode)) {
+                fprintf(stderr, "Warning: not implmentioned.\n");
+            } else {
+                char buf[1000] = {0};
+                strcpy(buf, d_path);
+                strcat(buf, "/");
+                strcat(buf, basename(s_path));
+
+
+                fprintf(stderr, "Info: %s to %s\n", s_path, buf);
+                rc = scp_file_to_server_on_scp(conn, s_path, buf);
+            }
+        }
+    }
+    libssh2_sftp_shutdown(sftp);
+    
+    return rc;
 }
