@@ -45,6 +45,7 @@
 #ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
 #endif
+#include <assert.h>
 
 #include "channel.h"
 #include "transport.h"
@@ -88,14 +89,23 @@ _libssh2_channel_nextid(LIBSSH2_SESSION * session)
  * Locate a channel pointer by number
  */
 LIBSSH2_CHANNEL *
-_libssh2_channel_locate(LIBSSH2_SESSION * session, unsigned long channel_id)
+_libssh2_channel_locate(LIBSSH2_SESSION *session, unsigned long channel_id)
 {
-    LIBSSH2_CHANNEL *channel = session->channels.head;
-    while (channel) {
-        if (channel->local.id == channel_id) {
+    LIBSSH2_CHANNEL *channel;
+    LIBSSH2_LISTENER *listener;
+
+    for(channel = session->channels.head; channel; channel = channel->next) {
+        if (channel->local.id == channel_id)
             return channel;
+    }
+
+    /* We didn't find the channel in the session, let's then check its
+       listeners... */
+    for(listener = session->listeners; listener; listener = listener->next) {
+        for(channel = listener->queue; channel; channel = channel->next) {
+            if (channel->local.id == channel_id)
+                return channel;
         }
-        channel = channel->next;
     }
 
     return NULL;
@@ -779,6 +789,8 @@ channel_forward_accept(LIBSSH2_LISTENER *listener)
         return channel;
     }
 
+    libssh2_error(listener->session, LIBSSH2_ERROR_CHANNEL_UNKNOWN,
+                  "Channel not found", 0);
     return NULL;
 }
 
@@ -1758,28 +1770,18 @@ static ssize_t channel_read(LIBSSH2_CHANNEL *channel, int stream_id,
                        "stream #%d",
                        (int) buflen, channel->local.id, channel->remote.id,
                        stream_id);
-
-        rc = 1; /* set to >0 to let the while loop start */
-
-        /* process all pending incoming packets */
-        while (rc > 0)
-            rc = _libssh2_transport_read(session);
-
-        if ((rc < 0) && (rc != PACKET_EAGAIN))
-            return -1;
-
         channel->read_state = libssh2_NB_state_created;
     }
-    else {
-        /* We're not in the idle state, but in order to "even out" the network
-           readings we do a single shot read here as well. Tests prove that
-           this way produces faster transfers. */
+    rc = 1; /* set to >0 to let the while loop start */
+
+    /* Process all pending incoming packets in all states in order to "even
+       out" the network readings. Tests prove that this way produces faster
+       transfers. */
+    while (rc > 0)
         rc = _libssh2_transport_read(session);
 
-        /* ignore PACKET_EAGAIN but return failure for the rest */
-        if ((rc < 0) && (rc != PACKET_EAGAIN))
-            return -1;
-    }
+    if ((rc < 0) && (rc != PACKET_EAGAIN))
+        return -1;
 
     /*
      * =============================== NOTE ===============================
@@ -1794,8 +1796,15 @@ static ssize_t channel_read(LIBSSH2_CHANNEL *channel, int stream_id,
 
     channel->read_packet = session->packets.head;
     while (channel->read_packet &&
-           !channel->remote.close &&
            (bytes_read < (int) buflen)) {
+        /* previously this loop condition also checked for
+           !channel->remote.close but we cannot let it do this:
+
+           We may have a series of packets to read that are still pending even
+           if a close has been received. Acknowledging the close too early
+           makes us flush buffers prematurely and loose data.
+        */
+
         LIBSSH2_PACKET *readpkt = channel->read_packet;
 
         /* In case packet gets destroyed during this iteration */
@@ -1989,7 +1998,9 @@ _libssh2_channel_packet_data_len(LIBSSH2_CHANNEL * channel, int stream_id)
 /*
  * _libssh2_channel_write
  *
- * Send data to a channel
+ * Send data to a channel. Note that if this returns EAGAIN or simply didn't
+ * send the entire packet, the caller must call this function again with the
+ * SAME input arguments.
  */
 ssize_t
 _libssh2_channel_write(LIBSSH2_CHANNEL *channel, int stream_id,
@@ -1997,6 +2008,7 @@ _libssh2_channel_write(LIBSSH2_CHANNEL *channel, int stream_id,
 {
     LIBSSH2_SESSION *session = channel->session;
     libssh2pack_t rc;
+    ssize_t wrote = 0; /* counter for this specific this call */
 
     if (channel->write_state == libssh2_NB_state_idle) {
         channel->write_bufwrote = 0;
@@ -2052,29 +2064,19 @@ _libssh2_channel_write(LIBSSH2_CHANNEL *channel, int stream_id,
                 channel->write_s += 4;
             }
 
-            /* twiddle our thumbs until there's window space available */
-            while (channel->local.window_size <= 0) {
-                /* Don't worry -- This is never hit unless it's a
-                   blocking channel anyway */
+            /* drain the incoming flow first */
+            do
                 rc = _libssh2_transport_read(session);
+            while (rc > 0);
 
-                if (rc < 0) {
-                    /* Error or EAGAIN occurred, disconnect? */
-                    if (rc != PACKET_EAGAIN) {
-                        LIBSSH2_FREE(session, channel->write_packet);
-                        channel->write_state = libssh2_NB_state_idle;
-                    }
-                    return rc;
-                }
-
-                if (rc == 0) {
-                    /*
-                     * if rc == 0, then fake EAGAIN to prevent busyloops until
-                     * data arriaves on the network which seemed like a very
-                     * bad idea
-                     */
+            if(channel->local.window_size <= 0) {
+                /* there's no more room for data so we stop sending now */
+                if(!wrote) {
+                    /* if nothing has been written at this point we're at an
+                       EAGAIN point */
                     return PACKET_EAGAIN;
                 }
+                break;
             }
 
             /* Don't exceed the remote end's limits */
@@ -2132,15 +2134,9 @@ _libssh2_channel_write(LIBSSH2_CHANNEL *channel, int stream_id,
             buflen -= channel->write_bufwrite;
             buf += channel->write_bufwrite;
             channel->write_bufwrote += channel->write_bufwrite;
+            wrote += channel->write_bufwrite;
 
             channel->write_state = libssh2_NB_state_allocated;
-
-            /*
-             * Not sure this is still wanted
-             if (!channel->session->socket_block) {
-             break;
-             }
-             */
         }
     }
 
@@ -2149,7 +2145,7 @@ _libssh2_channel_write(LIBSSH2_CHANNEL *channel, int stream_id,
 
     channel->write_state = libssh2_NB_state_idle;
 
-    return channel->write_bufwrote;
+    return wrote;
 }
 
 /*
@@ -2439,6 +2435,8 @@ int _libssh2_channel_free(LIBSSH2_CHANNEL *channel)
     unsigned char *data;
     unsigned long data_len;
     int rc;
+
+    assert(session);
 
     if (channel->free_state == libssh2_NB_state_idle) {
         _libssh2_debug(session, LIBSSH2_DBG_CONN,

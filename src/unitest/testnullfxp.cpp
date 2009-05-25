@@ -118,9 +118,13 @@ void TestNullfxp::testCXXBaseSyntax()
     free(ia);
 }
 
+#ifndef _MSC_VER
 #include <tr1/array>
+#endif
+
 void TestNullfxp::testCXX0XSyntax()
 {
+#ifndef _MSC_VER
     std::tr1::array<int, 0> tr1arr;
     QVERIFY(tr1arr.size() == 0);
     tr1arr[0] = 5;
@@ -130,6 +134,5 @@ void TestNullfxp::testCXX0XSyntax()
     QVERIFY(tr1arr.size() == 0);
     qDebug()<<"a[1]="<<tr1arr[1];
     //这个数组模板个数很奇怪啊。
-    
-    
+#endif    
 }

@@ -984,6 +984,10 @@ session_free(LIBSSH2_SESSION *session)
         /* if the socket was previously blocking, put it back so */
         session_nonblock(session->socket_fd, 0);
 
+    if (session->server_hostkey) {
+        LIBSSH2_FREE(session, session->server_hostkey);
+    }
+
     LIBSSH2_FREE(session, session);
 
     return 0;
@@ -1224,9 +1228,10 @@ libssh2_session_last_error(LIBSSH2_SESSION * session, char **errmsg,
     return session->err_code;
 }
 
-/* libssh2_session_last_error
-* Returns error code
-*/
+/* libssh2_session_last_errno
+ *
+ * Returns error code
+ */
 LIBSSH2_API int
 libssh2_session_last_errno(LIBSSH2_SESSION * session)
 {
@@ -1234,8 +1239,11 @@ libssh2_session_last_errno(LIBSSH2_SESSION * session)
 }
 
 /* libssh2_session_flag
+ *
  * Set/Get session flags
- * Passing flag==0 will avoid changing session->flags while still returning its current value
+ *
+ * Passing flag==0 will avoid changing session->flags while still returning
+ * its current value
  */
 LIBSSH2_API int
 libssh2_session_flag(LIBSSH2_SESSION * session, int flag, int value)
@@ -1654,7 +1662,7 @@ libssh2_poll(LIBSSH2_POLLFD * fds, unsigned int nfds, long timeout)
 }
 
 /*
- * libssh2_session_block_direction
+ * libssh2_session_block_directions
  *
  * Get blocked direction when a function returns LIBSSH2_ERROR_EAGAIN
  * Returns LIBSSH2_SOCKET_BLOCK_INBOUND if recv() blocked

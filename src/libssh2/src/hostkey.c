@@ -1,4 +1,5 @@
 /* Copyright (c) 2004-2006, Sara Golemon <sarag@libssh2.org>
+ * Copyright (c) 2009 by Daniel Stenberg
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms,
@@ -35,7 +36,9 @@
  * OF SUCH DAMAGE.
  */
 
+#include "libssh2.h"
 #include "libssh2_priv.h"
+#include "misc.h"
 
 /* Needed for struct iovec on some platforms */
 #ifdef HAVE_SYS_UIO_H
@@ -453,3 +456,23 @@ libssh2_hostkey_hash(LIBSSH2_SESSION * session, int hash_type)
         return NULL;
     }
 }
+
+/*
+ * libssh2_session_hostkey()
+ *
+ * Returns the server key and length.
+ *
+ */
+LIBSSH2_API const char *
+libssh2_session_hostkey(LIBSSH2_SESSION *session, size_t *len)
+{
+    if(session->server_hostkey_len) {
+        if(len)
+            *len = session->server_hostkey_len;
+        return (char *) session->server_hostkey;
+    }
+    if(len)
+        *len = 0;
+    return NULL;
+}
+

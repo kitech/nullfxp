@@ -521,20 +521,6 @@ LIBSSH2_CHANNEL_CLOSE_FUNC(libssh2_sftp_dtor)
     (void) session_abstract;
     (void) channel;
 
-#if 0
-    /* EEEK! While it might sound like a neat idea to make this code loop over
-       all the outstanding handles and close them, that is going to cause
-       EAGAIN to get returned and this callback system is not designed to
-       handle this very nicely so thus we now DEMAND that the app closes its
-       handles instead!
-    */
-
-    /* Loop through handles closing them */
-    while (sftp->handles) {
-        sftp_close_handle(sftp->handles);
-    }
-#endif
-
     /* Free the partial packet storage for sftp_packet_read */
     if (sftp->partial_packet) {
         LIBSSH2_FREE(session, sftp->partial_packet);
@@ -558,17 +544,30 @@ static LIBSSH2_SFTP *sftp_init(LIBSSH2_SESSION *session)
     unsigned char *data, *s;
     unsigned long data_len;
     int rc;
+    LIBSSH2_SFTP *sftp_handle;
 
     if (session->sftpInit_state == libssh2_NB_state_idle) {
         _libssh2_debug(session, LIBSSH2_DBG_SFTP,
                        "Initializing SFTP subsystem");
-        session->sftpInit_sftp = NULL;
+
+        /*
+         * The 'sftpInit_sftp' and 'sftpInit_channel' struct fields within the
+         * session struct are only to be used during the setup phase. As soon
+         * as the SFTP session is created they are cleared and can thus be
+         * re-used again to allow any amount of SFTP handles per sessions.
+         *
+         * Note that you MUST NOT try to call libssh2_sftp_init() to get
+         * another handle until the previous one has finished and either
+         * succesffully made a handle or failed and returned error (not
+         * including *EAGAIN).
+         */
+
         assert(session->sftpInit_sftp == NULL);
-
         session->sftpInit_sftp = NULL;
-
         session->sftpInit_state = libssh2_NB_state_created;
     }
+
+    sftp_handle = session->sftpInit_sftp;
 
     if (session->sftpInit_state == libssh2_NB_state_created) {
         session->sftpInit_channel =
@@ -618,15 +617,17 @@ static LIBSSH2_SFTP *sftp_init(LIBSSH2_SESSION *session)
             return NULL;
         }
 
-        session->sftpInit_sftp = LIBSSH2_ALLOC(session, sizeof(LIBSSH2_SFTP));
-        if (!session->sftpInit_sftp) {
+        sftp_handle =
+            session->sftpInit_sftp =
+            LIBSSH2_ALLOC(session, sizeof(LIBSSH2_SFTP));
+        if (!sftp_handle) {
             libssh2_error(session, LIBSSH2_ERROR_ALLOC,
                           "Unable to allocate a new SFTP structure", 0);
             goto sftp_init_error;
         }
-        memset(session->sftpInit_sftp, 0, sizeof(LIBSSH2_SFTP));
-        session->sftpInit_sftp->channel = session->sftpInit_channel;
-        session->sftpInit_sftp->request_id = 0;
+        memset(sftp_handle, 0, sizeof(LIBSSH2_SFTP));
+        sftp_handle->channel = session->sftpInit_channel;
+        sftp_handle->request_id = 0;
 
         _libssh2_htonu32(session->sftpInit_buffer, 5);
         session->sftpInit_buffer[4] = SSH_FXP_INIT;
@@ -655,7 +656,7 @@ static LIBSSH2_SFTP *sftp_init(LIBSSH2_SESSION *session)
         session->sftpInit_state = libssh2_NB_state_sent3;
     }
 
-    rc = sftp_packet_require(session->sftpInit_sftp, SSH_FXP_VERSION,
+    rc = sftp_packet_require(sftp_handle, SSH_FXP_VERSION,
                              0, &data, &data_len);
     if (rc == PACKET_EAGAIN) {
         libssh2_error(session, LIBSSH2_ERROR_EAGAIN,
@@ -674,17 +675,17 @@ static LIBSSH2_SFTP *sftp_init(LIBSSH2_SESSION *session)
     }
 
     s = data + 1;
-    session->sftpInit_sftp->version = _libssh2_ntohu32(s);
+    sftp_handle->version = _libssh2_ntohu32(s);
     s += 4;
-    if (session->sftpInit_sftp->version > LIBSSH2_SFTP_VERSION) {
+    if (sftp_handle->version > LIBSSH2_SFTP_VERSION) {
         _libssh2_debug(session, LIBSSH2_DBG_SFTP,
                        "Truncating remote SFTP version from %lu",
-                       session->sftpInit_sftp->version);
-        session->sftpInit_sftp->version = LIBSSH2_SFTP_VERSION;
+                       sftp_handle->version);
+        sftp_handle->version = LIBSSH2_SFTP_VERSION;
     }
     _libssh2_debug(session, LIBSSH2_DBG_SFTP,
                    "Enabling SFTP version %lu compatability",
-                   session->sftpInit_sftp->version);
+                   sftp_handle->version);
     while (s < (data + data_len)) {
         unsigned char *extension_name, *extension_data;
         unsigned long extname_len, extdata_len;
@@ -705,11 +706,16 @@ static LIBSSH2_SFTP *sftp_init(LIBSSH2_SESSION *session)
 
     /* Make sure that when the channel gets closed, the SFTP service is shut
        down too */
-    session->sftpInit_sftp->channel->abstract = session->sftpInit_sftp;
-    session->sftpInit_sftp->channel->close_cb = libssh2_sftp_dtor;
+    sftp_handle->channel->abstract = sftp_handle;
+    sftp_handle->channel->close_cb = libssh2_sftp_dtor;
 
     session->sftpInit_state = libssh2_NB_state_idle;
-    return session->sftpInit_sftp;
+
+    /* clear the sftp and channel pointers in this session struct now */
+    session->sftpInit_sftp = NULL;
+    session->sftpInit_channel = NULL;
+
+    return sftp_handle;
 
   sftp_init_error:
     while (_libssh2_channel_free(session->sftpInit_channel) == PACKET_EAGAIN);
@@ -1105,7 +1111,7 @@ static ssize_t sftp_read(LIBSSH2_SFTP_HANDLE * handle, char *buffer,
                 /* TODO: a partial write is not a critical error when in
                    non-blocking mode! */
                 libssh2_error(session, LIBSSH2_ERROR_SOCKET_SEND,
-                              "Unable to send FXP_READ command", 0);
+                              "_libssh2_channel_write() failed", 0);
                 sftp->read_packet = NULL;
                 sftp->read_state = libssh2_NB_state_idle;
                 return -1;
@@ -1305,7 +1311,7 @@ static int sftp_readdir(LIBSSH2_SFTP_HANDLE *handle, char *buffer,
         }
         else if (packet_len != retcode) {
             libssh2_error(session, LIBSSH2_ERROR_SOCKET_SEND,
-                          "Unable to send FXP_READ command", 0);
+                          "_libssh2_channel_write() failed", 0);
             LIBSSH2_FREE(session, sftp->readdir_packet);
             sftp->readdir_packet = NULL;
             sftp->readdir_state = libssh2_NB_state_idle;
@@ -1409,10 +1415,12 @@ libssh2_sftp_readdir_ex(LIBSSH2_SFTP_HANDLE *hnd, char *buffer,
     return rc;
 }
 
-/* sftp_write
- * Write data to a file handle
+/*
+ * sftp_write
+ *
+ * Write data to an SFTP handle
  */
-static ssize_t sftp_write(LIBSSH2_SFTP_HANDLE * handle, const char *buffer,
+static ssize_t sftp_write(LIBSSH2_SFTP_HANDLE *handle, const char *buffer,
                           size_t count)
 {
     LIBSSH2_SFTP *sftp = handle->sftp;
@@ -1421,9 +1429,18 @@ static ssize_t sftp_write(LIBSSH2_SFTP_HANDLE * handle, const char *buffer,
     unsigned long data_len, retcode;
     /* 25 = packet_len(4) + packet_type(1) + request_id(4) + handle_len(4) +
        offset(8) + count(4) */
-    ssize_t packet_len = handle->handle_len + count + 25;
+    ssize_t packet_len;
     unsigned char *s, *data;
     int rc;
+
+    /* There's no point in us accepting a VERY large packet here since we
+       cannot send it anyway. We just accept 4 times the big size to fill up
+       the queue somewhat. */
+
+    if(count > (MAX_SSH_PACKET_LEN*4))
+        count = MAX_SSH_PACKET_LEN*4;
+
+    packet_len = handle->handle_len + count + 25;
 
     if (sftp->write_state == libssh2_NB_state_idle) {
         _libssh2_debug(session, LIBSSH2_DBG_SFTP, "Writing %lu bytes",
@@ -1431,10 +1448,9 @@ static ssize_t sftp_write(LIBSSH2_SFTP_HANDLE * handle, const char *buffer,
         s = sftp->write_packet = LIBSSH2_ALLOC(session, packet_len);
         if (!sftp->write_packet) {
             libssh2_error(session, LIBSSH2_ERROR_ALLOC,
-                          "Unable to allocate memory for FXP_WRITE packet", 0);
+                          "Unable to allocate memory for FXP_WRITE", 0);
             return -1;
         }
-
         _libssh2_htonu32(s, packet_len - 4);
         s += 4;
         *(s++) = SSH_FXP_WRITE;
@@ -1456,18 +1472,22 @@ static ssize_t sftp_write(LIBSSH2_SFTP_HANDLE * handle, const char *buffer,
     }
 
     if (sftp->write_state == libssh2_NB_state_created) {
-        rc = _libssh2_channel_write(channel, 0, (char *) sftp->write_packet,
+        rc = _libssh2_channel_write(channel, 0, (char *)sftp->write_packet,
                                     packet_len);
         if (rc == PACKET_EAGAIN) {
             return PACKET_EAGAIN;
         }
-        if (packet_len != rc) {
-            libssh2_error(session, LIBSSH2_ERROR_SOCKET_SEND,
-                          "Unable to send FXP_READ command", 0);
-            LIBSSH2_FREE(session, sftp->write_packet);
-            sftp->write_packet = NULL;
-            sftp->write_state = libssh2_NB_state_idle;
+        else if(rc < 0) {
+            /* an actual error */
+            return rc;
+        }
+        else if(0 == rc) {
+            /* an actual error */
+            fprintf(stderr, "WEIRDNESS\n");
             return -1;
+        }
+        else if (packet_len != rc) {
+            return rc;
         }
         LIBSSH2_FREE(session, sftp->write_packet);
         sftp->write_packet = NULL;
@@ -1894,7 +1914,8 @@ static int sftp_rename(LIBSSH2_SFTP *sftp, const char *source_filename,
 {
     LIBSSH2_CHANNEL *channel = sftp->channel;
     LIBSSH2_SESSION *session = channel->session;
-    unsigned long data_len, retcode;
+    unsigned long data_len;
+    int retcode;
     ssize_t packet_len =
         source_filename_len + dest_filename_len + 17 + (sftp->version >=
                                                         5 ? 4 : 0);
@@ -2083,7 +2104,7 @@ static int sftp_mkdir(LIBSSH2_SFTP *sftp, const char *path,
         }
         if (packet_len != rc) {
             libssh2_error(session, LIBSSH2_ERROR_SOCKET_SEND,
-                          "Unable to send FXP_READ command", 0);
+                          "_libssh2_channel_write() failed", 0);
             LIBSSH2_FREE(session, packet);
             sftp->mkdir_state = libssh2_NB_state_idle;
             return -1;
