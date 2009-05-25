@@ -145,6 +145,10 @@
 /* Enable "none" MAC -- NOT RECOMMENDED */
 /* #undef LIBSSH2_MAC_NONE */
 
+/* Define to the sub-directory in which libtool stores uninstalled libraries.
+   */
+#define LT_OBJDIR ".libs/"
+
 /* Name of package */
 #define PACKAGE "libssh2"
 
@@ -175,7 +179,7 @@
 #define STDC_HEADERS 1
 
 /* Version number of package */
-#define VERSION "1.1"
+#define VERSION "1.1.1_CVS"
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */
