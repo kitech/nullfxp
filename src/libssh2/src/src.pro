@@ -25,7 +25,8 @@ session.c \
 sftp.c \
 transport.c \
 userauth.c \
-version.c 
+version.c \
+gettimeofday.c
 
 HEADERS += libgcrypt.h \
 libssh2_config.h \

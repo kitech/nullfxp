@@ -61,6 +61,13 @@ extern "C" {
 # endif /* LIBSSH2_WIN32 */
 #endif /* LIBSSH2_API */
 
+#ifdef WIN32
+#ifdef LIBSSH2_API
+#undef LIBSSH2_API
+#define LIBSSH2_API 
+#endif
+#endif
+
 #if defined(LIBSSH2_DARWIN) || (defined(LIBSSH2_WIN32) && \
                                 !defined(_MSC_VER) && !defined(__MINGW32__))
 # include <sys/uio.h>

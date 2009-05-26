@@ -196,6 +196,7 @@ src/libssh2/src/channel.h -text
 src/libssh2/src/comp.c -text
 src/libssh2/src/comp.h -text
 src/libssh2/src/crypt.c -text
+src/libssh2/src/gettimeofday.c -text
 src/libssh2/src/hostkey.c -text
 src/libssh2/src/kex.c -text
 src/libssh2/src/knownhost.c -text
@@ -221,6 +222,7 @@ src/libssh2/src/src.pro -text
 src/libssh2/src/stamp-h1 -text
 src/libssh2/src/transport.c -text
 src/libssh2/src/transport.h -text
+src/libssh2/src/un_libssh2_config.h -text
 src/libssh2/src/userauth.c -text
 src/libssh2/src/version.c -text
 src/libssh2/tests/Makefile.am -text
