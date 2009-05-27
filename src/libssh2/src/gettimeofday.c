@@ -1,4 +1,5 @@
-#ifndef HAVE_GETTIMEOFDAY
+/* gettimeofday function for msvcxxxx */
+#ifdef _MSC_VER
 
 /* -------------------------------------------------------------------
  * gettimeofday.c
