@@ -30,6 +30,8 @@ src/completelineeditdelegate.h -text
 src/config_linux.h -text
 src/config_win32_g++.h -text
 src/config_win32_msvc.h -text
+src/connection.cpp -text
+src/connection.h -text
 src/encryptiondetaildialog.cpp -text
 src/encryptiondetaildialog.h -text
 src/encryptiondetailfocuslabel.cpp -text

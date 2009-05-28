@@ -17,27 +17,6 @@
 #include "libssh2.h"
 #include "libssh2_sftp.h"
 
-class ConnectionInfo : public QObject
-{
-    Q_OBJECT;
-public:
-ConnectionInfo(QObject *parent = 0) : QObject(parent) {}
-    ~ConnectionInfo(){}
-public:
-    QString userName;
-    QString password;   //存储的密码为url编码过的
-    QString decodedPassword;
-    QString hostName ;
-    short   port;
-    QString pubkeyPath;
-    QString homePath;
-    
-    LIBSSH2_SESSION * sshSess;
-    LIBSSH2_SFTP * sshSftp ;
-    int sshSock;
-};
-///
-///
 ///
 class RemoteHostConnectThread : public QThread
 {
@@ -61,7 +40,7 @@ public:
     QString get_password() ;
     short   get_port();
     QString get_pubkey();
-    void * get_ssh2_sess();
+    void *get_ssh2_sess();
     int get_ssh2_sock ();
     int get_connect_status();
     QString get_status_desc(int status);
@@ -81,12 +60,13 @@ private:
     
     std::string user_home_path;
     
-    void * ssh2_sess;
+    void *ssh2_sess;
     int ssh2_sock;
-    void * ssh2_sftp ;
+    void *ssh2_sftp ;
         
-    private slots:
+private slots:
     void slot_finished();
+
 private:
     QString get_server_env_vars(char *cmd);
     void piClose(int sock);

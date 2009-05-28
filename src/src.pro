@@ -102,7 +102,8 @@ SOURCES += main.cpp \
  sshfileinfo.cpp \
  synctransferthread.cpp \
  taskpackage.cpp \
- sftpfile.cpp
+ sftpfile.cpp \
+ connection.cpp
 
 HEADERS += nullfxp.h \
  localview.h \
@@ -137,7 +138,8 @@ HEADERS += nullfxp.h \
  synchronizewindow.h \
  syncdiffermodel.h \
  synctransferthread.h \
- sftpfile.h
+ sftpfile.h \
+ connection.h
 
 DISTFILES += ../CMakeLists.txt \
 CMakeLists.txt \

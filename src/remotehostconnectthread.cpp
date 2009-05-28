@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-06-14 22:29:50 +0800
-// Last-Updated: 
+// Last-Updated: 2009-05-28 23:07:57 +0000
 // Version: $Id$
 // 
 
@@ -94,9 +94,9 @@ RemoteHostConnectThread::~RemoteHostConnectThread()
 void RemoteHostConnectThread::piClose(int sock)
 {
 #ifdef WIN32
-        ::closesocket(sock);
+    ::closesocket(sock);
 #else
-        ::close(sock);
+    ::close(sock);
 #endif  
 }
 
@@ -111,7 +111,6 @@ void RemoteHostConnectThread::run()
 #ifdef WIN32
 #define WINSOCK_VERSION 2.0
     WSADATA wsadata;
-
     WSAStartup(WINSOCK_VERSION, &wsadata);
 #endif
 
@@ -235,11 +234,7 @@ void RemoteHostConnectThread::run()
 
     if (this->user_canceled == true) {
         this->connect_status = 2;
-#ifdef WIN32
-        ::closesocket(this->ssh2_sock);
-#else
-        ::close(this->ssh2_sock);
-#endif
+        this->piClose(this->ssh2_sock);
         return;
     }   
 
@@ -249,11 +244,7 @@ void RemoteHostConnectThread::run()
     ret = libssh2_session_startup((LIBSSH2_SESSION*)ssh2_sess, this->ssh2_sock);
     if (ret != 0) {
         this->connect_status = CONN_SESS_ERROR;
-#ifdef WIN32
-        ::closesocket(this->ssh2_sock);
-#else
-        ::close(this->ssh2_sock);
-#endif
+        this->piClose(this->ssh2_sock);
         {
             char * emsg = 0;
             int  emsg_len = 0;
@@ -304,20 +295,14 @@ void RemoteHostConnectThread::run()
                 this->connect_status = 2 ;
                 libssh2_session_disconnect((LIBSSH2_SESSION*)ssh2_sess, "");
                 libssh2_session_free((LIBSSH2_SESSION*)ssh2_sess);
-#ifdef WIN32
-                ::closesocket(this->ssh2_sock);
-#else
-                ::close(this->ssh2_sock);
-#endif
+                this->piClose(this->ssh2_sock);
                 return;
             }
             ret = libssh2_userauth_publickey_fromfile((LIBSSH2_SESSION*)ssh2_sess, 
                                                       this->user_name.toAscii().data(),
                                                       this->pubkey_path.toAscii().data(),
                                                       this->pubkey_path.left(this->pubkey_path.length()-4).toAscii().data(),
-                                                      QUrl::fromPercentEncoding(this->password.toAscii()).toAscii().data());                                                     
-
-            //qDebug()<<this->user_name<<this->pubkey_path<<this->pubkey_path.left(this->pubkey_path.length()-4)
+                                                      QUrl::fromPercentEncoding(this->password.toAscii()).toAscii().data());            //qDebug()<<this->user_name<<this->pubkey_path<<this->pubkey_path.left(this->pubkey_path.length()-4)
             //      <<this->decoded_password;
         } else {
             ret = -1;
@@ -343,11 +328,7 @@ void RemoteHostConnectThread::run()
             this->connect_status = 2 ;
             libssh2_session_disconnect((LIBSSH2_SESSION*)ssh2_sess, "");
             libssh2_session_free((LIBSSH2_SESSION*)ssh2_sess);
-#ifdef WIN32
-            ::closesocket(this->ssh2_sock);
-#else
-            ::close(this->ssh2_sock);
-#endif
+            this->piClose(this->ssh2_sock);
             return;
         }   
 
@@ -371,11 +352,7 @@ void RemoteHostConnectThread::run()
             this->connect_status = 2 ;
             libssh2_session_disconnect((LIBSSH2_SESSION*)ssh2_sess, "");
             libssh2_session_free((LIBSSH2_SESSION*)ssh2_sess);
-#ifdef WIN32
-            ::closesocket(this->ssh2_sock);
-#else
-            ::close(this->ssh2_sock);
-#endif
+            this->piClose(this->ssh2_sock);
             return;
         }   
     }
@@ -390,11 +367,7 @@ void RemoteHostConnectThread::run()
         this->connect_status = CONN_CANCEL ;
         libssh2_session_disconnect((LIBSSH2_SESSION*)ssh2_sess, "");
         libssh2_session_free((LIBSSH2_SESSION*)ssh2_sess);
-#ifdef WIN32
-        ::closesocket(this->ssh2_sock);
-#else
-        ::close(this->ssh2_sock);
-#endif
+        this->piClose(this->ssh2_sock);
         return;
     }   
     
@@ -442,11 +415,7 @@ void RemoteHostConnectThread::run()
         this->connect_status = CONN_CANCEL ;
         libssh2_session_disconnect((LIBSSH2_SESSION*)ssh2_sess,"");
         libssh2_session_free((LIBSSH2_SESSION*)ssh2_sess);
-#ifdef WIN32
-        ::closesocket(this->ssh2_sock);
-#else
-        ::close(this->ssh2_sock);
-#endif
+        this->piClose(this->ssh2_sock);
         return;
     }   
 
