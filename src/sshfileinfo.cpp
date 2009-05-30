@@ -292,7 +292,7 @@ SSHFileInfo SSHFileInfo::fromQFileInfo(QFileInfo &fi)
     if (perm & QFile::ReadUser) {
         attr.permissions |= S_IRUSR;
     }
-    if (perm & QFile::QFile::WriteUser) {
+    if (perm & QFile::WriteUser) {
         attr.permissions |= S_IWUSR;
     }
     if (perm & QFile::ExeUser) {
