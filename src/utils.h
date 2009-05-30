@@ -125,8 +125,6 @@ extern "C"{
 
     int is_reg(char *path);
 
-    int is_dir(char *path) ;
-
     void fxp_local_do_ls(QString args , QVector<QMap<char, QString> > & fileinfos);
 
     long fxp_getpid();

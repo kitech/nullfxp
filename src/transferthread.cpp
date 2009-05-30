@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-06-14 09:06:28 +0800
-// Last-Updated: 2009-05-18 22:54:41 +0800
+// Last-Updated: 2009-05-30 14:09:12 +0000
 // Version: $Id$
 // 
 
@@ -77,7 +77,7 @@ int TransferThread::remote_is_reg(LIBSSH2_SFTP *ssh2_sftp, QString path)
     long mode ;
     int ret = 0 ;
     
-    memset(&ssh2_sftp_attrib,0,sizeof(ssh2_sftp_attrib));
+    memset(&ssh2_sftp_attrib, 0, sizeof(ssh2_sftp_attrib));
     flags = LIBSSH2_FXF_READ ;
     mode = 022;
     
@@ -301,7 +301,7 @@ void TransferThread::run()
             }
             //将文件下载到目录
             if (remote_is_reg(this->src_ssh2_sftp, this->current_src_file_name) 
-                && is_dir(GlobalOption::instance()->locale_codec->fromUnicode(this->current_dest_file_name ).data())) {
+                && QFileInfo(this->current_dest_file_name).isDir()) {
                 QString local_full_path = this->current_dest_file_name + "/"
                     + this->current_src_file_name.split("/").at(this->current_src_file_name.split("/").count()-1);
 
@@ -312,7 +312,7 @@ void TransferThread::run()
                 transfer_ret = this->do_download(this->current_src_file_name, local_full_path, 0);
             }
             //将目录下载到目录
-            else if (is_dir(GlobalOption::instance()->locale_codec->fromUnicode(this->current_dest_file_name ).data())
+            else if (QFileInfo(this->current_dest_file_name).isDir()
                      && remote_is_dir(this->src_ssh2_sftp, this->current_src_file_name)) {
                 qDebug()<<"downloading dir to dir ...";
                 //this->sleep(debug_sleep_time);
@@ -505,7 +505,7 @@ int TransferThread::do_download(QString remote_path, QString local_path, int pfl
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
     char buff[8192] = {0};
     
-    sftp_handle = libssh2_sftp_open(this->src_ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(remote_path),LIBSSH2_FXF_READ,0);
+    sftp_handle = libssh2_sftp_open(this->src_ssh2_sftp, gOpt->remote_codec->fromUnicode(remote_path), LIBSSH2_FXF_READ, 0);
     if (sftp_handle == NULL) {
         //TODO 错误消息通知用户。
         qDebug()<<"open sftp file error :"<<libssh2_sftp_last_error(this->src_ssh2_sftp);
@@ -550,16 +550,15 @@ int TransferThread::do_download(QString remote_path, QString local_path, int pfl
         }
     }
 
-    
     // 本地编码 --> Qt 内部编码
-    QFile q_file (local_path);
-    if (!q_file.open(QIODevice::ReadWrite|QIODevice::Truncate)) {
+    QFile q_file(local_path);
+    if (!q_file.open(QIODevice::ReadWrite | QIODevice::Truncate)) {
         //TODO 错误消息通知用户。
         qDebug()<<"open local file error:"<<q_file.errorString();        
     } else {
         //read remote file  and then write to local file
-        while ((rlen = libssh2_sftp_read(sftp_handle,buff,sizeof(buff) ) ) > 0) {
-            wlen = q_file.write( buff, rlen);
+        while ((rlen = libssh2_sftp_read(sftp_handle, buff, sizeof(buff))) > 0) {
+            wlen = q_file.write(buff, rlen);
             tran_len += wlen;
             //qDebug() <<" read len :"<< rlen <<" , write len: "<< wlen                     << " tran len: "<< tran_len ;
             //my progress signal
@@ -573,12 +572,13 @@ int TransferThread::do_download(QString remote_path, QString local_path, int pfl
                 break;
             }
         }
+        q_file.setPermissions(SSHFileInfo(ssh2_sftp_attrib).qMode());
         q_file.close();
     }
     
     libssh2_sftp_close(sftp_handle);
 
-    return ( 0 );
+    return 0;
 }
 
 
@@ -632,10 +632,14 @@ int TransferThread::do_upload(QString local_path, QString remote_path, int pflag
     } else {
         //文件不存在
     }
+
+    QFileInfo fi = QFileInfo(local_path);
+    SSHFileInfo sfi = SSHFileInfo::fromQFileInfo(fi);
     //TODO 检查文件可写属性
     sftp_handle = libssh2_sftp_open(this->dest_ssh2_sftp,
-                                     GlobalOption::instance()->remote_codec->fromUnicode( remote_path ) ,
-                                     LIBSSH2_FXF_READ|LIBSSH2_FXF_WRITE|LIBSSH2_FXF_CREAT|LIBSSH2_FXF_TRUNC,0666 ) ;
+                                    gOpt->remote_codec->fromUnicode(remote_path),
+                                    LIBSSH2_FXF_READ|LIBSSH2_FXF_WRITE|LIBSSH2_FXF_CREAT|LIBSSH2_FXF_TRUNC, 
+                                    sfi.mode());
     if (sftp_handle == NULL) {
         //TODO 错误消息通知用户。
         qDebug()<<"open sftp file error :"<< libssh2_sftp_last_error(this->dest_ssh2_sftp);
@@ -698,7 +702,7 @@ int TransferThread::do_upload(QString local_path, QString remote_path, int pflag
     qDebug()<<"out cycle, close sftp...";
     libssh2_sftp_close(sftp_handle);
     
-    return ( 0 );
+    return 0;
 }
 int TransferThread::do_nrsftp_exchange(QString src_path, QString dest_path)
 {
@@ -716,7 +720,7 @@ int TransferThread::do_nrsftp_exchange(QString src_path, QString dest_path)
     //检测传输文件的属性
 
     src_sftp_handle = libssh2_sftp_open(this->src_ssh2_sftp,
-                                        GlobalOption::instance()->remote_codec->fromUnicode(src_path).data(),
+                                        gOpt->remote_codec->fromUnicode(src_path).data(),
                                         LIBSSH2_FXF_READ, 0666);
     if (src_sftp_handle == 0) {
         qDebug()<<"sftp open error: "<<libssh2_session_last_error((LIBSSH2_SESSION*)(src_ssh2_sess), 0, 0, 0); 
@@ -732,7 +736,7 @@ int TransferThread::do_nrsftp_exchange(QString src_path, QString dest_path)
     
     assert(this->dest_ssh2_sftp != 0);
     dest_sftp_handle = libssh2_sftp_open(this->dest_ssh2_sftp,
-                                         GlobalOption::instance()->remote_codec->fromUnicode(dest_path).data(),
+                                         gOpt->remote_codec->fromUnicode(dest_path).data(),
                                          LIBSSH2_FXF_WRITE | LIBSSH2_FXF_CREAT | LIBSSH2_FXF_TRUNC, 0666 );
     if (src_sftp_handle == 0 ) {
         qDebug()<<"sftp open error: "<<libssh2_session_last_error((LIBSSH2_SESSION*)(dest_ssh2_sess), 0, 0, 0); 
@@ -740,7 +744,7 @@ int TransferThread::do_nrsftp_exchange(QString src_path, QString dest_path)
     }
     
     //TODO 如果是同一台SSH服务器，可以用libssh2_sftp_copy,不过现在还没这个函数
-    for ( ; ; ) {
+    for (;;) {
         rlen = libssh2_sftp_read(src_sftp_handle, buff, sizeof(buff));
         if (rlen <= 0 ) {
             qDebug()<<" may be read end "<<rlen
@@ -762,7 +766,7 @@ int TransferThread::do_nrsftp_exchange(QString src_path, QString dest_path)
         }
     }
 
-    return (0);
+    return 0;
 }
 
 void TransferThread::set_user_cancel(bool cancel)

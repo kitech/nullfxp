@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-06-01 09:58:24 +0800
-// Last-Updated: 2009-05-09 23:14:28 +0800
+// Last-Updated: 2009-05-30 14:05:47 +0000
 // Version: $Id$
 // 
 
@@ -25,7 +25,7 @@
 void strmode ( int mode, char *p )
 {
     /* print type */
-    switch ( mode & S_IFMT )
+    switch (mode & S_IFMT)
     {
     case S_IFDIR:			/* directory */
         *p++ = 'd';
@@ -65,7 +65,7 @@ void strmode ( int mode, char *p )
         *p++ = 'w';
     else
         *p++ = '-';
-    switch ( mode & ( S_IXUSR | S_ISUID ) )
+    switch (mode & (S_IXUSR | S_ISUID))
     {
     case 0:
         *p++ = '-';
@@ -89,7 +89,7 @@ void strmode ( int mode, char *p )
         *p++ = 'w';
     else
         *p++ = '-';
-    switch ( mode & ( S_IXGRP | S_ISGID ) )
+    switch (mode & (S_IXGRP | S_ISGID))
     {
     case 0:
         *p++ = '-';
@@ -113,7 +113,7 @@ void strmode ( int mode, char *p )
         *p++ = 'w';
     else
         *p++ = '-';
-    switch ( mode & ( S_IXOTH | S_ISVTX ) )
+    switch (mode & (S_IXOTH | S_ISVTX))
     {
     case 0:
         *p++ = '-';
@@ -132,18 +132,6 @@ void strmode ( int mode, char *p )
     *p = '\0';
 }
 //
-int  is_dir(char *path)
-{
-    struct stat sb;
-
-    /* XXX: report errors? */
-    if (stat(path, &sb) == -1) {
-        fprintf(stderr, " is dir : %d %s %s \n" , errno,strerror(errno),path );
-        return(0);
-    }
-
-    return(S_ISDIR(sb.st_mode));
-}
 QString digit_mode(int mode)
 {
     int keys[] = {

@@ -725,7 +725,8 @@ void RemoteView::slot_new_download_requested(TaskPackage remote_pkg)
     
     qDebug()<<local_file_path;
     if (local_file_path.length() == 0 
-        || !is_dir(GlobalOption::instance()->locale_codec->fromUnicode(local_file_path).data())) {
+        || !QFileInfo(local_file_path).isDir()) {
+        //        || !is_dir(GlobalOption::instance()->locale_codec->fromUnicode(local_file_path).data())) {
         qDebug()<<" selected a local file directory  please";
         QMessageBox::critical(this, tr("waring..."), tr("you should selecte a local file directory."));
     } else {

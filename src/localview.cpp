@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-05-31 15:26:15 +0800
-// Last-Updated: 2009-05-10 21:41:49 +0800
+// Last-Updated: 2009-05-30 12:50:01 +0000
 // Version: $Id$
 // 
 
@@ -30,17 +30,17 @@ LocalView::LocalView(QWidget *parent )
     ////
     model = new QDirModel();
     //     model->setFilter( QDir::AllEntries|QDir::Hidden|QDir::NoDotAndDotDot );
-    this->dir_file_model = new LocalDirSortFilterModel(  );
+    this->dir_file_model = new LocalDirSortFilterModel();
     this->dir_file_model->setSourceModel(model);
     
-    this->localView.treeView->setModel ( this->dir_file_model );
-    this->localView.treeView->setRootIndex (this->dir_file_model->index ( "/" ) );
-    //     this->localView.treeView->setColumnHidden( 1, true);
-    //     this->localView.treeView->setColumnHidden( 2, true);
+    this->localView.treeView->setModel(this->dir_file_model);
+    this->localView.treeView->setRootIndex(this->dir_file_model->index("/"));
+    this->localView.treeView->setColumnHidden(1, true);
+    this->localView.treeView->setColumnHidden(2, true);
     //     this->localView.treeView->setColumnHidden( 3, true);
-    //this->localView.treeView->setRootIndex ( model->index ( QDir::homePath() ) );
-    this->localView.treeView->setColumnWidth(0,this->localView.treeView->columnWidth(0)*2);    
-    this->expand_to_home_directory(this->localView.treeView->rootIndex (), 1);
+    //this->localView.treeView->setRootIndex(model->index(QDir::homePath()));
+    this->localView.treeView->setColumnWidth(0,this->localView.treeView->columnWidth(0) * 2);    
+    this->expand_to_home_directory(this->localView.treeView->rootIndex(), 1);
   
     this->init_local_dir_tree_context_menu();
   
