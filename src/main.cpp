@@ -1,64 +1,47 @@
 // main.cpp --- 
 // 
-// Filename: main.cpp
-// Description: 
-// Author: 刘光照<liuguangzhao@users.sf.net>
-// Maintainer: 
-// Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
-// http://www.qtchina.net
-// http://nullget.sourceforge.net
-// Created: 四  7月 17 21:51:23 2008 (CST)
-// Version: 
-// Last-Updated: 
-//           By: 
-//     Update #: 0
-// URL: 
-// Keywords: 
-// Compatibility: 
-// 
+// Author: liuguangzhao
+// Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+// URL: http://www.qtchina.net http://nullget.sourceforge.net
+// Created: 2008-07-17 21:51:23 +0000
+// Last-Updated: 2009-06-18 23:12:05 +0000
+// Version: $Id$
 // 
 
-// Commentary: 
-// 
-// 
-// 
-// 
+// #include <sys/types.h>
 
-// Change log:
-// 
-// 
-// 
-#include <sys/types.h>
-
-#ifdef WIN32
-#include <winsock2.h>
-#else
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#endif
+// #ifdef WIN32
+// #include <winsock2.h>
+// #else
+// #include <sys/socket.h>
+// #include <arpa/inet.h>
+// #endif
 
 #include <QtCore>
 #include <QCoreApplication>
+
 #include "nullfxp.h"
 #include "nullfxp-version.h"
 
 int main(int argc, char *argv[])
 {
     int app_exec_ret = -1;
-      QApplication app(argc, argv);
-#if QT_VERSION >= 0x040400
-      app.setApplicationVersion(NULLFXP_RELEASE);
-      app.setOrganizationDomain(NULLFXP_HOMEPAGE);
-      app.setOrganizationName("kitsoft");
-#endif
-      NullFXP nfxp ;
-      nfxp.showNormal ();
+    QApplication app(argc, argv);
 
-      app_exec_ret = app.exec();
-      if( app_exec_ret == 0)
-          qDebug()<<"Exit normally.";
-      else
-          qDebug()<<"App exit with error code:"<<app_exec_ret;
-      return app_exec_ret;
+#if QT_VERSION >= 0x040400
+    app.setApplicationVersion(NULLFXP_RELEASE);
+    app.setOrganizationDomain(NULLFXP_HOMEPAGE);
+    app.setOrganizationName("kitsoft");
+#endif
+
+    NullFXP nfxp ;
+    nfxp.showNormal();
+    
+    app_exec_ret = app.exec();
+    if (app_exec_ret == 0)
+        qDebug()<<"Exit normally.";
+    else
+        qDebug()<<"App exit with error code:"<<app_exec_ret;
+    return app_exec_ret;
 }
 
