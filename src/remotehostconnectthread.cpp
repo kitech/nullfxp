@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-06-14 22:29:50 +0800
-// Last-Updated: 2009-05-28 23:07:57 +0000
+// Last-Updated: 2009-06-21 02:46:01 +0000
 // Version: $Id$
 // 
 
@@ -34,6 +34,7 @@
 
 #include "utils.h"
 #include "progressdialog.h"
+#include "globaloption.h"
 
 #include "remotehostconnectthread.h"
 
@@ -102,11 +103,10 @@ void RemoteHostConnectThread::piClose(int sock)
 
 void RemoteHostConnectThread::run()
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<<__FILE__;
     
-    int ret= 0;
+    int ret = 0;
     char home_path[PATH_MAX+1] = {0};
-    char host_ipaddr[60] = {0};
     
 #ifdef WIN32
 #define WINSOCK_VERSION 2.0
@@ -121,48 +121,28 @@ void RemoteHostConnectThread::run()
     serv_addr.sin_port = htons(this->port);
     
     emit connect_state_changed(tr("Resoving %1 ...").arg(this->host_name));
-    struct hostent * remote_host_ipaddrs = ::gethostbyname(this->host_name.toAscii().data());
-    char * ent_pos_c = 0 ;
-    int counter = 0 ;
-    if (remote_host_ipaddrs == 0) {
-#ifdef WIN32
-        emit connect_state_changed(tr( "Resoving host faild : (%1),%2  ").arg(errno).arg(strerror(errno)));
-#else
-        emit connect_state_changed(tr( "Resoving host faild : (%1),%2 ").arg(h_errno).arg(hstrerror(h_errno)));
-#endif
+    // resolve host ip using qt class
+    QHostInfo hi = QHostInfo::fromName(this->host_name);
+    if (hi.error() != QHostInfo::NoError) {
         this->connect_status = CONN_RESOLVE_ERROR ;
-        //assert( ret == 0 );
-        return ;
+        emit connect_state_changed(tr("Resoving host faild: (%1),%2").arg(hi.error())
+                                   .arg(hi.errorString()));
+        return;
     }
-    printf("remote_host name is : %s \n", remote_host_ipaddrs->h_name);
 
-    ent_pos_c = remote_host_ipaddrs->h_addr_list[0];
-    while (ent_pos_c != NULL) {
 #ifdef WIN32
-        struct in_addr tmp_in_addr;
-        memset(&tmp_in_addr, 0, sizeof(struct in_addr));
-        memcpy(&tmp_in_addr, ent_pos_c, sizeof(struct in_addr));
-        printf("host addr: %s -> %s \n", ent_pos_c , inet_ntoa(tmp_in_addr));
-        strcpy( host_ipaddr,inet_ntoa(tmp_in_addr));
+    serv_addr.sin_addr.s_addr = (unsigned long)inet_addr(hi.addresses().at(0).toString().toAscii().data());
 #else
-        printf("host addr: %s -> %s  \n", ent_pos_c, inet_ntop(AF_INET, ent_pos_c, host_ipaddr, sizeof(host_ipaddr)));
-#endif  
-        ent_pos_c =  remote_host_ipaddrs->h_addr_list[++counter];
-        emit connect_state_changed(tr("Remote host IP: %1").arg(host_ipaddr));
-    }
-    
-#ifdef WIN32
-    serv_addr.sin_addr.s_addr = (unsigned long)inet_addr(host_ipaddr);
-#else
-    ret = inet_pton(AF_INET, host_ipaddr, &serv_addr.sin_addr.s_addr);
-    printf(" inet_pton ret: %d \n" , ret );
+    ret = inet_pton(AF_INET, hi.addresses().at(0).toString().toAscii().data(), &serv_addr.sin_addr.s_addr);
 #endif
+
     if (this->user_canceled == true) {
         this->connect_status = CONN_CANCEL ;
         return;
     }   
 
-    emit connect_state_changed(tr("Connecting to %1 ( %2:%3 ) ").arg(this->host_name).arg(host_ipaddr).arg(this->port));
+    emit connect_state_changed(tr("Connecting to %1 ( %2:%3 )").arg(this->host_name)
+                               .arg(hi.addresses().at(0).toString()).arg(this->port));
     this->ssh2_sock = socket(AF_INET, SOCK_STREAM, 0);
     assert(this->ssh2_sock > 0);
 
@@ -174,20 +154,21 @@ void RemoteHostConnectThread::run()
     sock_flag = fcntl(this->ssh2_sock, F_GETFL);
     fcntl(this->ssh2_sock, F_SETFL, sock_flag | O_NONBLOCK);
 #endif
-    ret = ::connect( this->ssh2_sock,(struct sockaddr*)&serv_addr,sizeof(serv_addr));
-    QTextCodec *codec = QTextCodec::codecForName("UTF-8");
+    ret = ::connect(this->ssh2_sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
+    QTextCodec *codec = gOpt->locale_codec;
 
-    struct timeval timeo = {10, 0};//连接超时10秒
+    struct timeval timeo = {10, 0}; //连接超时10秒
     fd_set set, rdset, exset;
     FD_ZERO(&set);
     FD_SET(this->ssh2_sock, &set);
     rdset = set;
     exset = set;
-#ifdef WIN32
     ret = select(this->ssh2_sock + 1, &rdset, &set, &exset, &timeo);
-#else
-    ret = select(this->ssh2_sock + 1, &rdset, &set, &exset, &timeo);
-#endif
+// #ifdef WIN32
+//     ret = select(this->ssh2_sock + 1, &rdset, &set, &exset, &timeo);
+// #else
+//     ret = select(this->ssh2_sock + 1, &rdset, &set, &exset, &timeo);
+// #endif
     if (ret == -1) {
         assert(1 == 2);
     } else if (ret == 0) {
@@ -261,9 +242,9 @@ void RemoteHostConnectThread::run()
     
     ///////////
     //auth
-    char * auth_list = libssh2_userauth_list((LIBSSH2_SESSION*)ssh2_sess,
-                                             this->user_name.toAscii().data(), 
-                                             strlen(this->user_name.toAscii().data()));
+    char *auth_list = libssh2_userauth_list((LIBSSH2_SESSION*)ssh2_sess,
+                                            this->user_name.toAscii().data(), 
+                                            strlen(this->user_name.toAscii().data()));
     printf("user auth list : %s \n" , auth_list);
 
     ret = libssh2_userauth_hostbased_fromfile((LIBSSH2_SESSION*)ssh2_sess, 
@@ -276,7 +257,7 @@ void RemoteHostConnectThread::run()
     //      <<this->decoded_password<<this->host_name;;
 
     if (ret == -1) {
-        char * emsg = 0;
+        char *emsg = 0;
         int  emsg_len = 0;
         libssh2_session_last_error((LIBSSH2_SESSION*)ssh2_sess, &emsg, &emsg_len, 1);
         qDebug()<<"Host based public key auth error: "<<emsg;
@@ -426,7 +407,7 @@ void RemoteHostConnectThread::run()
     //<<"\nSHA1 Hostkey hash:"<<libssh2_hostkey_hash((LIBSSH2_SESSION*)ssh2_sess, LIBSSH2_HOSTKEY_HASH_SHA1);
 }
 
-QString RemoteHostConnectThread::get_server_env_vars(char *cmd)
+QString RemoteHostConnectThread::get_server_env_vars(const char *cmd)
 {
     LIBSSH2_CHANNEL * ssh2_channel = 0;
     int rv = -1;
@@ -458,12 +439,12 @@ void RemoteHostConnectThread::slot_finished()
 
 void RemoteHostConnectThread::do_init()
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<<__FILE__;
 }
 
 void RemoteHostConnectThread::diconnect_ssh_connection()
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<<__FILE__;
 }
 
 std::string RemoteHostConnectThread::get_user_home_path()
@@ -513,7 +494,7 @@ void RemoteHostConnectThread::set_user_canceled()
 
 QString RemoteHostConnectThread::get_status_desc(int status)
 {
-    static char * status_desc[] = {
+    static const char * status_desc[] = {
         "CONN_OK",
         "CONN_REFUSE",
         "CONN_CANCEL",
@@ -547,22 +528,9 @@ QString RemoteHostConnectThread::get_status_desc(int status)
         break;
     }
     
-    if (status > sizeof(status_desc)/sizeof(char*)) {
+    if ((unsigned int)status > sizeof(status_desc)/sizeof(char*)) {
         return "Unknown status";
     } else {
-        // return status_desc[status];
         return emsg;
     }
 }
-
-//TODO 在网络断线时这run中的代码可能导致程序崩溃
-/*
-
-remote_host name is : 60.2.236.22
-host addr: <� -> 60.2.236.22
-inet_pton ret: 1
-
-*/
-
-
-

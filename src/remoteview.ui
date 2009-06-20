@@ -1,7 +1,8 @@
-<ui version="4.0" >
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
  <class>remoteview</class>
- <widget class="QWidget" name="remoteview" >
-  <property name="geometry" >
+ <widget class="QWidget" name="remoteview">
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
@@ -9,83 +10,83 @@
     <height>476</height>
    </rect>
   </property>
-  <property name="acceptDrops" >
+  <property name="acceptDrops">
    <bool>true</bool>
   </property>
-  <property name="windowTitle" >
-   <string>Remote Host </string>
+  <property name="windowTitle">
+   <string>SFTP</string>
   </property>
-  <layout class="QVBoxLayout" >
+  <layout class="QVBoxLayout">
    <item>
-    <widget class="QSplitter" name="splitter_2" >
-     <property name="orientation" >
+    <widget class="QSplitter" name="splitter_2">
+     <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
-     <widget class="QSplitter" name="splitter" >
-      <property name="sizePolicy" >
-       <sizepolicy vsizetype="Expanding" hsizetype="Expanding" >
+     <widget class="QSplitter" name="splitter">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
-      <property name="orientation" >
+      <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="QTreeView" name="treeView" >
-       <property name="contextMenuPolicy" >
+      <widget class="QTreeView" name="treeView">
+       <property name="contextMenuPolicy">
         <enum>Qt::CustomContextMenu</enum>
        </property>
-       <property name="acceptDrops" >
+       <property name="acceptDrops">
         <bool>true</bool>
        </property>
-       <property name="autoScroll" >
+       <property name="autoScroll">
         <bool>true</bool>
        </property>
-       <property name="showDropIndicator" stdset="0" >
+       <property name="showDropIndicator" stdset="0">
         <bool>true</bool>
        </property>
-       <property name="dragEnabled" >
+       <property name="dragEnabled">
         <bool>true</bool>
        </property>
-       <property name="dragDropOverwriteMode" >
+       <property name="dragDropOverwriteMode">
         <bool>true</bool>
        </property>
-       <property name="dragDropMode" >
+       <property name="dragDropMode">
         <enum>QAbstractItemView::DragDrop</enum>
        </property>
-       <property name="alternatingRowColors" >
+       <property name="alternatingRowColors">
         <bool>false</bool>
        </property>
-       <property name="selectionMode" >
+       <property name="selectionMode">
         <enum>QAbstractItemView::ExtendedSelection</enum>
        </property>
       </widget>
-      <widget class="RemoteViewDirTableView" name="tableView" >
-       <property name="contextMenuPolicy" >
+      <widget class="RemoteViewDirTableView" name="tableView">
+       <property name="contextMenuPolicy">
         <enum>Qt::CustomContextMenu</enum>
        </property>
-       <property name="dragEnabled" >
+       <property name="dragEnabled">
         <bool>true</bool>
        </property>
-       <property name="dragDropMode" >
+       <property name="dragDropMode">
         <enum>QAbstractItemView::DragDrop</enum>
        </property>
-       <property name="selectionBehavior" >
+       <property name="selectionBehavior">
         <enum>QAbstractItemView::SelectRows</enum>
        </property>
-       <property name="sortingEnabled" >
+       <property name="sortingEnabled">
         <bool>true</bool>
        </property>
       </widget>
      </widget>
-     <widget class="QListView" name="listView" >
-      <property name="sizePolicy" >
-       <sizepolicy vsizetype="Expanding" hsizetype="Expanding" >
+     <widget class="QListView" name="listView">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
-      <property name="contextMenuPolicy" >
+      <property name="contextMenuPolicy">
        <enum>Qt::CustomContextMenu</enum>
       </property>
      </widget>
@@ -97,7 +98,7 @@
   <customwidget>
    <class>RemoteViewDirTableView</class>
    <extends>QTableView</extends>
-   <header location="global" >remoteviewdirtableview.h</header>
+   <header location="global">remoteviewdirtableview.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -4,7 +4,7 @@
  * Copyright (C) 2007-2010 liuguangzhao@users.sf.net
  * URL: http://www.qtchina.net http://nullget.sourceforge.net
  * Created: 2008-06-16 21:11:46 +0800
- * Last-Updated: 2008-07-22 21:11:51 +0800
+ * Last-Updated: 2009-06-21 02:46:03 +0000
  * Version: $Id$
  */
 
@@ -25,7 +25,7 @@ public:
     enum {CONN_OK=0,CONN_REFUSE,CONN_CANCEL,CONN_OTHER,CONN_RESOLVE_ERROR,
           CONN_SESS_ERROR,CONN_AUTH_ERROR,CONN_SFTP_ERROR,CONN_EXEC_ERROR};
     RemoteHostConnectThread(QString user_name, QString password, QString host_name, 
-                            short port, QString pubkey, QObject* parent=0);
+                            short port, QString pubkey, QObject *parent=0);
 
     ~RemoteHostConnectThread();
 
@@ -68,11 +68,11 @@ private slots:
     void slot_finished();
 
 private:
-    QString get_server_env_vars(char *cmd);
+    QString get_server_env_vars(const char *cmd);
     void piClose(int sock);
         
 signals:
-    void connect_finished(int status, void * ssh2_sess, int ssh2_sock);
+    void connect_finished(int status, void *ssh2_sess, int ssh2_sock);
 };
 
 #endif
