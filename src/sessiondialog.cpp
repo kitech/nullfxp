@@ -12,10 +12,45 @@
 
 #include "sessiondialog.h"
 
+
+
+
+
+
+
+
+
+
+
+
+SessionDirModel::SessionDirModel(const QStringList &nameFilters, QDir::Filters filters, QDir::SortFlags sort, QObject *parent)
+    : QDirModel(nameFilters, filters, sort, parent)
+{
+    
+}
+SessionDirModel::SessionDirModel(QObject *parent)
+    : QDirModel(parent)
+{
+}
+SessionDirModel::~SessionDirModel()
+{    
+}
+
+QVariant SessionDirModel::data(const QModelIndex &index, int role) const
+{
+    if (role == Qt::DecorationRole && !this->isDir(index)) {
+        return QIcon(":icons/computer.png");
+    }
+    return QDirModel::data(index, role);
+}
+
 SessionDialog::SessionDialog(QWidget * parent)
     :QDialog(parent)
 {
     this->ui_win.setupUi(this);
+
+    this->storage = BaseStorage::instance();
+
     this->ui_win.treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
 #if QT_VERTION >= 0x0404000
@@ -24,30 +59,15 @@ SessionDialog::SessionDialog(QWidget * parent)
     this->ui_win.treeView->header()->setVisible(false);
 #endif
 
-#ifdef Q_OS_WIN
-    this->sessPath = QCoreApplication::applicationDirPath() + QString("/.nullfxp/sessions");
-#elif Q_OS_MAC
-    //TODO should where?
-    this->sessPath = QDir::homePath()+QString("/.nullfxp/sessions");
-#else
-    this->sessPath = QDir::homePath()+QString("/.nullfxp/sessions");
-#endif
+    this->sessPath = BaseStorage::instance()->getSessionPath();
 
-    if (!QDir().exists(this->sessPath)) {
-        if(!QDir().mkpath(this->sessPath)) {
-            Q_ASSERT(1 == 2);
-        }
-    }
-
-    this->sessTree = new QDirModel();
+    this->sessTree = new SessionDirModel();
     this->ui_win.treeView->setModel(this->sessTree);
     this->ui_win.treeView->setRootIndex(this->sessTree->index(this->sessPath));
+    this->ui_win.treeView->setColumnHidden(1, true);
+    this->ui_win.treeView->setColumnHidden(2, true);
+    this->ui_win.treeView->setColumnHidden(3, true);
 
-    // this->host_list_model = new QStringListModel();
-    // this->storage = 0;
-    // {
-    //     this->loadHost();
-    // }
     QObject::connect(this->ui_win.treeView,SIGNAL(customContextMenuRequested(const QPoint&)),
                      this, SLOT(slot_ctx_menu_requested(const QPoint &)));
     QObject::connect(this->ui_win.treeView,SIGNAL(doubleClicked(const QModelIndex&)),
@@ -64,32 +84,6 @@ SessionDialog::SessionDialog(QWidget * parent)
 
 SessionDialog::~SessionDialog()
 {
-    // if (this->storage != 0) {
-    //     this->storage->close();
-    // }
-    // delete this->host_list_model;
-}
-
-bool SessionDialog::loadHost()
-{
-    if(this->storage == 0) {
-        this->storage = BaseStorage::instance();
-        this->storage->open();
-    }
-
-    QMap<QString,QMap<QString,QString> > hosts;
-    hosts = this->storage->getAllHost();
-
-    QStringList host_show_names;
-    if(hosts.count() > 0) {
-        QMap<QString,QMap<QString,QString> >::iterator it;
-        for(it=hosts.begin();it!=hosts.end();it++)
-            host_show_names<<it.key();
-    }
-
-    this->host_list_model->setStringList(host_show_names);
-    this->ui_win.treeView->setModel(this->host_list_model);
-    return true;
 }
 
 void SessionDialog::slot_ctx_menu_requested(const QPoint & pos)
@@ -111,9 +105,6 @@ void SessionDialog::slot_ctx_menu_requested(const QPoint & pos)
         this->action_remove = new QAction(tr("&Remove host ..."), this);
         this->host_list_ctx_menu->addAction(this->action_remove);
 
-
-
-
         QObject::connect(this->action_connect,SIGNAL(triggered()),this,SLOT(slot_conntect_selected_host()));
         QObject::connect(this->action_edit,SIGNAL(triggered()),this,SLOT(slot_edit_selected_host()));
         QObject::connect(this->action_rename,SIGNAL(triggered()),this,SLOT(slot_rename_selected_host()));
@@ -125,9 +116,7 @@ void SessionDialog::slot_ctx_menu_requested(const QPoint & pos)
 
 void  SessionDialog::slot_conntect_selected_host(const QModelIndex & index)
 {
-    if(index.isValid())
-    {
-        //qDebug()<<index;
+    if (index.isValid()){
         QString show_name = index.data().toString();
         QMap<QString,QString> host = this->storage->getHost(show_name);
         QMap<QString,QString> host_new = QMap<QString, QString>(host);
@@ -135,14 +124,14 @@ void  SessionDialog::slot_conntect_selected_host(const QModelIndex & index)
         emit this->connect_remote_host_requested(host); 
         this->setVisible(false);
         this->accept();
-    }else{
+    } else {
         this->slot_show_no_item_tip();
     }
 }
 QMap<QString,QString>  SessionDialog::get_host_map()
 {
     QMap<QString,QString> host;
-    if(this->info_dlg != 0)
+    if (this->info_dlg != 0)
         host = ((RemoteHostQuickConnectInfoDialog*)this->info_dlg)->get_host_map();
     else
         host = selected_host;
@@ -158,10 +147,10 @@ void SessionDialog::slot_conntect_selected_host()
     mil = ism->selectedIndexes();
     //qDebug()<<mil;
 
-    if(mil.count() > 0) {
+    if (mil.count() > 0) {
         //qDebug()<<mil.at(0).data();
         this->slot_conntect_selected_host(mil.at(0));
-    }else{
+    } else {
         this->slot_show_no_item_tip();
     }
 }
@@ -174,7 +163,7 @@ void SessionDialog::slot_edit_selected_host()
     ism = this->ui_win.treeView->selectionModel();
     mil = ism->selectedIndexes();
     //qDebug()<<mil;
-    if(mil.count() > 0) {
+    if (mil.count() > 0) {
         //qDebug()<<mil.at(0).data();
         QString show_name = mil.at(0).data().toString();
         //qDebug()<<show_name;
@@ -183,17 +172,14 @@ void SessionDialog::slot_edit_selected_host()
         //qDebug()<<host;
         RemoteHostQuickConnectInfoDialog * info_dlg = new RemoteHostQuickConnectInfoDialog(this);
         info_dlg->set_active_host(host);
-        if(info_dlg->exec() == QDialog::Accepted)
-        {
+        if (info_dlg->exec() == QDialog::Accepted) {
             host_new = info_dlg->get_host_map();
-            if(host_new != host)
-            {
+            if (host_new != host) {
                 this->storage->updateHost(host_new);
-                this->storage->save();
             }
         }
         delete info_dlg;
-    }else{
+    } else {
         this->slot_show_no_item_tip();
     }
 }

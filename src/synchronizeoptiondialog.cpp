@@ -1,32 +1,11 @@
 // synchronizeoptiondialog.cpp --- 
 // 
-// Filename: synchronizeoptiondialog.cpp
-// Description: 
-// Author: 刘光照<liuguangzhao@users.sf.net>
-// Maintainer: 
-// Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
-// http://www.qtchina.net
-// http://nullget.sourceforge.net
-// Created: 五  8月  8 13:45:05 2008 (CST)
-// Version: 
+// Author: liuguangzhao
+// Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+// URL: http://www.qtchina.net http://nullget.sourceforge.net
+// Created: 2008-08-08 13:45:05 +0000
 // Last-Updated: 
-//           By: 
-//     Update #: 0
-// URL: 
-// Keywords: 
-// Compatibility: 
-// 
-// 
-
-// Commentary: 
-// 
-// 
-// 
-// 
-
-// Change log:
-// 
-// 
+// Version: $Id$
 // 
 
 #include "utils.h"
@@ -70,7 +49,6 @@ void SynchronizeOptionDialog::slot_show_session_list()
     QAction *action;
 
     BaseStorage * storage = BaseStorage::instance();
-    storage->open();
     
     QStringList nlist = storage->getNameList();
 

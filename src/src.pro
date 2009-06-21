@@ -38,7 +38,7 @@ win32 {
         QT -= webkit
 } else {
 #	QT += webkit
-	CONFIG += debug release
+	CONFIG += debug
 }
 QT += network 
 

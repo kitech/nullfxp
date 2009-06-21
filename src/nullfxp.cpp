@@ -122,9 +122,7 @@ NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
     local_sub_win->setGeometry(local_sub_win->x(), local_sub_win->y(), mdiArea->width()/2, mdiArea->height()*18/19);
 
     BaseStorage *storage = BaseStorage::instance();
-    storage->open();
     int host_count = storage->hostCount();
-    //delete storage ;
     if (host_count > 0) {
         this->slot_show_session_dialog();
     } else {
@@ -175,13 +173,11 @@ void NullFXP::connect_to_remote_host()
         (pubkey == QString::null) ? (pubkey=QString::null) : (host["pubkey"] = pubkey);
         
         BaseStorage *storage = BaseStorage::instance();
-        storage->open();
         if (storage->containsHost(remoteaddr)) {
             storage->updateHost(host);
         } else {
             storage->addHost(host);
         }
-        storage->save();
         host.clear();
         host = storage->getHost(remoteaddr);
         //delete storage;

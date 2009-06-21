@@ -34,7 +34,7 @@ void TestNullfxp::mySecondTest()
 void TestNullfxp::storageTest()
 {
     BaseStorage * storage = BaseStorage::instance();
-    QVERIFY(storage->open()==true);
+
     QMap<QString, QString> host;
     host["show_name"] = "hahaha";
     host["host_name"] = "www.qtchina.net";
@@ -51,9 +51,6 @@ void TestNullfxp::storageTest()
 
     QVERIFY(storage->updateHost(host) == true);
 
-    QVERIFY(storage->save() == true);
-  
-    QVERIFY(storage->close() == true);
 }
 
 void TestNullfxp::cleanupTestCase()

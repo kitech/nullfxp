@@ -1,33 +1,13 @@
-/* synchronizeoptiondialog.h --- 
- * 
- * Filename: synchronizeoptiondialog.h
- * Description: 
- * Author: 刘光照<liuguangzhao@users.sf.net>
- * Maintainer: 
- * Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
- * http://www.qtchina.net
- * http://nullget.sourceforge.net
- * Created: 五  8月  8 13:45:15 2008 (CST)
- * Version: 
- * Last-Updated: 
- *           By: 
- *     Update #: 0
- * URL: 
- * Keywords: 
- * Compatibility: 
- * 
- */
+// synchronizeoptiondialog.h --- 
+// 
+// Author: liuguangzhao
+// Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+// URL: http://www.qtchina.net http://nullget.sourceforge.net
+// Created: 2008-08-08 13:45:15 +0000
+// Last-Updated: 
+// Version: $Id$
+// 
 
-/* Commentary: 
- * 
- * 
- * 
- */
-
-/* Change log:
- * 
- * 
- */
 #ifndef SYNCHRONIZEOPTIONDIALOG_H
 #define SYNCHRONIZEOPTIONDIALOG_H
 

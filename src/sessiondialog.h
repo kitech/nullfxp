@@ -14,6 +14,17 @@
 #include "basestorage.h"
 #include "ui_hostlistdialog.h"
 
+class SessionDirModel : public QDirModel
+{
+    Q_OBJECT;
+public:
+    SessionDirModel(const QStringList & nameFilters, QDir::Filters filters, QDir::SortFlags sort, QObject * parent = 0 );
+    SessionDirModel(QObject *parent = 0 );
+    ~SessionDirModel();
+
+    virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
+};
+
 class SessionDialog: public QDialog
 {
     Q_OBJECT;
@@ -36,7 +47,6 @@ signals:
     void quick_connect();
 
 private slots:
-    bool loadHost();
     void slot_ctx_menu_requested(const QPoint & pos);
     void slot_show_no_item_tip();
 
@@ -55,7 +65,7 @@ private:
     void *info_dlg;
 
     QString sessPath;
-    QDirModel *sessTree;
+    SessionDirModel *sessTree;
 };
 
 

@@ -364,11 +364,9 @@ bool SyncTransferThread::addTask(SyncTaskPackage task)
 
 bool SyncTransferThread::connectToRemoteHost()
 {
-    //this->remoteBasePath = this->parent->remote_dir;
-
     QMap<QString, QString> host;
     BaseStorage *storage = BaseStorage::instance();
-    storage->open();
+
     this->remoteHost = host = storage->getHost(sess_name);
     q_debug()<<host;
     

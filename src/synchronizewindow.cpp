@@ -44,7 +44,7 @@ bool SyncWalker::connectToRemoteHost()
 
     QMap<QString, QString> host;
     BaseStorage *storage = BaseStorage::instance();
-    storage->open();
+
     this->remoteHost = host = storage->getHost(this->parent->sess_name);
     q_debug()<<host;
     
@@ -667,7 +667,6 @@ void SynchronizeWindow::dlSelectedDiffFiles()
     for (int i = 0 ; i < mil.count(); i ++) {
         idx = mil.at(i);
         file = this->model->getFile(idx);
-        Q_ASSERT(file.isValid());
         q_debug()<<file;
 
         unsigned long flags = file.second->flags;
@@ -706,7 +705,6 @@ void SynchronizeWindow::upSelectedDiffFiles()
     for (int i = 0 ; i < mil.count() ; i ++) {
         idx = mil.at(i);
         file = this->model->getFile(idx);
-        Q_ASSERT(file.isValid());
         q_debug()<<file;
 
         unsigned long flags = file.second->flags;
