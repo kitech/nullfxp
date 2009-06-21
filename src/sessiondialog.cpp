@@ -12,17 +12,6 @@
 
 #include "sessiondialog.h"
 
-
-
-
-
-
-
-
-
-
-
-
 SessionDirModel::SessionDirModel(const QStringList &nameFilters, QDir::Filters filters, QDir::SortFlags sort, QObject *parent)
     : QDirModel(nameFilters, filters, sort, parent)
 {
@@ -52,7 +41,9 @@ SessionDialog::SessionDialog(QWidget * parent)
     this->storage = BaseStorage::instance();
 
     this->ui_win.treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-
+    this->ui_win.treeView->setExpandsOnDoubleClick(false);
+    this->ui_win.treeView->setItemsExpandable(true);
+    this->ui_win.treeView->setAnimated(true);
 #if QT_VERTION >= 0x0404000
     this->ui_win.treeView->setHeaderHidden(true);
 #else
@@ -62,6 +53,7 @@ SessionDialog::SessionDialog(QWidget * parent)
     this->sessPath = BaseStorage::instance()->getSessionPath();
 
     this->sessTree = new SessionDirModel();
+    this->sessTree->setReadOnly(false);
     this->ui_win.treeView->setModel(this->sessTree);
     this->ui_win.treeView->setRootIndex(this->sessTree->index(this->sessPath));
     this->ui_win.treeView->setColumnHidden(1, true);
@@ -117,13 +109,21 @@ void SessionDialog::slot_ctx_menu_requested(const QPoint & pos)
 void  SessionDialog::slot_conntect_selected_host(const QModelIndex & index)
 {
     if (index.isValid()){
-        QString show_name = index.data().toString();
-        QMap<QString,QString> host = this->storage->getHost(show_name);
-        QMap<QString,QString> host_new = QMap<QString, QString>(host);
-        this->selected_host = host;
-        emit this->connect_remote_host_requested(host); 
-        this->setVisible(false);
-        this->accept();
+        if (this->sessTree->isDir(index)) {
+            if (this->ui_win.treeView->isExpanded(index)) {
+                this->ui_win.treeView->collapse(index);
+            } else {
+                this->ui_win.treeView->expand(index);
+            }
+        } else {
+            QString show_name = index.data().toString();
+            QMap<QString,QString> host = this->storage->getHost(show_name);
+            QMap<QString,QString> host_new = QMap<QString, QString>(host);
+            this->selected_host = host;
+            emit this->connect_remote_host_requested(host); 
+            this->setVisible(false);
+            this->accept();
+        }
     } else {
         this->slot_show_no_item_tip();
     }
@@ -189,40 +189,75 @@ void SessionDialog::slot_rename_selected_host()
     QItemSelectionModel * ism = 0;
     QModelIndexList mil;
     bool ok;
+    QString focusPath;
+    QString newPath;
+    QModelIndex pidx;
+    QModelIndex cidx;
+    QModelIndex nidx;
 
     ism = this->ui_win.treeView->selectionModel();
     mil = ism->selectedIndexes();
     //qDebug()<<mil;
-    if(mil.count() > 0) {
+
+    if (mil.count() > 0) {
+        cidx = mil.at(0);
+        pidx = mil.at(0).parent();
+        
         QString new_name = 
             QInputDialog::getText(this, tr("Rename host:"), tr("Type the new name:"), 
-                                  QLineEdit::Normal, mil.at(0).data().toString(), &ok);
-        if(ok && !new_name.isEmpty() && new_name != mil.at(0).data().toString()) {
-            QMap<QString, QString> host = this->storage->getHost(mil.at(0).data().toString());
-            this->storage->updateHost(host, new_name);
-            this->host_list_model->setData(mil.at(0), new_name);
+                                  QLineEdit::Normal, cidx.data().toString(), &ok);
+        new_name = new_name.trimmed();
+
+        if(ok && !new_name.isEmpty() && new_name != cidx.data().toString()) {
+            if (this->sessTree->isDir(mil.at(0))) {
+                ok = this->ui_win.treeView->isExpanded(cidx);
+                focusPath = this->sessTree->filePath(cidx);
+                newPath = this->sessTree->filePath(pidx) + "/" + new_name;                                
+                nidx = this->sessTree->mkdir(pidx, new_name); // 欺骗QDirModel, 产生新目录缓存
+                QDir().rmdir(newPath);           // 使用后端方法删除掉这个目录，QDirModel变不知道。
+                QDir().rename(focusPath, newPath);     //在把旧目录移动过来,这时QDirModel认为这个目录是它创建的那个
+                if (ok) {
+                    this->ui_win.treeView->expand(this->sessTree->index(newPath)); // maybe crash?
+                }
+            } else {
+                QMap<QString, QString> host = this->storage->getHost(mil.at(0).data().toString());
+                this->storage->updateHost(host, new_name);
+            }
+            this->sessTree->refresh(pidx);
         }
-    }else{
+    } else {
         this->slot_show_no_item_tip();
     }
 }
 
 void SessionDialog::slot_remove_selected_host()
 {
-    QItemSelectionModel * ism = 0;
+    QItemSelectionModel *ism = 0;
     QModelIndexList mil;
+    QModelIndex cidx;
+    QModelIndex pidx;
 
     ism = this->ui_win.treeView->selectionModel();
     mil = ism->selectedIndexes();
     //qDebug()<<mil;
-    if(mil.count() > 0) {
+    if (mil.count() > 0) {
+        cidx = mil.at(0);
+        pidx = cidx.parent();
+
         //waning user
-        int ret = QMessageBox::question(this,tr("Remote host:") ,tr("Are you sure remote it ?"), QMessageBox::Yes,QMessageBox::No );
-        if(ret == QMessageBox::Yes) {
-            this->storage->removeHost(mil.at(0).data().toString());
-            this->host_list_model->removeRows(mil.at(0).row(),1,QModelIndex());
+        int ret = QMessageBox::question(this, tr("Remote host:"), tr("Are you sure remote it?"), 
+                                        QMessageBox::Yes, QMessageBox::No);
+        if (ret == QMessageBox::Yes) {
+            if (this->sessTree->isDir(cidx)) {
+                if (!this->sessTree->rmdir(cidx)) {
+                    qDebug()<<"Dir not empty: "<<this->sessTree->filePath(cidx);
+                }
+            } else {
+                this->storage->removeHost(cidx.data().toString());
+            }
+            this->sessTree->refresh(pidx);
         }
-    }else{
+    } else {
         this->slot_show_no_item_tip();
     }
 }

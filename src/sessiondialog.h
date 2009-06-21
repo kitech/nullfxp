@@ -53,7 +53,7 @@ private slots:
 private:
     Ui::HostListDialog ui_win;
     BaseStorage *storage;
-    QStringListModel *host_list_model;
+    // QStringListModel *host_list_model;
     QMenu *host_list_ctx_menu;
     QAction *action_connect;
     QAction *action_edit;
