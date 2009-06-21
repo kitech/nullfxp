@@ -1,34 +1,12 @@
 // sessiondialog.cpp --- 
 // 
-// Filename: sessiondialog.cpp
-// Description: 
-// Author: 刘光照<liuguangzhao@users.sf.net>
-// Maintainer: 
-// Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
-// http://www.qtchina.net
-// http://nullget.sourceforge.net
-// Created: 三  7月 16 21:35:27 2008 (CST)
-// Version: 
+// Author: liuguangzhao
+// Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+// URL: http://www.qtchina.net http://nullget.sourceforge.net
+// Created: 2008-07-16 21:35:27 +0000
 // Last-Updated: 
-//           By: 
-//     Update #: 0
-// URL: 
-// Keywords: 
-// Compatibility: 
+// Version: $Id$
 // 
-// 
-
-// Commentary: 
-// 
-// 
-// 
-// 
-
-// Change log:
-// 
-// 
-// 
-
 
 #include "remotehostquickconnectinfodialog.h"
 
@@ -37,28 +15,48 @@
 SessionDialog::SessionDialog(QWidget * parent)
     :QDialog(parent)
 {
-    this->sess_dlg.setupUi(this);
-    this->sess_dlg.treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    this->ui_win.setupUi(this);
+    this->ui_win.treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
 #if QT_VERTION >= 0x0404000
-    this->sess_dlg.treeView->setHeaderHidden(true);
+    this->ui_win.treeView->setHeaderHidden(true);
 #else
-    this->sess_dlg.treeView->header()->setVisible(false);
+    this->ui_win.treeView->header()->setVisible(false);
 #endif
 
-    this->host_list_model = new QStringListModel();
-    this->storage = 0;
-    {
-        this->loadHost();
+#ifdef Q_OS_WIN
+    this->sessPath = QCoreApplication::applicationDirPath() + QString("/.nullfxp/sessions");
+#elif Q_OS_MAC
+    //TODO should where?
+    this->sessPath = QDir::homePath()+QString("/.nullfxp/sessions");
+#else
+    this->sessPath = QDir::homePath()+QString("/.nullfxp/sessions");
+#endif
+
+    if (!QDir().exists(this->sessPath)) {
+        if(!QDir().mkpath(this->sessPath)) {
+            Q_ASSERT(1 == 2);
+        }
     }
-    QObject::connect(this->sess_dlg.treeView,SIGNAL(customContextMenuRequested(const QPoint&)),
+
+    this->sessTree = new QDirModel();
+    this->ui_win.treeView->setModel(this->sessTree);
+    this->ui_win.treeView->setRootIndex(this->sessTree->index(this->sessPath));
+
+    // this->host_list_model = new QStringListModel();
+    // this->storage = 0;
+    // {
+    //     this->loadHost();
+    // }
+    QObject::connect(this->ui_win.treeView,SIGNAL(customContextMenuRequested(const QPoint&)),
                      this, SLOT(slot_ctx_menu_requested(const QPoint &)));
-    QObject::connect(this->sess_dlg.treeView,SIGNAL(doubleClicked(const QModelIndex&)),
+    QObject::connect(this->ui_win.treeView,SIGNAL(doubleClicked(const QModelIndex&)),
                      this,SLOT(slot_conntect_selected_host(const QModelIndex&)));
-    QObject::connect(this->sess_dlg.toolButton,SIGNAL(clicked()),
+    QObject::connect(this->ui_win.toolButton,SIGNAL(clicked()),
                      this,SLOT(slot_conntect_selected_host()));
-    QObject::connect(this->sess_dlg.toolButton_2,SIGNAL(clicked()),
+    QObject::connect(this->ui_win.toolButton_2,SIGNAL(clicked()),
                      this,SLOT(slot_quick_connect()));
-    QObject::connect(this->sess_dlg.toolButton_3,SIGNAL(clicked()),
+    QObject::connect(this->ui_win.toolButton_3,SIGNAL(clicked()),
                      this,SLOT(slot_remove_selected_host()));
     this->host_list_ctx_menu = 0;
     this->info_dlg = 0;
@@ -66,9 +64,10 @@ SessionDialog::SessionDialog(QWidget * parent)
 
 SessionDialog::~SessionDialog()
 {
-    if(this->storage != 0)
-        this->storage->close();
-    delete this->host_list_model;
+    // if (this->storage != 0) {
+    //     this->storage->close();
+    // }
+    // delete this->host_list_model;
 }
 
 bool SessionDialog::loadHost()
@@ -89,7 +88,7 @@ bool SessionDialog::loadHost()
     }
 
     this->host_list_model->setStringList(host_show_names);
-    this->sess_dlg.treeView->setModel(this->host_list_model);
+    this->ui_win.treeView->setModel(this->host_list_model);
     return true;
 }
 
@@ -121,7 +120,7 @@ void SessionDialog::slot_ctx_menu_requested(const QPoint & pos)
 
         QObject::connect(this->action_remove,SIGNAL(triggered()),this,SLOT(slot_remove_selected_host()));
     }
-    this->host_list_ctx_menu->popup(this->sess_dlg.treeView->mapToGlobal(pos));
+    this->host_list_ctx_menu->popup(this->ui_win.treeView->mapToGlobal(pos));
 }
 
 void  SessionDialog::slot_conntect_selected_host(const QModelIndex & index)
@@ -155,7 +154,7 @@ void SessionDialog::slot_conntect_selected_host()
     QItemSelectionModel * ism = 0;
     QModelIndexList mil ;
 
-    ism = this->sess_dlg.treeView->selectionModel();
+    ism = this->ui_win.treeView->selectionModel();
     mil = ism->selectedIndexes();
     //qDebug()<<mil;
 
@@ -172,7 +171,7 @@ void SessionDialog::slot_edit_selected_host()
     QItemSelectionModel * ism = 0;
     QModelIndexList mil;
 
-    ism = this->sess_dlg.treeView->selectionModel();
+    ism = this->ui_win.treeView->selectionModel();
     mil = ism->selectedIndexes();
     //qDebug()<<mil;
     if(mil.count() > 0) {
@@ -205,7 +204,7 @@ void SessionDialog::slot_rename_selected_host()
     QModelIndexList mil;
     bool ok;
 
-    ism = this->sess_dlg.treeView->selectionModel();
+    ism = this->ui_win.treeView->selectionModel();
     mil = ism->selectedIndexes();
     //qDebug()<<mil;
     if(mil.count() > 0) {
@@ -227,7 +226,7 @@ void SessionDialog::slot_remove_selected_host()
     QItemSelectionModel * ism = 0;
     QModelIndexList mil;
 
-    ism = this->sess_dlg.treeView->selectionModel();
+    ism = this->ui_win.treeView->selectionModel();
     mil = ism->selectedIndexes();
     //qDebug()<<mil;
     if(mil.count() > 0) {
@@ -253,7 +252,7 @@ void SessionDialog::slot_show_no_item_tip()
 {
     QString msg = QString("<br>&nbsp;&nbsp;&nbsp;<b>") + tr("No selected host.") 
         + QString("&nbsp;&nbsp;</b><br>");
-    // QPoint pos = this->sess_dlg.toolButton_3->pos();
+    // QPoint pos = this->ui_win.toolButton_3->pos();
     // pos.setY(pos.y() + 80);
     // QToolTip::showText(this->mapToGlobal(pos), msg, this);
 

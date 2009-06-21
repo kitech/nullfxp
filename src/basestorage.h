@@ -1,35 +1,12 @@
-/* basestorage.h --- 
- * 
- * Filename: basestorage.h
- * Description: 
- * Author: liuguangzhao
- * Maintainer: 
- * Created: 五  4月  4 14:46:49 2008 (CST)
- * Version: 
- * Last-Updated: 五  8月  8 12:01:55 2008 (CST)
- *           By: 刘光照<liuguangzhao@users.sf.net>
- *     Update #: 2
- * URL: 
- * Keywords: 
- * Compatibility: 
- * 
- */
-
-/* Commentary: 
- * 
- * 
- * 
- */
-
-/* Change log:
- * 
- * 
- */
-
-/* Code: */
-
-
-
+// basestorage.h --- 
+// 
+// Author: liuguangzhao
+// Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+// URL: http://www.qtchina.net http://nullget.sourceforge.net
+// Created: 2008-04-04 14:46:49 +0000
+// Last-Updated: 2009-06-21 11:43:50 +0000
+// Version: $Id$
+// 
 
 #include <QtCore>
 #include <QDataStream>
@@ -43,22 +20,23 @@ public:
     bool close();
     bool save();
 
-    bool addHost(QMap<QString,QString> host);
-    bool removeHost(QString show_name);
-    bool updateHost(QMap<QString,QString> host, QString newName =QString::null);
-    bool clearHost();
+    bool addHost(QMap<QString, QString> host, QString catPath = QString::null);
+    bool removeHost(QString show_name, QString catPath = QString::null);
+    bool updateHost(QMap<QString,QString> host, QString newName = QString::null, QString catPath = QString::null);
+    bool clearHost(QString catPath = QString::null);
 
-    bool containsHost(QString show_name);
+    bool containsHost(QString show_name, QString catPath = QString::null);
 
-    QMap<QString, QMap<QString,QString> > & getAllHost();
-    QMap<QString,QString> & getHost(QString show_name);
-    QStringList getNameList();
+    QMap<QString, QMap<QString,QString> > & getAllHost(QString catPath = QString::null);
+    QMap<QString,QString> & getHost(QString show_name, QString catPath = QString::null);
+    QStringList getNameList(QString catPath = QString::null);
 
-    int hostCount();
+    int hostCount(QString catPath = QString::null);
   
 signals:
-    void hostListChanged();
-    void hostLIstChanged(QString show_name);
+    void hostListChanged(QString catPath = QString::null);
+    void hostLIstChanged(QString show_name, QString catPath = QString::null);
+
 private:
     BaseStorage();
 
@@ -92,6 +70,9 @@ private:
     QMap<QString, QString> node_to_map( hnode *node);
     hnode * map_to_node(QMap<QString, QString> map);
     int generate_hid();
+    bool init();
+
+    QString storagePath;
 };
 
 
