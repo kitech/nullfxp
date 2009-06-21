@@ -37,12 +37,13 @@ LocalView::LocalView(QWidget *parent )
     this->localView.treeView->setRootIndex(this->dir_file_model->index("/"));
     this->localView.treeView->setColumnHidden(1, true);
     this->localView.treeView->setColumnHidden(2, true);
-    //     this->localView.treeView->setColumnHidden( 3, true);
+    // this->localView.treeView->setColumnHidden(3, true);
     //this->localView.treeView->setRootIndex(model->index(QDir::homePath()));
     this->localView.treeView->setColumnWidth(0,this->localView.treeView->columnWidth(0) * 2);    
     this->expand_to_home_directory(this->localView.treeView->rootIndex(), 1);
   
     this->init_local_dir_tree_context_menu();
+    this->localView.treeView->setAnimated(true);
   
     this->localView.tableView->setModel(this->model);
     this->localView.tableView->setRootIndex( this->model->index(QDir::homePath()));

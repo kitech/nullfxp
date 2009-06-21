@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-07-16 21:35:27 +0000
-// Last-Updated: 
+// Last-Updated: 2009-06-21 23:25:53 +0000
 // Version: $Id$
 // 
 
@@ -44,6 +44,7 @@ SessionDialog::SessionDialog(QWidget * parent)
     this->ui_win.treeView->setExpandsOnDoubleClick(false);
     this->ui_win.treeView->setItemsExpandable(true);
     this->ui_win.treeView->setAnimated(true);
+
 #if QT_VERTION >= 0x0404000
     this->ui_win.treeView->setHeaderHidden(true);
 #else
@@ -60,16 +61,16 @@ SessionDialog::SessionDialog(QWidget * parent)
     this->ui_win.treeView->setColumnHidden(2, true);
     this->ui_win.treeView->setColumnHidden(3, true);
 
-    QObject::connect(this->ui_win.treeView,SIGNAL(customContextMenuRequested(const QPoint&)),
+    QObject::connect(this->ui_win.treeView, SIGNAL(customContextMenuRequested(const QPoint&)),
                      this, SLOT(slot_ctx_menu_requested(const QPoint &)));
-    QObject::connect(this->ui_win.treeView,SIGNAL(doubleClicked(const QModelIndex&)),
-                     this,SLOT(slot_conntect_selected_host(const QModelIndex&)));
-    QObject::connect(this->ui_win.toolButton,SIGNAL(clicked()),
-                     this,SLOT(slot_conntect_selected_host()));
-    QObject::connect(this->ui_win.toolButton_2,SIGNAL(clicked()),
-                     this,SLOT(slot_quick_connect()));
-    QObject::connect(this->ui_win.toolButton_3,SIGNAL(clicked()),
-                     this,SLOT(slot_remove_selected_host()));
+    QObject::connect(this->ui_win.treeView, SIGNAL(doubleClicked(const QModelIndex&)),
+                     this, SLOT(slot_conntect_selected_host(const QModelIndex&)));
+    QObject::connect(this->ui_win.toolButton, SIGNAL(clicked()),
+                     this, SLOT(slot_conntect_selected_host()));
+    QObject::connect(this->ui_win.toolButton_2, SIGNAL(clicked()),
+                     this, SLOT(slot_quick_connect()));
+    QObject::connect(this->ui_win.toolButton_3, SIGNAL(clicked()),
+                     this, SLOT(slot_remove_selected_host()));
     this->host_list_ctx_menu = 0;
     this->info_dlg = 0;
 }
@@ -97,11 +98,15 @@ void SessionDialog::slot_ctx_menu_requested(const QPoint & pos)
         this->action_remove = new QAction(tr("&Remove host ..."), this);
         this->host_list_ctx_menu->addAction(this->action_remove);
 
-        QObject::connect(this->action_connect,SIGNAL(triggered()),this,SLOT(slot_conntect_selected_host()));
-        QObject::connect(this->action_edit,SIGNAL(triggered()),this,SLOT(slot_edit_selected_host()));
-        QObject::connect(this->action_rename,SIGNAL(triggered()),this,SLOT(slot_rename_selected_host()));
+        QObject::connect(this->action_connect, SIGNAL(triggered()), 
+                         this, SLOT(slot_conntect_selected_host()));
+        QObject::connect(this->action_edit, SIGNAL(triggered()),
+                         this, SLOT(slot_edit_selected_host()));
+        QObject::connect(this->action_rename, SIGNAL(triggered()),
+                         this, SLOT(slot_rename_selected_host()));
 
-        QObject::connect(this->action_remove,SIGNAL(triggered()),this,SLOT(slot_remove_selected_host()));
+        QObject::connect(this->action_remove, SIGNAL(triggered()),
+                         this, SLOT(slot_remove_selected_host()));
     }
     this->host_list_ctx_menu->popup(this->ui_win.treeView->mapToGlobal(pos));
 }
@@ -128,7 +133,7 @@ void  SessionDialog::slot_conntect_selected_host(const QModelIndex & index)
         this->slot_show_no_item_tip();
     }
 }
-QMap<QString,QString>  SessionDialog::get_host_map()
+QMap<QString,QString> SessionDialog::get_host_map()
 {
     QMap<QString,QString> host;
     if (this->info_dlg != 0)
@@ -140,8 +145,8 @@ QMap<QString,QString>  SessionDialog::get_host_map()
 
 void SessionDialog::slot_conntect_selected_host()
 {
-    QItemSelectionModel * ism = 0;
-    QModelIndexList mil ;
+    QItemSelectionModel *ism = 0;
+    QModelIndexList mil;
 
     ism = this->ui_win.treeView->selectionModel();
     mil = ism->selectedIndexes();
@@ -157,28 +162,31 @@ void SessionDialog::slot_conntect_selected_host()
 
 void SessionDialog::slot_edit_selected_host()
 {
-    QItemSelectionModel * ism = 0;
+    QItemSelectionModel *ism = 0;
     QModelIndexList mil;
 
     ism = this->ui_win.treeView->selectionModel();
     mil = ism->selectedIndexes();
     //qDebug()<<mil;
     if (mil.count() > 0) {
-        //qDebug()<<mil.at(0).data();
-        QString show_name = mil.at(0).data().toString();
-        //qDebug()<<show_name;
-        QMap<QString,QString> host = this->storage->getHost(show_name);
-        QMap<QString,QString> host_new;
-        //qDebug()<<host;
-        RemoteHostQuickConnectInfoDialog * info_dlg = new RemoteHostQuickConnectInfoDialog(this);
-        info_dlg->set_active_host(host);
-        if (info_dlg->exec() == QDialog::Accepted) {
-            host_new = info_dlg->get_host_map();
-            if (host_new != host) {
-                this->storage->updateHost(host_new);
+        if (this->sessTree->isDir(mil.at(0))) {
+        } else {
+            //qDebug()<<mil.at(0).data();
+            QString show_name = mil.at(0).data().toString();
+            //qDebug()<<show_name;
+            QMap<QString,QString> host = this->storage->getHost(show_name);
+            QMap<QString,QString> host_new;
+            //qDebug()<<host;
+            RemoteHostQuickConnectInfoDialog *info_dlg = new RemoteHostQuickConnectInfoDialog(this);
+            info_dlg->set_active_host(host);
+            if (info_dlg->exec() == QDialog::Accepted) {
+                host_new = info_dlg->get_host_map();
+                if (host_new != host) {
+                    this->storage->updateHost(host_new);
+                }
             }
+            delete info_dlg;
         }
-        delete info_dlg;
     } else {
         this->slot_show_no_item_tip();
     }
@@ -186,7 +194,7 @@ void SessionDialog::slot_edit_selected_host()
 
 void SessionDialog::slot_rename_selected_host()
 {
-    QItemSelectionModel * ism = 0;
+    QItemSelectionModel *ism = 0;
     QModelIndexList mil;
     bool ok;
     QString focusPath;
