@@ -39,6 +39,9 @@ public slots:
     void slot_rename_selected_host();
     void slot_remove_selected_host();
     void slot_quick_connect();
+    void slot_cut_selected();
+    void slot_copy_selected();
+    void slot_paste_selected();
 
     QMap<QString,QString>  get_host_map();
 
@@ -66,6 +69,12 @@ private:
 
     QString sessPath;
     SessionDirModel *sessTree;
+
+    enum {OP_COPY=1, OP_CUT=2};
+    int optype; // OP_COPY, OP_CUT
+    QString opdata;
+    QModelIndex oppidx;
+    QModelIndex opidx;
 };
 
 

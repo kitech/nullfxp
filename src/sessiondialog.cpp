@@ -34,7 +34,7 @@ QVariant SessionDirModel::data(const QModelIndex &index, int role) const
 }
 
 SessionDialog::SessionDialog(QWidget * parent)
-    :QDialog(parent)
+    :QDialog(parent),optype(0)
 {
     this->ui_win.setupUi(this);
 
@@ -71,6 +71,13 @@ SessionDialog::SessionDialog(QWidget * parent)
                      this, SLOT(slot_quick_connect()));
     QObject::connect(this->ui_win.toolButton_3, SIGNAL(clicked()),
                      this, SLOT(slot_remove_selected_host()));
+    QObject::connect(this->ui_win.toolButton_6, SIGNAL(clicked()),
+                     this, SLOT(slot_cut_selected()));
+    QObject::connect(this->ui_win.toolButton_7, SIGNAL(clicked()),
+                     this, SLOT(slot_copy_selected()));
+    QObject::connect(this->ui_win.toolButton_8, SIGNAL(clicked()),
+                     this, SLOT(slot_paste_selected()));
+
     this->host_list_ctx_menu = 0;
     this->info_dlg = 0;
 }
@@ -287,6 +294,111 @@ void SessionDialog::slot_show_no_item_tip()
 
     QPoint pos = QCursor::pos();
     QWhatsThis::showText(pos, msg);
+}
+
+void SessionDialog::slot_cut_selected()
+{
+    QItemSelectionModel *ism = 0;
+    QModelIndexList mil;
+    QModelIndex cidx;
+    QModelIndex pidx;
+
+    ism = this->ui_win.treeView->selectionModel();
+    mil = ism->selectedIndexes();
+    //qDebug()<<mil;
+    if (mil.count() > 0) {
+        cidx = mil.at(0);
+        pidx = cidx.parent();
+        this->opdata = this->sessTree->filePath(cidx);
+        qDebug()<<this->opdata;
+        this->optype = OP_CUT;
+        this->oppidx = pidx;
+        this->opidx = cidx;
+    } else {
+        this->slot_show_no_item_tip();
+    }
+}
+
+void SessionDialog::slot_copy_selected()
+{
+    QItemSelectionModel *ism = 0;
+    QModelIndexList mil;
+    QModelIndex cidx;
+    QModelIndex pidx;
+
+    ism = this->ui_win.treeView->selectionModel();
+    mil = ism->selectedIndexes();
+    //qDebug()<<mil;
+    if (mil.count() > 0) {
+        cidx = mil.at(0);
+        pidx = cidx.parent();
+        this->opdata = this->sessTree->filePath(cidx);
+        this->optype = OP_COPY;
+        this->oppidx = pidx;
+        this->opidx = cidx;
+    } else {
+        this->slot_show_no_item_tip();
+    }
+}
+
+void SessionDialog::slot_paste_selected()
+{
+    QItemSelectionModel *ism = 0;
+    QModelIndexList mil;
+    QModelIndex cidx;
+    QModelIndex pidx;
+    QModelIndex aidx;
+    QString adir;
+    QString afile;
+
+    if (!(this->optype >= OP_COPY && this->optype <= OP_CUT)) {
+        return ;
+    }
+
+    ism = this->ui_win.treeView->selectionModel();
+    mil = ism->selectedIndexes();
+
+    if (mil.count() == 0) {
+        aidx = this->ui_win.treeView->rootIndex();
+    } else {
+        aidx = mil.at(0);
+    }
+    qDebug()<<aidx<<this->sessTree->filePath(aidx);
+    if (this->sessTree->isDir(aidx)) {
+        if (this->sessTree->isDir(opidx)) {
+
+        } else {
+            afile = this->sessTree->filePath(aidx) + QString("/") + this->sessTree->fileName(opidx);
+            if (afile == this->sessTree->filePath(opidx)) {
+                for (int i = 0; ; i++) {
+                    if (!QFile::exists(afile + QString("(%1)").arg(i))) {
+                        afile += QString("(%1)").arg(i);
+                        break;
+                    }
+                }
+            } 
+            
+            qDebug()<<afile;
+            QSettings fset(this->sessTree->filePath(opidx), QSettings::IniFormat);
+            QSettings tset(afile, QSettings::IniFormat);
+            QStringList keys = fset.allKeys();
+            for (int i = 0 ; i < keys.count(); i ++) {
+                tset.setValue(keys.at(i), fset.value(keys.at(i)));
+            }
+            this->sessTree->refresh(aidx);
+        }
+    } else {
+        
+    }
+
+    switch (this->optype) {
+    case OP_COPY:
+        break;
+    case OP_CUT:
+        break;
+    default:
+        break;
+    }
 }
 
 //
