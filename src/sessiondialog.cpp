@@ -4,9 +4,11 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-07-16 21:35:27 +0000
-// Last-Updated: 2009-06-21 23:25:53 +0000
+// Last-Updated: 2009-06-27 17:26:23 +0000
 // Version: $Id$
 // 
+
+#include "utils.h"
 
 #include "remotehostquickconnectinfodialog.h"
 
@@ -77,6 +79,8 @@ SessionDialog::SessionDialog(QWidget * parent)
                      this, SLOT(slot_copy_selected()));
     QObject::connect(this->ui_win.toolButton_8, SIGNAL(clicked()),
                      this, SLOT(slot_paste_selected()));
+    QObject::connect(this->ui_win.toolButton_10, SIGNAL(clicked()),
+                     this, SLOT(slot_new_folder()));
 
     this->host_list_ctx_menu = 0;
     this->info_dlg = 0;
@@ -268,7 +272,7 @@ void SessionDialog::slot_remove_selected_host()
                     qDebug()<<"Dir not empty: "<<this->sessTree->filePath(cidx);
                 }
             } else {
-                this->storage->removeHost(cidx.data().toString());
+                this->storage->removeHost(cidx.data().toString(), this->sessTree->filePath(pidx));
             }
             this->sessTree->refresh(pidx);
         }
@@ -301,19 +305,14 @@ void SessionDialog::slot_cut_selected()
     QItemSelectionModel *ism = 0;
     QModelIndexList mil;
     QModelIndex cidx;
-    QModelIndex pidx;
 
     ism = this->ui_win.treeView->selectionModel();
     mil = ism->selectedIndexes();
     //qDebug()<<mil;
     if (mil.count() > 0) {
         cidx = mil.at(0);
-        pidx = cidx.parent();
-        this->opdata = this->sessTree->filePath(cidx);
-        qDebug()<<this->opdata;
+        this->opLeftFile = this->sessTree->filePath(cidx);
         this->optype = OP_CUT;
-        this->oppidx = pidx;
-        this->opidx = cidx;
     } else {
         this->slot_show_no_item_tip();
     }
@@ -324,18 +323,14 @@ void SessionDialog::slot_copy_selected()
     QItemSelectionModel *ism = 0;
     QModelIndexList mil;
     QModelIndex cidx;
-    QModelIndex pidx;
 
     ism = this->ui_win.treeView->selectionModel();
     mil = ism->selectedIndexes();
     //qDebug()<<mil;
     if (mil.count() > 0) {
         cidx = mil.at(0);
-        pidx = cidx.parent();
-        this->opdata = this->sessTree->filePath(cidx);
+        this->opLeftFile = this->sessTree->filePath(cidx);
         this->optype = OP_COPY;
-        this->oppidx = pidx;
-        this->opidx = cidx;
     } else {
         this->slot_show_no_item_tip();
     }
@@ -348,8 +343,8 @@ void SessionDialog::slot_paste_selected()
     QModelIndex cidx;
     QModelIndex pidx;
     QModelIndex aidx;
-    QString adir;
     QString afile;
+    QModelIndex opidx;
 
     if (!(this->optype >= OP_COPY && this->optype <= OP_CUT)) {
         return ;
@@ -363,32 +358,90 @@ void SessionDialog::slot_paste_selected()
     } else {
         aidx = mil.at(0);
     }
-    qDebug()<<aidx<<this->sessTree->filePath(aidx);
-    if (this->sessTree->isDir(aidx)) {
-        if (this->sessTree->isDir(opidx)) {
+    if (!this->sessTree->isDir(aidx)) {
+        aidx = aidx.parent();
+    }
 
-        } else {
-            afile = this->sessTree->filePath(aidx) + QString("/") + this->sessTree->fileName(opidx);
-            if (afile == this->sessTree->filePath(opidx)) {
-                for (int i = 0; ; i++) {
-                    if (!QFile::exists(afile + QString("(%1)").arg(i))) {
-                        afile += QString("(%1)").arg(i);
-                        break;
-                    }
-                }
-            } 
-            
-            qDebug()<<afile;
-            QSettings fset(this->sessTree->filePath(opidx), QSettings::IniFormat);
-            QSettings tset(afile, QSettings::IniFormat);
-            QStringList keys = fset.allKeys();
-            for (int i = 0 ; i < keys.count(); i ++) {
-                tset.setValue(keys.at(i), fset.value(keys.at(i)));
-            }
-            this->sessTree->refresh(aidx);
+    opidx = this->sessTree->index(this->opLeftFile);
+    if (this->sessTree->isDir(opidx)) {
+        if (aidx == opidx) {
+            // can'd deal with this case
+            return ;
         }
+        // parent can not paste to child
+        if (this->sessTree->filePath(aidx).startsWith(this->sessTree->filePath(opidx))) {
+            // 
+            q_debug()<<"parent can not paste to child";
+            return;
+        }
+        afile = this->sessTree->filePath(aidx);
+        QString opfile = this->sessTree->filePath(opidx);
+        QModelIndex nidx;
+        QModelIndex apidx;
+        QModelIndex oppidx;
+        apidx = aidx.parent();
+        oppidx = opidx.parent();
+
+        if (this->optype == OP_CUT) {
+            nidx = this->sessTree->mkdir(aidx, this->sessTree->fileName(opidx));
+            opfile = this->sessTree->filePath(nidx);
+            QDir().rmdir(opfile);
+            opfile = this->sessTree->filePath(opidx);
+            QDir().rename(opfile, afile + QString("/") + this->sessTree->fileName(opidx));
+            this->sessTree->refresh(oppidx);
+        }
+        if (this->optype == OP_COPY) {
+            QString dname = this->sessTree->fileName(opidx);
+            nidx = this->sessTree->mkdir(aidx, dname);
+            
+            afile = afile + QString("/") + dname;
+            QDir opdir = QDir(opfile);
+            QDir adir = QDir(afile);
+            
+            QStack<QString> entries;
+            entries.push(".");
+            while (!entries.isEmpty()) {
+                QString tname = entries.pop();
+                QString fname = opfile + "/" + tname;
+                if (QFileInfo(fname).isDir()) {
+                    QStringList sl = QDir(fname).entryList();
+                    for (int i = 0 ; i < sl.count(); i ++) {
+                        if (sl.at(i) == "." || sl.at(i) == "..") {
+                            continue;
+                        }
+                        if (QFileInfo(fname + "/" + sl.at(i)).isDir()) {
+                            adir.mkdir(afile+QString("/")+tname+QString("/")+sl.at(i));
+                            entries.push(tname+QString("/")+sl.at(i));
+                        } else {
+                            QFile(fname+ "/" + sl.at(i)).copy(afile+QString("/")+tname+QString("/")+sl.at(i));
+                        }
+                    }
+                } else {
+                    QFile(fname).copy(afile+QString("/")+tname);
+                }
+            }           
+        }
+        this->sessTree->refresh(apidx);
+        this->ui_win.treeView->expand(apidx);
     } else {
+        afile = this->sessTree->filePath(aidx) + QString("/") + this->sessTree->fileName(opidx);
+        if (afile == this->sessTree->filePath(opidx)) {
+            for (int i = 0; ; i++) {
+                if (!QFile::exists(afile + QString("(%1)").arg(i))) {
+                    afile += QString("(%1)").arg(i);
+                    break;
+                }
+            }
+        } 
         
+        QSettings fset(this->sessTree->filePath(opidx), QSettings::IniFormat);
+        QSettings tset(afile, QSettings::IniFormat);
+        QStringList keys = fset.allKeys();
+        for (int i = 0 ; i < keys.count(); i ++) {
+            tset.setValue(keys.at(i), fset.value(keys.at(i)));
+        }
+        this->sessTree->refresh(aidx);
+        this->ui_win.treeView->expand(aidx);
     }
 
     switch (this->optype) {
@@ -401,5 +454,43 @@ void SessionDialog::slot_paste_selected()
     }
 }
 
+void SessionDialog::slot_new_folder()
+{
+    QItemSelectionModel *ism = 0;
+    QModelIndexList mil;
+    QModelIndex cidx;
+    QModelIndex pidx;
+    QModelIndex aidx;
+    QString adir;
+    QString afile;
+
+    ism = this->ui_win.treeView->selectionModel();
+    mil = ism->selectedIndexes();
+
+    if (mil.count() == 0) {
+        aidx = this->ui_win.treeView->rootIndex();
+    } else {
+        aidx = mil.at(0);
+        if (this->sessTree->isDir(aidx)) {            
+        } else {
+            aidx = aidx.parent();
+        }
+    }
+    Q_ASSERT(this->sessTree->isDir(aidx));
+
+    bool ok = false;
+    QString new_name = 
+        QInputDialog::getText(this, tr("New folder:"), tr("Type the folder name:"), 
+                              QLineEdit::Normal, cidx.data().toString(), &ok);
+    new_name = new_name.trimmed();
+    
+    if(ok && !new_name.isEmpty() && new_name != cidx.data().toString()) {
+        if (this->sessTree->mkdir(aidx, new_name).isValid()) {
+            this->sessTree->refresh(aidx);
+            this->ui_win.treeView->expand(aidx);
+        } else {            
+        }
+    }    
+}
 //
 // sessiondialog.cpp ends here

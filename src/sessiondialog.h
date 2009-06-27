@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-07-16 22:06:33 +0000
-// Last-Updated: 2009-06-21 11:35:09 +0000
+// Last-Updated: 2009-06-27 12:20:54 +0000
 // Version: $Id$
 // 
 
@@ -42,6 +42,7 @@ public slots:
     void slot_cut_selected();
     void slot_copy_selected();
     void slot_paste_selected();
+    void slot_new_folder();
 
     QMap<QString,QString>  get_host_map();
 
@@ -72,9 +73,9 @@ private:
 
     enum {OP_COPY=1, OP_CUT=2};
     int optype; // OP_COPY, OP_CUT
-    QString opdata;
-    QModelIndex oppidx;
-    QModelIndex opidx;
+    QString opLeftFile;
+    // QModelIndex oppidx;
+    // QModelIndex opidx;
 };
 
 
