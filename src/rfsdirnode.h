@@ -1,33 +1,13 @@
-/* rfsdirnode.h --- 
- * 
- * Filename: rfsdirnode.h
- * Description: 
- * Author: 刘光照<liuguangzhao@users.sf.net>
- * Maintainer: 
- * Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
- * http://www.qtchina.net
- * http://nullget.sourceforge.net
- * Created: 六  7月 19 13:55:48 2008 (CST)
- * Version: 
- * Last-Updated: 六  8月  9 11:50:59 2008 (CST)
- *           By: 刘光照<liuguangzhao@users.sf.net>
- *     Update #: 1
- * URL: 
- * Keywords: 
- * Compatibility: 
- * 
- */
+// rfsdirnode.h --- 
+// 
+// Author: liuguangzhao
+// Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+// URL: http://www.qtchina.net http://nullget.sourceforge.net
+// Created: 2008-07-19 13:55:48 +0000
+// Last-Updated: 2009-07-13 22:42:22 +0000
+// Version: $Id$
+// 
 
-/* Commentary: 
- * 
- * 
- * 
- */
-
-/* Change log:
- * 
- * 
- */
 
 #ifndef RFSDIRNODE_H
 #define RFSDIRNODE_H

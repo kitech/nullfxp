@@ -4,12 +4,13 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-05-05 21:49:36 +0800
-// Last-Updated: 2009-05-08 21:50:07 +0800
+// Last-Updated: 2009-07-13 23:05:20 +0000
 // Version: $Id$
 // 
 
 
 #include <QtCore>
+#include <QtGui>
 
 #include "globaloption.h"
 #include "utils.h"
@@ -70,6 +71,7 @@ RemoteView::RemoteView(QMdiArea * main_mdi_area ,LocalView * local_view ,QWidget
     this->remoteview.tableView->setItemDelegate(delegate);
     this->remoteview.tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     this->remoteview.treeView->setItemDelegate(delegate);
+    this->remoteview.treeView->setAnimated(true);
 }
 
 void RemoteView::init_popup_context_menu()

@@ -1,33 +1,13 @@
-/* remotedirmodel.h --- 
- * 
- * Filename: remotedirmodel.h
- * Description: 
- * Author: liuguangzhao
- * Maintainer: 
- * Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
- * http://www.qtchina.net
- * http://nullget.sourceforge.net
- * Created: 日  5月 25 09:48:00 2008 (CST)
- * Version: 
- * Last-Updated: 
- *           By: 
- *     Update #: 0
- * URL: 
- * Keywords: 
- * Compatibility: 
- * 
- */
+// remotedirmodel.h --- 
+// 
+// Author: liuguangzhao
+// Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+// URL: http://www.qtchina.net http://nullget.sourceforge.net
+// Created: 2009-05-25 09:48:00 +0000
+// Last-Updated: 2009-07-13 22:51:43 +0000
+// Version: $Id$
+// 
 
-/* Commentary: 
- * 
- * 
- * 
- */
-
-/* Change log:
- * 
- * 
- */
 
 #ifndef REMOTEDIRMODEL_H
 #define REMOTEDIRMODEL_H

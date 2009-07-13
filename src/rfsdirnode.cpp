@@ -1,32 +1,11 @@
 // rfsdirnode.cpp --- 
 // 
-// Filename: rfsdirnode.cpp
-// Description: 
-// Author: 刘光照<liuguangzhao@users.sf.net>
-// Maintainer: 
-// Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
-// http://www.qtchina.net
-// http://nullget.sourceforge.net
-// Created: 六  8月  9 11:50:49 2008 (CST)
-// Version: 
-// Last-Updated: 六  8月  9 11:51:05 2008 (CST)
-//           By: 刘光照<liuguangzhao@users.sf.net>
-//     Update #: 1
-// URL: 
-// Keywords: 
-// Compatibility: 
-// 
-// 
-
-// Commentary: 
-// 
-// 
-// 
-// 
-
-// Change log:
-// 
-// 
+// Author: liuguangzhao
+// Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+// URL: http://www.qtchina.net http://nullget.sourceforge.net
+// Created: 2009-08-09 11:50:49 +0000
+// Last-Updated: 2009-07-13 22:43:00 +0000
+// Version: $Id$
 // 
 
 #include <QtCore>

@@ -1,3 +1,4 @@
+/*
 // libssh2_config.h --- 
 // 
 // Author: liuguangzhao
@@ -7,6 +8,7 @@
 // Last-Updated: 2009-05-26 21:45:49 +0800
 // Version: $Id$
 // 
+*/
 
 #ifndef _LIBSSH2_CONFIG_H_
 #define _LIBSSH2_CONFIG_H_
