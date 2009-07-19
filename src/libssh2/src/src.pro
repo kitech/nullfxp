@@ -12,6 +12,7 @@ SOURCES += channel.c \
         comp.c \
         crypt.c \
         hostkey.c \
+        knownhost.c \
         kex.c \
         mac.c \
         misc.c \
