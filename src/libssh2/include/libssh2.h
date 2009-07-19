@@ -815,9 +815,6 @@ LIBSSH2_API int libssh2_trace(LIBSSH2_SESSION *session, int bitmask);
 #define LIBSSH2_TRACE_ERROR (1<<7)
 #define LIBSSH2_TRACE_PUBLICKEY (1<<8)
 
-LIBSSH2_API char * libssh2_session_get_remote_version(LIBSSH2_SESSION *session);
-LIBSSH2_API char ** libssh2_session_get_remote_info(LIBSSH2_SESSION *session);
-
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

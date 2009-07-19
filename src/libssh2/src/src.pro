@@ -9,31 +9,33 @@
 # 
 
 SOURCES += channel.c \
-comp.c \
-crypt.c \
-hostkey.c \
-kex.c \
-mac.c \
-misc.c \
-#openssl.c \
-#libgcrypt.c \
-packet.c \
-pem.c \
-publickey.c \
-scp.c \
-session.c \
-sftp.c \
-transport.c \
-userauth.c \
-version.c \
-gettimeofday.c
+        comp.c \
+        crypt.c \
+        hostkey.c \
+        kex.c \
+        mac.c \
+        misc.c \
+        #openssl.c \
+        #libgcrypt.c \
+        packet.c \
+        pem.c \
+        publickey.c \
+        scp.c \
+        session.c \
+        sftp.c \
+        transport.c \
+        userauth.c \
+        version.c \
+        info.c \
+        gettimeofday.c
 
 HEADERS += libgcrypt.h \
-libssh2_config.h \
-libssh2_priv.h \
-openssl.h
+        libssh2_config.h \
+        libssh2_priv.h \
+        openssl.h \
+        info.h
 
-win32{
+win32 {
 	#SOURCES += libgcrypt.c
 	SOURCES += openssl.c	
 } else {
@@ -46,7 +48,7 @@ DESTDIR = .
 TEMPLATE = lib
 
 CONFIG += staticlib \
- console 
+       console 
 
 CONFIG -= qt 
 
@@ -56,11 +58,8 @@ win32 {
 	CONFIG += debug release
 }
 
-
-
-
 DEFINES += HAVE_CONFIG_H \
- LIBSSH2DEBUG=1 LIBSSH2_MD5=1
+      LIBSSH2DEBUG=1 LIBSSH2_MD5=1
 
 win32 {
     !win32-g++ {
@@ -70,7 +69,6 @@ win32 {
 }
 
 TARGET = ssh2
-
 
 QMAKE_CXXFLAGS_DEBUG += -g
 

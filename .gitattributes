@@ -188,6 +188,7 @@ src/libssh2/example/simple/sftpdir_nonblock.c -text
 src/libssh2/example/simple/ssh2.c -text
 src/libssh2/example/simple/ssh2_exec.c -text
 src/libssh2/get_ver.awk -text
+src/libssh2/include/info.h -text
 src/libssh2/include/libssh2.h -text
 src/libssh2/include/libssh2_publickey.h -text
 src/libssh2/include/libssh2_sftp.h -text
@@ -207,6 +208,7 @@ src/libssh2/src/comp.h -text
 src/libssh2/src/crypt.c -text
 src/libssh2/src/gettimeofday.c -text
 src/libssh2/src/hostkey.c -text
+src/libssh2/src/info.c -text
 src/libssh2/src/kex.c -text
 src/libssh2/src/knownhost.c -text
 src/libssh2/src/libgcrypt.c -text

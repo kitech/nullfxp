@@ -293,7 +293,6 @@ LIBSSH2_API int libssh2_sftp_symlink_ex(LIBSSH2_SFTP *sftp,
     libssh2_sftp_symlink_ex((sftp), (path), strlen(path), (target), (maxlen), \
                             LIBSSH2_SFTP_REALPATH)
 
-LIBSSH2_API int libssh2_sftp_get_version(LIBSSH2_SFTP * sftp);
 
 #ifdef __cplusplus
 } /* extern "C" */

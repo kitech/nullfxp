@@ -4,13 +4,15 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-05-05 21:49:36 +0800
-// Last-Updated: 2009-07-13 23:05:20 +0000
+// Last-Updated: 2009-07-19 13:32:07 +0000
 // Version: $Id$
 // 
 
 
 #include <QtCore>
 #include <QtGui>
+
+#include "info.h"
 
 #include "globaloption.h"
 #include "utils.h"
@@ -32,15 +34,15 @@
 
 #include "completelineeditdelegate.h"
 
-RemoteView::RemoteView(QMdiArea * main_mdi_area ,LocalView * local_view ,QWidget *parent)
+RemoteView::RemoteView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *parent)
     : QWidget(parent)
 {
     this->remoteview.setupUi(this);
-    this->local_view = local_view ;
-    this->main_mdi_area = main_mdi_area ;
+    this->local_view = local_view;
+    this->main_mdi_area = main_mdi_area;
     this->setObjectName("rv");
     ///////
-    status_bar = new QStatusBar(  );    
+    status_bar = new QStatusBar();
     this->layout()->addWidget(status_bar);
     this->status_bar->addPermanentWidget(this->enc_label = new EncryptionDetailFocusLabel("ENC", this));
     QObject::connect(this->enc_label, SIGNAL(mouseDoubleClick()),
