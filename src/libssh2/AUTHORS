@@ -1,0 +1,15 @@
+* Sara Golemon: Author / Project Manager
+
+* Daniel Stenberg: Co-maintainer
+
+* James Housleys: Nonblocking conversion
+
+* Simon Josefsson: libgcrypt support
+
+* Mikhail Gusarov: Keyboard Interactive Authentication
+
+* Wez Furlong & Edink Kadribasic: Windows Port
+
+* Dan Fandrich: bug fixes, cleanups
+
+* Guenter Knauf: win32 work and more

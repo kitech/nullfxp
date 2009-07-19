@@ -1,0 +1,22 @@
+
+libssh2 source code style guide:
+
+ - 4 level indent
+ - spaces-only (no tabs)
+ - open braces on the if/for line:
+
+     if (banana) {
+         go_nuts();
+     }
+
+ - write both braces on the else line:
+
+     if (banana) {
+         go_nuts();
+     } else {
+         stay_calm();
+     }
+
+ - use braces even for single-statement blocks
+ 
+ - keep source lines shorter than 80 columns

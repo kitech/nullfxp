@@ -12,19 +12,32 @@
  *
  */
 
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
+#include "libssh2_config.h"
+#include <libssh2.h>
+
+#ifdef HAVE_WINSOCK2_H
+# include <winsock2.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+# include <netinet/in.h>
+#endif
+#ifdef HAVE_SYS_SOCKET_H
+# include <sys/socket.h>
+#endif
+# ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
+# include <arpa/inet.h>
+#endif
+
 #include <sys/time.h>
 #include <sys/types.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <stdio.h>
 #include <ctype.h>
-
-#include <libssh2.h>
 
 static int waitsocket(int socket_fd, LIBSSH2_SESSION *session)
 {
@@ -73,6 +86,7 @@ int main(int argc, char *argv[])
     int bytecount = 0;
     size_t len;
     LIBSSH2_KNOWNHOSTS *nh;
+    int type;
 
 #ifdef WIN32
     WSADATA wsadata;
@@ -109,29 +123,12 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    /* We set the socket non-blocking. We do it after the connect just to
-        simplify the example code. */
-#ifdef F_SETFL
-    /* FIXME: this can/should be done in a more portable manner */
-    rc = fcntl(sock, F_GETFL, 0);
-    fcntl(sock, F_SETFL, rc | O_NONBLOCK);
-#elif defined(HAVE_IOCTLSOCKET)
-    ioctlsocket(sock, FIONBIO, &flag);
-#else
-#ifdef WIN32
-    u_long mode = 1;
-    ioctlsocket (sock, FIONBIO, &mode);
-#else
-#error "add support for setting the socket non-blocking here"
-#endif
-#endif
-
     /* Create a session instance */
     session = libssh2_session_init();
     if (!session)
         return -1;
 
-    /* Since we have set non-blocking, tell libssh2 we are non-blocking */
+    /* tell libssh2 we want it all done non-blocking */
     libssh2_session_set_blocking(session, 0);
 
     /* ... start it up. This will trade welcome banners, exchange keys,
@@ -145,22 +142,40 @@ int main(int argc, char *argv[])
     }
 
     nh = libssh2_knownhost_init(session);
+    if(!nh) {
+        /* eeek, do cleanup here */
+        return 2;
+    }
 
-    libssh2_knownhost_parsefile(nh, "known_hosts",
+    /* read all hosts from here */
+    libssh2_knownhost_readfile(nh, "known_hosts",
+                               LIBSSH2_KNOWNHOST_FILE_OPENSSH);
+
+    /* store all known hosts to here */
+    libssh2_knownhost_writefile(nh, "dumpfile",
                                 LIBSSH2_KNOWNHOST_FILE_OPENSSH);
 
-    fingerprint = libssh2_session_hostkey(session, &len);
+    fingerprint = libssh2_session_hostkey(session, &len, &type);
     if(fingerprint) {
-        struct libssh2_knownhost host;
-        int check;
-
-        check = libssh2_knownhost_check(nh, (char *)hostname,
-                                        (char *)fingerprint, len,
-                                        LIBSSH2_KNOWNHOST_TYPE_DEFAULT, &host);
+        struct libssh2_knownhost *host;
+        int check = libssh2_knownhost_check(nh, (char *)hostname,
+                                            (char *)fingerprint, len,
+                                            LIBSSH2_KNOWNHOST_TYPE_PLAIN|
+                                            LIBSSH2_KNOWNHOST_KEYENC_RAW,
+                                            &host);
 
         fprintf(stderr, "Host check: %d, key: %s\n", check,
                 (check <= LIBSSH2_KNOWNHOST_CHECK_MISMATCH)?
-                host.key:"<none>");
+                host->key:"<none>");
+
+        /*****
+         * At this point, we could verify that 'check' tells us the key is
+         * fine or bail out.
+         *****/
+    }
+    else {
+        /* eeek, do cleanup here */
+        return 3;
     }
     libssh2_knownhost_free(nh);
 
@@ -248,7 +263,8 @@ int main(int argc, char *argv[])
     }
     exitcode = 127;
     while( (rc = libssh2_channel_close(channel)) == LIBSSH2_ERROR_EAGAIN )
-        ;
+        waitsocket(sock, session);
+
     if( rc == 0 )
     {
         exitcode = libssh2_channel_get_exit_status( channel );

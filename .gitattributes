@@ -67,11 +67,16 @@ src/icons/folder-new.png -text
 src/icons/help-contents.png -text
 src/icons/nullget-1.png -text
 src/icons/nullget-2.png -text
+src/libssh2/AUTHORS -text
 src/libssh2/CMakeLists.txt -text
 src/libssh2/COPYING -text
+src/libssh2/HACKING -text
 src/libssh2/Makefile.am -text
 src/libssh2/Makefile.in -text
+src/libssh2/NEWS -text
 src/libssh2/NMakefile -text
+src/libssh2/README -text
+src/libssh2/TODO -text
 src/libssh2/buildconf -text
 src/libssh2/config.guess -text
 src/libssh2/config.rpath -text
@@ -113,6 +118,15 @@ src/libssh2/docs/libssh2_channel_x11_req_ex.3 -text
 src/libssh2/docs/libssh2_free_host_entry.3 -text
 src/libssh2/docs/libssh2_host_entry_match.3 -text
 src/libssh2/docs/libssh2_hostkey_hash.3 -text
+src/libssh2/docs/libssh2_knownhost_add.3 -text
+src/libssh2/docs/libssh2_knownhost_check.3 -text
+src/libssh2/docs/libssh2_knownhost_del.3 -text
+src/libssh2/docs/libssh2_knownhost_get.3 -text
+src/libssh2/docs/libssh2_knownhost_init.3 -text
+src/libssh2/docs/libssh2_knownhost_readfile.3 -text
+src/libssh2/docs/libssh2_knownhost_readline.3 -text
+src/libssh2/docs/libssh2_knownhost_writefile.3 -text
+src/libssh2/docs/libssh2_knownhost_writeline.3 -text
 src/libssh2/docs/libssh2_new_host_entry.3 -text
 src/libssh2/docs/libssh2_poll.3 -text
 src/libssh2/docs/libssh2_poll_channel_read.3 -text
@@ -131,6 +145,7 @@ src/libssh2/docs/libssh2_session_disconnect_ex.3 -text
 src/libssh2/docs/libssh2_session_flag.3 -text
 src/libssh2/docs/libssh2_session_free.3 -text
 src/libssh2/docs/libssh2_session_get_blocking.3 -text
+src/libssh2/docs/libssh2_session_hostkey.3 -text
 src/libssh2/docs/libssh2_session_init.3 -text
 src/libssh2/docs/libssh2_session_init_ex.3 -text
 src/libssh2/docs/libssh2_session_last_errno.3 -text
@@ -187,6 +202,7 @@ src/libssh2/example/simple/sftpdir.c -text
 src/libssh2/example/simple/sftpdir_nonblock.c -text
 src/libssh2/example/simple/ssh2.c -text
 src/libssh2/example/simple/ssh2_exec.c -text
+src/libssh2/example/simple/x11.c -text
 src/libssh2/get_ver.awk -text
 src/libssh2/include/info.h -text
 src/libssh2/include/libssh2.h -text
@@ -255,6 +271,8 @@ src/libssh2/win32/libssh2.dsw -text
 src/libssh2/win32/libssh2_config.h -text
 src/libssh2/win32/libssh2_dll.dsp -text
 src/libssh2/win32/libssh2_lib.dsp -text
+src/libssh2/win32/msvcproj.foot -text
+src/libssh2/win32/msvcproj.head -text
 src/libssh2/win32/rules.mk -text
 src/libssh2/win32/test/CVS/Entries -text
 src/libssh2/win32/test/CVS/Repository -text

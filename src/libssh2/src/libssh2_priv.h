@@ -39,6 +39,12 @@
 #ifndef LIBSSH2_PRIV_H
 #define LIBSSH2_PRIV_H 1
 
+#ifdef _WIN32
+  #ifndef _CRT_SECURE_NO_DEPRECATE
+    #define _CRT_SECURE_NO_DEPRECATE 1
+  #endif /* _CRT_SECURE_NO_DEPRECATE */
+#endif /* WIN32 */
+
 #define LIBSSH2_LIBRARY
 #include "libssh2_config.h"
 
@@ -881,7 +887,7 @@ struct _LIBSSH2_SESSION
     unsigned char scpRecv_response[LIBSSH2_SCP_RESPONSE_BUFLEN];
     unsigned long scpRecv_response_len;
     long scpRecv_mode;
-#if defined(HAVE_LONGLONG) && defined(strtoll)
+#if defined(HAVE_LONGLONG) && defined(HAVE_STRTOLL)
     /* we have the type and we can parse such numbers */
     long long scpRecv_size;
 #define scpsize_strtol strtoll
@@ -939,24 +945,6 @@ struct list_node {
 };
 
 /* --------- */
-
-struct known_host {
-    struct list_node node;
-    char *name;      /* points to the name or the hash (allocated) */
-    size_t name_len; /* needed for hashed data */
-    int typemask;    /* plain, sha1, custom, ... */
-    char *salt;      /* points to binary salt (allocated) */
-    size_t salt_len; /* size of salt */
-    char *key;       /* the (allocated) associated key. This is kept base64
-                        encoded in memory. */
-};
-
-struct _LIBSSH2_KNOWNHOSTS
-{
-    LIBSSH2_SESSION *session;  /* the session this "belongs to" */
-    struct list_head head;
-};
-
 
 /* libssh2 extensible ssh api, ultimately I'd like to allow loading additional
    methods via .so/.dll */

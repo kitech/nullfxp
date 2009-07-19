@@ -38,6 +38,8 @@
 #ifndef LIBSSH2_SFTP_H
 #define LIBSSH2_SFTP_H 1
 
+#include "libssh2.h"
+
 #ifndef WIN32
 #include <unistd.h>
 #endif
@@ -292,7 +294,6 @@ LIBSSH2_API int libssh2_sftp_symlink_ex(LIBSSH2_SFTP *sftp,
 #define libssh2_sftp_realpath(sftp, path, target, maxlen) \
     libssh2_sftp_symlink_ex((sftp), (path), strlen(path), (target), (maxlen), \
                             LIBSSH2_SFTP_REALPATH)
-
 
 #ifdef __cplusplus
 } /* extern "C" */
