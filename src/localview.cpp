@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-05-31 15:26:15 +0800
-// Last-Updated: 2009-05-30 12:50:01 +0000
+// Last-Updated: 2009-07-24 05:58:10 +0800
 // Version: $Id$
 // 
 
@@ -35,11 +35,11 @@ LocalView::LocalView(QWidget *parent )
     
     this->localView.treeView->setModel(this->dir_file_model);
     this->localView.treeView->setRootIndex(this->dir_file_model->index("/"));
-    this->localView.treeView->setColumnHidden(1, true);
+    // this->localView.treeView->setColumnHidden(1, true);
+    this->localView.treeView->setColumnWidth(1, 0);
     this->localView.treeView->setColumnHidden(2, true);
-    // this->localView.treeView->setColumnHidden(3, true);
-    //this->localView.treeView->setRootIndex(model->index(QDir::homePath()));
-    this->localView.treeView->setColumnWidth(0,this->localView.treeView->columnWidth(0) * 2);    
+    this->localView.treeView->setColumnHidden(3, true);
+    this->localView.treeView->setColumnWidth(0, this->localView.treeView->columnWidth(0) * 2);    
     this->expand_to_home_directory(this->localView.treeView->rootIndex(), 1);
   
     this->init_local_dir_tree_context_menu();
@@ -50,21 +50,21 @@ LocalView::LocalView(QWidget *parent )
     this->localView.tableView->verticalHeader()->setVisible(false);
 
     //change row height of table 
-    if (this->model->rowCount(this->model->index( QDir::homePath())) > 0) {
+    if (this->model->rowCount(this->model->index(QDir::homePath())) > 0) {
         this->table_row_height = this->localView.tableView->rowHeight(0) * 2 / 3;
     } else {
         this->table_row_height = 20 ;
     }
-    for (int i = 0 ; i < this->model->rowCount(this->model->index(QDir::homePath())); i ++) {
+    for (int i = 0; i < this->model->rowCount(this->model->index(QDir::homePath())); i ++) {
         this->localView.tableView->setRowHeight(i, this->table_row_height);
     }
   
     this->localView.tableView->resizeColumnToContents(0);
     /////
-    QObject::connect(this->localView.treeView,SIGNAL(clicked(const QModelIndex &)),
-                     this,SLOT( slot_dir_tree_item_clicked(const QModelIndex &)));
-    QObject::connect(this->localView.tableView,SIGNAL(doubleClicked(const QModelIndex &)),
-                     this,SLOT( slot_dir_file_view_double_clicked(const QModelIndex &)));
+    QObject::connect(this->localView.treeView, SIGNAL(clicked(const QModelIndex &)),
+                     this, SLOT(slot_dir_tree_item_clicked(const QModelIndex &)));
+    QObject::connect(this->localView.tableView, SIGNAL(doubleClicked(const QModelIndex &)),
+                     this, SLOT(slot_dir_file_view_double_clicked(const QModelIndex &)));
     
     ////////ui area custom
     this->localView.splitter->setStretchFactor(0, 1);

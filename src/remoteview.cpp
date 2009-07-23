@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-05-05 21:49:36 +0800
-// Last-Updated: 2009-07-19 13:32:07 +0000
+// Last-Updated: 2009-07-24 06:01:07 +0800
 // Version: $Id$
 // 
 
@@ -42,8 +42,8 @@ RemoteView::RemoteView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *
     this->main_mdi_area = main_mdi_area;
     this->setObjectName("rv");
     ///////
-    status_bar = new QStatusBar();
-    this->layout()->addWidget(status_bar);
+    this->status_bar = new QStatusBar();
+    this->layout()->addWidget(this->status_bar);
     this->status_bar->addPermanentWidget(this->enc_label = new EncryptionDetailFocusLabel("ENC", this));
     QObject::connect(this->enc_label, SIGNAL(mouseDoubleClick()),
                      this, SLOT(encryption_focus_label_double_clicked()));
@@ -60,10 +60,10 @@ RemoteView::RemoteView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *
     //     this->remoteview.treeView->setDragDropMode(QAbstractItemView::NoDragDrop);
     //this->remoteview.treeView->setSelectionMode(QAbstractItemView::ExtendedSelection);
     
-    QObject::connect(this->remoteview.treeView,SIGNAL(customContextMenuRequested(const QPoint &)),
-                     this,SLOT(slot_dir_tree_customContextMenuRequested (const QPoint & )) );
+    QObject::connect(this->remoteview.treeView, SIGNAL(customContextMenuRequested(const QPoint &)),
+                     this, SLOT(slot_dir_tree_customContextMenuRequested (const QPoint &)));
     QObject::connect(this->remoteview.tableView,SIGNAL(customContextMenuRequested(const QPoint &)),
-                     this,SLOT(slot_dir_tree_customContextMenuRequested (const QPoint & )) );
+                     this, SLOT(slot_dir_tree_customContextMenuRequested (const QPoint & )));
     
     this->init_popup_context_menu();
     
@@ -150,60 +150,65 @@ void RemoteView::slot_show_fxp_command_log(bool show)
     this->remoteview.listView->setVisible(show);    
 }
 
-void RemoteView::i_init_dir_view( )
+void RemoteView::i_init_dir_view()
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
-    this->remote_dir_model = new RemoteDirModel( );
+    this->remote_dir_model = new RemoteDirModel();
     this->remote_dir_model->set_ssh2_handler(this->ssh2_sess);
     
     this->remote_dir_model->set_user_home_path(this->user_home_path);
     this->remote_dir_sort_filter_model = new RemoteDirSortFilterModel();
-    remote_dir_sort_filter_model->setSourceModel( this->remote_dir_model);
+    this->remote_dir_sort_filter_model->setSourceModel(this->remote_dir_model);
     this->remote_dir_sort_filter_model_ex = new RemoteDirSortFilterModelEX();
-    remote_dir_sort_filter_model_ex->setSourceModel( this->remote_dir_model);
+    this->remote_dir_sort_filter_model_ex->setSourceModel(this->remote_dir_model);
     
-    this->remoteview.treeView->setModel( remote_dir_sort_filter_model_ex );
+    this->remoteview.treeView->setModel(remote_dir_sort_filter_model_ex);
     this->remoteview.treeView->setAcceptDrops(true);
     this->remoteview.treeView->setDragEnabled(false);
     this->remoteview.treeView->setDropIndicatorShown(true);
     this->remoteview.treeView->setDragDropMode(QAbstractItemView::DropOnly);
 
-    QObject::connect( this->remote_dir_model ,SIGNAL(sig_drop_mime_data(const QMimeData * , Qt::DropAction  ,  int , int , const QModelIndex & ) ),this,SLOT(slot_drop_mime_data(const QMimeData *, Qt::DropAction ,  int , int , const QModelIndex &)));
+    QObject::connect(this->remote_dir_model,
+                     SIGNAL(sig_drop_mime_data(const QMimeData *, Qt::DropAction, int, int, const QModelIndex &)),
+                     this, SLOT(slot_drop_mime_data(const QMimeData *, Qt::DropAction, int, int, const QModelIndex &)));
     
-    QObject::connect( this->remote_dir_model,SIGNAL(enter_remote_dir_retrive_loop()),
-                      this,SLOT(slot_enter_remote_dir_retrive_loop()));
-    QObject::connect( this->remote_dir_model,SIGNAL(leave_remote_dir_retrive_loop()),
-                      this,SLOT(slot_leave_remote_dir_retrive_loop()));
+    QObject::connect( this->remote_dir_model, SIGNAL(enter_remote_dir_retrive_loop()),
+                      this, SLOT(slot_enter_remote_dir_retrive_loop()));
+    QObject::connect( this->remote_dir_model, SIGNAL(leave_remote_dir_retrive_loop()),
+                      this, SLOT(slot_leave_remote_dir_retrive_loop()));
     
     this->remoteview.treeView->expandAll();
-    this->remoteview.treeView->setColumnWidth(0,this->remoteview.treeView->columnWidth(0)*2);
+    this->remoteview.treeView->setColumnWidth(0, this->remoteview.treeView->columnWidth(0)*2);
+    
     //这里设置为true时，导致这个treeView不能正确显示滚动条了，为什么呢?
     //this->remoteview.treeView->setColumnHidden( 1, false);
-    this->remoteview.treeView->setColumnWidth(1,0);//使用这种方法隐藏看上去就正常了。
-    this->remoteview.treeView->setColumnHidden( 2, true);
-    this->remoteview.treeView->setColumnHidden( 3, true);
+    this->remoteview.treeView->setColumnWidth(1, 0);//使用这种方法隐藏看上去就正常了。
+    this->remoteview.treeView->setColumnHidden(2, true);
+    this->remoteview.treeView->setColumnHidden(3, true);
     
     /////tableView
-    this->remoteview.tableView->setModel( this->remote_dir_sort_filter_model);
-    this->remoteview.tableView->setRootIndex( this->remote_dir_sort_filter_model->index( this->user_home_path.c_str() ) );
+    this->remoteview.tableView->setModel(this->remote_dir_sort_filter_model);
+    this->remoteview.tableView->setRootIndex(this->remote_dir_sort_filter_model->index(this->user_home_path.c_str()));
 
     //change row height of table 
-    if( this->remote_dir_sort_filter_model->rowCount( this->remote_dir_sort_filter_model->index( this->user_home_path.c_str() ) ) > 0 )
-    {
+    if (this->remote_dir_sort_filter_model->rowCount(this->remote_dir_sort_filter_model->index(this->user_home_path.c_str())) > 0) {
         this->table_row_height = this->remoteview.tableView->rowHeight(0)*2/3;
-    }else{
+    } else {
         this->table_row_height = 20 ;
     }
-    for( int i = 0 ; i < this->remote_dir_sort_filter_model->rowCount( this->remote_dir_sort_filter_model->index( this->user_home_path.c_str() ) ); i ++ )
-        this->remoteview.tableView->setRowHeight( i, this->table_row_height );
-    this->remoteview.tableView->resizeColumnToContents( 0 );
+    for (int i = 0; i < this->remote_dir_sort_filter_model->rowCount(this->remote_dir_sort_filter_model->index(this->user_home_path.c_str())); i ++) {
+        this->remoteview.tableView->setRowHeight(i, this->table_row_height);
+    }
+    this->remoteview.tableView->resizeColumnToContents(0);
     
     /////
-    QObject::connect(this->remoteview.treeView,SIGNAL(clicked(const QModelIndex &)),
-                     this,SLOT( slot_dir_tree_item_clicked(const QModelIndex &))) ;
-    QObject::connect( this->remoteview.tableView,SIGNAL( doubleClicked ( const QModelIndex &  ) ) , this,SLOT( slot_dir_file_view_double_clicked ( const QModelIndex & ) ) );
-    QObject::connect( this->remoteview.tableView,SIGNAL( drag_ready()),this,SLOT(slot_drag_ready()) );
+    QObject::connect(this->remoteview.treeView, SIGNAL(clicked(const QModelIndex &)),
+                     this, SLOT(slot_dir_tree_item_clicked(const QModelIndex &)));
+    QObject::connect(this->remoteview.tableView, SIGNAL(doubleClicked(const QModelIndex &)),
+                     this, SLOT(slot_dir_file_view_double_clicked(const QModelIndex &)));
+    QObject::connect(this->remoteview.tableView, SIGNAL(drag_ready()),
+                     this, SLOT(slot_drag_ready()));
 
     //TODO 连接remoteview.treeView 的drag信号
     
@@ -211,7 +216,7 @@ void RemoteView::i_init_dir_view( )
     QString ssh_server_version = libssh2_session_get_remote_version(this->ssh2_sess);
     int ssh_sftp_version = libssh2_sftp_get_version(this->ssh2_sftp);
     QString status_msg = QString("Ready. (%1  SFTP: V%2)").arg(ssh_server_version).arg(ssh_sftp_version); 
-    status_bar->showMessage(status_msg);
+    this->status_bar->showMessage(status_msg);
 }
 
 void RemoteView::slot_disconnect_from_remote_host()

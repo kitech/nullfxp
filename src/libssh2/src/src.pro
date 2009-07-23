@@ -8,6 +8,10 @@
 # Version: $Id$
 # 
 
+DESTDIR = .
+TEMPLATE = lib
+TARGET = ssh2
+
 SOURCES += channel.c \
         comp.c \
         crypt.c \
@@ -43,14 +47,7 @@ win32 {
 	SOURCES += openssl.c
 }
 
-
-DESTDIR = .
-
-TEMPLATE = lib
-
-CONFIG += staticlib \
-       console 
-
+CONFIG += staticlib console 
 CONFIG -= qt 
 
 win32 {
@@ -59,8 +56,10 @@ win32 {
 	CONFIG += debug release
 }
 
-DEFINES += HAVE_CONFIG_H \
-      LIBSSH2DEBUG=1 LIBSSH2_MD5=1
+DEFINES += HAVE_CONFIG_H LIBSSH2_MD5=1
+
+# controll if show libssh debug message, using this line
+# DEFINES += LIBSSH2DEBUG=1 
 
 win32 {
     !win32-g++ {
@@ -69,10 +68,7 @@ win32 {
     }
 }
 
-TARGET = ssh2
-
 QMAKE_CXXFLAGS_DEBUG += -g
-
 QMAKE_CXXFLAGS_RELEASE += -g
 
 INCLUDEPATH += ../include/
