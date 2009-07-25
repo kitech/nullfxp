@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-06-14 09:06:28 +0800
-// Last-Updated: 2009-05-30 14:09:12 +0000
+// Last-Updated: 2009-07-25 21:20:14 +0800
 // Version: $Id$
 // 
 
@@ -550,7 +550,6 @@ int TransferThread::do_download(QString remote_path, QString local_path, int pfl
         }
     }
 
-    // 本地编码 --> Qt 内部编码
     QFile q_file(local_path);
     if (!q_file.open(QIODevice::ReadWrite | QIODevice::Truncate)) {
         //TODO 错误消息通知用户。
@@ -653,15 +652,11 @@ int TransferThread::do_upload(QString local_path, QString remote_path, int pflag
     }
     
     memset(&ssh2_sftp_attrib,0,sizeof(ssh2_sftp_attrib));
-    //libssh2_sftp_fstat(sftp_handle,&ssh2_sftp_attrib);
-    //file_size = ssh2_sftp_attrib.filesize;
-    //qDebug()<<" remote file size :"<< file_size ;
     QFileInfo local_fi(local_path);
     file_size = local_fi.size();
     qDebug()<<"local file size:" << file_size ;
     emit this->transfer_got_file_size(file_size);
     
-    // 本地编码 --> Qt 内部编码
     QFile q_file(local_path);
     if (!q_file.open( QIODevice::ReadOnly)) {
         //TODO 错误消息通知用户。
@@ -681,6 +676,10 @@ int TransferThread::do_upload(QString local_path, QString remote_path, int pflag
             wlen = libssh2_sftp_write(sftp_handle, buff, rlen);
             qDebug()<<"write to sftp done ";
             Q_ASSERT(wlen == rlen);
+            if (wlen < rlen) {
+                q_debug()<<"write to server less then need write bytes";
+                // TODO 这种情况应该尝试再次写入剩余的数据
+            }
             tran_len += wlen ;
             
             //qDebug()<<" local read : "<< rlen << " sftp write :"<<wlen <<" up len :"<< tran_len ;
@@ -706,7 +705,7 @@ int TransferThread::do_upload(QString local_path, QString remote_path, int pflag
 }
 int TransferThread::do_nrsftp_exchange(QString src_path, QString dest_path)
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
     qDebug()<<"nrsftp from: "<< src_path <<" to "<< dest_path ;
     
     LIBSSH2_SFTP_HANDLE *src_sftp_handle = 0;
