@@ -69,6 +69,7 @@ SOURCES += main.cpp \
  localview.cpp \
  remoteview.cpp \
  remotedirmodel.cpp \
+ sftpdirmodel.cpp \
  progressdialog.cpp \
  transferthread.cpp \
  remotedirretrivethread.cpp \
@@ -109,6 +110,7 @@ HEADERS += nullfxp.h \
  localview.h \
  remoteview.h \
  remotedirmodel.h \
+ sftpdirmodel.h \
  progressdialog.h \
  transferthread.h \
  remotedirretrivethread.h \

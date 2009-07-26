@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-07-19 13:55:48 +0000
-// Last-Updated: 2009-07-13 22:42:22 +0000
+// Last-Updated: 2009-07-27 10:12:21 +0800
 // Version: $Id$
 // 
 
@@ -17,8 +17,6 @@
 
 #include "libssh2.h"
 #include "libssh2_sftp.h"
-
-class RFSDirNode;
 
 enum {
     POP_NO_NEED_NO_DATA = 0,
@@ -60,6 +58,8 @@ public:
       2------>  8 -------> 9
     */
 
+    QVector<directory_tree_item *> children;
+    
     std::map< int, directory_tree_item *> child_items ;
     directory_tree_item *parent_item;
     int row_number ;    //指的是所包含的子结点个数
@@ -73,6 +73,7 @@ public:
     QString file_date ;
     QString file_type ;
     LIBSSH2_SFTP_ATTRIBUTES attrib;
+
 public:
     bool isDir();
     int childCount();

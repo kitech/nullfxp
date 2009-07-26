@@ -427,6 +427,8 @@ src/rfsdirnode.h -text
 src/sessiondialog.cpp -text
 src/sessiondialog.h -text
 src/sftp.h -text
+src/sftpdirmodel.cpp -text
+src/sftpdirmodel.h -text
 src/sftpfile.cpp -text
 src/sftpfile.h -text
 src/src.pro -text

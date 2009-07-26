@@ -20,8 +20,7 @@ directory_tree_item::~directory_tree_item()
 {
     //qDebug()<<"tree delete now";
     int line = this->child_items.size();
-    for(int i = line -1 ; i >=0 ; i --)
-    {
+    for (int i = line -1 ; i >=0 ; i --) {
         delete this->child_items[i];
     }
 }
@@ -41,19 +40,8 @@ directory_tree_item *directory_tree_item::parent()
 }
 bool directory_tree_item::hasChild(QString name)
 {
-    /*
-    std::map<int, directory_tree_item*>::iterator it;
-    int i = 0;
-    for(it = this->child_items.begin(); it != this->child_items.end(); it++)
-    {
-        if(it->second->file_name == name) {
-            return true;
-        }
-    }
-    */
-    
-    for(int i = 0 ; i < this->child_items.size(); i++) {
-        if(child_items[i]->file_name == name) {
+    for (int i = 0 ; i < this->child_items.size(); i++) {
+        if (child_items[i]->file_name == name) {
             return true;
         }
     }
@@ -63,20 +51,8 @@ bool directory_tree_item::hasChild(QString name)
 
 bool directory_tree_item::setDeleteFlag(QString name, bool del)
 {
-    /*
-    std::map<int, directory_tree_item*>::iterator it;
-    int i = 0;
-    for(it = this->child_items.begin(); it != this->child_items.end(); it++)
-    {
-        if(it->second->file_name == name) {
-            it->second->delete_flag = del;
-            return true;
-        }
-    }
-    */
-    
-    for(int i = 0 ; i < this->child_items.size(); i++) {
-        if(child_items[i]->file_name == name) {
+    for (int i = 0 ; i < this->child_items.size(); i++) {
+        if (child_items[i]->file_name == name) {
             this->child_items[i]->delete_flag = del;
             return true;
         }
@@ -86,18 +62,6 @@ bool directory_tree_item::setDeleteFlag(QString name, bool del)
 }
 directory_tree_item *directory_tree_item::childAt(int index)
 {
-    /*
-    std::map<int, directory_tree_item*>::iterator it;
-    int i = 0;
-    for(it = this->child_items.begin(); it != this->child_items.end(); it++)
-    {
-        if(i++ == index) {
-            return it->second;
-        }
-    }
-    
-    return NULL;
-    */
     return this->child_items[index];
 }
 QString directory_tree_item::filePath()
