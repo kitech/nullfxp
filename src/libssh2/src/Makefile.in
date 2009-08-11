@@ -36,16 +36,18 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
+DIST_COMMON = $(srcdir)/../Makefile.inc $(srcdir)/Makefile.am \
+	$(srcdir)/Makefile.in $(srcdir)/libssh2_config.h.in
 @LIBGCRYPT_TRUE@am__append_1 = libgcrypt.c pem.c
 @LIBGCRYPT_FALSE@am__append_2 = openssl.c
 subdir = src
-DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(srcdir)/libssh2_config.h.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/autobuild.m4 \
 	$(top_srcdir)/m4/lib-ld.m4 $(top_srcdir)/m4/lib-link.m4 \
-	$(top_srcdir)/m4/lib-prefix.m4 $(top_srcdir)/acinclude.m4 \
-	$(top_srcdir)/configure.in
+	$(top_srcdir)/m4/lib-prefix.m4 $(top_srcdir)/m4/libtool.m4 \
+	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
+	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
+	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -63,15 +65,17 @@ LTLIBRARIES = $(lib_LTLIBRARIES)
 libssh2_la_LIBADD =
 am__libssh2_la_SOURCES_DIST = channel.c comp.c crypt.c hostkey.c kex.c \
 	mac.c misc.c packet.c publickey.c scp.c session.c sftp.c \
-	userauth.c libssh2_priv.h openssl.h libgcrypt.h transport.c \
-	version.c transport.h channel.h comp.h mac.h libgcrypt.c pem.c \
-	openssl.c
+	userauth.c transport.c version.c knownhost.c libgcrypt.c pem.c \
+	openssl.c libssh2_priv.h openssl.h libgcrypt.h transport.h \
+	channel.h comp.h mac.h misc.h
 @LIBGCRYPT_TRUE@am__objects_1 = libgcrypt.lo pem.lo
 @LIBGCRYPT_FALSE@am__objects_2 = openssl.lo
-am_libssh2_la_OBJECTS = channel.lo comp.lo crypt.lo hostkey.lo kex.lo \
-	mac.lo misc.lo packet.lo publickey.lo scp.lo session.lo \
-	sftp.lo userauth.lo transport.lo version.lo $(am__objects_1) \
-	$(am__objects_2)
+am__objects_3 = channel.lo comp.lo crypt.lo hostkey.lo kex.lo mac.lo \
+	misc.lo packet.lo publickey.lo scp.lo session.lo sftp.lo \
+	userauth.lo transport.lo version.lo knownhost.lo \
+	$(am__objects_1) $(am__objects_2)
+am__objects_4 =
+am_libssh2_la_OBJECTS = $(am__objects_3) $(am__objects_4)
 libssh2_la_OBJECTS = $(am_libssh2_la_OBJECTS)
 DEFAULT_INCLUDES = 
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -105,23 +109,18 @@ CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
-CXX = @CXX@
-CXXCPP = @CXXCPP@
-CXXDEPMODE = @CXXDEPMODE@
-CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DLLTOOL = @DLLTOOL@
 DSYMUTIL = @DSYMUTIL@
-ECHO = @ECHO@
+DUMPBIN = @DUMPBIN@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
 EXEEXT = @EXEEXT@
-F77 = @F77@
-FFLAGS = @FFLAGS@
+FGREP = @FGREP@
 GREP = @GREP@
 HAVE_LIBGCRYPT = @HAVE_LIBGCRYPT@
 HAVE_LIBSSL = @HAVE_LIBSSL@
@@ -130,6 +129,7 @@ INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+LD = @LD@
 LDFLAGS = @LDFLAGS@
 LIBGCRYPT = @LIBGCRYPT@
 LIBGCRYPT_FALSE = @LIBGCRYPT_FALSE@
@@ -142,6 +142,7 @@ LIBSSL_PREFIX = @LIBSSL_PREFIX@
 LIBTOOL = @LIBTOOL@
 LIBZ = @LIBZ@
 LIBZ_PREFIX = @LIBZ_PREFIX@
+LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBGCRYPT = @LTLIBGCRYPT@
 LTLIBOBJS = @LTLIBOBJS@
@@ -151,9 +152,12 @@ MAINT = @MAINT@
 MAINTAINER_MODE_FALSE = @MAINTAINER_MODE_FALSE@
 MAINTAINER_MODE_TRUE = @MAINTAINER_MODE_TRUE@
 MAKEINFO = @MAKEINFO@
+NM = @NM@
 NMEDIT = @NMEDIT@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
+OTOOL = @OTOOL@
+OTOOL64 = @OTOOL64@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
@@ -171,12 +175,9 @@ SSHD_TRUE = @SSHD_TRUE@
 STRIP = @STRIP@
 VERSION = -version-info 1:1:0
 ac_ct_CC = @ac_ct_CC@
-ac_ct_CXX = @ac_ct_CXX@
-ac_ct_F77 = @ac_ct_F77@
+ac_ct_DUMPBIN = @ac_ct_DUMPBIN@
 am__fastdepCC_FALSE = @am__fastdepCC_FALSE@
 am__fastdepCC_TRUE = @am__fastdepCC_TRUE@
-am__fastdepCXX_FALSE = @am__fastdepCXX_FALSE@
-am__fastdepCXX_TRUE = @am__fastdepCXX_TRUE@
 am__include = @am__include@
 am__leading_dot = @am__leading_dot@
 am__quote = @am__quote@
@@ -206,6 +207,7 @@ libdir = @libdir@
 libexecdir = @libexecdir@
 localedir = @localedir@
 localstatedir = @localstatedir@
+lt_ECHO = @lt_ECHO@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
@@ -218,13 +220,16 @@ sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 
-# $Id: Makefile.am,v 1.19 2009/03/26 22:25:23 bagder Exp $
+# $Id: Makefile.am,v 1.21 2009/05/07 17:21:56 bagder Exp $
 AUTOMAKE_OPTIONS = foreign nostdinc
-libssh2_la_SOURCES = channel.c comp.c crypt.c hostkey.c kex.c mac.c \
-	misc.c packet.c publickey.c scp.c session.c sftp.c userauth.c \
-	libssh2_priv.h openssl.h libgcrypt.h transport.c version.c \
-	transport.h channel.h comp.h mac.h $(am__append_1) \
+CSOURCES = channel.c comp.c crypt.c hostkey.c kex.c mac.c misc.c \
+	packet.c publickey.c scp.c session.c sftp.c userauth.c \
+	transport.c version.c knownhost.c $(am__append_1) \
 	$(am__append_2)
+HHEADERS = libssh2_priv.h openssl.h libgcrypt.h transport.h channel.h comp.h mac.h misc.h
+
+# Makefile.inc provides the CSOURCES and HHEADERS defines
+libssh2_la_SOURCES = $(CSOURCES) $(HHEADERS)
 EXTRA_DIST = libssh2_config.h.in NMakefile
 lib_LTLIBRARIES = libssh2.la
 
@@ -269,7 +274,7 @@ all: libssh2_config.h
 
 .SUFFIXES:
 .SUFFIXES: .c .lo .o .obj
-$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__configure_deps)
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(srcdir)/../Makefile.inc $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -356,6 +361,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/crypt.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hostkey.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/kex.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/knownhost.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgcrypt.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mac.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/misc.Plo@am__quote@
@@ -450,6 +456,7 @@ distclean-tags:
 	-rm -f TAGS ID GTAGS GRTAGS GSYMS GPATH tags
 
 distdir: $(DISTFILES)
+	$(mkdir_p) $(distdir)/..
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \

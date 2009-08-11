@@ -263,7 +263,7 @@ fullpacket(LIBSSH2_SESSION * session, int encrypted /* 1 or 0 */ )
 libssh2pack_t
 _libssh2_transport_read(LIBSSH2_SESSION * session)
 {
-    libssh2pack_t rc;
+    libssh2pack_t rc = -1;
     struct transportpacket *p = &session->packet;
     int remainbuf;
     int remainpack;
@@ -272,7 +272,6 @@ _libssh2_transport_read(LIBSSH2_SESSION * session)
     unsigned char block[MAX_BLOCKSIZE];
     int blocksize;
     int encrypted = 1;
-    int loop = 1;
     int status;
 
     /* default clear the bit */
@@ -297,17 +296,17 @@ _libssh2_transport_read(LIBSSH2_SESSION * session)
          * is done!
          */
         _libssh2_debug(session, LIBSSH2_DBG_TRANS, "Redirecting into the"
-            " key re-exchange");
+                       " key re-exchange");
         status = libssh2_kex_exchange(session, 1, &session->startup_key_state);
         if (status == PACKET_EAGAIN) {
             libssh2_error(session, LIBSSH2_ERROR_EAGAIN,
-                "Would block exchanging encryption keys", 0);
+                          "Would block exchanging encryption keys", 0);
             return PACKET_EAGAIN;
-      } else if (status) {
-          libssh2_error(session, LIBSSH2_ERROR_KEX_FAILURE,
-                      "Unable to exchange encryption keys",0);
-          return LIBSSH2_ERROR_KEX_FAILURE;
-      }
+        } else if (status) {
+            libssh2_error(session, LIBSSH2_ERROR_KEX_FAILURE,
+                          "Unable to exchange encryption keys",0);
+            return LIBSSH2_ERROR_KEX_FAILURE;
+        }
     }
 
     /*
@@ -351,7 +350,6 @@ _libssh2_transport_read(LIBSSH2_SESSION * session)
             /* If we have less than a blocksize left, it is too
                little data to deal with, read more */
             ssize_t nread;
-            size_t recv_amount;
 
             /* move any remainder to the start of the buffer so
                that we can do a full refill */
@@ -364,12 +362,11 @@ _libssh2_transport_read(LIBSSH2_SESSION * session)
                 p->readidx = p->writeidx = 0;
             }
 
-            recv_amount = PACKETBUFSIZE - remainbuf;
-
             /* now read a big chunk from the network into the temp buffer */
             nread =
                 _libssh2_recv(session->socket_fd, &p->buf[remainbuf],
-                              recv_amount, LIBSSH2_SOCKET_RECV_FLAGS(session));
+                              PACKETBUFSIZE - remainbuf,
+                              LIBSSH2_SOCKET_RECV_FLAGS(session));
             if (nread <= 0) {
                 /* check if this is due to EAGAIN and return the special
                    return code if so, error out normally otherwise */
@@ -379,10 +376,6 @@ _libssh2_transport_read(LIBSSH2_SESSION * session)
                     return PACKET_EAGAIN;
                 }
                 return PACKET_FAIL;
-            }
-            else if(nread != (ssize_t)recv_amount) {
-                /* we're done for this time! */
-                loop = 0;
             }
 
             debugdump(session, "libssh2_transport_read() raw",
@@ -431,7 +424,7 @@ _libssh2_transport_read(LIBSSH2_SESSION * session)
              * and we can extract packet and padding length from it
              */
             p->packet_length = _libssh2_ntohu32(block);
-            if ((p->packet_length < 1) || (p->packet_length > PACKETBUFSIZE))
+            if (p->packet_length < 1)
                 return PACKET_FAIL;
 
             p->padding_length = block[4];
@@ -581,11 +574,12 @@ _libssh2_transport_read(LIBSSH2_SESSION * session)
             }
 
             p->total_num = 0;   /* no packet buffer available */
+
             return rc;
         }
-    } while (loop); /* loop until done */
+    } while (1);                /* loop */
 
-    return rc;
+    return PACKET_FAIL;         /* we never reach this point */
 }
 
 static libssh2pack_t
@@ -619,12 +613,18 @@ send_existing(LIBSSH2_SESSION * session, unsigned char *data,
     rc = _libssh2_send(session->socket_fd, &p->outbuf[p->osent], length,
                        LIBSSH2_SOCKET_SEND_FLAGS(session));
 
+    if(rc > 0) {
+        debugdump(session, "libssh2_transport_write send()",
+                  &p->outbuf[p->osent], rc);
+    }
+
     if (rc == length) {
         /* the remainder of the package was sent */
         LIBSSH2_FREE(session, p->outbuf);
         p->outbuf = NULL;
         p->ototal_num = 0;
-    } else if (rc < 0) {
+    }
+    else if (rc < 0) {
         /* nothing was sent */
         if (errno != EAGAIN) {
             /* send failure! */
@@ -634,9 +634,7 @@ send_existing(LIBSSH2_SESSION * session, unsigned char *data,
         return PACKET_EAGAIN;
     }
 
-    debugdump(session, "libssh2_transport_write send()", &p->outbuf[p->osent],
-              length);
-    p->osent += length;         /* we sent away this much data */
+    p->osent += rc;         /* we sent away this much data */
 
     return PACKET_NONE;
 }
@@ -811,6 +809,3 @@ _libssh2_transport_write(LIBSSH2_SESSION * session, unsigned char *data,
 
     return PACKET_NONE;         /* all is good */
 }
-
-
-
