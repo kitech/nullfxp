@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-06-14 22:29:50 +0800
-// Last-Updated: 2009-07-19 13:32:13 +0000
+// Last-Updated: 2009-08-21 23:03:50 +0000
 // Version: $Id$
 // 
 
@@ -120,21 +120,26 @@ void RemoteHostConnectThread::run()
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(this->port);
-    
+
     emit connect_state_changed(tr("Resoving %1 ...").arg(this->host_name));
     // resolve host ip using qt class
-    QHostInfo hi = QHostInfo::fromName(this->host_name);
-    if (hi.error() != QHostInfo::NoError) {
-        this->connect_status = CONN_RESOLVE_ERROR ;
-        emit connect_state_changed(tr("Resoving host faild: (%1),%2").arg(hi.error())
-                                   .arg(hi.errorString()));
-        return;
+    QHostAddress dest_addr = QHostAddress(this->host_name); // for literal IP
+    if (dest_addr.isNull()) {
+        QHostInfo hi = QHostInfo::fromName(this->host_name);
+        if (hi.error() != QHostInfo::NoError) {
+            this->connect_status = CONN_RESOLVE_ERROR ;
+            emit connect_state_changed(tr("Resoving host faild: (%1),%2").arg(hi.error())
+                                       .arg(hi.errorString()));
+            return;
+        } else {
+            dest_addr = hi.addresses().at(0);
+        }
     }
 
 #ifdef WIN32
-    serv_addr.sin_addr.s_addr = (unsigned long)inet_addr(hi.addresses().at(0).toString().toAscii().data());
+    serv_addr.sin_addr.s_addr = (unsigned long)inet_addr(dest_addr.toString().toAscii().data());
 #else
-    ret = inet_pton(AF_INET, hi.addresses().at(0).toString().toAscii().data(), &serv_addr.sin_addr.s_addr);
+    ret = inet_pton(AF_INET, dest_addr.toString().toAscii().data(), &serv_addr.sin_addr.s_addr);
 #endif
 
     if (this->user_canceled == true) {
@@ -143,7 +148,7 @@ void RemoteHostConnectThread::run()
     }   
 
     emit connect_state_changed(tr("Connecting to %1 ( %2:%3 )").arg(this->host_name)
-                               .arg(hi.addresses().at(0).toString()).arg(this->port));
+                               .arg(dest_addr.toString()).arg(this->port));
     this->ssh2_sock = socket(AF_INET, SOCK_STREAM, 0);
     assert(this->ssh2_sock > 0);
 
