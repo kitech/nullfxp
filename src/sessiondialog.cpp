@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-07-16 21:35:27 +0000
-// Last-Updated: 2009-06-27 17:26:23 +0000
+// Last-Updated: 2009-08-21 16:05:19 +0000
 // Version: $Id$
 // 
 
@@ -14,7 +14,8 @@
 
 #include "sessiondialog.h"
 
-SessionDirModel::SessionDirModel(const QStringList &nameFilters, QDir::Filters filters, QDir::SortFlags sort, QObject *parent)
+SessionDirModel::SessionDirModel(const QStringList &nameFilters, 
+                                 QDir::Filters filters, QDir::SortFlags sort, QObject *parent)
     : QDirModel(nameFilters, filters, sort, parent)
 {
     
@@ -67,6 +68,8 @@ SessionDialog::SessionDialog(QWidget * parent)
                      this, SLOT(slot_ctx_menu_requested(const QPoint &)));
     QObject::connect(this->ui_win.treeView, SIGNAL(doubleClicked(const QModelIndex&)),
                      this, SLOT(slot_conntect_selected_host(const QModelIndex&)));
+    QObject::connect(this->ui_win.treeView, SIGNAL(clicked(const QModelIndex &)),
+                     this, SLOT(slot_item_clicked(const QModelIndex &)));
     QObject::connect(this->ui_win.toolButton, SIGNAL(clicked()),
                      this, SLOT(slot_conntect_selected_host()));
     QObject::connect(this->ui_win.toolButton_2, SIGNAL(clicked()),
@@ -492,5 +495,14 @@ void SessionDialog::slot_new_folder()
         }
     }    
 }
+
+void SessionDialog::slot_item_clicked(const QModelIndex &index)
+{
+    Q_UNUSED(index);
+    if (QApplication::keyboardModifiers() == Qt::ControlModifier) {
+        this->ui_win.treeView->clearSelection();
+    }
+}
+
 //
 // sessiondialog.cpp ends here

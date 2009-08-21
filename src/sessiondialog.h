@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-07-16 22:06:33 +0000
-// Last-Updated: 2009-06-27 12:20:54 +0000
+// Last-Updated: 2009-08-21 16:05:22 +0000
 // Version: $Id$
 // 
 
@@ -53,6 +53,7 @@ signals:
 private slots:
     void slot_ctx_menu_requested(const QPoint & pos);
     void slot_show_no_item_tip();
+    void slot_item_clicked(const QModelIndex &index);
 
 private:
     Ui::HostListDialog ui_win;
