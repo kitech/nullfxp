@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-05-25 09:50:50 +0000
-// Last-Updated: 2009-08-22 12:55:26 +0000
+// Last-Updated: 2009-08-22 16:25:02 +0000
 // Version: $Id$
 // 
 
@@ -91,7 +91,7 @@ int  RemoteDirRetriveThread::retrive_dir()
 {
     int exec_ret = -1;
     
-    directory_tree_item *parent_item, *new_item, *tmp_item;
+    directory_tree_item *parent_item, *new_item;
     void *parent_model_internal_pointer;
 
     QString tmp;
@@ -99,9 +99,6 @@ int  RemoteDirRetriveThread::retrive_dir()
     QVector< QMap< char, QString > > fileinfos;
     char file_name[PATH_MAX+1];
     int fxp_ls_ret = 0;
-    char file_size[20] = {0};
-    char file_date[32] = {0};
-    char file_type[20] = {0};
  
     while (this->dir_node_process_queue.size() >0) {
         std::map<directory_tree_item*,void * >::iterator mit;
@@ -116,8 +113,7 @@ int  RemoteDirRetriveThread::retrive_dir()
             parent_item->childAt(i)->delete_flag = 1;
         }
 
-        LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib ;
-        memset(&ssh2_sftp_attrib,0,sizeof(LIBSSH2_SFTP_ATTRIBUTES));
+        LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
         LIBSSH2_SFTP_HANDLE *ssh2_sftp_handle = 0;
         ssh2_sftp_handle = libssh2_sftp_opendir(this->ssh2_sftp,
                                                 GlobalOption::instance()->remote_codec->fromUnicode(parent_item->strip_path+ ( "/" )).data());
@@ -128,17 +124,16 @@ int  RemoteDirRetriveThread::retrive_dir()
             qDebug()<<" sftp last error: "<< libssh2_sftp_last_error(this->ssh2_sftp)
                     <<(parent_item->strip_path+ ( "/" ))
                     <<GlobalOption::instance()->remote_codec
-                ->fromUnicode(parent_item->strip_path+ ( "/" )).data();
+                ->fromUnicode(parent_item->strip_path + ( "/" )).data();
         }
         fxp_ls_ret = 0;
         while (ssh2_sftp_handle != 0 &&
                libssh2_sftp_readdir(ssh2_sftp_handle, file_name, PATH_MAX, &ssh2_sftp_attrib ) > 0)
         {
-            QMap<char,QString> thefile;
             if (strlen(file_name) == 1 && file_name[0] == '.') continue;
             if (strlen(file_name) == 2 && file_name[0] == '.' && file_name[1] == '.') continue;
             //不处理隐藏文件? 处理隐藏文件,在这要提供隐藏文件，上层使用过滤代理模型提供显示隐藏文件的功能。
-            tmp = QString( GlobalOption::instance()->remote_codec->toUnicode(file_name ));
+            tmp = QString(GlobalOption::instance()->remote_codec->toUnicode(file_name));
             if (parent_item->setDeleteFlag(tmp, 0)) {
                 if (fxp_ls_ret++ == 0) 
                     printf("Already in list, omited %d", fxp_ls_ret), fxp_ls_ret = fxp_ls_ret | 1<<16;
@@ -244,7 +239,7 @@ int  RemoteDirRetriveThread::rm_file_or_directory_recursively()
         qDebug()<<" rm  system directory recusively , this is danger.";
     } else {
         //找到这个要删除的结点并删除
-        for (int  i = 0 ; i < parent_item->child_items.size() ; i ++) {
+        for (unsigned int  i = 0 ; i < parent_item->child_items.size() ; i ++) {
             child_item = parent_item->child_items[i];
             if (child_item->file_name.compare( cmd_item->params ) == 0) {
                 qDebug()<<"found whill remove file:"<<child_item->strip_path;
@@ -268,7 +263,6 @@ int RemoteDirRetriveThread::rm_file_or_directory_recursively_ex(QString parent_p
    
     QString abs_path;
     QVector<QMap<char, QString> > fileinfos;
-    directory_tree_item *child_item = 0;
     
     //再次从服务器列出目录，然后处理
     //int lflag = 0 ;    

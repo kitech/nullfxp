@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-05-05 21:49:36 +0800
-// Last-Updated: 2009-08-21 09:05:06 +0000
+// Last-Updated: 2009-08-22 16:31:57 +0000
 // Version: $Id$
 // 
 
@@ -260,7 +260,7 @@ void RemoteView::slot_new_transfer()
             (this->curr_item_view!=this->remoteview.treeView 
              ? this->remote_dir_sort_filter_model->mapToSource(midx).internalPointer() 
              : (this->remote_dir_sort_filter_model_ex->mapToSource(midx ).internalPointer()));
-        qDebug()<<dti->file_name<<" "<<dti->file_type<<" "<<dti->strip_path;
+        qDebug()<<dti->file_name<<" "<<" "<<dti->strip_path;
         file_path = dti->strip_path;
         remote_pkg.files<<file_path;
     }
@@ -291,8 +291,7 @@ QString RemoteView::get_selected_directory()
         QModelIndex midx = mil.at(i);
         QModelIndex aim_midx =  this->remote_dir_sort_filter_model_ex->mapToSource(midx);
         directory_tree_item *dti = (directory_tree_item*) aim_midx.internalPointer();
-        qDebug()<<dti->file_name <<" "<<dti->file_type 
-                <<" "<< dti->strip_path;
+        qDebug()<<dti->file_name <<" "<< dti->strip_path;
         if (this->remote_dir_sort_filter_model_ex->isDir(midx)) {
         	  file_path = dti->strip_path;
         } else {
@@ -419,8 +418,7 @@ void RemoteView::update_layout()
         //这个地方为什么不使用mapToSource会崩溃呢？
         directory_tree_item *dti = static_cast<directory_tree_item*>
             (this->remote_dir_sort_filter_model_ex->mapToSource(midx).internalPointer());
-        qDebug()<<dti->file_name<<" "<<dti->file_type
-                <<" "<< dti->strip_path;
+        qDebug()<<dti->file_name<<" "<< dti->strip_path;
         file_path = dti->strip_path;
         dti->retrived = 1;
         dti->prev_retr_flag=9;

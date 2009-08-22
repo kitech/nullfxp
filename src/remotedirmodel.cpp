@@ -3,8 +3,8 @@
 // Author: liuguangzhao
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
-// Created: 2009-05-25 09:47:47 +0000
-// Last-Updated: 2009-07-13 22:52:22 +0000
+// Created: 2008-05-25 09:47:47 +0000
+// Last-Updated: 2009-08-22 16:25:17 +0000
 // Version: $Id$
 // 
 
@@ -108,8 +108,8 @@ void RemoteDirModel::set_user_home_path ( std::string user_home_path )
         temp_tree_item->retrived = ( sep_pos == NULL ) ?0:1 ;  //半满结点
         temp_tree_item->strip_path = temp_strip_path;
         temp_tree_item->file_name = temp_path_name;
-        temp_tree_item->file_size =  "0" ;
-        temp_tree_item->file_type =  "drwxr-xr-x" ;
+        // temp_tree_item->file_size =  "0" ;
+        // temp_tree_item->file_type =  "drwxr-xr-x" ;
         temp_tree_item->prev_retr_flag = -1 ;
         temp_tree_item->attrib.permissions = 16877;//默认目录属性: drwxr-xr-x
 
@@ -470,9 +470,9 @@ void RemoteDirModel::dump_tree_node_item ( directory_tree_item * node_item ) con
     assert ( node_item != 0 );
     qDebug() <<"====================>>>>";
     qDebug() <<"name="<<QString ( node_item->file_name );
-    qDebug() <<"Type="<<QString ( node_item->file_type );
-    qDebug() <<"Size="<<QString ( node_item->file_size );
-    qDebug() <<"Date="<<QString ( node_item->file_date );
+    qDebug() <<"Type="<<QString ( node_item->fileType() );
+    qDebug() <<"Size="<<QString ( node_item->strFileSize() );
+    qDebug() <<"Date="<<QString ( node_item->fileMDate());
     qDebug() <<"Retrived="<<node_item->retrived;
     qDebug() <<"prev_retr_flag="<<node_item->prev_retr_flag;
     qDebug() <<"ChildCount="<<node_item->child_items.size();
@@ -486,10 +486,8 @@ void RemoteDirModel::slot_remote_dir_node_retrived(directory_tree_item *parent_i
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
     int row , col = 0;
-    for ( int i = parent_item->child_items.size()-1 ; i >=0  ; i -- )
-    {
-        if ( parent_item->child_items[i]->delete_flag == 1 )
-        {
+    for (int i = parent_item->child_items.size()-1 ; i >=0  ; i --) {
+        if (parent_item->child_items[i]->delete_flag == 1) {
             row = parent_item->child_items[i]->row_number ;
             qDebug() << "find should delete item "<< i
                      <<" row num:"<< row ;
@@ -553,8 +551,8 @@ QMimeData *RemoteDirModel::mimeData ( const QModelIndexList &indexes ) const
 
     assert ( selected_item != NULL );
 
-    file_name = selected_item->strip_path  ;
-    file_type = selected_item->file_type  ;
+    file_name = selected_item->strip_path;
+    file_type = selected_item->fileType();
 
     //格式说明：sftp://file_name||file_type
     file_name = QString ( "sftp://" + file_name+"||"+file_type ).toAscii() ;

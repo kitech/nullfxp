@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-07-19 14:43:08 +0800
-// Last-Updated: 
+// Last-Updated: 2009-08-22 16:23:50 +0000
 // Version: $Id$
 // 
 
@@ -113,7 +113,6 @@ void FileProperties::slot_file_attr_abtained(QString file_name, void * attr)
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
-	char file_date[60] = {0};
 	char file_perm[60] = {0};
     QString file_size ;
 	LIBSSH2_SFTP_ATTRIBUTES * sftp_attrib = (LIBSSH2_SFTP_ATTRIBUTES *)attr;

@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-07-19 13:55:48 +0000
-// Last-Updated: 2009-08-22 10:50:11 +0000
+// Last-Updated: 2009-08-22 16:23:57 +0000
 // Version: $Id$
 // 
 
@@ -69,9 +69,9 @@ public:
     QString strip_path;
     QString file_name;
 
-    QString file_size;
-    QString file_date;
-    QString file_type;
+    // QString file_size;
+    // QString file_date;
+    // QString file_type;
     LIBSSH2_SFTP_ATTRIBUTES attrib;
 
 public:
@@ -83,9 +83,12 @@ public:
     directory_tree_item *childAt(int index);
     QString filePath();
     QString fileName();
-    QString fileMode();    
+    QString fileMode();
     QString fileMDate();
-    QString fileADate();    
+    QString fileADate();
+    quint64 fileSize();
+    QString strFileSize();
+    QString fileType();
 };
 
 #endif
