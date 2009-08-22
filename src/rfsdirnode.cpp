@@ -3,8 +3,8 @@
 // Author: liuguangzhao
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
-// Created: 2009-08-09 11:50:49 +0000
-// Last-Updated: 2009-07-13 22:43:00 +0000
+// Created: 2008-08-09 11:50:49 +0000
+// Last-Updated: 2009-08-22 11:08:30 +0000
 // Version: $Id$
 // 
 
@@ -40,7 +40,7 @@ directory_tree_item *directory_tree_item::parent()
 }
 bool directory_tree_item::hasChild(QString name)
 {
-    for (int i = 0 ; i < this->child_items.size(); i++) {
+    for (unsigned int i = 0 ; i < this->child_items.size(); i++) {
         if (child_items[i]->file_name == name) {
             return true;
         }
@@ -51,7 +51,7 @@ bool directory_tree_item::hasChild(QString name)
 
 bool directory_tree_item::setDeleteFlag(QString name, bool del)
 {
-    for (int i = 0 ; i < this->child_items.size(); i++) {
+    for (unsigned int i = 0 ; i < this->child_items.size(); i++) {
         if (child_items[i]->file_name == name) {
             this->child_items[i]->delete_flag = del;
             return true;

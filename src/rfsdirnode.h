@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-07-19 13:55:48 +0000
-// Last-Updated: 2009-07-27 10:12:21 +0800
+// Last-Updated: 2009-08-22 10:50:11 +0000
 // Version: $Id$
 // 
 
@@ -13,7 +13,6 @@
 #define RFSDIRNODE_H
 
 #include <QtCore>
-#include <QtGui>
 
 #include "libssh2.h"
 #include "libssh2_sftp.h"
@@ -42,9 +41,9 @@ public:
     }
     ~directory_tree_item();
 
-    int prev_retr_flag ;    // 前一步的retrived 状态值。在改变retrived的状态的时候使用。
-    int retrived ;  // 1 , 0
-    int delete_flag ;   // 1 , 0 ;
+    unsigned char prev_retr_flag;    // 前一步的retrived 状态值。在改变retrived的状态的时候使用。
+    unsigned char retrived;  // 1 , 0
+    unsigned char delete_flag;   // 1 , 0 ;
     /*
       0 表示UI没有要求过的，所以我们也没有取过数据的            
       1 表示UI没有请求过，我们自己填入了部分数据（如用户指定他的初始化目录的时候），即这表示需要更新的结点
@@ -60,18 +59,19 @@ public:
 
     QVector<directory_tree_item *> children;
     
-    std::map< int, directory_tree_item *> child_items ;
+    std::map<int, directory_tree_item *> child_items;
     directory_tree_item *parent_item;
-    int row_number ;    //指的是所包含的子结点个数
+    int row_number;    //指的是所包含的子结点个数
     //N , S , T , D
     //T = D , F , L
-                
-    QString strip_path ;
-    QString file_name ;
 
-    QString file_size ;
-    QString file_date ;
-    QString file_type ;
+    // TODO 去掉一些变量，减小内存用量
+    QString strip_path;
+    QString file_name;
+
+    QString file_size;
+    QString file_date;
+    QString file_type;
     LIBSSH2_SFTP_ATTRIBUTES attrib;
 
 public:
