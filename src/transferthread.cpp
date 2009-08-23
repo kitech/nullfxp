@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-06-14 09:06:28 +0800
-// Last-Updated: 2009-07-25 21:20:14 +0800
+// Last-Updated: 2009-08-23 13:09:57 +0000
 // Version: $Id$
 // 
 
@@ -665,16 +665,12 @@ int TransferThread::do_upload(QString local_path, QString remote_path, int pflag
     } else {
         //read local file and then write to remote file
         while (!q_file.atEnd()) {
-            qDebug()<<"Read local ... ";
             rlen = q_file.read(buff, sizeof(buff));
-            qDebug()<<"Read local done ";
             if (rlen <= 0) {
                 //qDebug()<<"errno: "<<errno<<" err msg:"<< strerror( errno) << ftell( local_handle) ;
                 break ;
             }
-            qDebug()<<"write to sftp ... ";
             wlen = libssh2_sftp_write(sftp_handle, buff, rlen);
-            qDebug()<<"write to sftp done ";
             Q_ASSERT(wlen == rlen);
             if (wlen < rlen) {
                 q_debug()<<"write to server less then need write bytes";

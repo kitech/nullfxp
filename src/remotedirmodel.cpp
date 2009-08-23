@@ -275,10 +275,13 @@ QVariant RemoteDirModel::data ( const QModelIndex &index, int role ) const
     struct tm *ltime = 0;
 
     if (role == Qt::DecorationRole && index.column()==0) {
-        if (this->isDir(index))
+        if (this->isDir(index)) {
             return qApp->style()->standardIcon(QStyle::SP_DirIcon);
-        else
+        } else if (this->isSymbolLink(index)) {
+            return qApp->style()->standardIcon(QStyle::SP_DirLinkIcon);
+        } else {
             return qApp->style()->standardIcon(QStyle::SP_FileIcon);
+        }
     }
     
     if (role != Qt::DisplayRole)
@@ -645,16 +648,13 @@ bool RemoteDirModel::isDir(const QModelIndex &index) const
     assert(node_item != 0);
 
     return node_item->isDir();
-    //depcreated
-    /*
-    if( node_item->child_items.size() > 0 
-        || node_item->file_type.at(0) == QChar('d') 
-        || node_item->file_type.at(0) == QChar('D') 
-        || node_item->file_type.at(0) == QChar('l') 
-        )
-        return true ;
-    return false ;
-    */
 }
 
+bool RemoteDirModel::isSymbolLink(const QModelIndex &index) const
+{
+    directory_tree_item * node_item = static_cast<directory_tree_item*>(index.internalPointer()) ;
+    assert(node_item != 0);
+
+    return node_item->isSymbolLink();    
+}
 

@@ -76,6 +76,7 @@ public:
 
 public:
     bool isDir();
+    bool isSymbolLink();
     int childCount();
     bool hasChild(QString name);
     bool setDeleteFlag(QString name, bool del);
