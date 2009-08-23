@@ -74,6 +74,7 @@ void RemoteDirModel::set_user_home_path(std::string user_home_path)
     strcpy(buff2,this->user_home_path.c_str());
     pre_sep_pos = buff;
 
+    assert(buff[0] == '/');
     while (1) {
         sep_pos = strchr ( buff,'/' ) ;
         if ( sep_pos == NULL ) {
@@ -273,8 +274,6 @@ QVariant RemoteDirModel::data ( const QModelIndex &index, int role ) const
     QVariant ret_var ;
     QString unicode_name ;
 
-    struct tm *ltime = 0;
-
     if (role == Qt::DecorationRole && index.column()==0) {
         if (this->isDir(index)) {
             return qApp->style()->standardIcon(QStyle::SP_DirIcon);
@@ -355,7 +354,7 @@ int RemoteDirModel::columnCount ( const QModelIndex &/*parent*/ ) const
 
 int RemoteDirModel::rowCount(const QModelIndex &parent) const
 {
-    //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    q_debug()<<parent;
     int row_count = 0;
 
     if (!parent.isValid()) {
@@ -364,15 +363,15 @@ int RemoteDirModel::rowCount(const QModelIndex &parent) const
         directory_tree_item *parent_item = static_cast<directory_tree_item*>(parent.internalPointer());
         assert(parent_item != NULL);
 
+        q_debug()<<parent<<"opening "<<parent_item->strip_path<<parent_item->file_name;
+
         if (parent_item->retrived == 0
              // || parent_item->retrived == 1
              || parent_item->retrived == 2 ) //为了lazy模式的需要，才做一个假数据。
         {
             //或者是不是要在这里取子结点的行数，即去远程找数据呢。
-            //row_count =1 ;
-            this->remote_dir_retrive_thread->add_node(parent_item, parent.internalPointer());
-            q_debug()<<"waiting for row count...";
-            q_debug()<<"opening "<<parent_item->strip_path<<parent_item->file_name;
+            // row_count =1 ;
+            // this->remote_dir_retrive_thread->add_node(parent_item, parent.internalPointer());
         } else {
             row_count = parent_item->child_items.size();
         }
@@ -384,11 +383,19 @@ int RemoteDirModel::rowCount(const QModelIndex &parent) const
 
 bool RemoteDirModel::hasChildren(const QModelIndex &index) const
 {
-    q_debug()<<"";
-    if (index.isValid())
-        return this->isDir(index);
-    else
+    q_debug()<<""<<index;
+    if (index.isValid()) {
+        directory_tree_item *parent_item = static_cast<directory_tree_item*>(index.parent().internalPointer());
+        if (parent_item != NULL) {
+            q_debug()<<index<<isDir(index)<<"opening "<<parent_item->strip_path<<parent_item->file_name;
+            return this->isDir(index);
+        } else {
+            q_debug()<<index<<"index pointer null";
+        }
         return true;
+    } else {
+        return true;
+    }
 }
 
 bool RemoteDirModel::setData ( const QModelIndex & index, const QVariant & value, int role )

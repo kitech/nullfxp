@@ -61,7 +61,7 @@ public:
     
     std::map<int, directory_tree_item *> child_items;
     directory_tree_item *parent_item;
-    int row_number;    //指的是所包含的子结点个数
+    int row_number;    //指的是所包含的子结点个数 //这个也没有用了吧
     //N , S , T , D
     //T = D , F , L
 
