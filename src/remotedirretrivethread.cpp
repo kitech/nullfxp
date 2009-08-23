@@ -46,6 +46,11 @@ void RemoteDirRetriveThread::set_ssh2_handler(void *ssh2_sess)
     assert(this->ssh2_sftp != 0);
 }
 
+LIBSSH2_SFTP *RemoteDirRetriveThread::get_ssh2_sftp()
+{
+    return this->ssh2_sftp;
+}
+
 void RemoteDirRetriveThread::run()
 {
     emit enter_remote_dir_retrive_loop();

@@ -1,7 +1,8 @@
-<ui version="4.0" >
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
  <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow" >
-  <property name="geometry" >
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
@@ -9,207 +10,189 @@
     <height>569</height>
    </rect>
   </property>
-  <property name="windowTitle" >
+  <property name="windowTitle">
    <string>NullFXP</string>
   </property>
-  <widget class="QWidget" name="centralwidget" >
-   <property name="geometry" >
-    <rect>
-     <x>0</x>
-     <y>24</y>
-     <width>749</width>
-     <height>524</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QMenuBar" name="menubar" >
-   <property name="geometry" >
+  <widget class="QWidget" name="centralwidget"/>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
      <width>749</width>
-     <height>24</height>
+     <height>22</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuFfff" >
-    <property name="title" >
+   <widget class="QMenu" name="menuFfff">
+    <property name="title">
      <string>&amp;Remote</string>
     </property>
-    <addaction name="actionConnect" />
-    <addaction name="actionDisconnect" />
-    <addaction name="separator" />
-    <addaction name="actionSession" />
+    <addaction name="actionConnect"/>
+    <addaction name="actionDisconnect"/>
+    <addaction name="separator"/>
+    <addaction name="actionSession"/>
    </widget>
-   <widget class="QMenu" name="menuOidfgsdf" >
-    <property name="title" >
+   <widget class="QMenu" name="menuOidfgsdf">
+    <property name="title">
      <string>&amp;View</string>
     </property>
-    <addaction name="actionTransfer_queue" />
-    <addaction name="actionShow_log" />
+    <addaction name="actionTransfer_queue"/>
+    <addaction name="actionShow_log"/>
    </widget>
-   <widget class="QMenu" name="menuK" >
-    <property name="title" >
+   <widget class="QMenu" name="menuK">
+    <property name="title">
      <string>&amp;Window</string>
     </property>
-    <addaction name="action_Local_Window" />
-    <addaction name="action_Remote_Window" />
-    <addaction name="separator" />
-    <addaction name="actionCascade_window" />
-    <addaction name="actionTile_window" />
-    <addaction name="separator" />
+    <addaction name="action_Local_Window"/>
+    <addaction name="action_Remote_Window"/>
+    <addaction name="separator"/>
+    <addaction name="actionCascade_window"/>
+    <addaction name="actionTile_window"/>
+    <addaction name="separator"/>
    </widget>
-   <widget class="QMenu" name="menuDsfsdf" >
-    <property name="title" >
+   <widget class="QMenu" name="menuDsfsdf">
+    <property name="title">
      <string>&amp;Help</string>
     </property>
-    <addaction name="actionAbout_NullFXP" />
-    <addaction name="actionAbout_Qt" />
+    <addaction name="actionAbout_NullFXP"/>
+    <addaction name="actionAbout_Qt"/>
    </widget>
-   <widget class="QMenu" name="menu_File" >
-    <property name="title" >
+   <widget class="QMenu" name="menu_File">
+    <property name="title">
      <string>&amp;File</string>
     </property>
-    <addaction name="actionQuit" />
+    <addaction name="actionQuit"/>
    </widget>
-   <widget class="QMenu" name="menuTool" >
-    <property name="title" >
+   <widget class="QMenu" name="menuTool">
+    <property name="title">
      <string>&amp;Tool</string>
     </property>
-    <addaction name="action_Forward_connect" />
-    <addaction name="action_Synchronize_file" />
+    <addaction name="action_Forward_connect"/>
+    <addaction name="action_Synchronize_file"/>
    </widget>
-   <addaction name="menu_File" />
-   <addaction name="menuFfff" />
-   <addaction name="menuOidfgsdf" />
-   <addaction name="menuTool" />
-   <addaction name="menuK" />
-   <addaction name="menuDsfsdf" />
+   <addaction name="menu_File"/>
+   <addaction name="menuFfff"/>
+   <addaction name="menuOidfgsdf"/>
+   <addaction name="menuTool"/>
+   <addaction name="menuK"/>
+   <addaction name="menuDsfsdf"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar" >
-   <property name="geometry" >
-    <rect>
-     <x>0</x>
-     <y>548</y>
-     <width>749</width>
-     <height>21</height>
-    </rect>
-   </property>
-  </widget>
-  <action name="actionInit_dir_view" >
-   <property name="text" >
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionInit_dir_view">
+   <property name="text">
     <string>init dir view</string>
    </property>
   </action>
-  <action name="actionRefresh" >
-   <property name="text" >
+  <action name="actionRefresh">
+   <property name="text">
     <string>refresh</string>
    </property>
   </action>
-  <action name="action_Local_Window" >
-   <property name="checkable" >
+  <action name="action_Local_Window">
+   <property name="checkable">
     <bool>true</bool>
    </property>
-   <property name="text" >
+   <property name="text">
     <string>&amp;Local Window</string>
    </property>
   </action>
-  <action name="action_Remote_Window" >
-   <property name="checkable" >
+  <action name="action_Remote_Window">
+   <property name="checkable">
     <bool>true</bool>
    </property>
-   <property name="text" >
+   <property name="text">
     <string>&amp;Remote Window</string>
    </property>
   </action>
-  <action name="actionConnect" >
-   <property name="text" >
+  <action name="actionConnect">
+   <property name="text">
     <string>New Connect ...</string>
    </property>
   </action>
-  <action name="actionDisconnect" >
-   <property name="text" >
+  <action name="actionDisconnect">
+   <property name="text">
     <string>Disconnect..</string>
    </property>
   </action>
-  <action name="actionInit_remote_dir_view" >
-   <property name="text" >
+  <action name="actionInit_remote_dir_view">
+   <property name="text">
     <string>Init remote dir view</string>
    </property>
   </action>
-  <action name="actionQuit" >
-   <property name="text" >
+  <action name="actionQuit">
+   <property name="text">
     <string>&amp;Quit</string>
    </property>
   </action>
-  <action name="actionTransfer_queue" >
-   <property name="checkable" >
+  <action name="actionTransfer_queue">
+   <property name="checkable">
     <bool>true</bool>
    </property>
-   <property name="checked" >
+   <property name="checked">
     <bool>true</bool>
    </property>
-   <property name="text" >
+   <property name="text">
     <string>Transfer queue</string>
    </property>
   </action>
-  <action name="actionShow_log" >
-   <property name="checkable" >
+  <action name="actionShow_log">
+   <property name="checkable">
     <bool>true</bool>
    </property>
-   <property name="checked" >
+   <property name="checked">
     <bool>true</bool>
    </property>
-   <property name="text" >
+   <property name="text">
     <string>Show log</string>
    </property>
   </action>
-  <action name="actionCascade_window" >
-   <property name="checkable" >
+  <action name="actionCascade_window">
+   <property name="checkable">
     <bool>true</bool>
    </property>
-   <property name="text" >
+   <property name="text">
     <string>Cascade window</string>
    </property>
   </action>
-  <action name="actionTile_window" >
-   <property name="checkable" >
+  <action name="actionTile_window">
+   <property name="checkable">
     <bool>true</bool>
    </property>
-   <property name="text" >
+   <property name="text">
     <string>Tile window</string>
    </property>
   </action>
-  <action name="actionAbout_NullFXP" >
-   <property name="text" >
+  <action name="actionAbout_NullFXP">
+   <property name="text">
     <string>About &amp;NullFXP</string>
    </property>
   </action>
-  <action name="actionAbout_Qt" >
-   <property name="text" >
+  <action name="actionAbout_Qt">
+   <property name="text">
     <string>About &amp;Qt</string>
    </property>
   </action>
-  <action name="action_Forward_connect" >
-   <property name="checkable" >
+  <action name="action_Forward_connect">
+   <property name="checkable">
     <bool>true</bool>
    </property>
-   <property name="text" >
+   <property name="text">
     <string>&amp;Forward connect</string>
    </property>
   </action>
-  <action name="action_Synchronize_file" >
-   <property name="text" >
+  <action name="action_Synchronize_file">
+   <property name="text">
     <string>&amp;Synchronize file</string>
    </property>
   </action>
-  <action name="actionSession" >
-   <property name="text" >
+  <action name="actionSession">
+   <property name="text">
     <string>Session ...</string>
    </property>
   </action>
  </widget>
  <resources>
-  <include location="nullfxp.qrc" />
+  <include location="nullfxp.qrc"/>
  </resources>
  <connections>
   <connection>
@@ -218,11 +201,11 @@
    <receiver>MainWindow</receiver>
    <slot>close()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>-1</x>
      <y>-1</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>301</x>
      <y>214</y>
     </hint>

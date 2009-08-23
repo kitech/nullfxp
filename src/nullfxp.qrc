@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="/" >
+    <file>icons/emblem-symbolic-link.png</file>
     <file>icons/folder-new.png</file>
     <file>icons/help-contents.png</file>
     <file>icons/document-properties.png</file>

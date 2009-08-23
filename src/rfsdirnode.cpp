@@ -28,12 +28,14 @@ directory_tree_item::~directory_tree_item()
 
 bool directory_tree_item::isDir()
 {
+    return S_ISDIR(this->attrib.permissions);
     return S_ISDIR(this->attrib.permissions) || S_ISLNK(this->attrib.permissions);
 }
 
 bool directory_tree_item::isSymbolLink()
 {
-    return this->attrib.permissions & LIBSSH2_SFTP_S_IFLNK;
+    return S_ISLNK(this->attrib.permissions);
+    // return this->attrib.permissions & LIBSSH2_SFTP_S_IFLNK;
 }
 
 int directory_tree_item::childCount()
@@ -83,19 +85,9 @@ QString directory_tree_item::fileName()
 }
 QString directory_tree_item::fileMode()
 {
-    char file_date[PATH_MAX+1];
-#ifndef _MSC_VER
-    struct tm *ltime = localtime((time_t*)&this->attrib.atime);
-    if (ltime != NULL) {
-        if (time(NULL) - this->attrib.atime < (365*24*60*60) / 2)
-            strftime(file_date, sizeof file_date, "%Y/%m/%d %H:%M:%S", ltime);
-        else
-            strftime(file_date, sizeof file_date, "%Y/%m/%d %H:%M:%S", ltime);
-    }
-#else
-    _snprintf(file_date, sizeof(file_date) - 1, "0000/00/00 00:00:00");
-#endif    
-    return QString(file_date);
+    char mem[32] = {0};
+    strmode(this->attrib.permissions, mem);
+    return QString(mem);
 }
 QString directory_tree_item::fileMDate()
 {
@@ -116,6 +108,19 @@ QString directory_tree_item::fileMDate()
 QString directory_tree_item::fileADate()
 {
     return QString();
+    char file_date[PATH_MAX+1];
+#ifndef _MSC_VER
+    struct tm *ltime = localtime((time_t*)&this->attrib.atime);
+    if (ltime != NULL) {
+        if (time(NULL) - this->attrib.atime < (365*24*60*60) / 2)
+            strftime(file_date, sizeof file_date, "%Y/%m/%d %H:%M:%S", ltime);
+        else
+            strftime(file_date, sizeof file_date, "%Y/%m/%d %H:%M:%S", ltime);
+    }
+#else
+    _snprintf(file_date, sizeof(file_date) - 1, "0000/00/00 00:00:00");
+#endif    
+    return QString(file_date);
 }
 
 quint64 directory_tree_item::fileSize()
