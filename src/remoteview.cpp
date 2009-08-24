@@ -4,10 +4,8 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-05-05 21:49:36 +0800
-// Last-Updated: 2009-08-22 16:31:57 +0000
 // Version: $Id$
 // 
-
 
 #include <QtCore>
 #include <QtGui>
@@ -156,12 +154,13 @@ void RemoteView::i_init_dir_view()
     this->remote_dir_model->set_ssh2_handler(this->ssh2_sess);
     
     this->remote_dir_model->set_user_home_path(this->user_home_path);
-    this->remote_dir_sort_filter_model = new RemoteDirSortFilterModel();
-    this->remote_dir_sort_filter_model->setSourceModel(this->remote_dir_model);
-    this->remote_dir_sort_filter_model_ex = new RemoteDirSortFilterModelEX();
-    this->remote_dir_sort_filter_model_ex->setSourceModel(this->remote_dir_model);
+    // this->remote_dir_sort_filter_model = new RemoteDirSortFilterModel();
+    // this->remote_dir_sort_filter_model->setSourceModel(this->remote_dir_model);
+    // this->remote_dir_sort_filter_model_ex = new RemoteDirSortFilterModelEX();
+    // this->remote_dir_sort_filter_model_ex->setSourceModel(this->remote_dir_model);
     
-    this->remoteview.treeView->setModel(remote_dir_sort_filter_model_ex);
+    // this->remoteview.treeView->setModel(remote_dir_sort_filter_model_ex);
+    this->remoteview.treeView->setModel(this->remote_dir_model);
     this->remoteview.treeView->setAcceptDrops(true);
     this->remoteview.treeView->setDragEnabled(false);
     this->remoteview.treeView->setDropIndicatorShown(true);
@@ -176,8 +175,8 @@ void RemoteView::i_init_dir_view()
     QObject::connect( this->remote_dir_model, SIGNAL(leave_remote_dir_retrive_loop()),
                       this, SLOT(slot_leave_remote_dir_retrive_loop()));
     
-    this->remoteview.treeView->expandAll();
-    this->remoteview.treeView->setColumnWidth(0, this->remoteview.treeView->columnWidth(0)*2);
+    // this->remoteview.treeView->expandAll();
+    // this->remoteview.treeView->setColumnWidth(0, this->remoteview.treeView->columnWidth(0)*2);
     
     //这里设置为true时，导致这个treeView不能正确显示滚动条了，为什么呢?
     //this->remoteview.treeView->setColumnHidden( 1, false);
@@ -186,19 +185,19 @@ void RemoteView::i_init_dir_view()
     this->remoteview.treeView->setColumnHidden(3, true);
     
     /////tableView
-    this->remoteview.tableView->setModel(this->remote_dir_sort_filter_model);
-    this->remoteview.tableView->setRootIndex(this->remote_dir_sort_filter_model->index(this->user_home_path.c_str()));
+    // this->remoteview.tableView->setModel(this->remote_dir_sort_filter_model);
+    // this->remoteview.tableView->setRootIndex(this->remote_dir_sort_filter_model->index(this->user_home_path.c_str()));
 
-    //change row height of table 
-    if (this->remote_dir_sort_filter_model->rowCount(this->remote_dir_sort_filter_model->index(this->user_home_path.c_str())) > 0) {
-        this->table_row_height = this->remoteview.tableView->rowHeight(0)*2/3;
-    } else {
-        this->table_row_height = 20 ;
-    }
-    for (int i = 0; i < this->remote_dir_sort_filter_model->rowCount(this->remote_dir_sort_filter_model->index(this->user_home_path.c_str())); i ++) {
-        this->remoteview.tableView->setRowHeight(i, this->table_row_height);
-    }
-    this->remoteview.tableView->resizeColumnToContents(0);
+    // //change row height of table 
+    // if (this->remote_dir_sort_filter_model->rowCount(this->remote_dir_sort_filter_model->index(this->user_home_path.c_str())) > 0) {
+    //     this->table_row_height = this->remoteview.tableView->rowHeight(0)*2/3;
+    // } else {
+    //     this->table_row_height = 20 ;
+    // }
+    // for (int i = 0; i < this->remote_dir_sort_filter_model->rowCount(this->remote_dir_sort_filter_model->index(this->user_home_path.c_str())); i ++) {
+    //     this->remoteview.tableView->setRowHeight(i, this->table_row_height);
+    // }
+    // this->remoteview.tableView->resizeColumnToContents(0);
     
     /////
     QObject::connect(this->remoteview.treeView, SIGNAL(clicked(const QModelIndex &)),

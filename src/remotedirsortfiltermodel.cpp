@@ -1,34 +1,11 @@
 // remotedirsortfiltermodel.cpp --- 
 // 
-// Filename: remotedirsortfiltermodel.cpp
-// Description: 
 // Author: liuguangzhao
-// Maintainer: 
-// Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
-// http://www.qtchina.net
-// http://nullget.sourceforge.net
-// Created: 五  5月 23 22:53:31 2008 (CST)
-// Version: 
-// Last-Updated: 
-//           By: 
-//     Update #: 0
-// URL: 
-// Keywords: 
-// Compatibility: 
+// Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+// URL: http://www.qtchina.net http://nullget.sourceforge.net
+// Created: 2008-08-23 22:53:31 +0000
+// Version: $Id$
 // 
-// 
-
-// Commentary: 
-// 
-// 
-// 
-// 
-
-// Change log:
-// 
-// 
-// 
-
 
 #include "remotedirmodel.h"
 #include "remotedirsortfiltermodel.h"
@@ -76,6 +53,7 @@ bool RemoteDirSortFilterModel::filterAcceptsRow ( int source_row, const QModelIn
         //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
         return true;
     }else{
+        return true;
         QString file_name = this->source_model->data(this->source_model->index(source_row, 0, source_parent), Qt::DisplayRole).toString();
         //qDebug()<<this->source_model->data(this->source_model->index(source_row, 0, source_parent), Qt::DisplayRole).toString();
         if(file_name.at(0) == '.') return false;

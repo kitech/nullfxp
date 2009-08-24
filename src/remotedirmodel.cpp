@@ -4,7 +4,6 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-05-25 09:47:47 +0000
-// Last-Updated: 2009-08-22 16:25:17 +0000
 // Version: $Id$
 // 
 
@@ -17,7 +16,7 @@
 #include "rfsdirnode.h"
 
 RemoteDirModel::RemoteDirModel(QObject *parent)
-    :QAbstractItemModel(parent)
+    : QAbstractItemModel(parent)
 {
     this->remote_dir_retrive_thread = new RemoteDirRetriveThread();
     QObject::connect(this->remote_dir_retrive_thread, SIGNAL(remote_dir_node_retrived(directory_tree_item *, void *)),
@@ -30,7 +29,7 @@ RemoteDirModel::RemoteDirModel(QObject *parent)
                      this, SIGNAL(leave_remote_dir_retrive_loop()));
     
     //keep alive 相关设置
-    this->keep_alive = true ;
+    this->keep_alive = true;
     this->keep_alive_timer = new QTimer();
     this->keep_alive_interval = DEFAULT_KEEP_ALIVE_TIMEOUT;
     this->keep_alive_timer->setInterval(this->keep_alive_interval);
@@ -47,10 +46,11 @@ void RemoteDirModel::set_ssh2_handler(void *ssh2_sess)
 
 void RemoteDirModel::set_user_home_path(std::string user_home_path)
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    this->user_home_path = user_home_path ;
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    user_home_path = "/home";
+    this->user_home_path = user_home_path;
 
-    qDebug() <<" i know remote home path: "<< this->user_home_path.c_str() ;
+    qDebug() <<"i know remote home path: "<<this->user_home_path.c_str();
 
     //Todo: 使用这个初始化路径来初始化这个树，而不是用默认的根路径 .
     //初始化目录案例：
@@ -64,11 +64,11 @@ void RemoteDirModel::set_user_home_path(std::string user_home_path)
     directory_tree_item *first_item;
 
     directory_tree_item *temp_parent_tree_item = 0, *temp_tree_item = 0;
-    QString temp_strip_path, temp_path_name ;
+    QString temp_strip_path, temp_path_name;
     char   buff[PATH_MAX+1] = {0};
     char    buff2[PATH_MAX+1] = {0};
-    char    buff3[PATH_MAX+1] = {0} ;
-    char *sep_pos = 0, *pre_sep_pos ;
+    char    buff3[PATH_MAX+1] = {0};
+    char *sep_pos = 0, *pre_sep_pos;
 
     strcpy(buff,this->user_home_path.c_str());
     strcpy(buff2,this->user_home_path.c_str());
@@ -76,15 +76,15 @@ void RemoteDirModel::set_user_home_path(std::string user_home_path)
 
     assert(buff[0] == '/');
     while (1) {
-        sep_pos = strchr ( buff,'/' ) ;
-        if ( sep_pos == NULL ) {
+        sep_pos = strchr(buff, '/');
+        if (sep_pos == NULL) {
             temp_strip_path =  buff2 ;
             memset ( buff3,0,PATH_MAX+1 );
             strcpy ( buff3,buff2+ ( pre_sep_pos-buff ) +1 );
             temp_path_name =  buff3 ;
             temp_parent_tree_item = temp_tree_item ;
             temp_tree_item = new directory_tree_item();
-        } else{
+        } else {
             *sep_pos = '&'; //将这个字符替换掉，防止重复查找这个位置
             if ( sep_pos == buff ) {
                 strncpy ( buff3,buff2,int ( sep_pos-buff ) );
@@ -123,8 +123,9 @@ void RemoteDirModel::set_user_home_path(std::string user_home_path)
     }
     qDebug() <<" seach end :"<< buff ;
 
-    this->tree_root->child_items.insert(std::make_pair(0, first_item ));
-    this->tree_root->row_number = 0;
+    // this->tree_root->child_items.insert(std::make_pair(0, first_item ));
+    this->tree_root = first_item;
+    // this->tree_root->row_number = 0;
     
     //启动keep alive 功能。
     if (this->keep_alive ) {
@@ -157,26 +158,32 @@ QModelIndex RemoteDirModel::index ( int row, int column, const QModelIndex &pare
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     //qDebug() << "row :" << row << " column:" << column ;
 
-    directory_tree_item  *parent_item;
+    directory_tree_item *parent_item;
+    directory_tree_item *child_item = 0;
 
     if (!parent.isValid()) {
-        parent_item = this->tree_root;
+        parent_item = 0;
+        child_item = this->tree_root;
+        return createIndex(row, column, child_item);
     } else {
-        parent_item = static_cast<directory_tree_item*> ( parent.internalPointer() );
-    }
-
-    directory_tree_item *child_item = 0;
-    if (parent_item->child_items.count ( row ) == 1) {
+        parent_item = static_cast<directory_tree_item*>(parent.internalPointer());
         child_item = parent_item->child_items[row];
+        return createIndex(row, column, child_item);
     }
 
-    if (child_item) {
-        //qDebug()<< "createIndex ( row, column, child_item );"<< row << " " << column << " " << child_item ;
-        return createIndex ( row, column, child_item );
-    } else {
-        //qDebug()<< "! child_item , QModelIndex();" ;
-        return QModelIndex();
-    }
+    return QModelIndex();
+    // directory_tree_item *child_item = 0;
+    // if (parent_item->child_items.count ( row ) == 1) {
+    //     child_item = parent_item->child_items[row];
+    // }
+
+    // if (child_item) {
+    //     //qDebug()<< "createIndex ( row, column, child_item );"<< row << " " << column << " " << child_item ;
+    //     return createIndex ( row, column, child_item );
+    // } else {
+    //     //qDebug()<< "! child_item , QModelIndex();" ;
+    //     return QModelIndex();
+    // }
 
     //return createIndex( row , column , 1 ) ;
 }
@@ -365,17 +372,18 @@ int RemoteDirModel::rowCount(const QModelIndex &parent) const
 
         q_debug()<<parent<<"opening "<<parent_item->strip_path<<parent_item->file_name;
 
-        if (parent_item->retrived == 0
-             // || parent_item->retrived == 1
-             || parent_item->retrived == 2 ) //为了lazy模式的需要，才做一个假数据。
-        {
-            //或者是不是要在这里取子结点的行数，即去远程找数据呢。
-            // row_count =1 ;
-            // this->remote_dir_retrive_thread->add_node(parent_item, parent.internalPointer());
-        } else {
-            row_count = parent_item->child_items.size();
-        }
-        row_count = parent_item->child_items.size();
+        // if (parent_item->retrived == 0
+        //      // || parent_item->retrived == 1
+        //      || parent_item->retrived == 2 ) //为了lazy模式的需要，才做一个假数据。
+        // {
+        //     //或者是不是要在这里取子结点的行数，即去远程找数据呢。
+        //     // row_count =1 ;
+        //     // this->remote_dir_retrive_thread->add_node(parent_item, parent.internalPointer());
+        // } else {
+        //     row_count = parent_item->child_items.size();
+        // }
+        // row_count = parent_item->child_items.size();
+        row_count =1 ;
     }
     //qDebug()<< "row_count="<<row_count ;
     return row_count ;
@@ -385,9 +393,9 @@ bool RemoteDirModel::hasChildren(const QModelIndex &index) const
 {
     q_debug()<<""<<index;
     if (index.isValid()) {
-        directory_tree_item *parent_item = static_cast<directory_tree_item*>(index.parent().internalPointer());
-        if (parent_item != NULL) {
-            q_debug()<<index<<isDir(index)<<"opening "<<parent_item->strip_path<<parent_item->file_name;
+        directory_tree_item *curr_item = static_cast<directory_tree_item*>(index.internalPointer());
+        if (curr_item != NULL) {
+            q_debug()<<index<<isDir(index)<<"opening "<<curr_item->strip_path<<curr_item->file_name;
             return this->isDir(index);
         } else {
             q_debug()<<index<<"index pointer null";
@@ -652,16 +660,22 @@ QString RemoteDirModel::filePath(const QModelIndex &index) const
 bool RemoteDirModel::isDir(const QModelIndex &index) const
 {
     directory_tree_item *node_item = static_cast<directory_tree_item*>(index.internalPointer());
-    assert(node_item != 0);
-
-    return node_item->isDir();
+    // assert(node_item != 0);
+    if (node_item == 0) {
+        return true;
+    } else {
+        return node_item->isDir();
+    }
 }
 
 bool RemoteDirModel::isSymbolLink(const QModelIndex &index) const
 {
     directory_tree_item *node_item = static_cast<directory_tree_item*>(index.internalPointer());
-    assert(node_item != 0);
-
-    return node_item->isSymbolLink();    
+    // assert(node_item != 0);
+    if (node_item == 0) {
+        return true; // is this right?
+    } else {
+        return node_item->isSymbolLink();    
+    }
 }
 
