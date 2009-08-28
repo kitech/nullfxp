@@ -47,7 +47,7 @@ void RemoteDirModel::set_ssh2_handler(void *ssh2_sess)
 void RemoteDirModel::set_user_home_path(std::string user_home_path)
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    user_home_path = "/home";
+    user_home_path = "/home/kitsoft";
     this->user_home_path = user_home_path;
 
     qDebug() <<"i know remote home path: "<<this->user_home_path.c_str();
@@ -65,13 +65,13 @@ void RemoteDirModel::set_user_home_path(std::string user_home_path)
 
     directory_tree_item *temp_parent_tree_item = 0, *temp_tree_item = 0;
     QString temp_strip_path, temp_path_name;
-    char   buff[PATH_MAX+1] = {0};
-    char    buff2[PATH_MAX+1] = {0};
-    char    buff3[PATH_MAX+1] = {0};
+    char buff[PATH_MAX+1] = {0};
+    char buff2[PATH_MAX+1] = {0};
+    char buff3[PATH_MAX+1] = {0};
     char *sep_pos = 0, *pre_sep_pos;
 
-    strcpy(buff,this->user_home_path.c_str());
-    strcpy(buff2,this->user_home_path.c_str());
+    strcpy(buff, this->user_home_path.c_str());
+    strcpy(buff2, this->user_home_path.c_str());
     pre_sep_pos = buff;
 
     assert(buff[0] == '/');
@@ -168,13 +168,15 @@ QModelIndex RemoteDirModel::index(int row, int column, const QModelIndex &parent
         parent_item = 0;
         child_item = this->tree_root;
         idx = createIndex(row, column, child_item);
-        qDebug()<<"row :"<<row<<" column:" <<column<<idx<<child_item->fileName();
+        qDebug()<<"row :"<<row<<" column:" <<column<<parent<<idx<<child_item->fileName()
+                <<"0";
         return idx;
     } else {
         parent_item = static_cast<directory_tree_item*>(parent.internalPointer());
         child_item = parent_item->child_items[row];
         idx = createIndex(row, column, child_item);
-        qDebug()<<"row :"<<row<<" column:" <<column<<idx<<child_item->fileName();
+        qDebug()<<"row :"<<row<<" column:" <<column<<parent<<idx<<child_item->fileName()
+                <<parent_item->fileName();
         return idx;
     }
 
@@ -262,7 +264,7 @@ QModelIndex RemoteDirModel::find_node_item_by_path_elements(directory_tree_item 
 }
 QModelIndex RemoteDirModel::parent(const QModelIndex &child) const
 {
-    //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
     if (!child.isValid()) {
         //qDebug()<<" ! child.isValid()";
@@ -272,20 +274,23 @@ QModelIndex RemoteDirModel::parent(const QModelIndex &child) const
     directory_tree_item *child_item = static_cast<directory_tree_item *>(child.internalPointer());
     directory_tree_item *parent_item = child_item->parent_item;
 
-    if (!parent_item || parent_item == this->tree_root) {
-        //qDebug()<<"  !parent_item || parent_item == this->tree_root ";
-        return QModelIndex();
-    }
+    // if (!parent_item || parent_item == this->tree_root) {
+    //     //qDebug()<<"  !parent_item || parent_item == this->tree_root ";
+    //     return QModelIndex();
+    // }
 
     //qDebug()<< " parent_item->row_number ";
-    return createIndex(parent_item->row_number, 0, parent_item);
+    if (parent_item == 0) {
+        
+    } else {
+        return createIndex(parent_item->row_number, 0, parent_item);
+    }
 
     return QModelIndex();
 }
 
 QVariant RemoteDirModel::data(const QModelIndex &index, int role) const
 {
-    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<<__FILE__<<index<<role;
     QVariant ret_var ;
     QString unicode_name;
 
@@ -321,7 +326,7 @@ QVariant RemoteDirModel::data(const QModelIndex &index, int role) const
     default:
         return QVariant();
     }
-    qDebug()<<ret_var;
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<<__FILE__<<index<<role<<ret_var;
     return ret_var ;
 }
 
@@ -379,7 +384,7 @@ int RemoteDirModel::rowCount(const QModelIndex &parent) const
         directory_tree_item *parent_item = static_cast<directory_tree_item*>(parent.internalPointer());
         assert(parent_item != NULL);
 
-        q_debug()<<parent<<"opening "<<parent_item->strip_path<<parent_item->file_name;
+        // q_debug()<<parent<<"opening "<<parent_item->strip_path<<parent_item->file_name;
 
         // if (parent_item->retrived == 0
         //      // || parent_item->retrived == 1
