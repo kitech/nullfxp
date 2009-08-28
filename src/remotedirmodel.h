@@ -24,10 +24,10 @@
 class RFSDirNode;
 
 /**
-   @author liuguangzhao <liuguangzhao@users.sf.net >
-   
-   这个model必须做成lazy模式的，因为它是远程目录，只有需要显示的时候才去取来远程目录结构
-*/
+ * @author liuguangzhao <liuguangzhao@users.sf.net >
+ *
+ * 这个model必须做成lazy模式的，因为它是远程目录，只有需要显示的时候才去取来远程目录结构
+ */
 
 class RemoteDirModel : public QAbstractItemModel
 {
@@ -39,29 +39,29 @@ public:
     //仅需要调用一次的函数,并且是在紧接着该类的初始化之后调用。
     void set_user_home_path(std::string user_home_path);
     //这个调用应该在set_user_home_path之前
-    void set_ssh2_handler(void * ssh2_sess);
+    void set_ssh2_handler(void *ssh2_sess);
                 
     ////model 函数
-    QVariant data ( const QModelIndex &index, int role ) const;
-    Qt::ItemFlags flags ( const QModelIndex &index ) const;
-    QVariant headerData ( int section, Qt::Orientation orientation,
-			  int role = Qt::DisplayRole ) const;
-    QModelIndex index ( int row, int column,
-			const QModelIndex &parent = QModelIndex() ) const;
-    QModelIndex index ( const QString & path, int column = 0 ) const;
+    QVariant data(const QModelIndex &index, int role) const;
+    Qt::ItemFlags flags(const QModelIndex &index) const;
+    QVariant headerData(int section, Qt::Orientation orientation,
+                        int role = Qt::DisplayRole) const;
+    QModelIndex index(int row, int column,
+                      const QModelIndex &parent = QModelIndex()) const;
+    QModelIndex index(const QString & path, int column = 0) const;
         
-    QModelIndex parent ( const QModelIndex &child ) const;
-    int rowCount ( const QModelIndex &parent = QModelIndex() ) const;
-    int columnCount ( const QModelIndex &parent = QModelIndex() ) const;
+    QModelIndex parent(const QModelIndex &child) const;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const;
+    int columnCount(const QModelIndex &parent = QModelIndex()) const;
 
-    virtual bool setData ( const QModelIndex & index, const QVariant & value, int role = Qt::EditRole );
-    virtual bool insertRows ( int row, int count, const QModelIndex & parent = QModelIndex() ) ;
-    virtual bool removeRows ( int row, int count, const QModelIndex & parent = QModelIndex() ) ;
+    virtual bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
+    virtual bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex());
+    virtual bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex());
         
-    bool rowMoveTo ( const QModelIndex & from , const QModelIndex & to );
-    bool insertColumns ( int column, int count, const QModelIndex & parent = QModelIndex() ) ;
+    bool rowMoveTo(const QModelIndex &from, const QModelIndex &to);
+    bool insertColumns(int column, int count, const QModelIndex &parent = QModelIndex());
         
-    bool setItemData ( const QModelIndex & index, const QMap<int, QVariant> & roles )  ;
+    bool setItemData(const QModelIndex &index, const QMap<int, QVariant> &roles);
 		
 // 		int rowCount(const QModelIndex &parent = QModelIndex()) const;
 // 		int columnCount(const QModelIndex &parent = QModelIndex()) const;
@@ -71,15 +71,15 @@ public:
 // 
 // 		QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
 // 
-    bool hasChildren(const QModelIndex &index = QModelIndex()) const;
+    virtual bool hasChildren(const QModelIndex &parent = QModelIndex()) const;
 // 
 // 		void sort(int column, Qt::SortOrder order = Qt::AscendingOrder);
 // 
     QStringList mimeTypes() const;
     QMimeData *mimeData(const QModelIndexList &indexes) const;
     bool dropMimeData(const QMimeData *data, Qt::DropAction action,
-		      int row, int column, const QModelIndex &parent);
-    Qt::DropActions supportedDropActions() const;    
+                      int row, int column, const QModelIndex &parent);
+    Qt::DropActions supportedDropActions() const;
 // 
 // 		
 // 		//QDirModel specific API
@@ -123,13 +123,13 @@ public:
     bool isSymbolLink(const QModelIndex &index) const;
 
 public slots:
-    void slot_remote_dir_node_retrived(directory_tree_item* parent_item,void *  parent_model_internal_pointer );
-    void slot_remote_dir_node_clicked(const QModelIndex & index);
+    void slot_remote_dir_node_retrived(directory_tree_item *parent_item, void *parent_model_internal_pointer);
+    void slot_remote_dir_node_clicked(const QModelIndex &index);
         
-    void slot_execute_command( directory_tree_item* parent_item , void * parent_model_internal_pointer, int cmd , QString params );
+    void slot_execute_command(directory_tree_item *parent_item, void *parent_model_internal_pointer, int cmd, QString params );
         
     //keep_alive
-    void set_keep_alive(bool keep_alive,int time_out=DEFAULT_KEEP_ALIVE_TIMEOUT);
+    void set_keep_alive(bool keep_alive, int time_out = DEFAULT_KEEP_ALIVE_TIMEOUT);
 
 private slots:        
     /// time_out 秒                
@@ -137,7 +137,7 @@ private slots:
 
 signals:
     void sig_drop_mime_data(const QMimeData *data, Qt::DropAction action,
-			    int row, int column, const QModelIndex &parent);
+                            int row, int column, const QModelIndex &parent);
         
     //for wait option
     void enter_remote_dir_retrive_loop();
@@ -151,8 +151,8 @@ private:
     RemoteDirRetriveThread *remote_dir_retrive_thread;
     //递归查找树
     QModelIndex find_node_item_by_path_elements(directory_tree_item *parent_node_item,
-                                                QStringList &path_elements, int level ) const;
-    void dump_tree_node_item(directory_tree_item *node_item)const;
+                                                QStringList &path_elements, int level) const;
+    void dump_tree_node_item(directory_tree_item *node_item) const;
 
     std::string user_home_path;
         
@@ -160,7 +160,6 @@ private:
     QTimer  *keep_alive_timer;
     int     keep_alive_interval;        
 
-    
 };
 
 #endif
