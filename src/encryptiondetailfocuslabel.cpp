@@ -1,36 +1,13 @@
 // encryptiondetailfocuslabel.cpp --- 
 // 
-// Filename: encryptiondetailfocuslabel.cpp
-// Description: 
 // Author: liuguangzhao
-// Maintainer: 
-// Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
-// http://www.qtchina.net
-// http://nullget.sourceforge.net
-// Created: 一  5月  5 21:22:01 2008 (CST)
-// Version: 
-// Last-Updated: 三  1月  7 14:19:25 2009 (+0000)
-//           By: <liuguangzhao@users.sf.net>
-//     Update #: 3
-// URL: 
-// Keywords: 
-// Compatibility: 
-// 
-// 
-
-// Commentary: 
-// 
-// 
-// 
-// 
-
-// Change log:
-// 
-// 
+// Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+// URL: http://www.qtchina.net http://nullget.sourceforge.net
+// Created: 2008-05-05 21:22:01 +0800
+// Version: $Id$
 // 
 
 #include "encryptiondetailfocuslabel.h"
-
 
 EncryptionDetailFocusLabel::EncryptionDetailFocusLabel ( const QString & text, QWidget * parent , Qt::WindowFlags f  )
   :QLabel(text, parent, f)

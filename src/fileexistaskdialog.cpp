@@ -1,32 +1,10 @@
 // fileexistaskdialog.cpp --- 
 // 
-// Filename: fileexistaskdialog.cpp
-// Description: 
 // Author: liuguangzhao
-// Maintainer: 
-// Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
-// http://www.qtchina.net
-// http://nullget.sourceforge.net
-// Created: 二  5月  6 21:59:50 2008 (CST)
-// Version: 
-// Last-Updated: 一  5月 12 21:22:38 2008 (CST)
-//           By: liuguangzhao
-//     Update #: 1
-// URL: 
-// Keywords: 
-// Compatibility: 
-// 
-// 
-
-// Commentary: 
-// 
-// 
-// 
-// 
-
-// Change log:
-// 
-// 
+// Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+// URL: http://www.qtchina.net http://nullget.sourceforge.net
+// Created: 2008-05-05 21:59:50 +0800
+// Version: $Id$
 // 
 
 #include "transferthread.h"

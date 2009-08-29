@@ -1,34 +1,11 @@
-/* fileexistaskdialog.h --- 
- * 
- * Filename: fileexistaskdialog.h
- * Description: 
- * Author: liuguangzhao
- * Maintainer: 
- * Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
- * http://www.qtchina.net
- * http://nullget.sourceforge.net
- * Created: 二  5月  6 22:00:02 2008 (CST)
- * Version: 
- * Last-Updated: 
- *           By: 
- *     Update #: 0
- * URL: 
- * Keywords: 
- * Compatibility: 
- * 
- */
-
-/* Commentary: 
- * 
- * 
- * 
- */
-
-/* Change log:
- * 
- * 
- */
-
+// fileexistaskdialog.h --- 
+// 
+// Author: liuguangzhao
+// Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+// URL: http://www.qtchina.net http://nullget.sourceforge.net
+// Created: 2008-08-06 22:00:02 +0800
+// Version: $Id$
+// 
 
 #ifndef FILEEXISTASKDIALOG_H
 #define FILEEXISTASKDIALOG_H

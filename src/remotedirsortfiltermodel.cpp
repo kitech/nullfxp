@@ -40,7 +40,8 @@ QString RemoteDirSortFilterModel::filePath(const QModelIndex &index) const
 }
 bool RemoteDirSortFilterModel::isDir(const QModelIndex &index) const
 {
-    return this->source_model->isDir(this->mapToSource(index));
+    return this->source_model->isDir(this->mapToSource(index)) 
+        || this->source_model->isSymLink(this->mapToSource(index));
 }
 
 bool RemoteDirSortFilterModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
@@ -114,7 +115,8 @@ RemoteDirSortFilterModelEX::~RemoteDirSortFilterModelEX()
 bool RemoteDirSortFilterModelEX::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
 {
     //qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<this->filters;
-    if (this->source_model->isDir( this->source_model->index(source_row, 0, source_parent))) {
+    if (this->source_model->isDir(this->source_model->index(source_row, 0, source_parent))
+        || this->source_model->isSymLink(this->source_model->index(source_row, 0, source_parent))) {
         return RemoteDirSortFilterModel::filterAcceptsRow(source_row, source_parent);
     } else {
         return false;

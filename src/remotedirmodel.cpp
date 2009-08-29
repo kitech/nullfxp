@@ -109,9 +109,7 @@ void RemoteDirModel::set_user_home_path(std::string user_home_path)
         temp_tree_item->retrived = ( sep_pos == NULL ) ?0:1 ;  //半满结点
         temp_tree_item->strip_path = temp_strip_path;
         temp_tree_item->file_name = temp_path_name;
-        // temp_tree_item->file_size =  "0" ;
-        // temp_tree_item->file_type =  "drwxr-xr-x" ;
-        temp_tree_item->prev_retr_flag = -1 ;
+        temp_tree_item->prev_retr_flag = -1;
         temp_tree_item->attrib.permissions = 16877;//默认目录属性: drwxr-xr-x
 
         if (temp_parent_tree_item == NULL) {
@@ -121,9 +119,9 @@ void RemoteDirModel::set_user_home_path(std::string user_home_path)
 
         //pre_sep_pos
         pre_sep_pos = sep_pos ;
-        if ( sep_pos == NULL ) break ;
+        if ( sep_pos == NULL ) break;
     }
-    qDebug() <<" seach end :"<< buff ;
+    qDebug()<<"seach end :"<< buff;
 
     // this->tree_root->child_items.insert(std::make_pair(0, first_item ));
     this->tree_root = first_item;
@@ -198,10 +196,10 @@ QModelIndex RemoteDirModel::index(int row, int column, const QModelIndex &parent
 
 QModelIndex RemoteDirModel::index(const QString &path, int column) const
 {
-    if (path == "") {
-        qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-        // return this->createIndex(0,0,this->tree_root->child_items[0]);
-        return QModelIndex();
+    if (path.isEmpty()) {
+        qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+        return this->createIndex(0, 0, this->tree_root);
+        // return QModelIndex();
     } 
 
     QString absolutePath = QDir(path).absolutePath();
@@ -230,7 +228,6 @@ QModelIndex RemoteDirModel::index(const QString &path, int column) const
    
     
     pathElements.prepend("/");
-    q_debug()<<pathElements;
 
     return this->find_node_item_by_path_elements(this->tree_root, pathElements, 1);
     // return this->find_node_item_by_path_elements(this->tree_root->child_items[0], pathElements, 1);
@@ -299,7 +296,7 @@ QVariant RemoteDirModel::data(const QModelIndex &index, int role) const
     if (role == Qt::DecorationRole && index.column()==0) {
         if (this->isDir(index)) {
             return qApp->style()->standardIcon(QStyle::SP_DirIcon);
-        } else if (this->isSymbolLink(index)) {
+        } else if (this->isSymLink(index)) {
             return QIcon(":/icons/emblem-symbolic-link.png");
             // return qApp->style()->standardIcon(QStyle::SP_DirLinkIcon);
         } else {
@@ -369,7 +366,7 @@ QVariant RemoteDirModel::headerData(int section, Qt::Orientation orientation, in
 
 }
 
-int RemoteDirModel::columnCount ( const QModelIndex &/*parent*/ ) const
+int RemoteDirModel::columnCount(const QModelIndex &/*parent*/) const
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     return 4 ;
@@ -377,7 +374,7 @@ int RemoteDirModel::columnCount ( const QModelIndex &/*parent*/ ) const
 
 int RemoteDirModel::rowCount(const QModelIndex &parent) const
 {
-    q_debug()<<parent;
+    // q_debug()<<parent;
     int row_count = 0;
 
     if (!parent.isValid()) {
@@ -407,14 +404,14 @@ int RemoteDirModel::rowCount(const QModelIndex &parent) const
 
 bool RemoteDirModel::hasChildren(const QModelIndex &parent) const
 {
-    q_debug()<<""<<parent;
+    // q_debug()<<""<<parent;
     if (parent.isValid()) {
         directory_tree_item *curr_item = static_cast<directory_tree_item*>(parent.internalPointer());
         if (curr_item != NULL) {
-            q_debug()<<parent<<this->isDir(parent)<<"opening "<<curr_item->strip_path<<curr_item->file_name;
-            // return this->isDir(parent);
+            // q_debug()<<parent<<this->isDir(parent)<<"opening "<<curr_item->strip_path<<curr_item->file_name;
+            return this->isDir(parent) || this->isSymLink(parent);
         } else {
-            q_debug()<<parent<<"parent pointer null";
+            // q_debug()<<parent<<"parent pointer null";
         }
         return true;
     } else {
@@ -683,14 +680,14 @@ bool RemoteDirModel::isDir(const QModelIndex &index) const
     }
 }
 
-bool RemoteDirModel::isSymbolLink(const QModelIndex &index) const
+bool RemoteDirModel::isSymLink(const QModelIndex &index) const
 {
     directory_tree_item *node_item = static_cast<directory_tree_item*>(index.internalPointer());
     // assert(node_item != 0);
     if (node_item == 0) {
         return true; // is this right?
     } else {
-        return node_item->isSymbolLink();    
+        return node_item->isSymLink();    
     }
 }
 

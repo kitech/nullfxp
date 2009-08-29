@@ -4,7 +4,6 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-06-14 22:29:50 +0800
-// Last-Updated: 2009-08-21 23:03:50 +0000
 // Version: $Id$
 // 
 

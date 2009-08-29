@@ -119,7 +119,7 @@ public:
 
     QString filePath(const QModelIndex &index) const;
     bool isDir(const QModelIndex &index) const;
-    bool isSymbolLink(const QModelIndex &index) const;
+    bool isSymLink(const QModelIndex &index) const;
 
 public slots:
     void slot_remote_dir_node_retrived(directory_tree_item *parent_item, void *parent_model_internal_pointer);

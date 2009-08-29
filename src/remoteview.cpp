@@ -785,7 +785,7 @@ void RemoteView::slot_dir_tree_item_clicked(const QModelIndex & index)
     file_path = this->remote_dir_sort_filter_model_ex->filePath(index);
     this->remoteview.tableView->setRootIndex(this->remote_dir_sort_filter_model->index(file_path));
     for (int i = 0 ; i < this->remote_dir_sort_filter_model->rowCount(this->remote_dir_sort_filter_model->index(file_path)); i ++ ) {
-        this->remoteview.tableView->setRowHeight (i, this->table_row_height);
+        this->remoteview.tableView->setRowHeight(i, this->table_row_height);
     }
     this->remoteview.tableView->resizeColumnToContents(0);
 }

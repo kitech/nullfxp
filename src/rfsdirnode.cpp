@@ -4,7 +4,6 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-08-09 11:50:49 +0000
-// Last-Updated: 2009-08-23 13:36:37 +0000
 // Version: $Id$
 // 
 
@@ -32,12 +31,16 @@ bool directory_tree_item::isDir()
     return S_ISDIR(this->attrib.permissions) || S_ISLNK(this->attrib.permissions);
 }
 
-bool directory_tree_item::isSymbolLink()
+bool directory_tree_item::isSymLink()
 {
     return S_ISLNK(this->attrib.permissions);
     // return this->attrib.permissions & LIBSSH2_SFTP_S_IFLNK;
 }
-
+bool directory_tree_item::isSymLinkToDir()
+{
+    return this->linkToDir;
+    return false;
+}
 int directory_tree_item::childCount()
 {
     return this->child_items.size();

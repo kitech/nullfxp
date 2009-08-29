@@ -1,33 +1,10 @@
 ### CMakeLists.txt --- 
 ## 
-## Filename: CMakeLists.txt
-## Description: 
 ## Author: liuguangzhao
-## Maintainer: 
-## Copyright (C) 2007-2010 liuguangzhao <liuguangzhao@users.sf.net>
-## http://www.qtchina.net
-## http://nullget.sourceforge.net
-## Created: 一  5月  5 21:50:26 2008 (CST)
-## Version: 
-## Last-Updated: 
-##           By: 
-##     Update #: 0
-## URL: 
-## Keywords: 
-## Compatibility: 
-## 
-######################################################################
-## 
-### Commentary: 
-## 
-## 
-## 
-######################################################################
-## 
-### Change log:
-## 
-## 
-######################################################################
+## Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+## URL: http://www.qtchina.net http://nullget.sourceforge.net
+## Created: 2008-05-05 21:50:26 +0800
+## Version: $Id$
 
 ADD_DEFINITIONS(-g -DHAVE_CONFIG_H -O2 -Wall -Wpointer-arith -Wuninitialized -Wsign-compare     )
 
