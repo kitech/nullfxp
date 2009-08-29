@@ -28,6 +28,9 @@ RemoteDirModel::RemoteDirModel(QObject *parent)
     QObject::connect(this->remote_dir_retrive_thread, SIGNAL(leave_remote_dir_retrive_loop()),
                      this, SIGNAL(leave_remote_dir_retrive_loop()));
     
+    QObject::connect(this->remote_dir_retrive_thread, SIGNAL(execute_command_finished(directory_tree_item *, void *, int, int)),
+                     this, SLOT(execute_command_finished(directory_tree_item *, void *, int, int)));
+
     //keep alive 相关设置
     this->keep_alive = true;
     this->keep_alive_timer = new QTimer();
@@ -78,15 +81,15 @@ void RemoteDirModel::set_user_home_path(std::string user_home_path)
         sep_pos = strchr(buff, '/');
         if (sep_pos == NULL) {
             temp_strip_path =  buff2 ;
-            memset ( buff3,0,PATH_MAX+1 );
-            strcpy ( buff3,buff2+ ( pre_sep_pos-buff ) +1 );
-            temp_path_name =  buff3 ;
+            memset(buff3, 0, PATH_MAX+1 );
+            strcpy(buff3, buff2+(pre_sep_pos-buff) +1);
+            temp_path_name =  buff3;
             temp_parent_tree_item = temp_tree_item ;
             temp_tree_item = new directory_tree_item();
         } else {
             *sep_pos = '&'; //将这个字符替换掉，防止重复查找这个位置
             if ( sep_pos == buff ) {
-                strncpy ( buff3,buff2,int ( sep_pos-buff ) );
+                strncpy(buff3, buff2, int(sep_pos - buff));
                 temp_strip_path = buff3 ;
                 temp_path_name =  "/" ;
                 first_item   = new directory_tree_item();
@@ -95,14 +98,14 @@ void RemoteDirModel::set_user_home_path(std::string user_home_path)
             } else {
                 strncpy ( buff3,buff2,int ( sep_pos-buff ) );
                 temp_strip_path =  buff3 ;
-                memset ( buff3,0,PATH_MAX+1 );
-                strncpy ( buff3,buff2+ ( pre_sep_pos-buff ) +1, ( sep_pos-pre_sep_pos-1 ) );
+                memset(buff3,0,PATH_MAX+1 );
+                strncpy(buff3, buff2 + (pre_sep_pos-buff) +1, (sep_pos-pre_sep_pos-1));
                 temp_path_name =  buff3 ;
                 temp_parent_tree_item = temp_tree_item ;
                 temp_tree_item = new directory_tree_item();
             }
         }
-        qDebug() <<"distance to begin:   strip path:"<< temp_strip_path << "dir name:"<< temp_path_name ;
+        qDebug() <<"distance to begin: strip path:"<<temp_strip_path<<"dir name:"<<temp_path_name ;
         //assign
         temp_tree_item->parent_item = temp_parent_tree_item ;
         temp_tree_item->row_number = 0 ;    //指的是此结点在父结点中的第几个结点，在这里预置的只能为0
@@ -409,7 +412,7 @@ bool RemoteDirModel::hasChildren(const QModelIndex &parent) const
         directory_tree_item *curr_item = static_cast<directory_tree_item*>(parent.internalPointer());
         if (curr_item != NULL) {
             // q_debug()<<parent<<this->isDir(parent)<<"opening "<<curr_item->strip_path<<curr_item->file_name;
-            return this->isDir(parent) || this->isSymLink(parent);
+            return this->isDir(parent) || this->isSymLinkToDir(parent);
         } else {
             // q_debug()<<parent<<"parent pointer null";
         }
@@ -419,7 +422,7 @@ bool RemoteDirModel::hasChildren(const QModelIndex &parent) const
     }
 }
 
-bool RemoteDirModel::setData ( const QModelIndex & index, const QVariant & value, int role )
+bool RemoteDirModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
     if (!index.isValid()) {
         return false;
@@ -632,6 +635,29 @@ void RemoteDirModel::slot_execute_command(directory_tree_item *parent_item,
     this->remote_dir_retrive_thread->slot_execute_command(parent_item, parent_model_internal_pointer, cmd, params);
 }
 
+void RemoteDirModel::execute_command_finished(directory_tree_item *parent_item, void *parent_model_internal_pointer,
+                                              int cmd, int status)
+{
+    q_debug()<<"here";
+    switch (cmd) {
+    case SSH2_FXP_REALPATH:
+        if (status == 0) {
+            parent_item->linkToDir = true;
+            emit this->layoutChanged(); // 这种效率不高啊，还有其他办法吗
+
+            // TODO how goto the task?
+            // if (parent_item->retrived == 1) { // 半满状态结点
+            this->remote_dir_retrive_thread->add_node(parent_item, parent_model_internal_pointer);
+            // }
+        }
+        break;
+    default:
+        // i do not care other command result
+        // q_debug()<<"Unknown command:"<<cmd<<status;
+        break;
+    }
+}
+
 //TODO
 void RemoteDirModel::set_keep_alive(bool keep_alive,int time_out)
 {
@@ -691,3 +717,13 @@ bool RemoteDirModel::isSymLink(const QModelIndex &index) const
     }
 }
 
+bool RemoteDirModel::isSymLinkToDir(const QModelIndex &index) const
+{
+    directory_tree_item *node_item = static_cast<directory_tree_item*>(index.internalPointer());
+    // assert(node_item != 0);
+    if (node_item == 0) {
+        return false;
+    } else {
+        return node_item->isSymLinkToDir();    
+    }
+}

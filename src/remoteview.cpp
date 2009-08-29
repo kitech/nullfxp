@@ -626,7 +626,7 @@ void RemoteView::slot_copy_path()
     QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) 
         ? this->remote_dir_sort_filter_model_ex->mapToSource(midx)
         : this->remote_dir_sort_filter_model->mapToSource(midx);    
-    directory_tree_item *dti = (directory_tree_item*) aim_midx.internalPointer();
+    directory_tree_item *dti = (directory_tree_item*)aim_midx.internalPointer();
 
     QApplication::clipboard()->setText(dti->strip_path);
 }
@@ -806,8 +806,14 @@ void RemoteView::slot_dir_file_view_double_clicked(const QModelIndex & index)
         this->slot_dir_tree_item_clicked(this->remote_dir_sort_filter_model_ex->index(this->remote_dir_sort_filter_model->filePath(index)));
         this->remoteview.treeView->selectionModel()->clearSelection();
         this->remoteview.treeView->selectionModel()->select(this->remote_dir_sort_filter_model_ex->index(this->remote_dir_sort_filter_model->filePath(index)) , QItemSelectionModel::Select);
+    } else if (this->remote_dir_sort_filter_model->isSymLink(index)) {
+        QModelIndex idx = this->remote_dir_sort_filter_model->mapToSource(index);
+        directory_tree_item *node_item = (directory_tree_item*)idx.internalPointer();
+        q_debug()<<node_item->strip_path;
+        this->remote_dir_model->slot_execute_command(node_item, idx.internalPointer(),
+                                                     SSH2_FXP_REALPATH, QString(""));
     } else {
-        qDebug()<<" double clicked a regular file , no op now,only now";
+        q_debug()<<"double clicked a regular file, no op now, only now";
     }
 }
 
@@ -907,7 +913,7 @@ bool RemoteView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction actio
     if (local_pkg.isValid(local_pkg)) {
         this->slot_new_upload_requested(local_pkg, remote_pkg);
     }
-    qDebug() <<"drop mime data processed ";
+    qDebug()<<"drop mime data processed ";
     
     return true;
 }
@@ -926,7 +932,7 @@ void RemoteView::slot_show_hidden(bool show)
 void RemoteView::encryption_focus_label_double_clicked()
 {
     //qDebug()<<__FILE__<<":"<<__LINE__;
-    EncryptionDetailDialog * enc_dlg = 0;
+    EncryptionDetailDialog *enc_dlg = 0;
     char **server_info, **pptr;
     int sftp_version;
 

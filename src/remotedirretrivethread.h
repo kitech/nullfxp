@@ -30,8 +30,8 @@ class directory_tree_item;
 
 
 /**
-   @author liuguangzhao <gzl@localhost>
-*/
+ *
+ */
 class RemoteDirRetriveThread : public QThread
 {
     Q_OBJECT;
@@ -51,6 +51,25 @@ public:
                               int cmd, QString params);
 
 private:
+    class command_queue_elem
+    {
+    public:
+        command_queue_elem()
+        {  
+            this->parent_item = 0;
+            this->parent_model_internal_pointer = 0;
+            this->cmd = -1;
+            this->retry_times = 0;
+        }
+               
+        directory_tree_item *parent_item;
+        void *parent_model_internal_pointer;
+        int  cmd;
+        QString  params;
+        int  retry_times;
+    };
+
+private:
     int  retrive_dir();
     int  mkdir();
     int  rmdir();
@@ -62,35 +81,20 @@ private:
     int fxp_do_ls_dir(QString parent_path, QVector<QMap<char, QString> > & fileinfos);
     int fxp_do_ls_dir(QString parent_path, QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > & fileinfos);
 
+    int fxp_realpath();
+
 signals:
     void enter_remote_dir_retrive_loop();
     void leave_remote_dir_retrive_loop();
         
     void remote_dir_node_retrived(directory_tree_item *parent_item, void *parent_model_internal_pointer);
         
-    void execute_command_finished( directory_tree_item *parent_item , void *parent_model_internal_pointer,
-                                   int cmd, int status);
-        
+    void execute_command_finished(directory_tree_item *parent_item, void *parent_model_internal_pointer,
+                                  int cmd, int status);
+
 private:
 
-    std::map<directory_tree_item*,void * > dir_node_process_queue;
-    class command_queue_elem
-    {
-    public:
-        command_queue_elem()
-        {  
-            this->parent_item=0;
-            this->parent_model_internal_pointer = 0;
-            this->cmd = -1;
-            this->retry_times = 0;
-        }
-               
-        directory_tree_item *parent_item;
-        void *parent_model_internal_pointer;
-        int  cmd;
-        QString  params;
-        int  retry_times;
-    };       
+    std::map<directory_tree_item *, void *> dir_node_process_queue;
     std::vector<command_queue_elem*>  command_queue;
        
     LIBSSH2_SESSION *ssh2_sess;

@@ -40,7 +40,7 @@ RemoteDirRetriveThread::~RemoteDirRetriveThread()
 
 void RemoteDirRetriveThread::set_ssh2_handler(void *ssh2_sess)
 {
-    this->ssh2_sess = (LIBSSH2_SESSION*) ssh2_sess;
+    this->ssh2_sess = (LIBSSH2_SESSION*)ssh2_sess;
     this->ssh2_sftp = libssh2_sftp_init(this->ssh2_sess);
     assert(this->ssh2_sftp != 0);
 }
@@ -55,7 +55,7 @@ void RemoteDirRetriveThread::run()
     emit enter_remote_dir_retrive_loop();
     
     int exec_ret_code = -1 ;
-    command_queue_elem * cmd_elem;
+    command_queue_elem *cmd_elem;
     while (this->command_queue.size() > 0) {
         cmd_elem = this->command_queue.at(0);
         switch(cmd_elem->cmd) {
@@ -77,18 +77,29 @@ void RemoteDirRetriveThread::run()
             break ;
         case SSH2_FXP_KEEP_ALIVE:
             exec_ret_code = this->keep_alive();
-            break ;
+            break;
+        case SSH2_FXP_REALPATH:
+            q_debug()<<"here"<<cmd_elem<<cmd_elem->parent_item;
+            exec_ret_code = this->fxp_realpath();
+            q_debug()<<"here";
+            break;
         default:    
             qDebug()<<tr("unknown command:")<<cmd_elem->cmd;                
             break;
         }
+
+        // 通知其他人命令执行完成
+        emit execute_command_finished(cmd_elem->parent_item, cmd_elem->parent_model_internal_pointer,
+                                      cmd_elem->cmd, exec_ret_code);
+
         //delet item form queue , stopping infinite cycle
         this->command_queue.erase(this->command_queue.begin());
         delete cmd_elem;
         cmd_elem = 0;
+        exec_ret_code = -1;
     }
 
-    emit this->leave_remote_dir_retrive_loop();    
+    emit this->leave_remote_dir_retrive_loop();
 }
 
 int  RemoteDirRetriveThread::retrive_dir()
@@ -100,7 +111,7 @@ int  RemoteDirRetriveThread::retrive_dir()
 
     QString tmp;
     QVector<directory_tree_item*> deltaItems;
-    QVector< QMap< char, QString > > fileinfos;
+    QVector<QMap<char, QString> > fileinfos;
     char file_name[PATH_MAX+1];
     int fxp_ls_ret = 0;
  
@@ -169,7 +180,7 @@ int  RemoteDirRetriveThread::retrive_dir()
 
         //         //////
         this->dir_node_process_queue.erase(parent_item);
-        emit this->remote_dir_node_retrived(parent_item,parent_model_internal_pointer);
+        emit this->remote_dir_node_retrived(parent_item, parent_model_internal_pointer);
 
         if (ssh2_sftp_handle != 0) //TODO 应该在循环上面检测到为0就continue才对啊。
             libssh2_sftp_closedir(ssh2_sftp_handle);
@@ -454,6 +465,31 @@ int RemoteDirRetriveThread::fxp_do_ls_dir(QString path, QVector<QPair<QString, L
     return 0;
 }
 
+int RemoteDirRetriveThread::fxp_realpath()
+{
+    command_queue_elem *cmd_elem = this->command_queue.at(0);
+    q_debug()<<"here"<<cmd_elem;
+    LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
+    q_debug()<<"here";
+    directory_tree_item *node_item = cmd_elem->parent_item;
+    qDebug()<<node_item;
+    qDebug()<<node_item->strip_path;
+    int ret = 0;
+
+    q_debug()<<GlobalOption::instance()->remote_codec->fromUnicode(node_item->strip_path).data();
+    // stat will follow the link if it is.
+    ret = libssh2_sftp_stat(this->ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(node_item->strip_path).data(), &ssh2_sftp_attrib);
+    if (ret != 0) {
+        q_debug()<<"stat error.";
+    } else {
+        if (S_ISDIR(ssh2_sftp_attrib.permissions)) {
+            // node_item->linkToDir = true;
+        }
+    }
+
+    return ret;
+}
+
 void RemoteDirRetriveThread::add_node(directory_tree_item *parent_item, void *parent_model_internal_pointer)
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
@@ -493,7 +529,7 @@ void RemoteDirRetriveThread::add_node(directory_tree_item *parent_item, void *pa
 void RemoteDirRetriveThread::slot_execute_command(directory_tree_item *parent_item,
                                                   void *parent_model_internal_pointer, int cmd, QString params)
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
     command_queue_elem *cmd_elem = new command_queue_elem();
     cmd_elem->parent_item = parent_item;

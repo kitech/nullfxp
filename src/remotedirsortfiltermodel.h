@@ -27,6 +27,7 @@ public:
             
     virtual QString filePath(const QModelIndex &index) const;
     virtual bool isDir(const QModelIndex &index) const;
+    virtual bool isSymLink(const QModelIndex &index) const;
     virtual void setFilter(QDir::Filters filters);
 
     virtual bool hasChildren(const QModelIndex &parent) const;

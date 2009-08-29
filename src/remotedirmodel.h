@@ -120,13 +120,16 @@ public:
     QString filePath(const QModelIndex &index) const;
     bool isDir(const QModelIndex &index) const;
     bool isSymLink(const QModelIndex &index) const;
+    bool isSymLinkToDir(const QModelIndex &index) const;
 
 public slots:
     void slot_remote_dir_node_retrived(directory_tree_item *parent_item, void *parent_model_internal_pointer);
     void slot_remote_dir_node_clicked(const QModelIndex &index);
         
     void slot_execute_command(directory_tree_item *parent_item, void *parent_model_internal_pointer, int cmd, QString params );
-        
+
+    void execute_command_finished(directory_tree_item *parent_item, void *parent_model_internal_pointer,
+                                  int cmd, int status);
     //keep_alive
     void set_keep_alive(bool keep_alive, int time_out = DEFAULT_KEEP_ALIVE_TIMEOUT);
 
