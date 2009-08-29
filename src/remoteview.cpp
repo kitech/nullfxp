@@ -170,10 +170,10 @@ void RemoteView::i_init_dir_view()
                      SIGNAL(sig_drop_mime_data(const QMimeData *, Qt::DropAction, int, int, const QModelIndex &)),
                      this, SLOT(slot_drop_mime_data(const QMimeData *, Qt::DropAction, int, int, const QModelIndex &)));
     
-    QObject::connect( this->remote_dir_model, SIGNAL(enter_remote_dir_retrive_loop()),
-                      this, SLOT(slot_enter_remote_dir_retrive_loop()));
-    QObject::connect( this->remote_dir_model, SIGNAL(leave_remote_dir_retrive_loop()),
-                      this, SLOT(slot_leave_remote_dir_retrive_loop()));
+    QObject::connect(this->remote_dir_model, SIGNAL(enter_remote_dir_retrive_loop()),
+                     this, SLOT(slot_enter_remote_dir_retrive_loop()));
+    QObject::connect(this->remote_dir_model, SIGNAL(leave_remote_dir_retrive_loop()),
+                     this, SLOT(slot_leave_remote_dir_retrive_loop()));
     
     this->remoteview.treeView->expandAll();
     this->remoteview.treeView->setColumnWidth(0, this->remoteview.treeView->columnWidth(0)*2);

@@ -50,7 +50,8 @@ public:
     RemoteDirSortFilterModelEX(QObject *parent = 0);
     virtual ~RemoteDirSortFilterModelEX();
     
-    virtual bool hasChildren(const QModelIndex &parent) const;
+    // 已经继承自 RemoteDirSortFilterModel
+    // virtual bool hasChildren(const QModelIndex &parent) const;
 
 protected:
     virtual bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const;

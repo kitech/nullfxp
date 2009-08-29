@@ -43,15 +43,13 @@ bool RemoteDirSortFilterModel::isDir(const QModelIndex &index) const
     return this->source_model->isDir(this->mapToSource(index));
 }
 
-
 bool RemoteDirSortFilterModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
 {
-    //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<this->filters;
+    //qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<this->filters;
     if (this->filters & QDir::Hidden) {
-        //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+        //qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
         return true;
     } else {
-        return true;
         QString file_name = this->source_model->data(this->source_model->index(source_row, 0, source_parent), Qt::DisplayRole).toString();
         //qDebug()<<this->source_model->data(this->source_model->index(source_row, 0, source_parent), Qt::DisplayRole).toString();
         if (file_name.at(0) == '.') {
@@ -65,12 +63,13 @@ bool RemoteDirSortFilterModel::filterAcceptsRow(int source_row, const QModelInde
     return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
 }
 
+// TODO cleanup this method
 void RemoteDirSortFilterModel::setFilter(QDir::Filters filters)
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<this;
-    directory_tree_item * dti = 0;
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<this;
+    directory_tree_item *dti = 0;
 
-    //这个函数写的挺奇怪了的，这个persistentIndexList到底是什么东西。在什么时候有用呢。
+    // 这个函数写的挺奇怪了，这个persistentIndexList到底是什么东西。在什么时候有用呢。
     //
     this->filters = filters;
     if (strcmp(this->metaObject()->className(), "RemoteDirSortFilterModelEX") == 0) {
@@ -82,10 +81,6 @@ void RemoteDirSortFilterModel::setFilter(QDir::Filters filters)
             qDebug()<<dti->strip_path<<this;
             if (dti->strip_path.length() > 0) {
                 emit layoutAboutToBeChanged();
-                //this->source_model->slot_remote_dir_node_clicked(this->source_model->index(0,0,QModelIndex()) );
-                //dti = static_cast<directory_tree_item*>(this->source_model->index(0,0,QModelIndex()) .internalPointer());
-                //qDebug()<<dti->file_name<<" "<<dti->file_type<<" "<< dti->strip_path ;
-                //file_path = dti->strip_path ;
                 dti->retrived = 1;
                 dti->prev_retr_flag = 9;
                 this->source_model->slot_remote_dir_node_clicked(this->mapToSource(this->persistentIndexList().at(i)));
@@ -96,12 +91,11 @@ void RemoteDirSortFilterModel::setFilter(QDir::Filters filters)
         }
     }
 }
-// TODO 真正的hasChildren检测
+
 bool RemoteDirSortFilterModel::hasChildren(const QModelIndex &parent) const
 {
-    qDebug()<<""<<parent;
-    
-    return true;
+    // qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<""<<parent;
+    return this->source_model->hasChildren(this->mapToSource(parent));
 }
 
 //////////////////////
@@ -119,7 +113,7 @@ RemoteDirSortFilterModelEX::~RemoteDirSortFilterModelEX()
 
 bool RemoteDirSortFilterModelEX::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
 {
-    //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<this->filters;
+    //qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<this->filters;
     if (this->source_model->isDir( this->source_model->index(source_row, 0, source_parent))) {
         return RemoteDirSortFilterModel::filterAcceptsRow(source_row, source_parent);
     } else {
@@ -127,11 +121,10 @@ bool RemoteDirSortFilterModelEX::filterAcceptsRow(int source_row, const QModelIn
     }
     return RemoteDirSortFilterModel::filterAcceptsRow(source_row, source_parent);
 }
-// TODO 真正的hasChildren检测
-bool RemoteDirSortFilterModelEX::hasChildren(const QModelIndex &parent) const
-{
-    qDebug()<<""<<parent;
-    
-    return true;
-}
+
+// bool RemoteDirSortFilterModelEX::hasChildren(const QModelIndex &parent) const
+// {
+//     // qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<""<<parent;
+//     return RemoteDirSortFilterModel::hasChildren(parent);
+// }
 

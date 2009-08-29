@@ -200,7 +200,8 @@ QModelIndex RemoteDirModel::index(const QString &path, int column) const
 {
     if (path == "") {
         qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-        return this->createIndex(0,0,this->tree_root->child_items[0]);
+        // return this->createIndex(0,0,this->tree_root->child_items[0]);
+        return QModelIndex();
     } 
 
     QString absolutePath = QDir(path).absolutePath();
@@ -218,19 +219,21 @@ QModelIndex RemoteDirModel::index(const QString &path, int column) const
 #endif
 
     QStringList pathElements = absolutePath.split(QLatin1Char('/'), QString::SkipEmptyParts);
-    if ((pathElements.isEmpty() /*|| !QFileInfo(path).exists()*/)   // the path is "/"
-#ifndef Q_OS_WIN
-        && path != QLatin1String("/")
-#endif
-        )
-    {
-        return QModelIndex();
-    }
+//     if ((pathElements.isEmpty() /*|| !QFileInfo(path).exists()*/)   // the path is "/"
+// #ifndef Q_OS_WIN
+//         && path != QLatin1String("/")
+// #endif
+//         )
+//     {
+//         return QModelIndex();
+//     }
    
     
     pathElements.prepend("/");
-    
-    return this->find_node_item_by_path_elements(this->tree_root->child_items[0], pathElements, 1);
+    q_debug()<<pathElements;
+
+    return this->find_node_item_by_path_elements(this->tree_root, pathElements, 1);
+    // return this->find_node_item_by_path_elements(this->tree_root->child_items[0], pathElements, 1);
     
     return QModelIndex();
 }
