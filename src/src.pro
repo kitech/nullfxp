@@ -39,7 +39,7 @@ win32 {
 #	QT += webkit
 	CONFIG += debug
 }
-QT += network 
+QT += network xml
 
 UI_DIR = obj
 MOC_DIR = obj
@@ -103,7 +103,8 @@ SOURCES += main.cpp \
  synctransferthread.cpp \
  taskpackage.cpp \
  sftpfile.cpp \
- connection.cpp
+ connection.cpp \
+ mimetypeshash.cpp
 
 HEADERS += nullfxp.h \
  localview.h \

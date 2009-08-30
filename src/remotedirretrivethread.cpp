@@ -484,6 +484,9 @@ int RemoteDirRetriveThread::fxp_realpath()
     } else {
         if (S_ISDIR(ssh2_sftp_attrib.permissions)) {
             // node_item->linkToDir = true;
+            ret = 0;
+        } else {
+            ret = 1;
         }
     }
 

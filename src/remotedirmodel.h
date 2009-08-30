@@ -160,8 +160,7 @@ private:
         
     bool    keep_alive;
     QTimer  *keep_alive_timer;
-    int     keep_alive_interval;        
-
+    int     keep_alive_interval;
 };
 
 #endif

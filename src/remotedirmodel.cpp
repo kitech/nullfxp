@@ -15,6 +15,10 @@
 #include "remotedirmodel.h"
 #include "rfsdirnode.h"
 
+// from mimetypeshash.cpp
+extern QHash<QString, QString> gMimeHash;
+
+// 类定义
 RemoteDirModel::RemoteDirModel(QObject *parent)
     : QAbstractItemModel(parent)
 {
@@ -38,7 +42,6 @@ RemoteDirModel::RemoteDirModel(QObject *parent)
     this->keep_alive_timer->setInterval(this->keep_alive_interval);
     QObject::connect(this->keep_alive_timer, SIGNAL(timeout()),
                      this, SLOT( slot_keep_alive_time_out()));
-
 }
 
 void RemoteDirModel::set_ssh2_handler(void *ssh2_sess)
@@ -295,6 +298,7 @@ QVariant RemoteDirModel::data(const QModelIndex &index, int role) const
 {
     QVariant ret_var ;
     QString unicode_name;
+    directory_tree_item *item = static_cast<directory_tree_item*>(index.internalPointer());
 
     if (role == Qt::DecorationRole && index.column()==0) {
         if (this->isDir(index)) {
@@ -303,14 +307,30 @@ QVariant RemoteDirModel::data(const QModelIndex &index, int role) const
             return QIcon(":/icons/emblem-symbolic-link.png");
             // return qApp->style()->standardIcon(QStyle::SP_DirLinkIcon);
         } else {
-            return qApp->style()->standardIcon(QStyle::SP_FileIcon);
+            // qDebug()<<this->mime->fromFileName("test.png")<<this->mime->fromFileName(item->strip_path);
+            int lastSplashPos = item->strip_path.lastIndexOf(QChar('/'));
+            int lastDotPos = item->strip_path.lastIndexOf(QChar('.'));
+            QString suffix;
+            if (lastDotPos > lastSplashPos) {
+                suffix = item->strip_path.right(item->strip_path.length() - lastDotPos - 1);
+            }
+            if (suffix.isEmpty()) {
+                return qApp->style()->standardIcon(QStyle::SP_FileIcon);
+            } else {
+                if (suffix.right(1) == "~" || suffix.right(1) == "#") {
+                    suffix = suffix.left(suffix.length() - 1);
+                }
+                QIcon icon = QIcon(qApp->applicationDirPath() + "/icons/mimetypes/" + gMimeHash.value(suffix) + ".png");
+                if (icon.isNull() || gMimeHash.value(suffix).isEmpty()) {
+                    icon = qApp->style()->standardIcon(QStyle::SP_FileIcon);
+                }
+                return icon;
+            }
         }
     }
     
     if (role != Qt::DisplayRole)
         return QVariant();
-
-    directory_tree_item *item = static_cast<directory_tree_item*>(index.internalPointer());
 
     switch (index.column()) {
     case 0:
