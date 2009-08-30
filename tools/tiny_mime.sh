@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # tiny_mime.sh --- 
 # 
@@ -30,24 +30,35 @@ function out_header()
 }
 function out_extra_pairs()
 {
-    echo "    gMimeHash.insert(\"c\", \"text-x-csrc\");";
-    echo "    gMimeHash.insert(\"cc\", \"text-x-c++src\");";
-    echo "    gMimeHash.insert(\"cpp\", \"text-x-c++src\");";
-    echo "    gMimeHash.insert(\"c++\", \"text-x-c++src\");";
-    echo "    gMimeHash.insert(\"cxx\", \"text-x-c++src\");";
-    echo "    gMimeHash.insert(\"h\", \"text-x-chdr\");";
-    echo "    gMimeHash.insert(\"hpp\", \"text-x-c++hdr\");";
-    echo "    gMimeHash.insert(\"hxx\", \"text-x-c++hdr\");";
+    echo "    gMimeHash.insertMulti(\"c\", \"text-x-csrc\");";
+    echo "    gMimeHash.insertMulti(\"cc\", \"text-x-c++src\");";
+    echo "    gMimeHash.insertMulti(\"cpp\", \"text-x-c++src\");";
+    echo "    gMimeHash.insertMulti(\"c++\", \"text-x-c++src\");";
+    echo "    gMimeHash.insertMulti(\"cxx\", \"text-x-c++src\");";
+    echo "    gMimeHash.insertMulti(\"h\", \"text-x-chdr\");";
+    echo "    gMimeHash.insertMulti(\"hpp\", \"text-x-c++hdr\");";
+    echo "    gMimeHash.insertMulti(\"hxx\", \"text-x-c++hdr\");";
 
-    echo "    gMimeHash.insert(\"jpg\", \"image-x-generic\");";
-    echo "    gMimeHash.insert(\"jpeg\", \"image-x-generic\");";
-    echo "    gMimeHash.insert(\"ico\", \"image-x-generic\");";
-    echo "    gMimeHash.insert(\"png\", \"image-x-generic\");";
-    echo "    gMimeHash.insert(\"gif\", \"image-x-generic\");";
-    echo "    gMimeHash.insert(\"bmp\", \"image-x-generic\");";
+    echo "    gMimeHash.insertMulti(\"jpg\", \"image-x-generic\");";
+    echo "    gMimeHash.insertMulti(\"jpeg\", \"image-x-generic\");";
+    echo "    gMimeHash.insertMulti(\"ico\", \"image-x-generic\");";
+    echo "    gMimeHash.insertMulti(\"png\", \"image-x-generic\");";
+    echo "    gMimeHash.insertMulti(\"gif\", \"image-x-generic\");";
+    echo "    gMimeHash.insertMulti(\"bmp\", \"image-x-generic\");";
 
-    echo "    gMimeHash.insert(\"htm\", \"text-html\");";
-    echo "    gMimeHash.insert(\"html\", \"text-html\");";
+    echo "    gMimeHash.insertMulti(\"htm\", \"text-html\");";
+    echo "    gMimeHash.insertMulti(\"html\", \"text-html\");";
+
+    echo "    gMimeHash.insertMulti(\"wmv\", \"video-x-generic\");";
+    echo "    gMimeHash.insertMulti(\"avi\", \"video-x-generic\");";
+    echo "    gMimeHash.insertMulti(\"asf\", \"video-x-generic\");";
+    echo "    gMimeHash.insertMulti(\"mpg\", \"video-x-generic\");";
+    echo "    gMimeHash.insertMulti(\"mpeg\", \"video-x-generic\");";
+    echo "    gMimeHash.insertMulti(\"m2v\", \"video-x-generic\");";
+    echo "    gMimeHash.insertMulti(\"mp3\", \"video-x-generic\");";
+
+    echo "    gMimeHash.insertMulti(\"iso\", \"application-x-cd-image\");";
+    echo "    gMimeHash.insertMulti(\"ppt\", \"application-vnd.ms-powerpoint\");";
 }
 
 function out_footer()
@@ -94,7 +105,7 @@ do
         # echo $suffix;
         mtype=`echo $save_sline | awk -F\" '{print $2}' | awk -F/ '{print $1 "-" $2}'`
         # echo $mtype;
-        echo "    gMimeHash.insert(\"$suffix\", \"$mtype\");";
+        echo "    if (!gMimeHash.contains(\"$suffix\")) gMimeHash.insert(\"$suffix\", \"$mtype\");";
     fi   
 
 done < $MIME_XML
