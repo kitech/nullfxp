@@ -23,13 +23,13 @@ class FilePropertiesRetriveThread : public QThread
 {
     Q_OBJECT;
 public:
-    FilePropertiesRetriveThread(LIBSSH2_SFTP * ssh2_sftp, QString file_path, QObject * parent = 0);
+    FilePropertiesRetriveThread(LIBSSH2_SFTP *ssh2_sftp, QString file_path, QObject *parent = 0);
     ~FilePropertiesRetriveThread();
     virtual void run ();
 signals:
-    void file_attr_abtained(QString file_name, void * attr);
+    void file_attr_abtained(QString file_name, void *attr);
 private:
-    LIBSSH2_SFTP * ssh2_sftp ;
+    LIBSSH2_SFTP *ssh2_sftp;
     QString file_path ;
 };
 
@@ -42,19 +42,21 @@ class FileProperties : public  QDialog
 public:
     FileProperties(QWidget *parent = 0);
     ~FileProperties();
-    void set_ssh2_sftp(void * ssh2_sftp);
+    void set_ssh2_sftp(void *ssh2_sftp);
     
     void set_file_info_model_list(QModelIndexList &mil);
 
 public slots:
     void slot_prop_thread_finished();
-    void slot_file_attr_abtained(QString file_name, void * attr);
+    void slot_file_attr_abtained(QString file_name, void *attr);
         
 private:
     void update_perm_table( QString file_perm);
     QString type(QString file_name);
+    QIcon fileIcon(QString file_name);
+
     Ui::FileProperties ui_file_prop_dialog;
-    LIBSSH2_SFTP * ssh2_sftp ;
+    LIBSSH2_SFTP *ssh2_sftp;
 };
 
 class LocalFileProperties: public QDialog
@@ -71,6 +73,8 @@ private:
     void update_perm_table( QString file_name);
     QString type(QString file_name);
     QString digit_mode(int mode);
+    QIcon fileIcon(QString file_name);
+
     Ui::FileProperties ui_file_prop_dialog;
     QString file_name;
 };

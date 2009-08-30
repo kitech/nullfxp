@@ -20,15 +20,17 @@
 #endif
 #include "rfsdirnode.h"
 
+extern QHash<QString, QString> gMimeHash;
+
 #ifndef _MSC_VER
 #warning "maybe there is some way to drop this thread"
 #endif
 
-FilePropertiesRetriveThread::FilePropertiesRetriveThread(LIBSSH2_SFTP * ssh2_sftp,
-                                                         QString file_path, QObject * parent)
+FilePropertiesRetriveThread::FilePropertiesRetriveThread(LIBSSH2_SFTP *ssh2_sftp,
+                                                         QString file_path, QObject *parent)
   : QThread(parent)
 {
-    this->ssh2_sftp = ssh2_sftp ;
+    this->ssh2_sftp = ssh2_sftp;
     this->file_path = GlobalOption::instance()->remote_codec->fromUnicode(file_path);
 }
 FilePropertiesRetriveThread::~FilePropertiesRetriveThread()
@@ -60,14 +62,14 @@ FileProperties::FileProperties(QWidget *parent)
 FileProperties::~FileProperties()
 {
 }
-void FileProperties::set_ssh2_sftp(void * ssh2_sftp)
+void FileProperties::set_ssh2_sftp(void *ssh2_sftp)
 {
     this->ssh2_sftp = (LIBSSH2_SFTP*)ssh2_sftp;
 }
 
 void FileProperties::set_file_info_model_list(QModelIndexList &mil)
 {
-	if (mil.count() == 0) return ;
+	if (mil.count() == 0) return;
 
 	directory_tree_item * item_node = static_cast<directory_tree_item*>(mil.at(0).internalPointer());
 	QString file_name = mil.at(0).data().toString();
@@ -97,7 +99,7 @@ void FileProperties::set_file_info_model_list(QModelIndexList &mil)
     QString file_path = this->ui_file_prop_dialog.lineEdit_3->text()
         + QString ( "/" ) + this->ui_file_prop_dialog.lineEdit->text() ;
 
-    FilePropertiesRetriveThread * rt = 0;
+    FilePropertiesRetriveThread *rt = 0;
     rt = new FilePropertiesRetriveThread(this->ssh2_sftp, file_path, this);
     QObject::connect(rt, SIGNAL(file_attr_abtained(QString, void*)), 
                      this, SLOT(slot_file_attr_abtained(QString, void*)));
@@ -108,13 +110,14 @@ void FileProperties::slot_prop_thread_finished()
 {
 	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 }
-void FileProperties::slot_file_attr_abtained(QString file_name, void * attr)
+void FileProperties::slot_file_attr_abtained(QString file_name, void *attr)
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    
+    this->ui_file_prop_dialog.label_13->setPixmap(this->fileIcon(file_name).pixmap(50, 50).scaledToHeight(50));
+
 	char file_perm[60] = {0};
     QString file_size ;
-	LIBSSH2_SFTP_ATTRIBUTES * sftp_attrib = (LIBSSH2_SFTP_ATTRIBUTES *)attr;
+	LIBSSH2_SFTP_ATTRIBUTES *sftp_attrib = (LIBSSH2_SFTP_ATTRIBUTES *)attr;
     SSHFileInfo fi(sftp_attrib);
     
     this->ui_file_prop_dialog.label_15->setText(QString("%1").arg(sftp_attrib->uid));
@@ -127,7 +130,7 @@ void FileProperties::slot_file_attr_abtained(QString file_name, void * attr)
     
 	if (this->ui_file_prop_dialog.lineEdit_2->text() == "D") {
         file_size = QString("%1").arg(sftp_attrib->filesize);
-        this->ui_file_prop_dialog.lineEdit_4->setText (file_size);
+        this->ui_file_prop_dialog.lineEdit_4->setText(file_size);
         this->ui_file_prop_dialog.lineEdit_2->setText(tr("Folder"));
 	} else if (this->ui_file_prop_dialog.lineEdit_2->text() == "d") {
         this->ui_file_prop_dialog.lineEdit_2->setText(tr("Folder"));
@@ -221,6 +224,32 @@ QString FileProperties::type(QString file_name)
     return QApplication::translate("QFileDialog", "Unknown");
 }
 
+QIcon FileProperties::fileIcon(QString file_name)
+{
+    int lastSplashPos = file_name.lastIndexOf(QChar('/'));
+    int lastDotPos = file_name.lastIndexOf(QChar('.'));
+    QString suffix;
+    if (lastDotPos > lastSplashPos) {
+        suffix = file_name.right(file_name.length() - lastDotPos - 1);
+    }
+    if (suffix.isEmpty()) {
+        return qApp->style()->standardIcon(QStyle::SP_FileIcon);
+    } else {
+        if (suffix.right(1) == "~" || suffix.right(1) == "#") {
+            suffix = suffix.left(suffix.length() - 1);
+        }
+        suffix = suffix.toLower();
+        // qDebug()<<suffix<<gMimeHash.value(suffix);
+        QIcon icon = QIcon(qApp->applicationDirPath() + "/icons/mimetypes/" + gMimeHash.value(suffix) + ".png");
+        if (icon.availableSizes().isEmpty() || gMimeHash.value(suffix).isEmpty()) {
+            icon = qApp->style()->standardIcon(QStyle::SP_FileIcon);
+        }
+        return icon;
+    }
+
+    return QIcon();
+}
+
 ///////////////////////////////////////////
 ////    
 ///////////////////////////////////////////
@@ -239,18 +268,21 @@ LocalFileProperties::~LocalFileProperties()
 
 void LocalFileProperties::set_file_info_model_list(QString file_name)
 {
+
+    this->ui_file_prop_dialog.label_13->setPixmap(this->fileIcon(file_name).pixmap(50, 50).scaledToHeight(50));
+
     QFileInfo fi(file_name);
     
     this->file_name = file_name;
     QString file_size = "";
     QString file_modify_time = "";
 
-    this->ui_file_prop_dialog.lineEdit->setText ( fi.fileName() );
-    this->ui_file_prop_dialog.lineEdit_2->setText ( this->type(file_name) );
-    this->ui_file_prop_dialog.lineEdit_3->setText (  fi.path() );
-    this->ui_file_prop_dialog.lineEdit_4->setText ( QString("%1").arg(fi.size()));
-    this->ui_file_prop_dialog.lineEdit_5->setText ( fi.lastModified().toString("yyyy/MM/dd hh:mm:ss") );   
-    this->ui_file_prop_dialog.lineEdit_6->setText ( fi.lastRead().toString("yyyy/MM/dd hh:mm:ss") ); //2007/11/28 06:53:45
+    this->ui_file_prop_dialog.lineEdit->setText(fi.fileName());
+    this->ui_file_prop_dialog.lineEdit_2->setText(this->type(file_name));
+    this->ui_file_prop_dialog.lineEdit_3->setText(fi.path());
+    this->ui_file_prop_dialog.lineEdit_4->setText(QString("%1").arg(fi.size()));
+    this->ui_file_prop_dialog.lineEdit_5->setText(fi.lastModified().toString("yyyy/MM/dd hh:mm:ss"));
+    this->ui_file_prop_dialog.lineEdit_6->setText(fi.lastRead().toString("yyyy/MM/dd hh:mm:ss")); //2007/11/28 06:53:45
 
     QString mode = this->digit_mode(fi.permissions());
     this->ui_file_prop_dialog.lineEdit_7->setText(mode);
@@ -355,5 +387,31 @@ QString LocalFileProperties::type(QString file_name)
     // Nautilus  - "link to folder" or "link to object file", same as Konqueror
 
     return QApplication::translate("QFileDialog", "Unknown");
+}
+
+QIcon LocalFileProperties::fileIcon(QString file_name)
+{
+    int lastSplashPos = file_name.lastIndexOf(QChar('/'));
+    int lastDotPos = file_name.lastIndexOf(QChar('.'));
+    QString suffix;
+    if (lastDotPos > lastSplashPos) {
+        suffix = file_name.right(file_name.length() - lastDotPos - 1);
+    }
+    if (suffix.isEmpty()) {
+        return qApp->style()->standardIcon(QStyle::SP_FileIcon);
+    } else {
+        if (suffix.right(1) == "~" || suffix.right(1) == "#") {
+            suffix = suffix.left(suffix.length() - 1);
+        }
+        suffix = suffix.toLower();
+        // qDebug()<<suffix<<gMimeHash.value(suffix);
+        QIcon icon = QIcon(qApp->applicationDirPath() + "/icons/mimetypes/" + gMimeHash.value(suffix) + ".png");
+        if (icon.availableSizes().isEmpty() || gMimeHash.value(suffix).isEmpty()) {
+            icon = qApp->style()->standardIcon(QStyle::SP_FileIcon);
+        }
+        return icon;
+    }
+
+    return QIcon();
 }
 

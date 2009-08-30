@@ -387,9 +387,22 @@ void RemoteHostConnectThread::run()
     free(server_info);
     
     ret = libssh2_sftp_realpath((LIBSSH2_SFTP*)ssh2_sftp, ".", home_path, PATH_MAX);
-    if (ret != 0 ) {
-        qDebug()<<" realpath : "<<ret
-                << " err code : "<<libssh2_sftp_last_error((LIBSSH2_SFTP*)ssh2_sftp)
+    if (ret != 0) {
+        QString msg;
+        char * emsg = 0;
+        int  emsg_len = 0;
+        libssh2_session_last_error((LIBSSH2_SESSION*)ssh2_sess, &emsg, &emsg_len, 1);
+        qDebug()<<"Init sftp error: "<<emsg;
+        if (emsg != 0) {
+            msg = QString(emsg);
+            free(emsg);
+        } else {
+            msg = QString(tr("Unknown SFTP error."));
+        }
+
+        qDebug()<<"realpath : "<<ret
+                <<"error code: "<<libssh2_sftp_last_error((LIBSSH2_SFTP*)ssh2_sftp)
+                <<"error msg: "<<msg
                 <<home_path;
         assert(ret >= 0);
     }

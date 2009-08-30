@@ -62,8 +62,7 @@ void RemoteDirModel::set_user_home_path(std::string user_home_path)
     // 1.      /home/users/l/li/liuguangzhao
     // 2.      /root
     // 3.       /home/gzl
-
-    this->tree_root = new directory_tree_item();
+    // 4.      /
 
     //{创建初始化目录树
     directory_tree_item *first_item;
@@ -83,8 +82,8 @@ void RemoteDirModel::set_user_home_path(std::string user_home_path)
     while (1) {
         sep_pos = strchr(buff, '/');
         if (sep_pos == NULL) {
-            temp_strip_path =  buff2 ;
-            memset(buff3, 0, PATH_MAX+1 );
+            temp_strip_path =  buff2;
+            memset(buff3, 0, PATH_MAX+1);
             strcpy(buff3, buff2+(pre_sep_pos-buff) +1);
             temp_path_name =  buff3;
             temp_parent_tree_item = temp_tree_item ;
@@ -93,11 +92,11 @@ void RemoteDirModel::set_user_home_path(std::string user_home_path)
             *sep_pos = '&'; //将这个字符替换掉，防止重复查找这个位置
             if ( sep_pos == buff ) {
                 strncpy(buff3, buff2, int(sep_pos - buff));
-                temp_strip_path = buff3 ;
-                temp_path_name =  "/" ;
+                temp_strip_path = buff3;
+                temp_path_name =  "/";
                 first_item   = new directory_tree_item();
                 temp_tree_item = first_item ;
-                temp_parent_tree_item = 0 ; // this->tree_root ;
+                temp_parent_tree_item = 0 ; // this->tree_root;
             } else {
                 strncpy ( buff3,buff2,int ( sep_pos-buff ) );
                 temp_strip_path =  buff3 ;
@@ -108,15 +107,15 @@ void RemoteDirModel::set_user_home_path(std::string user_home_path)
                 temp_tree_item = new directory_tree_item();
             }
         }
-        qDebug() <<"distance to begin: strip path:"<<temp_strip_path<<"dir name:"<<temp_path_name ;
+        qDebug()<<"distance to begin: strip path:"<<temp_strip_path<<"dir name:"<<temp_path_name;
         //assign
-        temp_tree_item->parent_item = temp_parent_tree_item ;
-        temp_tree_item->row_number = 0 ;    //指的是此结点在父结点中的第几个结点，在这里预置的只能为0
-        temp_tree_item->retrived = ( sep_pos == NULL ) ?0:1 ;  //半满结点
+        temp_tree_item->parent_item = temp_parent_tree_item;
+        temp_tree_item->row_number = 0;    //指的是此结点在父结点中的第几个结点，在这里预置的只能为0
+        temp_tree_item->retrived = (sep_pos == NULL) ?0:1;   //半满结点
         temp_tree_item->strip_path = temp_strip_path;
         temp_tree_item->file_name = temp_path_name;
         temp_tree_item->prev_retr_flag = -1;
-        temp_tree_item->attrib.permissions = 16877;//默认目录属性: drwxr-xr-x
+        temp_tree_item->attrib.permissions = 16877;    //默认目录属性: drwxr-xr-x
 
         if (temp_parent_tree_item == NULL) {
         } else {
@@ -124,12 +123,11 @@ void RemoteDirModel::set_user_home_path(std::string user_home_path)
         }
 
         //pre_sep_pos
-        pre_sep_pos = sep_pos ;
-        if ( sep_pos == NULL ) break;
+        pre_sep_pos = sep_pos;
+        if (sep_pos == NULL || user_home_path.length() == 1) break;
     }
-    qDebug()<<"seach end :"<< buff;
+    qDebug()<<"seach end :"<<buff;
 
-    // this->tree_root->child_items.insert(std::make_pair(0, first_item ));
     this->tree_root = first_item;
     // this->tree_root->row_number = 0;
     
@@ -235,7 +233,8 @@ QModelIndex RemoteDirModel::index(const QString &path, int column) const
     
     pathElements.prepend("/");
 
-    return this->find_node_item_by_path_elements(this->tree_root, pathElements, 1);
+    // if pathElements.count() == 1, then the path is only /
+    return this->find_node_item_by_path_elements(this->tree_root, pathElements, pathElements.count() == 1 ? 0 : 1);
     // return this->find_node_item_by_path_elements(this->tree_root->child_items[0], pathElements, 1);
     
     return QModelIndex();
@@ -245,8 +244,8 @@ QModelIndex RemoteDirModel::find_node_item_by_path_elements(directory_tree_item 
 {
     if (level < 0 ) return this->createIndex(0, 0, this->tree_root);
     QString aim_child_node_item_name = path_elements.at(level);
-    Q_ASSERT( parent_node_item);
-    //qDebug()<<__LINE__<< parent_node_item->file_name<<level<<path_elements ;
+    Q_ASSERT(parent_node_item);
+    //qDebug()<<__LINE__<< parent_node_item->file_name<<level<<path_elements;
     for (int i = 0 ; i < parent_node_item->child_items.size() ; i ++ ) {
         directory_tree_item * child_item = parent_node_item->child_items[i];
         //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<< child_item->file_name;
@@ -660,7 +659,6 @@ void RemoteDirModel::slot_execute_command(directory_tree_item *parent_item,
 void RemoteDirModel::execute_command_finished(directory_tree_item *parent_item, void *parent_model_internal_pointer,
                                               int cmd, int status)
 {
-    q_debug()<<"here";
     switch (cmd) {
     case SSH2_FXP_REALPATH:
         if (status == 0) {

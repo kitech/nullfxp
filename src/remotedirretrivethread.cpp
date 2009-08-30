@@ -79,9 +79,7 @@ void RemoteDirRetriveThread::run()
             exec_ret_code = this->keep_alive();
             break;
         case SSH2_FXP_REALPATH:
-            q_debug()<<"here"<<cmd_elem<<cmd_elem->parent_item;
             exec_ret_code = this->fxp_realpath();
-            q_debug()<<"here";
             break;
         default:    
             qDebug()<<tr("unknown command:")<<cmd_elem->cmd;                
@@ -468,12 +466,8 @@ int RemoteDirRetriveThread::fxp_do_ls_dir(QString path, QVector<QPair<QString, L
 int RemoteDirRetriveThread::fxp_realpath()
 {
     command_queue_elem *cmd_elem = this->command_queue.at(0);
-    q_debug()<<"here"<<cmd_elem;
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
-    q_debug()<<"here";
     directory_tree_item *node_item = cmd_elem->parent_item;
-    qDebug()<<node_item;
-    qDebug()<<node_item->strip_path;
     int ret = 0;
 
     q_debug()<<GlobalOption::instance()->remote_codec->fromUnicode(node_item->strip_path).data();
