@@ -154,6 +154,7 @@ src/icons/mimetypes/application-x-marble.png -text
 src/icons/mimetypes/application-x-mimearchive.png -text
 src/icons/mimetypes/application-x-mplayer2.png -text
 src/icons/mimetypes/application-x-ms-dos-executable.png -text
+src/icons/mimetypes/application-x-msi.png -text
 src/icons/mimetypes/application-x-mswinurl.png -text
 src/icons/mimetypes/application-x-mswrite.png -text
 src/icons/mimetypes/application-x-nzb.png -text

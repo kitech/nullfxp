@@ -39,7 +39,7 @@ win32 {
 #	QT += webkit
 	CONFIG += debug
 }
-QT += network xml
+QT += network
 
 UI_DIR = obj
 MOC_DIR = obj
