@@ -229,16 +229,24 @@ void RemoteHostConnectThread::run()
     libssh2_trace((LIBSSH2_SESSION*)ssh2_sess, 64);
     ret = libssh2_session_startup((LIBSSH2_SESSION*)ssh2_sess, this->ssh2_sock);
     if (ret != 0) {
-        this->connect_status = CONN_SESS_ERROR;
-        this->piClose(this->ssh2_sock);
         {
-            char * emsg = 0;
+            char *emsg = 0;
             int  emsg_len = 0;
             libssh2_session_last_error((LIBSSH2_SESSION*)ssh2_sess, &emsg, &emsg_len, 1);
-            qDebug()<<"Start ssh session error: "<<emsg;
-            emit connect_state_changed(QString("%1%2").arg(tr("Start ssh session: ")).arg(emsg));
+            qDebug()<<"Start ssh session error: "<<libssh2_session_last_errno((LIBSSH2_SESSION*)ssh2_sess)
+                    <<emsg;
+            emit connect_state_changed(QString("%1%2").arg(tr("Start ssh session error: ")).arg(emsg));
             if (emsg != 0) free(emsg);
         }        
+        if (ret == LIBSSH2_ERROR_KEX_FAILURE) {
+            // maybe the server ssh protocol version is 1.x
+            this->connect_status = CONN_PROTOCOL_VERSION_NOT_MATCH_ERROR;
+            this->piClose(this->ssh2_sock);
+            return;
+        } else {
+            this->connect_status = CONN_SESS_ERROR;
+            this->piClose(this->ssh2_sock);
+        }
         //assert( ret == 0 );
         return;
     }
@@ -540,7 +548,10 @@ QString RemoteHostConnectThread::get_status_desc(int status)
         break;
     case RemoteHostConnectThread::CONN_SFTP_ERROR:
         emsg = QString(tr("Can not initial SFTP handle."));
-        break;        
+        break;
+    case RemoteHostConnectThread::CONN_PROTOCOL_VERSION_NOT_MATCH_ERROR:
+        emsg = QString(tr("Server protocol version not match. Is it 1.x ?"));
+        break;
     default:
         emsg = QString(tr("Unknown error."));
         break;
