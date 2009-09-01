@@ -9,19 +9,21 @@
 
 #include <QtCore>
 #include <QCoreApplication>
+#include <QMessageBox>
 
 #include "nullfxp.h"
 #include "nullfxp-version.h"
 
 int main(int argc, char *argv[])
 {
+    // QT_REQUIRE_VERSION(argc, argv, "4.0.0"); // has a compile warning
     QApplication app(argc, argv);
 
-#if QT_VERSION >= 0x040400
-    app.setApplicationVersion(NULLFXP_RELEASE);
-    app.setOrganizationDomain(NULLFXP_HOMEPAGE);
-    app.setOrganizationName("kitsoft");
-#endif
+    if (strcmp(qVersion(), "4.4.0") >= 0) {
+        app.setApplicationVersion(NULLFXP_RELEASE);
+        app.setOrganizationDomain(NULLFXP_HOMEPAGE);
+        app.setOrganizationName("kitsoft");
+    }
 
     NullFXP nfxp;
     nfxp.showNormal();
