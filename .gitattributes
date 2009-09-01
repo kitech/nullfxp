@@ -67,7 +67,6 @@ src/icons/edit-paste.png -text
 src/icons/emblem-symbolic-link.png -text
 src/icons/folder-new.png -text
 src/icons/help-contents.png -text
-src/icons/mimetypes/.directory -text
 src/icons/mimetypes/application-illustrator.png -text
 src/icons/mimetypes/application-javascript.png -text
 src/icons/mimetypes/application-msword.png -text

@@ -28,10 +28,18 @@ cp -v $dirname/../bin/nullfxp $dirname/../nullfxp/lib/
 cp -v $dirname/../bin/unitest $dirname/../nullfxp/bin/
 cp -pv $dirname/../bin/plink   $dirname/../nullfxp/lib/
 cp -pv $dirname/../bin/plink   $dirname/../nullfxp/bin/
+cp -pv $dirname/../bin/touch.exe $dirname/../nullfxp/bin/
 
 strip -s -v $dirname/../nullfxp/lib/nullfxp
 strip -s -v $dirname/../nullfxp/bin/unitest
 strip -s -v $dirname/../nullfxp/lib/plink
+
+cp -Rv $dirname/../src/icons $dirname/../nullfxp/share/
+rm -vfr $dirname/../nullfxp/share/icons/.svn
+rm -vfr $dirname/../nullfxp/share/icons/mimetypes/.svn
+rm -vfr $dirname/../nullfxp/share/icons/.directory
+rm -vfr $dirname/../nullfxp/share/icons/mimetypes/.directory
+ln -sv ../share/icons $dirname/../nullfxp/lib/
 
 VER_FILE=$dirname/../src/nullfxp-version.h
 echo $VER_FILE
