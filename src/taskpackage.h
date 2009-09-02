@@ -38,6 +38,8 @@ class TaskPackage
     static void dump(TaskPackage &pkg);
     static bool isValid(TaskPackage &kg);
     static QString getProtocolNameById(int protocol_id);
+    QByteArray toRawData();
+    static TaskPackage fromRawData(QByteArray ba);
 
     int scheme;
     QStringList files;

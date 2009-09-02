@@ -99,3 +99,58 @@ QString TaskPackage::getProtocolNameById(int protocol_id)
     };
     return name;
 }
+// 成转换mimedata中可用的二进制流
+QByteArray TaskPackage::toRawData()
+{
+    QByteArray ba;
+
+    // int scheme;
+    // QStringList files;
+    // QString host;
+    // QString port;
+    // QString username;
+    // QString password;
+    // QString pubkey;
+
+    ba = "TaskPackage|";
+    for (int i = 0 ; i < this->files.count(); i ++) {
+        if (i > 0) {
+            ba +='&';
+        }
+        ba += this->files.at(i).toAscii().toHex();
+    }
+
+    ba += '|';
+    ba += QString("%1").arg(this->scheme).toAscii().toHex();
+    ba += '|' + this->host.toAscii().toHex();
+    ba += '|' + this->port.toAscii().toHex();
+    ba += '|' + this->username.toAscii().toHex();
+    ba += '|' + this->password.toAscii().toHex();
+    ba += '|' + this->pubkey.toAscii().toHex();
+
+    return ba;
+}
+
+TaskPackage TaskPackage::fromRawData(QByteArray ba)
+{
+    QList<QByteArray> elts = ba.split('|');
+    if (elts.count() != 8 || elts.at(0) != "TaskPackage") {
+        qDebug()<<"Invalid TaskPackage package";
+        return TaskPackage(PROTO_MAX);
+    }
+
+    TaskPackage pkg(QByteArray::fromHex(elts.at(2)).toInt());
+    QList<QByteArray> files = elts.at(1).split('&');
+    for (int i = 0 ; i < files.count(); i ++) {
+        pkg.files<<QString(QByteArray::fromHex(files.at(i)));
+    }
+    pkg.host = QString(QByteArray::fromHex(elts.at(3)));
+    pkg.port = QString(QByteArray::fromHex(elts.at(4)));
+    pkg.username = QString(QByteArray::fromHex(elts.at(5)));
+    pkg.password = QString(QByteArray::fromHex(elts.at(6)));
+    pkg.pubkey = QString(QByteArray::fromHex(elts.at(7)));
+
+    return pkg;
+}
+
+

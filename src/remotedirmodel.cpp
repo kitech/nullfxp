@@ -583,14 +583,14 @@ Qt::DropActions RemoteDirModel::supportedDropActions() const
 QStringList RemoteDirModel::mimeTypes() const
 {
     QStringList mtypes;
-    mtypes<< "text/uri-list";
-    //mtypes << "text/plain";
-    mtypes << QAbstractItemModel::mimeTypes();
-    //qDebug()<< mtypes ;
+    mtypes<<"text/uri-list"<<"application/task-package";
+    //mtypes<<"text/plain";
+    mtypes<<QAbstractItemModel::mimeTypes();
+    //qDebug()<<mtypes ;
     //mtypes = QAbstractItemModel::mimeTypes();
-    //qDebug()<< mtypes ;
+    //qDebug()<<mtypes;
     //return QAbstractItemModel::mimeTypes();
-    return mtypes ;
+    return mtypes;
 
 }
 QMimeData *RemoteDirModel::mimeData(const QModelIndexList &indexes) const

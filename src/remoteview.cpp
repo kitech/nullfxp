@@ -833,49 +833,43 @@ void RemoteView::slot_drag_ready()
         ism = this->remoteview.treeView->selectionModel();
         mil = ism->selectedIndexes();
     }
-    QList<QUrl>  drag_urls;
-    //drag_urls<< QUrl("nrsftp://heheh")<<QUrl("nrsftp://hehhefff");
+
+    TaskPackage tpkg(PROTO_SFTP);
+    
+    tpkg.host = this->host_name;
+    tpkg.username = this->user_name;
+    tpkg.password = this->password;
+    tpkg.port = QString("%1").arg(this->port);
+    tpkg.pubkey = this->pubkey;    
+
     for (int i = 0 ; i< mil.count() ;i += this->remote_dir_model->columnCount()) {
         QModelIndex midx = mil.at(i);
         temp_file_path = (qobject_cast<RemoteDirModel*>(this->remote_dir_model))
             ->filePath(this->remote_dir_sort_filter_model->mapToSource(midx) );
-        QUrl uu = QUrl( QString("nrsftp://%1:%2@%3:%4").arg(this->user_name)
-                        .arg("").arg(this->host_name).arg(this->port) + temp_file_path);
-        uu.setEncodedPassword(this->password.toAscii());
-        QList<QPair<QString, QString> > query_items;
-        query_items<<QPair<QString, QString>("pubkey",this->pubkey);
-        uu.setQueryItems(query_items);
-        //q_debug()<<uu;
-        remote_file_name = uu.toEncoded();//toString();
-        //q_debug()<<remote_file_name;
-        drag_urls<< remote_file_name;
+        tpkg.files<<temp_file_path;
     }
     
-    //mimeData->setData("text/uri-list" , "data");
-    mimeData->setUrls(drag_urls);
+    mimeData->setData("application/task-package", tpkg.toRawData());
     drag->setMimeData(mimeData);
     
     if (mil.count() > 0) {
         Qt::DropAction dropAction = drag->exec(Qt::CopyAction | Qt::MoveAction);
         Q_UNUSED(dropAction);
     }
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<" drag->exec returned";
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<"drag->exec returned";
 }
 
 bool RemoteView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction action,
                                      int row, int column, const QModelIndex &parent)
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     Q_UNUSED(row);
     Q_UNUSED(column);
     
     TaskPackage local_pkg(PROTO_FILE);
     TaskPackage remote_pkg(PROTO_SFTP);
-
-    QByteArray ba ;
-    
-    directory_tree_item *aim_item = static_cast<directory_tree_item*>(parent.internalPointer());
-        
+   
+    directory_tree_item *aim_item = static_cast<directory_tree_item*>(parent.internalPointer());        
     QString remote_file_name = aim_item->strip_path ;
 
     remote_pkg.files<<remote_file_name;
@@ -885,35 +879,27 @@ bool RemoteView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction actio
     remote_pkg.port = QString("%1").arg(this->port);
     remote_pkg.pubkey = this->pubkey;    
     
-    QList<QUrl> urls = data->urls();
-    qDebug()<< urls << " action: " << action <<" "<< parent << data->text() <<"remote file:"<< remote_file_name;
-    
-    if (urls.count() == 0) {
-        qDebug() <<" no url droped";
-        return false ;
-    }
-    
-    QString file_name;
-    for (int i = 0 ; i < urls.count() ; i ++) {
-        qDebug()<<urls.at(i).toString()<<urls.at(i).scheme();
-        if (urls.at(i).scheme() == "nrsftp") {
-            qDebug()<<" my scheme nrsftp";
-            local_pkg.files<<urls.at(i).path();
-            local_pkg.host = urls.at(i).host();
-            local_pkg.username = urls.at(i).userName();
-            local_pkg.password = urls.at(i).password();
-            local_pkg.port = QString("%1").arg(urls.at(i).port(22));
-            local_pkg.pubkey = urls.at(i).queryItemValue("pubkey");
-        } else if (urls.at(i).scheme() == "file") {
-            local_pkg.files<<urls.at(i).path();
-        } else {
-            qDebug()<<"Not support shemem";
+    if (data->hasFormat("application/task-package")) {
+        local_pkg = TaskPackage::fromRawData(data->data("application/task-package"));
+        if (local_pkg.isValid(local_pkg)) {
+            // TODO 两个sftp服务器间拖放的情况
+            this->slot_new_upload_requested(local_pkg, remote_pkg);
         }
+    } else if (data->hasFormat("text/uri-list")) {
+        // from localview
+        QList<QUrl> files = data->urls();
+        if (files.count() == 0) {
+            // return false;
+        } else {
+            for (int i = 0 ; i < files.count(); i++) {
+                local_pkg.files<<files.at(i).path();
+            }
+            this->slot_new_upload_requested(local_pkg, remote_pkg);
+        }        
+    } else {
+        qDebug()<<"invalid mime type:"<<data->formats();
     }
-    if (local_pkg.isValid(local_pkg)) {
-        this->slot_new_upload_requested(local_pkg, remote_pkg);
-    }
-    qDebug()<<"drop mime data processed ";
+    qDebug()<<"drop mime data processed";
     
     return true;
 }
