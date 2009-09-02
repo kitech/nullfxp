@@ -15,19 +15,18 @@
 #include "ui_aboutnullfxp.h"
 
 /**
-	@author liuguangzhao <gzl@localhost>
-*/
+ *	@author liuguangzhao <gzl@localhost>
+ */
 class AboutNullFXP : public QDialog
 {
-Q_OBJECT
+    Q_OBJECT;
 public:
-    AboutNullFXP(QWidget* parent=0, Qt::WindowFlags f=0);
+    AboutNullFXP(QWidget *parent = 0, Qt::WindowFlags f = 0);
 
     ~AboutNullFXP();
 
-    private:
-        Ui::AboutNullFXP ui_about_nullfxp ;
-        
+private:
+    Ui::AboutNullFXP ui_about_nullfxp;
 };
 
 #endif
