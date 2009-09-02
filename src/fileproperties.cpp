@@ -241,7 +241,7 @@ QIcon FileProperties::fileIcon(QString file_name)
         suffix = suffix.toLower();
         // qDebug()<<suffix<<gMimeHash.value(suffix);
         QIcon icon = QIcon(qApp->applicationDirPath() + "/icons/mimetypes/" + gMimeHash.value(suffix) + ".png");
-        if (icon.availableSizes().isEmpty() || gMimeHash.value(suffix).isEmpty()) {
+        if (icon.actualSize(QSize(32,32)).isEmpty() || gMimeHash.value(suffix).isEmpty()) {
             icon = qApp->style()->standardIcon(QStyle::SP_FileIcon);
         }
         return icon;
