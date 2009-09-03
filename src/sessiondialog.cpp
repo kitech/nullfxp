@@ -236,7 +236,7 @@ void SessionDialog::slot_rename_selected_host()
                 newPath = this->sessTree->filePath(pidx) + "/" + new_name;                                
                 nidx = this->sessTree->mkdir(pidx, new_name); // 欺骗QDirModel, 产生新目录缓存
                 QDir().rmdir(newPath);           // 使用后端方法删除掉这个目录，QDirModel变不知道。
-                QDir().rename(focusPath, newPath);     //在把旧目录移动过来,这时QDirModel认为这个目录是它创建的那个
+                QDir().rename(focusPath, newPath); //在把旧目录移动过来,这时QDirModel认为这个目录是它创建的那个
                 if (ok) {
                     this->ui_win.treeView->expand(this->sessTree->index(newPath)); // maybe crash?
                 }
@@ -266,7 +266,7 @@ void SessionDialog::slot_remove_selected_host()
         pidx = cidx.parent();
 
         //waning user
-        int ret = QMessageBox::question(this, tr("Remote host:"), tr("Are you sure remote it?"), 
+        int ret = QMessageBox::question(this, tr("Remote host:"), tr("Are you sure remove it?"), 
                                         QMessageBox::Yes, QMessageBox::No);
         if (ret == QMessageBox::Yes) {
             if (this->sessTree->isDir(cidx)) {
@@ -347,6 +347,7 @@ void SessionDialog::slot_paste_selected()
     QModelIndex aidx;
     QString afile;
     QModelIndex opidx;
+    QString show_name;
 
     if (!(this->optype >= OP_COPY && this->optype <= OP_CUT)) {
         return ;
@@ -428,9 +429,10 @@ void SessionDialog::slot_paste_selected()
     } else {
         afile = this->sessTree->filePath(aidx) + QString("/") + this->sessTree->fileName(opidx);
         if (afile == this->sessTree->filePath(opidx)) {
-            for (int i = 0; ; i++) {
+            for (int i = 0; i < 88888 ; i++) {
                 if (!QFile::exists(afile + QString("(%1)").arg(i))) {
                     afile += QString("(%1)").arg(i);
+                    show_name = this->sessTree->fileName(opidx) + QString("(%1)").arg(i);
                     break;
                 }
             }
@@ -442,6 +444,8 @@ void SessionDialog::slot_paste_selected()
         for (int i = 0 ; i < keys.count(); i ++) {
             tset.setValue(keys.at(i), fset.value(keys.at(i)));
         }
+        tset.setValue("show_name", show_name);
+        tset.sync();
         this->sessTree->refresh(aidx);
         this->ui_win.treeView->expand(aidx);
     }

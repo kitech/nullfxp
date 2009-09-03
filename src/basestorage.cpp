@@ -7,6 +7,8 @@
 // Version: $Id$
 // 
 
+#include "utils.h"
+
 #include "basestorage.h"
 
 BaseStorage * BaseStorage::mInstance = NULL;
@@ -91,7 +93,8 @@ bool BaseStorage::updateHost(QMap<QString,QString> host, QString newName, QStrin
     QString newSessFile = (catPath == QString::null ? this->storagePath : catPath) + "/" + newName;
 
     if (sessName != newName) {
-        if (!QFile(sessFile).rename(newSessFile)) {
+        if (!QFile().rename(sessFile, newSessFile)) {
+            q_debug()<<"rename error";
             return false;
         }
     }
