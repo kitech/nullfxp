@@ -20,6 +20,9 @@ RemoteHostQuickConnectInfoDialog::RemoteHostQuickConnectInfoDialog(QWidget* pare
                      this, SLOT(slot_pubkey_checked(int)));
     QObject::connect(this->quick_connect_info_dialog.toolButton, SIGNAL(clicked()),
                      this, SLOT(slot_select_pubkey()));
+    QObject::connect(this->quick_connect_info_dialog.comboBox, SIGNAL(currentIndexChanged(int)),
+                     this, SLOT(slot_protocol_changed(int)));
+
     this->pubkey_path = QString::null;
 }
 
@@ -59,6 +62,7 @@ QString RemoteHostQuickConnectInfoDialog::get_pubkey()
 void RemoteHostQuickConnectInfoDialog::set_active_host(QMap<QString,QString> host)
 {
     QString show_name = host["show_name"];
+    QString protocol = host["protocol"];
     QString host_name = host["host_name"];
     QString user_name = host["user_name"];
     QString password = host["password"];
@@ -67,7 +71,15 @@ void RemoteHostQuickConnectInfoDialog::set_active_host(QMap<QString,QString> hos
     if (host.contains("pubkey")) {
         pubkey_path = host["pubkey"];
     }
-    
+
+    if (protocol == QString("FTPS")) {
+        this->quick_connect_info_dialog.comboBox->setCurrentIndex(2);
+    } else if (protocol == QString("FTP")) {
+        this->quick_connect_info_dialog.comboBox->setCurrentIndex(1);
+    } else {
+        this->quick_connect_info_dialog.comboBox->setCurrentIndex(0);
+    }
+
     this->quick_connect_info_dialog.lineEdit->setText(host_name);
     this->quick_connect_info_dialog.lineEdit_2->setText(port);
     this->quick_connect_info_dialog.lineEdit_3->setText(user_name);
@@ -92,6 +104,7 @@ QMap<QString,QString> RemoteHostQuickConnectInfoDialog::get_host_map()
     QMap<QString,QString> host;
 
     host["show_name"] = this->show_name;
+    host["protocol"] = this->quick_connect_info_dialog.comboBox->currentText().trimmed();
     host["host_name"] = this->quick_connect_info_dialog.lineEdit->text().trimmed();
     host["user_name"] = this->quick_connect_info_dialog.lineEdit_3->text().trimmed();
     host["password"] = this->quick_connect_info_dialog.lineEdit_4->text();
@@ -145,6 +158,22 @@ void RemoteHostQuickConnectInfoDialog::slot_select_pubkey()
     }
 }
 
-
+void RemoteHostQuickConnectInfoDialog::slot_protocol_changed(int index)
+{
+    switch (index) {
+    case 0:
+        this->quick_connect_info_dialog.lineEdit_2->setText("22");
+        break;
+    case 1:
+        this->quick_connect_info_dialog.lineEdit_2->setText("21");
+        break;
+    case 2:
+        this->quick_connect_info_dialog.lineEdit_2->setText("212");
+        break;
+    default:
+        qDebug()<<"Unkown protocl:"<<index;
+        break;
+    }
+}
 
 
