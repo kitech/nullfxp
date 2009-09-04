@@ -32,6 +32,8 @@ src/config_win32_g++.h -text
 src/config_win32_msvc.h -text
 src/connection.cpp -text
 src/connection.h -text
+src/data/about_author.html -text
+src/data/about_info.html -text
 src/data/freedesktop.org.xml -text
 src/encryptiondetaildialog.cpp -text
 src/encryptiondetaildialog.h -text

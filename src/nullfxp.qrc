@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="/" >
+    <file>data/about_author.html</file>
+    <file>data/about_info.html</file>
     <file>icons/emblem-symbolic-link.png</file>
     <file>icons/folder-new.png</file>
     <file>icons/help-contents.png</file>
