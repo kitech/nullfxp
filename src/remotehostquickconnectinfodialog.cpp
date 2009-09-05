@@ -31,6 +31,10 @@ RemoteHostQuickConnectInfoDialog::~RemoteHostQuickConnectInfoDialog()
 {
 }
 
+QString RemoteHostQuickConnectInfoDialog::get_protocol()
+{
+    return this->quick_connect_info_dialog.comboBox->currentText().trimmed();
+}
 QString RemoteHostQuickConnectInfoDialog::get_user_name ()
 {
     return this->quick_connect_info_dialog.lineEdit_3->text().trimmed();
@@ -137,7 +141,7 @@ void RemoteHostQuickConnectInfoDialog::slot_select_pubkey()
     init_dir = QDir::homePath();
 #endif
 
-    path = QFileDialog::getOpenFileName ( this, tr("Publickey Select Dialog"),init_dir, tr("Public Key Files (*.pub);;All Files (*)"));
+    path = QFileDialog::getOpenFileName(this, tr("Publickey Select Dialog"),init_dir, tr("Public Key Files (*.pub);;All Files (*)"));
     qDebug()<<path;    
     if( path == QString::null) {
         //cancel
@@ -168,7 +172,8 @@ void RemoteHostQuickConnectInfoDialog::slot_protocol_changed(int index)
         this->quick_connect_info_dialog.lineEdit_2->setText("21");
         break;
     case 2:
-        this->quick_connect_info_dialog.lineEdit_2->setText("212");
+        // ctrl 990, data 989
+        this->quick_connect_info_dialog.lineEdit_2->setText("990");
         break;
     default:
         qDebug()<<"Unkown protocl:"<<index;

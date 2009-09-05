@@ -145,8 +145,9 @@ void NullFXP::connect_to_remote_host()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
-    QString username ;
-    QString password ;
+    QString protocol;
+    QString username;
+    QString password;
     QString remoteaddr;
     short   port;
     QString pubkey = QString::null;
@@ -155,6 +156,7 @@ void NullFXP::connect_to_remote_host()
 
     this->quick_connect_info_dailog = new RemoteHostQuickConnectInfoDialog(this);
     if (this->quick_connect_info_dailog->exec() == QDialog::Accepted) {
+        protocol = this->quick_connect_info_dailog->get_protocol();
         username = this->quick_connect_info_dailog->get_user_name();
         password = this->quick_connect_info_dailog->get_password();
         remoteaddr = this->quick_connect_info_dailog->get_host_name();
@@ -165,6 +167,7 @@ void NullFXP::connect_to_remote_host()
         this->quick_connect_info_dailog = 0;
 
         host["show_name"] = remoteaddr;
+        host["protocol"] = protocol;
         host["host_name"] = remoteaddr;
         host["user_name"] = username;
         host["password"] = password;

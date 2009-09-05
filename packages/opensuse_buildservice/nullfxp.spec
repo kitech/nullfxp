@@ -1,5 +1,5 @@
 #  
-# spec file for package nullfxp (Version 1.6.91)  
+# spec file for package nullfxp (Version 1.7.2)  
 #  
 # Copyright (c) 2008 SuSE Linux AG, Nuernberg, Germany.  
 # This file and all modifications and additions to the pristine  
@@ -7,25 +7,28 @@
 #  
 # Please submit bug fixes or comments via http://www.suse.de/feedback/  
 #  
+# $Id$
   
 # norootforbuild  
   
 %define _prefix /usr  
 %define rname nullfxp
-%define rversion 1.6.91  
-%define rrelease 1.6.91
+%define rversion 1.7.2 
+%define rrelease 1.7.2
 %define releasesuffix suse%(echo "%{suse_version}" | %__sed -e 's/.$//')DSB  
   
 Name:       nullfxp
 Version:    %{rversion}  
 Release:    %{rrelease}%{releasesuffix}  
-%if %suse_version < 1020  
-Distribution:   SUSE Linux %(echo "%{suse_version}" | %__sed -e 's/.$//' -e ':a;s/\(.$\)/\.\1/g')  
-%else  
-Distribution:   openSUSE %(echo "%{suse_version}" | %__sed -e 's/.$//' -e ':a;s/\(.$\)/\.\1/g')  
-%endif  
+
+# %if %suse_version < 1020  
+# Distribution:   SUSE Linux %(echo "%{suse_version}" | %__sed -e 's/.$//' -e ':a;s/\(.$\)/\.\1/g')  
+# %else  
+# Distribution:   openSUSE %(echo "%{suse_version}" | %__sed -e 's/.$//' -e ':a;s/\(.$\)/\.\1/g')  
+# %endif  
+
 Summary:    Application For Easy Folder Synchronisation  
-Source0:    %{rname}-%{version}-src.tar.gz  
+Source0:    %{rname}-%{version}-src.tar.bz2
 URL:        http://www.qtchina.net  
 Packager:   liugunagzhao - http://www.qtchina.net
 Group:      Productivity/Other  

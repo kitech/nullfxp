@@ -26,9 +26,10 @@ public:
     RemoteHostQuickConnectInfoDialog(QWidget* parent=0, Qt::WindowFlags f=0);
 
     ~RemoteHostQuickConnectInfoDialog();
-    
-    QString get_user_name ();
-    QString get_host_name ();
+
+    QString get_protocol();
+    QString get_user_name();
+    QString get_host_name();
     QString get_password();
     short  get_port();
     QString get_pubkey();
