@@ -25,9 +25,8 @@
 
 #define SSH2_FXP_KEEP_ALIVE 8888
 
-class RFSDirNode;
+// class RFSDirNode;
 class directory_tree_item;
-
 
 /**
  *

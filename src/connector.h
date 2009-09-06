@@ -23,6 +23,7 @@ public:
     ~Connector();
 
     void setHostInfo(QMap<QString, QString> host);
+    QString get_status_desc(int status);
 
     virtual void run();
 

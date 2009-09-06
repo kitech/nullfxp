@@ -34,12 +34,14 @@ public:
     virtual bool isConnected();
     virtual bool isRealConnected();
     void setHostInfo(QMap<QString, QString> host);
+    QMap<QString, QString> hostInfo();
 
 public slots:
     virtual int alivePing();
 
 public:
     bool connected; 
+    QMap<QString, QString> mHostInfo;
     QString protocol;
     QString userName;
     QString password;   //存储的密码为url编码过的

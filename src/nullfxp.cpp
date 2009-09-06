@@ -33,6 +33,7 @@
 #include "sessiondialog.h"
 #include "connection.h"
 #include "connector.h"
+#include "ftpview.h"
 
 //////////////////////////
 NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
@@ -348,6 +349,46 @@ void NullFXP::slot_connect_remote_host_finished(int status, void *ssh2_sess, int
 void NullFXP::slot_connect_remote_host_finished(int status, Connection *conn)
 {
     q_debug()<<status<<conn;
+    Connector *connector = static_cast<Connector*>(sender());
+    
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    if (status == Connection::CONN_OK ) {
+        FTPView *ftp_view = new FTPView(this->mdiArea, this->localView);
+        
+        mdiArea->addSubWindow(ftp_view);
+        QMdiSubWindow *local_sub_win = mdiArea->subWindowList(QMdiArea::CreationOrder).at(mdiArea->subWindowList(QMdiArea::CreationOrder).count()-1);
+        
+        ftp_view->slot_custom_ui_area();
+        //remote_view->show();
+        local_sub_win->show();
+        //调整本地目录树窗口的大小
+        //QList<QMdiSubWindow *> mdiSubWindow = mdiArea->subWindowList();
+        //qDebug()<<" mdi sub window count :"<< mdiSubWindow.count();        
+        //local_sub_win->setGeometry( local_sub_win->x(),local_sub_win->y(), mdiArea->width()/2,  mdiArea->height()*18/19 );
+        local_sub_win->resize(mdiArea->width()/2, mdiArea->height()*18/19);
+        
+        // remote_view->set_ssh2_handler(ssh2_sess, ssh2_sock);
+        // remote_view->set_user_home_path ( this->remote_conn_thread->get_user_home_path());
+        // remote_view->set_host_info(conn_thread->get_host_name(),
+        //                            conn_thread->get_user_name(),
+        //                            conn_thread->get_password(),
+        //                            conn_thread->get_port(),
+        //                            conn_thread->get_pubkey());
+        ftp_view->setConnection(conn);
+
+        //初始化远程目录树        
+        ftp_view->i_init_dir_view();
+    } else if (status == Connection::CONN_CANCEL) {   //use canceled connection
+        qDebug()<<"user canceled connecting";
+    } else {
+        //assert ( 1==2 );
+        //this->connect_status_dailog->setVisible(false);
+        this->connect_status_dailog->stop_progress_bar();
+    
+        QString emsg = connector->get_status_desc(status);
+        QMessageBox::critical(this, tr("Connect Error:"), emsg);
+    }
+
     this->connect_status_dailog->accept();
     delete this->connect_status_dailog;
     this->connect_status_dailog = 0;

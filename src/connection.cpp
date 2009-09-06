@@ -57,4 +57,10 @@ void Connection::setHostInfo(QMap<QString, QString> host)
     if (host.contains("pubkey")) {
         this->pubkeyPath = host["pubkey"];
     }
+    this->mHostInfo = host;
+}
+
+QMap<QString, QString> Connection::hostInfo()
+{
+    return this->mHostInfo;
 }
