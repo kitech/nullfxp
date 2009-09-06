@@ -21,6 +21,7 @@
 #include "remotedirretrivethread.h"
 
 class RFSDirNode;
+class Connection;
 
 /**
  * @author liuguangzhao <liuguangzhao@users.sf.net >
@@ -36,9 +37,10 @@ public:
     virtual ~RemoteDirModel();
 
     //仅需要调用一次的函数,并且是在紧接着该类的初始化之后调用。
-    void set_user_home_path(std::string user_home_path);
+    void set_user_home_path(QString user_home_path);
     //这个调用应该在set_user_home_path之前
-    void set_ssh2_handler(void *ssh2_sess);
+    // void set_ssh2_handler(void *ssh2_sess);
+    void setConnection(Connection *conn);
                 
     ////model 函数
     QVariant data(const QModelIndex &index, int role) const;
@@ -149,6 +151,7 @@ private:
     enum { DEFAULT_KEEP_ALIVE_TIMEOUT=30*1000 };
     directory_tree_item *tree_root;
     LIBSSH2_SESSION *ssh2_sess;
+    Connection *conn;
 
     RemoteDirRetriveThread *remote_dir_retrive_thread;
     //递归查找树
@@ -156,7 +159,7 @@ private:
                                                 QStringList &path_elements, int level) const;
     void dump_tree_node_item(directory_tree_item *node_item) const;
 
-    std::string user_home_path;
+    QString user_home_path;
         
     bool    keep_alive;
     QTimer  *keep_alive_timer;

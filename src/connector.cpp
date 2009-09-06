@@ -7,9 +7,11 @@
 // Version: $Id$
 // 
 
+#include <assert.h>
 
 #include "connector.h"
 
+#include "sshconnection.h"
 #include "ftpconnection.h"
 
 Connector::Connector(QObject *parent)
@@ -28,16 +30,23 @@ Connector::~Connector()
 }
 void Connector::setHostInfo(QMap<QString, QString> host)
 {
+    QString protocol = host["protocol"];
     if (this->conn == NULL) {
-        this->conn = new FTPConnection();
+        if (protocol == "FTPS") {
+            // not impled
+        } else if (protocol == "FTP") {
+            this->conn = new FTPConnection();
+        } else if (protocol == "SFTP") {
+            this->conn = new SSHConnection();
+        } else {
+        }
     }
+    assert(this->conn != NULL);
     this->conn->setHostInfo(host);
 }
 void Connector::run()
 {
-    if (this->conn == NULL) {
-        this->conn = new FTPConnection();
-    }
+    assert(this->conn != NULL);
 
     int iret = this->conn->connect();
     if (iret == 0) {
@@ -54,7 +63,7 @@ void Connector::slot_finished()
 
 QString Connector::get_status_desc(int status)
 {
-    static const char * status_desc[] = {
+    static const char *status_desc[] = {
         "CONN_OK",
         "CONN_REFUSE",
         "CONN_CANCEL",

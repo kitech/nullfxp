@@ -29,8 +29,8 @@
 #endif
 
 #include "rfsdirnode.h"
-
 #include "completelineeditdelegate.h"
+#include "connection.h"
 
 RemoteView::RemoteView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *parent)
     : QWidget(parent)
@@ -151,7 +151,8 @@ void RemoteView::i_init_dir_view()
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
     this->remote_dir_model = new RemoteDirModel();
-    this->remote_dir_model->set_ssh2_handler(this->ssh2_sess);
+    // this->remote_dir_model->set_ssh2_handler(this->ssh2_sess);
+    this->remote_dir_model->setConnection(this->conn);
     
     this->remote_dir_model->set_user_home_path(this->user_home_path);
     this->remote_dir_sort_filter_model = new RemoteDirSortFilterModel();
@@ -186,15 +187,15 @@ void RemoteView::i_init_dir_view()
     
     /////tableView
     this->remoteview.tableView->setModel(this->remote_dir_sort_filter_model);
-    this->remoteview.tableView->setRootIndex(this->remote_dir_sort_filter_model->index(this->user_home_path.c_str()));
+    this->remoteview.tableView->setRootIndex(this->remote_dir_sort_filter_model->index(this->user_home_path));
 
     //change row height of table 
-    if (this->remote_dir_sort_filter_model->rowCount(this->remote_dir_sort_filter_model->index(this->user_home_path.c_str())) > 0) {
+    if (this->remote_dir_sort_filter_model->rowCount(this->remote_dir_sort_filter_model->index(this->user_home_path)) > 0) {
         this->table_row_height = this->remoteview.tableView->rowHeight(0)*2/3;
     } else {
         this->table_row_height = 20 ;
     }
-    for (int i = 0; i < this->remote_dir_sort_filter_model->rowCount(this->remote_dir_sort_filter_model->index(this->user_home_path.c_str())); i ++) {
+    for (int i = 0; i < this->remote_dir_sort_filter_model->rowCount(this->remote_dir_sort_filter_model->index(this->user_home_path)); i ++) {
         this->remoteview.tableView->setRowHeight(i, this->table_row_height);
     }
     this->remoteview.tableView->resizeColumnToContents(0);
@@ -210,7 +211,7 @@ void RemoteView::i_init_dir_view()
     //TODO 连接remoteview.treeView 的drag信号
     
     //显示SSH服务器信息
-    QString ssh_server_version = libssh2_session_get_remote_version(this->ssh2_sess);
+    QString ssh_server_version = libssh2_session_get_remote_version(this->conn->sess);
     int ssh_sftp_version = libssh2_sftp_get_version(this->ssh2_sftp);
     QString status_msg = QString("Ready. (%1  SFTP: V%2)").arg(ssh_server_version).arg(ssh_sftp_version); 
     this->status_bar->showMessage(status_msg);
@@ -301,14 +302,14 @@ QString RemoteView::get_selected_directory()
     return file_path;
 }
 
-void RemoteView::set_ssh2_handler(void *ssh2_sess, int ssh2_sock)
-{
-    this->ssh2_sess = (LIBSSH2_SESSION*)ssh2_sess ;
-    this->ssh2_sftp = libssh2_sftp_init(this->ssh2_sess);
-    assert(this->ssh2_sftp != 0);
+// void RemoteView::set_ssh2_handler(void *ssh2_sess, int ssh2_sock)
+// {
+//     this->ssh2_sess = (LIBSSH2_SESSION*)ssh2_sess ;
+//     this->ssh2_sftp = libssh2_sftp_init(this->ssh2_sess);
+//     assert(this->ssh2_sftp != 0);
     
-    this->ssh2_sock = ssh2_sock;
-}
+//     this->ssh2_sock = ssh2_sock;
+// }
 
 void RemoteView::set_host_info(QString host_name, QString user_name, QString password, short port, QString pubkey)
 {
@@ -322,9 +323,16 @@ void RemoteView::set_host_info(QString host_name, QString user_name, QString pas
     this->setWindowTitle(this->windowTitle() + ": " + this->user_name + "@" + this->host_name);
 }
 
-void RemoteView::set_user_home_path(std::string user_home_path)
+void RemoteView::set_user_home_path(QString user_home_path)
 {
-    this->user_home_path = user_home_path ;
+    this->user_home_path = user_home_path;
+}
+void RemoteView::setConnection(Connection *conn)
+{
+    this->conn = conn;
+    this->ssh2_sftp = libssh2_sftp_init(this->conn->sess);
+    assert(this->ssh2_sftp != 0);    
+    this->ssh2_sock = this->conn->sock;
 }
 
 void RemoteView::closeEvent(QCloseEvent *event)
@@ -922,7 +930,7 @@ void RemoteView::encryption_focus_label_double_clicked()
     char **server_info, **pptr;
     int sftp_version;
 
-    pptr = server_info = libssh2_session_get_remote_info(this->ssh2_sess);
+    pptr = server_info = libssh2_session_get_remote_info(this->conn->sess);
     sftp_version = libssh2_sftp_get_version(this->ssh2_sftp); 
 
     enc_dlg = new EncryptionDetailDialog(server_info, this);
@@ -950,7 +958,7 @@ void RemoteView::host_info_focus_label_double_clicked()
     QString uname_output;
     const char *cmd = "uname -a";
 
-    ssh2_channel = libssh2_channel_open_session((LIBSSH2_SESSION*)this->ssh2_sess);
+    ssh2_channel = libssh2_channel_open_session(this->conn->sess);
     //libssh2_channel_set_blocking(ssh2_channel, 1);
     rv = libssh2_channel_exec(ssh2_channel, cmd);
     qDebug()<<"SSH2 exec: "<<rv;

@@ -105,9 +105,12 @@ SOURCES += main.cpp \
  sftpfile.cpp \
  connection.cpp \
  mimetypeshash.cpp \
+ sshconnection.cpp \
  ftpconnection.cpp \
  connector.cpp \
- ftpview.cpp
+ ftpview.cpp \
+ dirretriver.cpp \
+ ftpdirretriver.cpp
 
 HEADERS += nullfxp.h \
  localview.h \
@@ -144,10 +147,13 @@ HEADERS += nullfxp.h \
  syncdiffermodel.h \
  synctransferthread.h \
  sftpfile.h \
+ sshconnection.h \
  connection.h \
  ftpconnection.h \
  connector.h \
- ftpview.h
+ ftpview.h \
+ dirretriver.h \
+ ftpdirretriver.h
 
 DISTFILES += ../CMakeLists.txt \
 CMakeLists.txt \

@@ -1,4 +1,4 @@
-// remotedirretrivethread.cpp --- 
+// dirretriver.cpp --- 
 // 
 // Author: liuguangzhao
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
@@ -6,10 +6,6 @@
 // Created: 2008-05-25 09:50:50 +0000
 // Version: $Id$
 // 
-
-#include <vector>
-#include <map>
-#include <string>
 
 #include <QtCore>
 
@@ -19,18 +15,18 @@
 
 #include "utils.h"
 #include "globaloption.h"
-#include "remotedirretrivethread.h"
+#include "dirretriver.h"
 
 #include "rfsdirnode.h"
 #include "connection.h"
 
 ///////////////////////////////////
-RemoteDirRetriveThread::RemoteDirRetriveThread(QObject *parent)
+DirRetriver::DirRetriver(QObject *parent)
     : QThread(parent)
 {
 }
 
-RemoteDirRetriveThread::~RemoteDirRetriveThread()
+DirRetriver::~DirRetriver()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     libssh2_sftp_shutdown(this->ssh2_sftp);
@@ -38,27 +34,27 @@ RemoteDirRetriveThread::~RemoteDirRetriveThread()
     libssh2_session_free(this->ssh2_sess);
 }
 
-// void RemoteDirRetriveThread::set_ssh2_handler(void *ssh2_sess)
+// void DirRetriver::set_ssh2_handler(void *ssh2_sess)
 // {
 //     this->ssh2_sess = (LIBSSH2_SESSION*)ssh2_sess;
 //     this->ssh2_sftp = libssh2_sftp_init(this->ssh2_sess);
 //     assert(this->ssh2_sftp != 0);
 // }
 
-void RemoteDirRetriveThread::setConnection(Connection *conn)
+void DirRetriver::setConnection(Connection *conn)
 {
     this->conn = conn;
-    this->ssh2_sess = this->conn->sess;
-    this->ssh2_sftp = libssh2_sftp_init(this->ssh2_sess);
-    assert(this->ssh2_sftp != 0);
+    // this->ssh2_sess = this->conn->sess;
+    // this->ssh2_sftp = libssh2_sftp_init(this->ssh2_sess);
+    // assert(this->ssh2_sftp != 0);
 }
 
-LIBSSH2_SFTP *RemoteDirRetriveThread::get_ssh2_sftp()
-{
-    return this->ssh2_sftp;
-}
+// LIBSSH2_SFTP *DirRetriver::get_ssh2_sftp()
+// {
+//     return this->ssh2_sftp;
+// }
 
-void RemoteDirRetriveThread::run()
+void DirRetriver::run()
 {
     emit enter_remote_dir_retrive_loop();
     
@@ -108,7 +104,7 @@ void RemoteDirRetriveThread::run()
     emit this->leave_remote_dir_retrive_loop();
 }
 
-int  RemoteDirRetriveThread::retrive_dir()
+int  DirRetriver::retrive_dir()
 {
     int exec_ret = -1;
     
@@ -195,7 +191,7 @@ int  RemoteDirRetriveThread::retrive_dir()
     return exec_ret;
 }
 
-int  RemoteDirRetriveThread::mkdir()
+int  DirRetriver::mkdir()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
@@ -213,7 +209,7 @@ int  RemoteDirRetriveThread::mkdir()
     return exec_ret ;
 }
 
-int  RemoteDirRetriveThread::rmdir()
+int  DirRetriver::rmdir()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
@@ -239,7 +235,7 @@ int  RemoteDirRetriveThread::rmdir()
     return exec_ret;
 }
 
-int  RemoteDirRetriveThread::rm_file_or_directory_recursively()
+int  DirRetriver::rm_file_or_directory_recursively()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
@@ -276,7 +272,7 @@ int  RemoteDirRetriveThread::rm_file_or_directory_recursively()
 }
 
 //TODO 现在删除隐藏文件或者目录还有问题：即以  .  字符开头的项
-int RemoteDirRetriveThread::rm_file_or_directory_recursively_ex(QString parent_path)  // <==> rm -rf
+int DirRetriver::rm_file_or_directory_recursively_ex(QString parent_path)  // <==> rm -rf
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
@@ -332,7 +328,7 @@ int RemoteDirRetriveThread::rm_file_or_directory_recursively_ex(QString parent_p
 }
 
 // linux 路径名中不能出现的字符： ! 
-int  RemoteDirRetriveThread::rename()
+int  DirRetriver::rename()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
@@ -364,7 +360,7 @@ int  RemoteDirRetriveThread::rename()
     return exec_ret ;
 }
 
-int RemoteDirRetriveThread::keep_alive()
+int DirRetriver::keep_alive()
 {
     int exec_ret;
     char full_path [PATH_MAX+1] = {0};
@@ -382,7 +378,7 @@ int RemoteDirRetriveThread::keep_alive()
     return exec_ret;
 }
 
-int RemoteDirRetriveThread::fxp_do_ls_dir(QString path, QVector<QMap<char, QString> > & fileinfos)
+int DirRetriver::fxp_do_ls_dir(QString path, QVector<QMap<char, QString> > & fileinfos)
 {
     LIBSSH2_SFTP_HANDLE *sftp_handle = 0;
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
@@ -439,7 +435,7 @@ int RemoteDirRetriveThread::fxp_do_ls_dir(QString path, QVector<QMap<char, QStri
     return 0;
 }
 
-int RemoteDirRetriveThread::fxp_do_ls_dir(QString path, QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > & fileinfos)
+int DirRetriver::fxp_do_ls_dir(QString path, QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > & fileinfos)
 {
     LIBSSH2_SFTP_HANDLE *sftp_handle = 0;
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
@@ -471,7 +467,7 @@ int RemoteDirRetriveThread::fxp_do_ls_dir(QString path, QVector<QPair<QString, L
     return 0;
 }
 
-int RemoteDirRetriveThread::fxp_realpath()
+int DirRetriver::fxp_realpath()
 {
     command_queue_elem *cmd_elem = this->command_queue.at(0);
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
@@ -495,7 +491,7 @@ int RemoteDirRetriveThread::fxp_realpath()
     return ret;
 }
 
-void RemoteDirRetriveThread::add_node(directory_tree_item *parent_item, void *parent_model_internal_pointer)
+void DirRetriver::add_node(directory_tree_item *parent_item, void *parent_model_internal_pointer)
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 	
@@ -531,7 +527,7 @@ void RemoteDirRetriveThread::add_node(directory_tree_item *parent_item, void *pa
 
 }
 
-void RemoteDirRetriveThread::slot_execute_command(directory_tree_item *parent_item,
+void DirRetriver::slot_execute_command(directory_tree_item *parent_item,
                                                   void *parent_model_internal_pointer, int cmd, QString params)
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;

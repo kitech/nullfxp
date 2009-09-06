@@ -1,4 +1,4 @@
-// remotedirretrivethread.cpp --- 
+// ftpdirretriver.cpp --- 
 // 
 // Author: liuguangzhao
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
@@ -6,10 +6,6 @@
 // Created: 2008-05-25 09:50:50 +0000
 // Version: $Id$
 // 
-
-#include <vector>
-#include <map>
-#include <string>
 
 #include <QtCore>
 
@@ -19,46 +15,46 @@
 
 #include "utils.h"
 #include "globaloption.h"
-#include "remotedirretrivethread.h"
+#include "ftpdirretriver.h"
 
 #include "rfsdirnode.h"
 #include "connection.h"
 
 ///////////////////////////////////
-RemoteDirRetriveThread::RemoteDirRetriveThread(QObject *parent)
-    : QThread(parent)
+FTPDirRetriver::FTPDirRetriver(QObject *parent)
+    : DirRetriver(parent)
 {
 }
 
-RemoteDirRetriveThread::~RemoteDirRetriveThread()
+FTPDirRetriver::~FTPDirRetriver()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    libssh2_sftp_shutdown(this->ssh2_sftp);
-    libssh2_session_disconnect(this->ssh2_sess, "SSH_DISCONNECT_BY_APPLICATION");
-    libssh2_session_free(this->ssh2_sess);
+    // libssh2_sftp_shutdown(this->ssh2_sftp);
+    // libssh2_session_disconnect(this->ssh2_sess, "SSH_DISCONNECT_BY_APPLICATION");
+    // libssh2_session_free(this->ssh2_sess);
 }
 
-// void RemoteDirRetriveThread::set_ssh2_handler(void *ssh2_sess)
+// void FTPDirRetriver::set_ssh2_handler(void *ssh2_sess)
 // {
 //     this->ssh2_sess = (LIBSSH2_SESSION*)ssh2_sess;
 //     this->ssh2_sftp = libssh2_sftp_init(this->ssh2_sess);
 //     assert(this->ssh2_sftp != 0);
 // }
 
-void RemoteDirRetriveThread::setConnection(Connection *conn)
+void FTPDirRetriver::setConnection(Connection *conn)
 {
     this->conn = conn;
-    this->ssh2_sess = this->conn->sess;
-    this->ssh2_sftp = libssh2_sftp_init(this->ssh2_sess);
-    assert(this->ssh2_sftp != 0);
+    // this->ssh2_sess = this->conn->sess;
+    // this->ssh2_sftp = libssh2_sftp_init(this->ssh2_sess);
+    // assert(this->ssh2_sftp != 0);
 }
 
-LIBSSH2_SFTP *RemoteDirRetriveThread::get_ssh2_sftp()
-{
-    return this->ssh2_sftp;
-}
+// LIBSSH2_SFTP *FTPDirRetriver::get_ssh2_sftp()
+// {
+//     return this->ssh2_sftp;
+// }
 
-void RemoteDirRetriveThread::run()
+void FTPDirRetriver::run()
 {
     emit enter_remote_dir_retrive_loop();
     
@@ -108,7 +104,7 @@ void RemoteDirRetriveThread::run()
     emit this->leave_remote_dir_retrive_loop();
 }
 
-int  RemoteDirRetriveThread::retrive_dir()
+int  FTPDirRetriver::retrive_dir()
 {
     int exec_ret = -1;
     
@@ -195,7 +191,7 @@ int  RemoteDirRetriveThread::retrive_dir()
     return exec_ret;
 }
 
-int  RemoteDirRetriveThread::mkdir()
+int  FTPDirRetriver::mkdir()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
@@ -213,7 +209,7 @@ int  RemoteDirRetriveThread::mkdir()
     return exec_ret ;
 }
 
-int  RemoteDirRetriveThread::rmdir()
+int  FTPDirRetriver::rmdir()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
@@ -239,7 +235,7 @@ int  RemoteDirRetriveThread::rmdir()
     return exec_ret;
 }
 
-int  RemoteDirRetriveThread::rm_file_or_directory_recursively()
+int  FTPDirRetriver::rm_file_or_directory_recursively()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
@@ -276,7 +272,7 @@ int  RemoteDirRetriveThread::rm_file_or_directory_recursively()
 }
 
 //TODO 现在删除隐藏文件或者目录还有问题：即以  .  字符开头的项
-int RemoteDirRetriveThread::rm_file_or_directory_recursively_ex(QString parent_path)  // <==> rm -rf
+int FTPDirRetriver::rm_file_or_directory_recursively_ex(QString parent_path)  // <==> rm -rf
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
@@ -332,7 +328,7 @@ int RemoteDirRetriveThread::rm_file_or_directory_recursively_ex(QString parent_p
 }
 
 // linux 路径名中不能出现的字符： ! 
-int  RemoteDirRetriveThread::rename()
+int  FTPDirRetriver::rename()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
@@ -364,138 +360,34 @@ int  RemoteDirRetriveThread::rename()
     return exec_ret ;
 }
 
-int RemoteDirRetriveThread::keep_alive()
+int FTPDirRetriver::keep_alive()
 {
     int exec_ret;
     char full_path [PATH_MAX+1] = {0};
     char strip_path [PATH_MAX+1] = {0};
 
-    LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
-    
-    strcpy(full_path, "/nullfxp_keep_alive_dummy_directory");
-    strcpy(strip_path, "/");
-
-    exec_ret = libssh2_sftp_stat(ssh2_sftp,full_path,&ssh2_sftp_attrib);
-    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<< " stat : "<< exec_ret
-            <<" sftp errno:"<< libssh2_sftp_last_error(ssh2_sftp) ;
     //TODO 在网络失去连接的时候如何向上层类通知，并进行重新连接
     return exec_ret;
 }
 
-int RemoteDirRetriveThread::fxp_do_ls_dir(QString path, QVector<QMap<char, QString> > & fileinfos)
+int FTPDirRetriver::fxp_do_ls_dir(QString path, QVector<QMap<char, QString> > & fileinfos)
 {
-    LIBSSH2_SFTP_HANDLE *sftp_handle = 0;
-    LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
-    QMap<char, QString> thefile;
-    char file_name[PATH_MAX+1];
-    char file_size[PATH_MAX+1];
-    char file_type[PATH_MAX+1];
-    char file_date[PATH_MAX+1];
-    
-    sftp_handle = libssh2_sftp_opendir(ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(path).data());
-    if (sftp_handle == 0) {
-        return 0;
-    } else {
-        fileinfos.clear();
-        memset(&ssh2_sftp_attrib, 0, sizeof(LIBSSH2_SFTP_ATTRIBUTES));
-        while (libssh2_sftp_readdir(sftp_handle, file_name, PATH_MAX, &ssh2_sftp_attrib) > 0) {
-            if (strlen(file_name) == 1 && file_name[0] == '.') continue ;
-            if (strlen(file_name) == 2 && file_name[0] == '.' && file_name[1] == '.') continue;
-            //不处理隐藏文件? 处理隐藏文件
-            // if(file_name[0] == '.' ) continue;
-            
-            memset(file_size, 0, sizeof(file_size));
-
-#ifndef _MSC_VER
-            snprintf(file_size, sizeof(file_size) - 1, "%llu",ssh2_sftp_attrib.filesize);
-            
-            struct tm *ltime = localtime((time_t*)&ssh2_sftp_attrib.mtime);
-            if (ltime != NULL) {
-                if (time(NULL) - ssh2_sftp_attrib.mtime < (365*24*60*60) / 2)
-                    strftime(file_date, sizeof file_date, "%Y/%m/%d %H:%M:%S", ltime);
-                else
-                    strftime(file_date, sizeof file_date, "%Y/%m/%d %H:%M:%S", ltime);
-            }
-#else
-			_snprintf(file_size, sizeof(file_size) - 1 , "%llu",ssh2_sftp_attrib.filesize);
-			_snprintf(file_date, sizeof(file_date) - 1, "0000/00/00 00:00:00");
-#endif
-
-            strmode(ssh2_sftp_attrib.permissions, file_type);
-            //printf(" ls dir : %s %s , date=%s , type=%s \n" , file_name , file_size , file_date , file_type );
-            thefile.insert('N', GlobalOption::instance()->remote_codec->toUnicode(file_name ));
-            thefile.insert('T', file_type );
-            thefile.insert('S', file_size );
-            thefile.insert('D', file_date );  
-
-            fileinfos.push_back(thefile);
-            memset(&ssh2_sftp_attrib, 0, sizeof(LIBSSH2_SFTP_ATTRIBUTES));
-            thefile.clear();
-        }
-        libssh2_sftp_closedir(sftp_handle);
-        return fileinfos.size();
-    }
     
     return 0;
 }
 
-int RemoteDirRetriveThread::fxp_do_ls_dir(QString path, QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > & fileinfos)
+int FTPDirRetriver::fxp_do_ls_dir(QString path, QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > & fileinfos)
 {
-    LIBSSH2_SFTP_HANDLE *sftp_handle = 0;
-    LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
-    char file_name[PATH_MAX+1];
-    QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> currFile;
-    LIBSSH2_SFTP_ATTRIBUTES *attr = NULL;
-    
-    sftp_handle = libssh2_sftp_opendir(ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(path).data());
-    if (sftp_handle == 0) {
-        return 0;
-    } else {
-        fileinfos.clear();
-        memset(&ssh2_sftp_attrib, 0, sizeof(LIBSSH2_SFTP_ATTRIBUTES));
-        while (libssh2_sftp_readdir(sftp_handle, file_name, PATH_MAX, &ssh2_sftp_attrib) > 0) {
-            if (strlen(file_name) == 1 && file_name[0] == '.') continue ;
-            if (strlen(file_name) == 2 && file_name[0] == '.' && file_name[1] == '.') continue;
-            //不处理隐藏文件? 处理隐藏文件
-            // if(file_name[0] == '.' ) continue;
-
-            attr = (LIBSSH2_SFTP_ATTRIBUTES*)calloc(1, sizeof(LIBSSH2_SFTP_ATTRIBUTES));
-            memcpy(attr, &ssh2_sftp_attrib, sizeof(LIBSSH2_SFTP_ATTRIBUTES));
-
-            currFile = QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*>(QString(file_name), attr);            
-            fileinfos.push_back(currFile);
-        }
-        libssh2_sftp_closedir(sftp_handle);
-        return fileinfos.size();
-    }
     return 0;
 }
 
-int RemoteDirRetriveThread::fxp_realpath()
+int FTPDirRetriver::fxp_realpath()
 {
-    command_queue_elem *cmd_elem = this->command_queue.at(0);
-    LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
-    directory_tree_item *node_item = cmd_elem->parent_item;
-    int ret = 0;
-
-    q_debug()<<GlobalOption::instance()->remote_codec->fromUnicode(node_item->strip_path).data();
-    // stat will follow the link if it is.
-    ret = libssh2_sftp_stat(this->ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(node_item->strip_path).data(), &ssh2_sftp_attrib);
-    if (ret != 0) {
-        q_debug()<<"stat error.";
-    } else {
-        if (S_ISDIR(ssh2_sftp_attrib.permissions)) {
-            // node_item->linkToDir = true;
-            ret = 0;
-        } else {
-            ret = 1;
-        }
-    }
-
+    int ret;
     return ret;
 }
 
-void RemoteDirRetriveThread::add_node(directory_tree_item *parent_item, void *parent_model_internal_pointer)
+void FTPDirRetriver::add_node(directory_tree_item *parent_item, void *parent_model_internal_pointer)
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 	
@@ -510,28 +402,9 @@ void RemoteDirRetriveThread::add_node(directory_tree_item *parent_item, void *pa
     if (!this->isRunning()) {
         this->start();
     }
-
-    //TODO 检测重复命令
-    //     if ( this->dir_node_process_queue.count ( parent_item ) == 0 )
-    // 	{
-    //         parent_item->prev_retr_flag = parent_item->retrived ;
-    //         parent_item->retrived = 8 ;
-    //                 
-    //         this->dir_node_process_queue.insert ( std::make_pair ( parent_item,parent_model_internal_pointer ) );
-    // 		if ( !this->isRunning() )
-    // 		{
-    // 			this->start();
-    // 		}
-    // 	}
-    // 	else
-    // 	{
-    // 		qDebug() <<" this node has already in process queue , omitted";
-    // 	}
-    //assert ( this->dir_node_process_queue.count ( parent_item ) == 1 );
-
 }
 
-void RemoteDirRetriveThread::slot_execute_command(directory_tree_item *parent_item,
+void FTPDirRetriver::slot_execute_command(directory_tree_item *parent_item,
                                                   void *parent_model_internal_pointer, int cmd, QString params)
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
@@ -548,4 +421,3 @@ void RemoteDirRetriveThread::slot_execute_command(directory_tree_item *parent_it
         this->start();
     }
 }
-

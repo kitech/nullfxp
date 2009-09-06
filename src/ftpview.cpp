@@ -17,6 +17,7 @@
 
 #include "progressdialog.h"
 #include "localview.h"
+// #include "remoteview.h"
 #include "ftpview.h"
 #include "remotedirsortfiltermodel.h"
 
@@ -35,44 +36,44 @@
 #include "connection.h"
 
 FTPView::FTPView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *parent)
-    : QWidget(parent)
+    : RemoteView(main_mdi_area, local_view, parent)
 {
-    this->remoteview.setupUi(this);
-    this->local_view = local_view;
-    this->main_mdi_area = main_mdi_area;
-    this->setObjectName("rv");
-    ///////
-    this->status_bar = new QStatusBar();
-    this->layout()->addWidget(this->status_bar);
-    this->status_bar->addPermanentWidget(this->enc_label = new EncryptionDetailFocusLabel("ENC", this));
-    QObject::connect(this->enc_label, SIGNAL(mouseDoubleClick()),
-                     this, SLOT(encryption_focus_label_double_clicked()));
-    HostInfoDetailFocusLabel *hi_label = new HostInfoDetailFocusLabel("HI", this);
-    this->status_bar->addPermanentWidget(hi_label);
-    QObject::connect(hi_label, SIGNAL(mouseDoubleClick()), 
-                    this, SLOT(host_info_focus_label_double_clicked()));
+    // this->remoteview.setupUi(this);
+    // this->local_view = local_view;
+    // this->main_mdi_area = main_mdi_area;
+    // this->setObjectName("rv");
+    // ///////
+    // this->status_bar = new QStatusBar();
+    // this->layout()->addWidget(this->status_bar);
+    // this->status_bar->addPermanentWidget(this->enc_label = new EncryptionDetailFocusLabel("ENC", this));
+    // QObject::connect(this->enc_label, SIGNAL(mouseDoubleClick()),
+    //                  this, SLOT(encryption_focus_label_double_clicked()));
+    // HostInfoDetailFocusLabel *hi_label = new HostInfoDetailFocusLabel("HI", this);
+    // this->status_bar->addPermanentWidget(hi_label);
+    // QObject::connect(hi_label, SIGNAL(mouseDoubleClick()), 
+    //                 this, SLOT(host_info_focus_label_double_clicked()));
 
-    ////////////
-    //     this->remoteview.treeView->setAcceptDrops(false);
-    //     this->remoteview.treeView->setDragEnabled(false);
-    //     this->remoteview.treeView->setDropIndicatorShown(false);
-    //     this->remoteview.treeView->setDragDropMode(QAbstractItemView::NoDragDrop);
-    //this->remoteview.treeView->setSelectionMode(QAbstractItemView::ExtendedSelection);
+    // ////////////
+    // //     this->remoteview.treeView->setAcceptDrops(false);
+    // //     this->remoteview.treeView->setDragEnabled(false);
+    // //     this->remoteview.treeView->setDropIndicatorShown(false);
+    // //     this->remoteview.treeView->setDragDropMode(QAbstractItemView::NoDragDrop);
+    // //this->remoteview.treeView->setSelectionMode(QAbstractItemView::ExtendedSelection);
     
-    QObject::connect(this->remoteview.treeView, SIGNAL(customContextMenuRequested(const QPoint &)),
-                     this, SLOT(slot_dir_tree_customContextMenuRequested (const QPoint &)));
-    QObject::connect(this->remoteview.tableView,SIGNAL(customContextMenuRequested(const QPoint &)),
-                     this, SLOT(slot_dir_tree_customContextMenuRequested (const QPoint & )));
+    // QObject::connect(this->remoteview.treeView, SIGNAL(customContextMenuRequested(const QPoint &)),
+    //                  this, SLOT(slot_dir_tree_customContextMenuRequested (const QPoint &)));
+    // QObject::connect(this->remoteview.tableView,SIGNAL(customContextMenuRequested(const QPoint &)),
+    //                  this, SLOT(slot_dir_tree_customContextMenuRequested (const QPoint & )));
     
-    this->init_popup_context_menu();
+    // this->init_popup_context_menu();
     
-    this->in_remote_dir_retrive_loop = false;
-    this->remoteview.tableView->test_use_qt_designer_prompt = 0;
-    CompleteLineEditDelegate *delegate = new CompleteLineEditDelegate();
-    this->remoteview.tableView->setItemDelegate(delegate);
-    this->remoteview.tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    this->remoteview.treeView->setItemDelegate(delegate);
-    this->remoteview.treeView->setAnimated(true);
+    // this->in_remote_dir_retrive_loop = false;
+    // this->remoteview.tableView->test_use_qt_designer_prompt = 0;
+    // CompleteLineEditDelegate *delegate = new CompleteLineEditDelegate();
+    // this->remoteview.tableView->setItemDelegate(delegate);
+    // this->remoteview.tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    // this->remoteview.treeView->setItemDelegate(delegate);
+    // this->remoteview.treeView->setAnimated(true);
 }
 
 void FTPView::init_popup_context_menu()
@@ -153,7 +154,8 @@ void FTPView::i_init_dir_view()
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
     this->remote_dir_model = new RemoteDirModel();
-    this->remote_dir_model->set_ssh2_handler(this->ssh2_sess);
+    // this->remote_dir_model->set_ssh2_handler(this->ssh2_sess);
+    this->remote_dir_model->setConnection(this->conn);
     
     this->remote_dir_model->set_user_home_path(this->user_home_path);
     this->remote_dir_sort_filter_model = new RemoteDirSortFilterModel();
@@ -188,15 +190,15 @@ void FTPView::i_init_dir_view()
     
     /////tableView
     this->remoteview.tableView->setModel(this->remote_dir_sort_filter_model);
-    this->remoteview.tableView->setRootIndex(this->remote_dir_sort_filter_model->index(this->user_home_path.c_str()));
+    this->remoteview.tableView->setRootIndex(this->remote_dir_sort_filter_model->index(this->user_home_path));
 
     //change row height of table 
-    if (this->remote_dir_sort_filter_model->rowCount(this->remote_dir_sort_filter_model->index(this->user_home_path.c_str())) > 0) {
+    if (this->remote_dir_sort_filter_model->rowCount(this->remote_dir_sort_filter_model->index(this->user_home_path)) > 0) {
         this->table_row_height = this->remoteview.tableView->rowHeight(0)*2/3;
     } else {
         this->table_row_height = 20 ;
     }
-    for (int i = 0; i < this->remote_dir_sort_filter_model->rowCount(this->remote_dir_sort_filter_model->index(this->user_home_path.c_str())); i ++) {
+    for (int i = 0; i < this->remote_dir_sort_filter_model->rowCount(this->remote_dir_sort_filter_model->index(this->user_home_path)); i ++) {
         this->remoteview.tableView->setRowHeight(i, this->table_row_height);
     }
     this->remoteview.tableView->resizeColumnToContents(0);
@@ -212,10 +214,10 @@ void FTPView::i_init_dir_view()
     //TODO 连接remoteview.treeView 的drag信号
     
     //显示SSH服务器信息
-    QString ssh_server_version = libssh2_session_get_remote_version(this->ssh2_sess);
-    int ssh_sftp_version = libssh2_sftp_get_version(this->ssh2_sftp);
-    QString status_msg = QString("Ready. (%1  SFTP: V%2)").arg(ssh_server_version).arg(ssh_sftp_version); 
-    this->status_bar->showMessage(status_msg);
+    // QString ssh_server_version = libssh2_session_get_remote_version(this->ssh2_sess);
+    // int ssh_sftp_version = libssh2_sftp_get_version(this->ssh2_sftp);
+    // QString status_msg = QString("Ready. (%1  SFTP: V%2)").arg(ssh_server_version).arg(ssh_sftp_version); 
+    // this->status_bar->showMessage(status_msg);
 }
 
 void FTPView::slot_disconnect_from_remote_host()
@@ -324,10 +326,11 @@ QString FTPView::get_selected_directory()
 //     this->setWindowTitle(this->windowTitle() + ": " + this->user_name + "@" + this->host_name);
 // }
 
-void FTPView::set_user_home_path(std::string user_home_path)
-{
-    this->user_home_path = user_home_path ;
-}
+// void FTPView::set_user_home_path(std::string user_home_path)
+// {
+//     this->user_home_path = user_home_path ;
+// }
+
 void FTPView::setConnection(Connection *conn)
 {
     this->conn = conn;
@@ -928,20 +931,20 @@ void FTPView::encryption_focus_label_double_clicked()
     char **server_info, **pptr;
     int sftp_version;
 
-    pptr = server_info = libssh2_session_get_remote_info(this->ssh2_sess);
-    sftp_version = libssh2_sftp_get_version(this->ssh2_sftp); 
+    // pptr = server_info = libssh2_session_get_remote_info(this->ssh2_sess);
+    // sftp_version = libssh2_sftp_get_version(this->ssh2_sftp); 
 
-    enc_dlg = new EncryptionDetailDialog(server_info, this);
-    enc_dlg->exec();
+    // enc_dlg = new EncryptionDetailDialog(server_info, this);
+    // enc_dlg->exec();
 
-    //if(server_info != NULL) free(server_info);
-    delete enc_dlg;
+    // //if(server_info != NULL) free(server_info);
+    // delete enc_dlg;
 
-    while (*pptr != NULL) {
-        free(*pptr);
-        pptr ++;
-    }
-    free(server_info);
+    // while (*pptr != NULL) {
+    //     free(*pptr);
+    //     pptr ++;
+    // }
+    // free(server_info);
 }
 
 void FTPView::host_info_focus_label_double_clicked()
@@ -956,32 +959,32 @@ void FTPView::host_info_focus_label_double_clicked()
     QString uname_output;
     const char *cmd = "uname -a";
 
-    ssh2_channel = libssh2_channel_open_session((LIBSSH2_SESSION*)this->ssh2_sess);
-    //libssh2_channel_set_blocking(ssh2_channel, 1);
-    rv = libssh2_channel_exec(ssh2_channel, cmd);
-    qDebug()<<"SSH2 exec: "<<rv;
+    // ssh2_channel = libssh2_channel_open_session((LIBSSH2_SESSION*)this->ssh2_sess);
+    // //libssh2_channel_set_blocking(ssh2_channel, 1);
+    // rv = libssh2_channel_exec(ssh2_channel, cmd);
+    // qDebug()<<"SSH2 exec: "<<rv;
   
-    memset(buff, 0, sizeof(buff));
-    while ((rv = libssh2_channel_read(ssh2_channel, buff, 1000)) > 0) {
-        qDebug()<<"Channel read: "<<rv<<" -->"<<buff;
-        uname_output += QString(buff);
-        memset(buff, 0, sizeof(buff));
-    }
+    // memset(buff, 0, sizeof(buff));
+    // while ((rv = libssh2_channel_read(ssh2_channel, buff, 1000)) > 0) {
+    //     qDebug()<<"Channel read: "<<rv<<" -->"<<buff;
+    //     uname_output += QString(buff);
+    //     memset(buff, 0, sizeof(buff));
+    // }
 
-    libssh2_channel_close(ssh2_channel);
-    libssh2_channel_free(ssh2_channel);
+    // libssh2_channel_close(ssh2_channel);
+    // libssh2_channel_free(ssh2_channel);
     
-    qDebug()<<"Host Info: "<<uname_output;
-    hi_label->setToolTip(uname_output);
+    // qDebug()<<"Host Info: "<<uname_output;
+    // hi_label->setToolTip(uname_output);
     
-    QDialog *dlg = new QDialog(this);
-    dlg->setFixedWidth(400);
-    dlg->setFixedHeight(100);
-    QLabel * label = new QLabel("", dlg);
-    label->setWordWrap(true);
-    label->setText(uname_output);
-    // dlg->layout()->addWidget(label);
-    dlg->exec();
-    delete dlg;
+    // QDialog *dlg = new QDialog(this);
+    // dlg->setFixedWidth(400);
+    // dlg->setFixedHeight(100);
+    // QLabel * label = new QLabel("", dlg);
+    // label->setWordWrap(true);
+    // label->setText(uname_output);
+    // // dlg->layout()->addWidget(label);
+    // dlg->exec();
+    // delete dlg;
 }
 

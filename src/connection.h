@@ -25,6 +25,10 @@ public:
     enum {CONN_OK=0,CONN_REFUSE,CONN_CANCEL,CONN_OTHER,CONN_RESOLVE_ERROR,
           CONN_SESS_ERROR,CONN_AUTH_ERROR,CONN_SFTP_ERROR,CONN_EXEC_ERROR,
           CONN_PROTOCOL_VERSION_NOT_MATCH_ERROR};
+    enum {PROTO_MIN = 0, 
+          PROTO_SFTP, PROTO_FTP, PROTO_FTPS,
+          PROTO_MAX};
+
     Connection(QObject *parent = 0);
     ~Connection();
 
@@ -35,6 +39,8 @@ public:
     virtual bool isRealConnected();
     void setHostInfo(QMap<QString, QString> host);
     QMap<QString, QString> hostInfo();
+    QString userHomePath();
+    int protocolType();
 
 public slots:
     virtual int alivePing();
@@ -57,9 +63,10 @@ public:
     QTcpSocket *qsock;  // 将int sock放到这个对象中，因为需要兼容不同的协议，使用不同的socket对象
     QTcpSocket *qdsock;
 
+    bool user_canceled;
 signals:
     void alivePong(int alive);
-
+    void connect_state_changed(QString state_desc);
 };
         
         

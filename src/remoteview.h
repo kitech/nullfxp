@@ -29,6 +29,7 @@ class RemoteDirSortFilterModel;
 class RemoteDirSortFilterModelEX;
 class LocalView;
 class EncryptionDetailFocusLabel;
+class Connection;
 
 class RemoteView : public QWidget
 {
@@ -40,15 +41,17 @@ public:
     QString get_selected_directory();
     //
     void set_host_info(QString host_name, QString user_name, QString password, short port, QString pubkey);
-    void set_ssh2_handler(void *ssh2_sess, int ssh2_sock);
-    void set_user_home_path(std::string user_home_path);
+    // void set_ssh2_handler(void *ssh2_sess, int ssh2_sock);
+    // void set_user_home_path(std::string user_home_path);
+    void set_user_home_path(QString user_home_path);
+    virtual void setConnection(Connection *conn);
     
     bool is_in_remote_dir_retrive_loop() 
     { return this->in_remote_dir_retrive_loop ; }
     
     void update_layout();
     
-private:
+protected:
     LocalView  *local_view;
     QMdiArea   *main_mdi_area;
     QStatusBar *status_bar;
@@ -64,18 +67,19 @@ private:
         
     void init_popup_context_menu();
         
-    std::string user_home_path;
+    QString user_home_path;
         
     QCursor orginal_cursor;
     bool    in_remote_dir_retrive_loop;
     ProgressDialog *own_progress_dialog;
     
     //
-    int     ssh2_sock ;
-    LIBSSH2_SESSION *ssh2_sess;
+    int     ssh2_sock;
+    // LIBSSH2_SESSION *ssh2_sess;
     LIBSSH2_CHANNEL *ssh2_channel;
     LIBSSH2_SFTP *ssh2_sftp;
-        
+    Connection *conn;
+
     QString host_name;
     QString user_name;
     QString password;

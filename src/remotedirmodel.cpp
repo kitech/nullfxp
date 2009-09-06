@@ -14,6 +14,8 @@
 #include "globaloption.h"
 #include "remotedirmodel.h"
 #include "rfsdirnode.h"
+#include "connection.h"
+
 
 // from mimetypeshash.cpp
 extern QHash<QString, QString> gMimeHash;
@@ -44,18 +46,25 @@ RemoteDirModel::RemoteDirModel(QObject *parent)
                      this, SLOT( slot_keep_alive_time_out()));
 }
 
-void RemoteDirModel::set_ssh2_handler(void *ssh2_sess)
+// void RemoteDirModel::set_ssh2_handler(void *ssh2_sess)
+// {
+//     this->remote_dir_retrive_thread->set_ssh2_handler(ssh2_sess);
+//     this->ssh2_sess = (LIBSSH2_SESSION*)ssh2_sess;
+// }
+
+void RemoteDirModel::setConnection(Connection *conn)
 {
-    this->remote_dir_retrive_thread->set_ssh2_handler(ssh2_sess);
-    this->ssh2_sess = (LIBSSH2_SESSION*)ssh2_sess;
+    this->conn = conn;
+    this->ssh2_sess = conn->sess;
+    this->remote_dir_retrive_thread->setConnection(this->conn);
 }
 
-void RemoteDirModel::set_user_home_path(std::string user_home_path)
+void RemoteDirModel::set_user_home_path(QString user_home_path)
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     this->user_home_path = user_home_path;
 
-    qDebug()<<"i know remote home path: "<<this->user_home_path.c_str();
+    qDebug()<<"i know remote home path: "<<this->user_home_path;
 
     //Todo: 使用这个初始化路径来初始化这个树，而不是用默认的根路径 .
     //初始化目录案例：
@@ -74,8 +83,8 @@ void RemoteDirModel::set_user_home_path(std::string user_home_path)
     char buff3[PATH_MAX+1] = {0};
     char *sep_pos = 0, *pre_sep_pos;
 
-    strcpy(buff, this->user_home_path.c_str());
-    strcpy(buff2, this->user_home_path.c_str());
+    strcpy(buff, this->user_home_path.toAscii().data());
+    strcpy(buff2, this->user_home_path.toAscii().data());
     pre_sep_pos = buff;
 
     assert(buff[0] == '/');

@@ -37,6 +37,7 @@ int FTPConnection::connect()
         q_debug()<<this->qsock->errorString();
         return Connection::CONN_OTHER;
     }
+    this->homePath = QString("/");
     return 0;
 }
 int FTPConnection::disconnect()

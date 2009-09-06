@@ -64,3 +64,21 @@ QMap<QString, QString> Connection::hostInfo()
 {
     return this->mHostInfo;
 }
+
+QString Connection::userHomePath()
+{
+    return this->homePath;
+}
+
+int Connection::protocolType()
+{
+    if (this->protocol == "FTPS") {
+        return PROTO_FTPS;
+    } else if (this->protocol == "FTP") {
+        return PROTO_FTP;
+    } else if (this->protocol == "SFTP") {
+        return PROTO_SFTP;
+    } else {
+    }
+    return PROTO_MIN;
+}

@@ -41,6 +41,10 @@
 #include "libssh2_sftp.h"
 #include "info.h"
 
+#ifndef _MSC_VER
+#warning "This file not used later"
+#endif
+
 static QMutex ssh2_kbd_cb_mutex ;
 
 static char ssh2_password[60] ;

@@ -1,4 +1,4 @@
-// remotedirretrivethread.h --- 
+// dirretriver.h --- 
 // 
 // Author: liuguangzhao
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
@@ -7,14 +7,10 @@
 // Version: $Id$
 // 
 
-#ifndef REMOTEDIRRETRIVETHREAD_H
-#define REMOTEDIRRETRIVETHREAD_H
+#ifndef DIRRETRIVER_H
+#define DIRRETRIVER_H
 
 #include <cassert>
-#include <vector>
-#include <map>
-
-#include <queue>
 
 #include <QtCore>
 #include <QThread>
@@ -32,26 +28,26 @@ class Connection;
 /**
  *
  */
-class RemoteDirRetriveThread : public QThread
+class DirRetriver : public QThread
 {
     Q_OBJECT;
 public:
-    RemoteDirRetriveThread(QObject *parent = 0);
-    ~RemoteDirRetriveThread();
+    DirRetriver(QObject *parent = 0);
+    virtual ~DirRetriver();
 
     //在实例初始化后马上调用，否则会导致程序崩溃
     // void set_ssh2_handler(void *ssh2_sess);
-    void setConnection(Connection *conn);
-    LIBSSH2_SFTP *get_ssh2_sftp();
+    virtual void setConnection(Connection *conn);
+    // LIBSSH2_SFTP *get_ssh2_sftp();
     
     virtual void run();
         
-    void add_node(directory_tree_item *parent_item, void *parent_model_internal_pointer);
+    virtual void add_node(directory_tree_item *parent_item, void *parent_model_internal_pointer);
     
-    void slot_execute_command(directory_tree_item *parent_item, void *parent_model_internal_pointer,
+    virtual void slot_execute_command(directory_tree_item *parent_item, void *parent_model_internal_pointer,
                               int cmd, QString params);
 
-private:
+protected:
     class command_queue_elem
     {
     public:
@@ -70,19 +66,19 @@ private:
         int  retry_times;
     };
 
-private:
-    int  retrive_dir();
-    int  mkdir();
-    int  rmdir();
-    int  rm_file_or_directory_recursively();  // <==> rm -rf
-    int  rm_file_or_directory_recursively_ex(QString parent_path);  // <==> rm -rf
-    int  rename();
+protected:
+    virtual int  retrive_dir();
+    virtual int  mkdir();
+    virtual int  rmdir();
+    virtual int  rm_file_or_directory_recursively();  // <==> rm -rf
+    virtual int  rm_file_or_directory_recursively_ex(QString parent_path);  // <==> rm -rf
+    virtual int  rename();
         
-    int keep_alive();
-    int fxp_do_ls_dir(QString parent_path, QVector<QMap<char, QString> > & fileinfos);
-    int fxp_do_ls_dir(QString parent_path, QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > & fileinfos);
+    virtual int keep_alive();
+    virtual int fxp_do_ls_dir(QString parent_path, QVector<QMap<char, QString> > & fileinfos);
+    virtual int fxp_do_ls_dir(QString parent_path, QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > & fileinfos);
 
-    int fxp_realpath();
+    virtual int fxp_realpath();
 
 signals:
     void enter_remote_dir_retrive_loop();
@@ -93,7 +89,7 @@ signals:
     void execute_command_finished(directory_tree_item *parent_item, void *parent_model_internal_pointer,
                                   int cmd, int status);
 
-private:
+protected:
 
     std::map<directory_tree_item *, void *> dir_node_process_queue;
     std::vector<command_queue_elem*>  command_queue;
