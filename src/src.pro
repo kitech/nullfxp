@@ -104,7 +104,9 @@ SOURCES += main.cpp \
  taskpackage.cpp \
  sftpfile.cpp \
  connection.cpp \
- mimetypeshash.cpp
+ mimetypeshash.cpp \
+ ftpconnection.cpp \
+ connector.cpp
 
 HEADERS += nullfxp.h \
  localview.h \
@@ -141,7 +143,9 @@ HEADERS += nullfxp.h \
  syncdiffermodel.h \
  synctransferthread.h \
  sftpfile.h \
- connection.h
+ connection.h \
+ ftpconnection.h \
+ connector.h
 
 DISTFILES += ../CMakeLists.txt \
 CMakeLists.txt \

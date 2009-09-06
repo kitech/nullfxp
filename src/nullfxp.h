@@ -35,16 +35,9 @@ class QMdiSubWindow;
 class MdiChild;
 class QSignalMapper;
 
-
 #include "taskpackage.h"
 #include "aboutnullfxp.h" 
 #include "ui_nullfxp.h"
-
-// #include "localview.h"
-// #include "remoteview.h"
-// #include "remotehostconnectingstatusdialog.h"
-// #include "remotehostquickconnectinfodialog.h"
-// #include "remotehostconnectthread.h"
 
 class LocalView;
 class RemoteView;
@@ -52,7 +45,9 @@ class RemoteHostConnectingStatusDialog;
 class RemoteHostQuickConnectInfoDialog;
 class RemoteHostConnectThread ;
 class ForwardConnectDaemon;
-                 
+class Connection;
+class Connector;
+
 /**
 	@author liuguangzhao <gzl@localhost>
 */
@@ -61,7 +56,6 @@ class NullFXP : public QMainWindow
     Q_OBJECT;
 public:
     NullFXP(QWidget *parent = 0, Qt::WindowFlags flags = 0);
-
     ~NullFXP();
     
 public slots:
@@ -71,10 +65,16 @@ public slots:
     //void do_ls () ;
         
     void connect_to_remote_host() ;
-    void connect_to_remote_host(QMap<QString,QString> host) ;
+    void connect_to_remote_host(QMap<QString,QString> host);
+    void connect_to_remote_sftp_host(QMap<QString,QString> host);
+    void connect_to_remote_ftp_host(QMap<QString,QString> host);
     void slot_disconnect_from_remote_host();
     void slot_cancel_connect();
+
+
+
     void slot_connect_remote_host_finished(int status, void *ssh2_sess, int ssh2_sock);
+    void slot_connect_remote_host_finished(int status, Connection *conn);
         
     void slot_new_upload_requested(TaskPackage local_pkg);
         
@@ -92,28 +92,25 @@ private slots:
 
 private:
     MdiChild *activeMdiChild();        
-
     QMdiArea *mdiArea;
     QSignalMapper *windowMapper;                
-    //QList<QMdiSubWindow *>  sub_windows ;
-    RemoteView *get_top_most_remote_view () ;
+    RemoteView *get_top_most_remote_view();
         
 private:
-    QSplitter *central_splitter_widget ;
+    QSplitter *central_splitter_widget;
     QListView *transfer_queue_list_view;
                 
     LocalView *localView;
-    //RemoteView *remoteView ;
         
     Ui::MainWindow mUIMain;
     AboutNullFXP  *about_nullfxp_dialog;
-        
-    RemoteHostConnectingStatusDialog *connect_status_dailog ;
-    RemoteHostQuickConnectInfoDialog *quick_connect_info_dailog ;
-    RemoteHostConnectThread *remote_conn_thread ;
+
+    RemoteHostConnectingStatusDialog *connect_status_dailog;
+    RemoteHostQuickConnectInfoDialog *quick_connect_info_dailog;
+    RemoteHostConnectThread *remote_conn_thread;
+    Connector *connector;
 
     ForwardConnectDaemon *fcd;
-
 };
 
 #endif
