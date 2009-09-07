@@ -111,6 +111,7 @@ int FTPDirRetriver::retrive_dir()
     directory_tree_item *parent_item, *new_item;
     void *parent_model_internal_pointer;
 
+    QByteArray ba;
     QString tmp;
     QVector<directory_tree_item*> deltaItems;
     QVector<QMap<char, QString> > fileinfos;
@@ -130,45 +131,17 @@ int FTPDirRetriver::retrive_dir()
             parent_item->childAt(i)->delete_flag = 1;
         }
 
-        LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
-        LIBSSH2_SFTP_HANDLE *ssh2_sftp_handle = 0;
-        ssh2_sftp_handle = libssh2_sftp_opendir(this->ssh2_sftp,
-                                                GlobalOption::instance()->remote_codec->fromUnicode(parent_item->strip_path+ ( "/" )).data());
-
-        // ssh2_sftp_handle == 0 是怎么回事呢？ 返回值 应该是
-        // 1 . 这个file_name 是一个链接，但这个链接指向的是一个普通文件而不是目录时libssh2_sftp_opendir返回0 , 而 libssh2_sftp_last_error 返回值为 2 == SSH2_FX_NO_SUCH_FILE
-        if( ssh2_sftp_handle == 0 ) {
-            qDebug()<<" sftp last error: "<< libssh2_sftp_last_error(this->ssh2_sftp)
-                    <<(parent_item->strip_path+ ( "/" ))
-                    <<GlobalOption::instance()->remote_codec
-                ->fromUnicode(parent_item->strip_path + ( "/" )).data();
+        // passive
+        // list 
+        tmp = QString("LIST %1\r\n").arg(parent_item->strip_path+"/");
+        q_debug()<<tmp;
+        this->conn->qsock->write(tmp.toAscii());
+        if (this->conn->qsock->waitForBytesWritten()
+            && this->conn->qsock->waitForReadyRead()) {
+            // ba = this->conn->readAll(this->conn->qsock);
+            ba = this->conn->qsock->readAll();
+            q_debug()<<ba;
         }
-        fxp_ls_ret = 0;
-        while (ssh2_sftp_handle != 0 &&
-               libssh2_sftp_readdir(ssh2_sftp_handle, file_name, PATH_MAX, &ssh2_sftp_attrib ) > 0)
-        {
-            if (strlen(file_name) == 1 && file_name[0] == '.') continue;
-            if (strlen(file_name) == 2 && file_name[0] == '.' && file_name[1] == '.') continue;
-            //不处理隐藏文件? 处理隐藏文件,在这要提供隐藏文件，上层使用过滤代理模型提供显示隐藏文件的功能。
-            tmp = QString(GlobalOption::instance()->remote_codec->toUnicode(file_name));
-            if (parent_item->setDeleteFlag(tmp, 0)) {
-                if (fxp_ls_ret++ == 0) 
-                    printf("Already in list, omited %d", fxp_ls_ret), fxp_ls_ret = fxp_ls_ret | 1<<16;
-                else 
-                    printf(" %d", fxp_ls_ret<<16>>16);
-            } else {
-                new_item = new directory_tree_item();
-                new_item->parent_item = parent_item;
-                // new_item->strip_path = parent_item->strip_path + QString("/") + file_name ;
-                new_item->strip_path = parent_item->strip_path + QString("/") + tmp ; // this is unicode
-                new_item->file_name = tmp;
-                new_item->attrib = ssh2_sftp_attrib;
-                new_item->retrived = (new_item->isDir()) ? POP_NO_NEED_NO_DATA : POP_NEWEST;
-                deltaItems.append(new_item);
-            }
-        }  
-        if (fxp_ls_ret & (1 << 16))   printf("\n");
-        fflush(stdout);
 	
         //将多出的记录插入到树中
         for (int i = 0 ;i < deltaItems.count(); i ++) {
@@ -184,8 +157,8 @@ int FTPDirRetriver::retrive_dir()
         this->dir_node_process_queue.erase(parent_item);
         emit this->remote_dir_node_retrived(parent_item, parent_model_internal_pointer);
 
-        if (ssh2_sftp_handle != 0) //TODO 应该在循环上面检测到为0就continue才对啊。
-            libssh2_sftp_closedir(ssh2_sftp_handle);
+        // if (ssh2_sftp_handle != 0) //TODO 应该在循环上面检测到为0就continue才对啊。
+        //     libssh2_sftp_closedir(ssh2_sftp_handle);
     }
 
     return exec_ret;
