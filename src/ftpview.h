@@ -39,14 +39,14 @@ class FTPView : public RemoteView
     Q_OBJECT;
 public:
     FTPView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *parent = 0);
-    ~FTPView();
+    virtual ~FTPView();
 
     QString get_selected_directory();
     //
     // void set_host_info(QString host_name, QString user_name, QString password, short port, QString pubkey);
     // void set_ssh2_handler(void *ssh2_sess, int ssh2_sock );
     // void set_user_home_path(std::string user_home_path);
-    virtual void setConnection(Connection *conn);
+    void setConnection(Connection *conn);
     
     // bool is_in_remote_dir_retrive_loop() 
     // { return this->in_remote_dir_retrive_loop ; }

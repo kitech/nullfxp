@@ -15,7 +15,8 @@
 #include "remotedirmodel.h"
 #include "rfsdirnode.h"
 #include "connection.h"
-
+#include "dirretriver.h"
+#include "ftpdirretriver.h"
 
 // from mimetypeshash.cpp
 extern QHash<QString, QString> gMimeHash;
@@ -24,18 +25,16 @@ extern QHash<QString, QString> gMimeHash;
 RemoteDirModel::RemoteDirModel(QObject *parent)
     : QAbstractItemModel(parent)
 {
-    this->remote_dir_retrive_thread = new RemoteDirRetriveThread();
-    QObject::connect(this->remote_dir_retrive_thread, SIGNAL(remote_dir_node_retrived(directory_tree_item *, void *)),
-                     this, SLOT(slot_remote_dir_node_retrived(directory_tree_item*, void *)));
-
-    //
-    QObject::connect(this->remote_dir_retrive_thread, SIGNAL(enter_remote_dir_retrive_loop()),
-                     this, SIGNAL(enter_remote_dir_retrive_loop()));
-    QObject::connect(this->remote_dir_retrive_thread, SIGNAL(leave_remote_dir_retrive_loop()),
-                     this, SIGNAL(leave_remote_dir_retrive_loop()));
+    // this->remote_dir_retrive_thread = new RemoteDirRetriveThread();
+    // QObject::connect(this->remote_dir_retrive_thread, SIGNAL(remote_dir_node_retrived(directory_tree_item *, void *)),
+    //                  this, SLOT(slot_remote_dir_node_retrived(directory_tree_item*, void *)));
+    // QObject::connect(this->remote_dir_retrive_thread, SIGNAL(enter_remote_dir_retrive_loop()),
+    //                  this, SIGNAL(enter_remote_dir_retrive_loop()));
+    // QObject::connect(this->remote_dir_retrive_thread, SIGNAL(leave_remote_dir_retrive_loop()),
+    //                  this, SIGNAL(leave_remote_dir_retrive_loop()));
     
-    QObject::connect(this->remote_dir_retrive_thread, SIGNAL(execute_command_finished(directory_tree_item *, void *, int, int)),
-                     this, SLOT(execute_command_finished(directory_tree_item *, void *, int, int)));
+    // QObject::connect(this->remote_dir_retrive_thread, SIGNAL(execute_command_finished(directory_tree_item *, void *, int, int)),
+    //                  this, SLOT(execute_command_finished(directory_tree_item *, void *, int, int)));
 
     //keep alive 相关设置
     this->keep_alive = true;
@@ -55,8 +54,32 @@ RemoteDirModel::RemoteDirModel(QObject *parent)
 void RemoteDirModel::setConnection(Connection *conn)
 {
     this->conn = conn;
-    this->ssh2_sess = conn->sess;
-    this->remote_dir_retrive_thread->setConnection(this->conn);
+    this->ssh2_sess = this->conn->sess;
+
+    switch (this->conn->protocolType()) {
+    case Connection::PROTO_FTP:
+        this->dir_retriver = new FTPDirRetriver();
+        break;
+    case Connection::PROTO_SFTP:
+        this->dir_retriver = new SSHDirRetriver();
+        break;
+    default:
+        assert(1 == 2);
+        break;
+    }
+    
+    QObject::connect(this->dir_retriver, SIGNAL(remote_dir_node_retrived(directory_tree_item *, void *)),
+                     this, SLOT(slot_remote_dir_node_retrived(directory_tree_item*, void *)));
+    QObject::connect(this->dir_retriver, SIGNAL(enter_remote_dir_retrive_loop()),
+                     this, SIGNAL(enter_remote_dir_retrive_loop()));
+    QObject::connect(this->dir_retriver, SIGNAL(leave_remote_dir_retrive_loop()),
+                     this, SIGNAL(leave_remote_dir_retrive_loop()));
+    
+    QObject::connect(this->dir_retriver, SIGNAL(execute_command_finished(directory_tree_item *, void *, int, int)),
+                     this, SLOT(execute_command_finished(directory_tree_item *, void *, int, int)));
+
+    // 设置连接对象
+    this->dir_retriver->setConnection(this->conn);
 }
 
 void RemoteDirModel::set_user_home_path(QString user_home_path)
@@ -153,16 +176,16 @@ RemoteDirModel::~RemoteDirModel()
     }
     delete this->keep_alive_timer ;
     
-    if (this->remote_dir_retrive_thread->isRunning()) {
+    if (this->dir_retriver->isRunning()) {
         //TODO 怎么能友好的结束,  现在这么做只能让程序不崩溃掉。
         qDebug() <<" remote_dir_retrive_thread is run , how stop ?";
-        this->remote_dir_retrive_thread->terminate();
+        this->dir_retriver->terminate();
         //this->remote_dir_retrive_thread->wait();  //这个不好用
-        delete this->remote_dir_retrive_thread ;        
+        delete this->dir_retriver;        
     } else {
-        delete this->remote_dir_retrive_thread ;
+        delete this->dir_retriver;
     }
-    if (tree_root != 0) delete tree_root ;
+    if (tree_root != 0) delete tree_root;
     //TODO: 删除model中的现有数据, 已经实现，上一行
 }
 
@@ -424,7 +447,7 @@ int RemoteDirModel::rowCount(const QModelIndex &parent) const
         {
             //或者是不是要在这里取子结点的行数，即去远程找数据呢。
             // row_count =1 ;
-            this->remote_dir_retrive_thread->add_node(parent_item, parent.internalPointer());
+            this->dir_retriver->add_node(parent_item, parent.internalPointer());
         } else {
             row_count = parent_item->child_items.size();
         }
@@ -470,7 +493,7 @@ bool RemoteDirModel::setData(const QModelIndex &index, const QVariant &value, in
 
     dti->strip_path = parent_item->filePath() + "/" + value.toString();
     dti->file_name = value.toString();//这时是不能修改这个值,否则上句命令执行的时候找不到原文件名
-    this->remote_dir_retrive_thread->slot_execute_command(parent_item, parent_item, cmd, data);
+    this->dir_retriver->slot_execute_command(parent_item, parent_item, cmd, data);
 
     return true;
 }
@@ -653,7 +676,7 @@ void RemoteDirModel::slot_remote_dir_node_clicked(const QModelIndex &index)
     //this->dump_tree_node_item(clicked_item);
 
     if (clicked_item->retrived == 1) { // 半满状态结点
-        this->remote_dir_retrive_thread->add_node(clicked_item, index.internalPointer());
+        this->dir_retriver->add_node(clicked_item, index.internalPointer());
     } else {
         //no op needed
     }
@@ -662,7 +685,7 @@ void RemoteDirModel::slot_remote_dir_node_clicked(const QModelIndex &index)
 void RemoteDirModel::slot_execute_command(directory_tree_item *parent_item, 
                                            void *parent_model_internal_pointer, int cmd, QString params)
 {
-    this->remote_dir_retrive_thread->slot_execute_command(parent_item, parent_model_internal_pointer, cmd, params);
+    this->dir_retriver->slot_execute_command(parent_item, parent_model_internal_pointer, cmd, params);
 }
 
 void RemoteDirModel::execute_command_finished(directory_tree_item *parent_item, void *parent_model_internal_pointer,
@@ -676,7 +699,7 @@ void RemoteDirModel::execute_command_finished(directory_tree_item *parent_item, 
 
             // TODO how goto the task?
             // if (parent_item->retrived == 1) { // 半满状态结点
-            this->remote_dir_retrive_thread->add_node(parent_item, parent_model_internal_pointer);
+            this->dir_retriver->add_node(parent_item, parent_model_internal_pointer);
             // }
         }
         break;
@@ -713,7 +736,7 @@ void RemoteDirModel::set_keep_alive(bool keep_alive,int time_out)
 void RemoteDirModel::slot_keep_alive_time_out()
 {
     //qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    this->remote_dir_retrive_thread->slot_execute_command(0, 0, SSH2_FXP_KEEP_ALIVE, "");
+    this->dir_retriver->slot_execute_command(0, 0, SSH2_FXP_KEEP_ALIVE, "");
     
 }
 QString RemoteDirModel::filePath(const QModelIndex &index) const

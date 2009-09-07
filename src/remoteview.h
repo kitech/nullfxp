@@ -36,20 +36,20 @@ class RemoteView : public QWidget
     Q_OBJECT;
 public:
     RemoteView( QMdiArea *main_mdi_area, LocalView *local_view, QWidget *parent = 0);
-    ~RemoteView();
+    virtual ~RemoteView();
 
-    QString get_selected_directory();
+    virtual QString get_selected_directory();
     //
-    void set_host_info(QString host_name, QString user_name, QString password, short port, QString pubkey);
+    // void set_host_info(QString host_name, QString user_name, QString password, short port, QString pubkey);
     // void set_ssh2_handler(void *ssh2_sess, int ssh2_sock);
     // void set_user_home_path(std::string user_home_path);
-    void set_user_home_path(QString user_home_path);
+    virtual void set_user_home_path(QString user_home_path);
     virtual void setConnection(Connection *conn);
     
     bool is_in_remote_dir_retrive_loop() 
     { return this->in_remote_dir_retrive_loop ; }
     
-    void update_layout();
+    virtual void update_layout();
     
 protected:
     LocalView  *local_view;
@@ -65,7 +65,7 @@ protected:
         
     QMenu *dir_tree_context_menu;
         
-    void init_popup_context_menu();
+    virtual void init_popup_context_menu();
         
     QString user_home_path;
         
@@ -91,52 +91,52 @@ protected:
     EncryptionDetailFocusLabel *enc_label;
         
 public slots:
-    void i_init_dir_view();
-    void slot_disconnect_from_remote_host();
+    virtual void i_init_dir_view();
+    virtual void slot_disconnect_from_remote_host();
         
-    void slot_dir_tree_customContextMenuRequested(const QPoint &pos);
-    void slot_new_transfer();
-    void slot_new_upload_requested(TaskPackage local_pkg, TaskPackage remote_pkg);
-    void slot_new_upload_requested(TaskPackage local_pkg);
-    void slot_new_download_requested(TaskPackage local_pkg, TaskPackage remote_pkg);
-    void slot_new_download_requested(TaskPackage remote_pkg);
+    virtual void slot_dir_tree_customContextMenuRequested(const QPoint &pos);
+    virtual void slot_new_transfer();
+    virtual void slot_new_upload_requested(TaskPackage local_pkg, TaskPackage remote_pkg);
+    virtual void slot_new_upload_requested(TaskPackage local_pkg);
+    virtual void slot_new_download_requested(TaskPackage local_pkg, TaskPackage remote_pkg);
+    virtual void slot_new_download_requested(TaskPackage remote_pkg);
         
     //////////ui
-    void slot_show_fxp_command_log(bool show);
+    virtual void slot_show_fxp_command_log(bool show);
         
-    void slot_custom_ui_area();
+    virtual void slot_custom_ui_area();
         
-    void slot_enter_remote_dir_retrive_loop();
-    void slot_leave_remote_dir_retrive_loop();
+    virtual void slot_enter_remote_dir_retrive_loop();
+    virtual void slot_leave_remote_dir_retrive_loop();
         
-    void slot_transfer_finished(int status, QString errorString);
+    virtual void slot_transfer_finished(int status, QString errorString);
         
     //view drag
-    void slot_drag_ready();
+    virtual void slot_drag_ready();
         
     //
-    bool slot_drop_mime_data(const QMimeData *data, Qt::DropAction action,
+    virtual bool slot_drop_mime_data(const QMimeData *data, Qt::DropAction action,
 			     int row, int column, const QModelIndex &parent);
-    void slot_show_hidden(bool show);
+    virtual void slot_show_hidden(bool show);
 	
 signals:
         
 private slots:
-    void slot_refresh_directory_tree();
-    void slot_show_properties();
-    void slot_mkdir();
-    void slot_rmdir();        
-    void slot_rename();
-    void slot_copy_path();
-    void slot_copy_url();
+    virtual void slot_refresh_directory_tree();
+    virtual void slot_show_properties();
+    virtual void slot_mkdir();
+    virtual void slot_rmdir();        
+    virtual void slot_rename();
+    virtual void slot_copy_path();
+    virtual void slot_copy_url();
         
-    void rm_file_or_directory_recursively();
+    virtual void rm_file_or_directory_recursively();
 
-    void slot_dir_tree_item_clicked( const QModelIndex &index);
-    void slot_dir_file_view_double_clicked( const QModelIndex & index );
+    virtual void slot_dir_tree_item_clicked( const QModelIndex &index);
+    virtual void slot_dir_file_view_double_clicked( const QModelIndex & index );
 
-    void encryption_focus_label_double_clicked();
-    void host_info_focus_label_double_clicked();
+    virtual void encryption_focus_label_double_clicked();
+    virtual void host_info_focus_label_double_clicked();
         
 protected:
     virtual void closeEvent(QCloseEvent *event);

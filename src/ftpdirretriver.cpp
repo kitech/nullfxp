@@ -104,7 +104,7 @@ void FTPDirRetriver::run()
     emit this->leave_remote_dir_retrive_loop();
 }
 
-int  FTPDirRetriver::retrive_dir()
+int FTPDirRetriver::retrive_dir()
 {
     int exec_ret = -1;
     

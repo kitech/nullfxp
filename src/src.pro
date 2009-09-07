@@ -71,7 +71,7 @@ SOURCES += main.cpp \
  sftpdirmodel.cpp \
  progressdialog.cpp \
  transferthread.cpp \
- remotedirretrivethread.cpp \
+# remotedirretrivethread.cpp \
  remotehostconnectthread.cpp \
  remotehostconnectingstatusdialog.cpp \
  remotehostquickconnectinfodialog.cpp \
@@ -110,7 +110,8 @@ SOURCES += main.cpp \
  connector.cpp \
  ftpview.cpp \
  dirretriver.cpp \
- ftpdirretriver.cpp
+ ftpdirretriver.cpp \
+ sshdirretriver.cpp
 
 HEADERS += nullfxp.h \
  localview.h \
@@ -119,7 +120,7 @@ HEADERS += nullfxp.h \
  sftpdirmodel.h \
  progressdialog.h \
  transferthread.h \
- remotedirretrivethread.h \
+# remotedirretrivethread.h \
  remotehostconnectthread.h \
  remotehostconnectingstatusdialog.h \
  remotehostquickconnectinfodialog.h \
@@ -153,7 +154,8 @@ HEADERS += nullfxp.h \
  connector.h \
  ftpview.h \
  dirretriver.h \
- ftpdirretriver.h
+ ftpdirretriver.h \
+ sshdirretriver.h
 
 DISTFILES += ../CMakeLists.txt \
 CMakeLists.txt \

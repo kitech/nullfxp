@@ -311,17 +311,17 @@ QString RemoteView::get_selected_directory()
 //     this->ssh2_sock = ssh2_sock;
 // }
 
-void RemoteView::set_host_info(QString host_name, QString user_name, QString password, short port, QString pubkey)
-{
+// void RemoteView::set_host_info(QString host_name, QString user_name, QString password, short port, QString pubkey)
+// {
 
-    this->host_name = host_name ;
-    this->user_name = user_name ;
-    this->password = password ;
-    this->port = port;
-    this->pubkey = pubkey ;
+//     this->host_name = host_name ;
+//     this->user_name = user_name ;
+//     this->password = password ;
+//     this->port = port;
+//     this->pubkey = pubkey ;
 
-    this->setWindowTitle(this->windowTitle() + ": " + this->user_name + "@" + this->host_name);
-}
+//     this->setWindowTitle(this->windowTitle() + ": " + this->user_name + "@" + this->host_name);
+// }
 
 void RemoteView::set_user_home_path(QString user_home_path)
 {

@@ -1,4 +1,4 @@
-// remotedirretrivethread.h --- 
+// sshdirretriver.h --- 
 // 
 // Author: liuguangzhao
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
@@ -7,8 +7,8 @@
 // Version: $Id$
 // 
 
-#ifndef REMOTEDIRRETRIVETHREAD_H
-#define REMOTEDIRRETRIVETHREAD_H
+#ifndef SSHDIRRETRIVER_H
+#define SSHDIRRETRIVER_H
 
 #include <cassert>
 #include <vector>
@@ -23,6 +23,8 @@
 #include "libssh2.h"
 #include "libssh2_sftp.h"
 
+#include "dirretriver.h"
+
 #define SSH2_FXP_KEEP_ALIVE 8888
 
 // class RFSDirNode;
@@ -32,12 +34,12 @@ class Connection;
 /**
  *
  */
-class RemoteDirRetriveThread : public QThread
+class SSHDirRetriver : public DirRetriver
 {
     Q_OBJECT;
 public:
-    RemoteDirRetriveThread(QObject *parent = 0);
-    ~RemoteDirRetriveThread();
+    SSHDirRetriver(QObject *parent = 0);
+    ~SSHDirRetriver();
 
     //在实例初始化后马上调用，否则会导致程序崩溃
     // void set_ssh2_handler(void *ssh2_sess);

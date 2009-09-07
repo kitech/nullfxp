@@ -626,8 +626,6 @@ src/progressdialog.h -text
 src/progressdialog.ui -text
 src/remotedirmodel.cpp -text
 src/remotedirmodel.h -text
-src/remotedirretrivethread.cpp -text
-src/remotedirretrivethread.h -text
 src/remotedirsortfiltermodel.cpp -text
 src/remotedirsortfiltermodel.h -text
 src/remotedirtreeview.cpp -text
@@ -655,6 +653,8 @@ src/sftpdirmodel.h -text
 src/sftpfile.cpp -text
 src/sftpfile.h -text
 src/src.pro -text
+src/sshdirretriver.cpp -text
+src/sshdirretriver.h -text
 src/sshfileinfo.cpp -text
 src/sshfileinfo.h -text
 src/syncdiffermodel.cpp -text

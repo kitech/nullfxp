@@ -18,10 +18,12 @@
 #include "libssh2.h"
 #include "libssh2_sftp.h"
 
-#include "remotedirretrivethread.h"
+#include "sshdirretriver.h"
 
 class RFSDirNode;
+class directory_tree_item;
 class Connection;
+class DirRetriver;
 
 /**
  * @author liuguangzhao <liuguangzhao@users.sf.net >
@@ -153,7 +155,9 @@ private:
     LIBSSH2_SESSION *ssh2_sess;
     Connection *conn;
 
-    RemoteDirRetriveThread *remote_dir_retrive_thread;
+    // RemoteDirRetriveThread *remote_dir_retrive_thread;
+    DirRetriver *dir_retriver;
+
     //递归查找树
     QModelIndex find_node_item_by_path_elements(directory_tree_item *parent_node_item,
                                                 QStringList &path_elements, int level) const;

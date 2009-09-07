@@ -324,11 +324,11 @@ void NullFXP::slot_connect_remote_host_finished(int status, void *ssh2_sess, int
         
         // remote_view->set_ssh2_handler(ssh2_sess, ssh2_sock);
         remote_view->set_user_home_path(QString(this->remote_conn_thread->get_user_home_path().c_str()));
-        remote_view->set_host_info(conn_thread->get_host_name(),
-                                   conn_thread->get_user_name(),
-                                   conn_thread->get_password(),
-                                   conn_thread->get_port(),
-                                   conn_thread->get_pubkey());
+        // remote_view->set_host_info(conn_thread->get_host_name(),
+        //                            conn_thread->get_user_name(),
+        //                            conn_thread->get_password(),
+        //                            conn_thread->get_port(),
+        //                            conn_thread->get_pubkey());
         //初始化远程目录树        
         remote_view->i_init_dir_view();
     } else if (status == RemoteHostConnectThread::CONN_CANCEL) {   //use canceled connection
@@ -358,6 +358,7 @@ void NullFXP::slot_connect_remote_host_finished(int status, Connection *conn)
         switch (conn->protocolType()) {
         case Connection::PROTO_FTP:
             view = new FTPView(this->mdiArea, this->localView);
+            q_debug()<<"here";
             break;
         case Connection::PROTO_SFTP:
             view = new RemoteView(this->mdiArea, this->localView);
