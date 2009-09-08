@@ -18,14 +18,9 @@ FTPConnection::FTPConnection(QObject *parent)
 }
 FTPConnection::~FTPConnection()
 {
-    // if (this->qsock != NULL) {
-    //     delete this->qsock;
-    //     this->qsock = NULL;
-    // }
-    // if (this->qdsock != NULL) {
-    //     delete this->qdsock;
-    //     this->qdsock = NULL;
-    // }
+    if (this->ftp != NULL) {
+        delete this->ftp;
+    }
 }
 
 int FTPConnection::connect()
@@ -37,23 +32,10 @@ int FTPConnection::connect()
     if (this->ftp->login(this->userName, this->password) != 0) {
         return Connection::CONN_AUTH_ERROR;
     }
-    this->homePath = QString("/");
-
-    // this->qsock = new QTcpSocket();
-    // this->qsock->connectToHost(this->hostName, this->port);
-    // if (this->qsock->waitForConnected()) {
-    //     q_debug()<<"ftp ctrl connect ok";
-    // } else {
-    //     q_debug()<<this->qsock->errorString();
-    //     return Connection::CONN_OTHER;
-    // }
-    // this->homePath = QString("/");
-
-    // // login
-    // int iret = this->login(this->userName, this->password);
-    // if (iret != 0) {
-    //     return Connection::CONN_AUTH_ERROR;
-    // }
+    if (this->ftp->pwd(this->homePath) != 0) {
+        q_debug()<<"ftp home path error:";
+        this->homePath = QString("/"); // set default homePath of ftp
+    }
     
     return 0;
 }

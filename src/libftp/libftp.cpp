@@ -21,10 +21,26 @@ LibFtp::~LibFtp()
 int LibFtp::connect(const QString host, short port // = 21
             )
 {
+    QByteArray ba;
+    QString replyText;
     this->qsock = new QTcpSocket();
     this->qsock->connectToHost(host, port);
     if (this->qsock->waitForConnected()) {
         qDebug()<<"ftp ctrl connect ok";
+        ba = this->readAll(this->qsock);
+        replyText = ba;
+        // replyText maybe contains welcome text
+        QStringList sl = replyText.trimmed().split("\n");
+        sl = sl.at(sl.count() - 1).split(" ");
+        assert(sl.at(0) == "220");
+        this->servBanner.clear();
+        for (int i = 1 ; i < sl.count(); i++) {
+            if (sl.at(i).startsWith("(") || sl.at(i).startsWith("[")) {
+                break;
+            }
+            this->servBanner += sl.at(i) + " ";
+        }
+        qDebug()<<"Got server banner:"<<this->servBanner;
     } else {
         qDebug()<<this->qsock->errorString();
         return -1; // Connection::CONN_OTHER;
@@ -75,7 +91,27 @@ int LibFtp::login(const QString &user, const QString &password)
 
 int LibFtp::logout()
 {
-    return 0;
+	QString cmd;
+    QString sigLog;
+    QString replyText;
+
+	cmd = QString("QUIT\r\n");
+
+	this->qsock->write(cmd.toAscii());
+	qDebug()<<cmd;
+	
+	if (this->qsock->waitForBytesWritten()) {
+		QByteArray ball;
+		//read response
+		ball = this->readAll(this->qsock);
+		qDebug()<<ball;
+        replyText = ball;
+        QStringList sl = replyText.split(" ");
+        assert(sl.at(0) == "221");
+        return 0;
+	}
+
+	return -1;
 }
 
 int LibFtp::connectDataChannel()
@@ -367,8 +403,199 @@ QVector<QUrlInfo> LibFtp::getDirList()
 {
     return this->dirList;
 }
+QString LibFtp::getServerBanner()
+{
+    return this->servBanner;
+}
 
+int LibFtp::pwd(QString &path)
+{
+	QString cmd;
+    QString sigLog;
+    QString replyText;
 
+	cmd = QString("PWD\r\n");
+
+	this->qsock->write(cmd.toAscii());
+	qDebug()<<cmd;
+	
+	if (this->qsock->waitForBytesWritten()) {
+		QByteArray ball;
+		//read response
+		ball = this->readAll(this->qsock);
+		qDebug()<<ball;
+        replyText = ball;
+        QStringList sl = replyText.split(" ");
+        path = sl.at(1).split("\"").at(1);
+        qDebug()<<"the pwd is :"<<path;
+        assert(sl.at(0) == "257");
+        return 0;
+	}
+
+	return -1;    
+}
+int LibFtp::mkdir(const QString path)
+{
+	QString cmd;
+    QString sigLog;
+    QString replyText;
+
+	cmd = QString("MKD %1\r\n").arg(path);
+
+	this->qsock->write(cmd.toAscii());
+	qDebug()<<cmd;
+	
+	if (this->qsock->waitForBytesWritten()) {
+		QByteArray ball;
+		//read response
+		ball = this->readAll(this->qsock);
+		qDebug()<<ball;
+        replyText = ball;
+        QStringList sl = replyText.split(" ");
+        assert(sl.at(0) == "257"); // 550 perm denied
+        return 0;
+	}
+
+	return -1;
+}
+int LibFtp::rmdir(const QString path)
+{
+	QString cmd;
+    QString sigLog;
+    QString replyText;
+
+	cmd = QString("RMD %1\r\n").arg(path);
+
+	this->qsock->write(cmd.toAscii());
+	qDebug()<<cmd;
+	
+	if (this->qsock->waitForBytesWritten()) {
+		QByteArray ball;
+		//read response
+		ball = this->readAll(this->qsock);
+		qDebug()<<ball;
+        replyText = ball;
+        QStringList sl = replyText.split(" ");
+        assert(sl.at(0) == "250"); // 550 no such file
+        return 0;
+	}
+
+	return -1;
+}
+int LibFtp::remove(const QString path)
+{
+	QString cmd;
+    QString sigLog;
+    QString replyText;
+
+	cmd = QString("DELE %1\r\n").arg(path);
+
+	this->qsock->write(cmd.toAscii());
+	qDebug()<<cmd;
+	
+	if (this->qsock->waitForBytesWritten()) {
+		QByteArray ball;
+		//read response
+		ball = this->readAll(this->qsock);
+		qDebug()<<ball;
+        replyText = ball;
+        QStringList sl = replyText.split(" ");
+        assert(sl.at(0) == "250"); // 500 no such file
+        return 0;
+	}
+
+	return -1;
+}
+
+int LibFtp::type(int type)
+{
+	QString cmd;
+    QString sigLog;
+    QString replyText;
+    QString tname;
+    
+    switch (type) {
+    case TYPE_ASCII:
+        tname = "A";
+        break;
+    case TYPE_EBCID:
+    case TYPE_BIN:
+    case TYPE_IMAGE:
+    case TYPE_LOCAL_BYTE:
+    default:
+        tname = "I";
+        break;
+    }
+	cmd = QString("TYPE %1\r\n").arg(tname);
+
+	this->qsock->write(cmd.toAscii());
+	qDebug()<<cmd;
+	
+	if (this->qsock->waitForBytesWritten()) {
+		QByteArray ball;
+		//read response
+		ball = this->readAll(this->qsock);
+		qDebug()<<ball;
+        replyText = ball;
+        QStringList sl = replyText.split(" ");
+        assert(sl.at(0) == "200");
+        return 0;
+	}
+
+	return -1;
+}
+
+int LibFtp::noop()
+{
+	QString cmd;
+    QString sigLog;
+    QString replyText;
+
+	cmd = QString("NOOP\r\n");
+
+	this->qsock->write(cmd.toAscii());
+	qDebug()<<cmd;
+	
+	if (this->qsock->waitForBytesWritten()) {
+		QByteArray ball;
+		//read response
+		ball = this->readAll(this->qsock);
+		qDebug()<<ball;
+        replyText = ball;
+        QStringList sl = replyText.split(" ");
+        assert(sl.at(0) == "200");
+        return 0;
+	}
+
+	return -1;
+}
+
+int LibFtp::system(QString &type)
+{
+	QString cmd;
+    QString sigLog;
+    QString replyText;
+
+	cmd = QString("SYST\r\n");
+
+	this->qsock->write(cmd.toAscii());
+	qDebug()<<cmd;
+	
+	if (this->qsock->waitForBytesWritten()) {
+		QByteArray ball;
+		//read response
+		ball = this->readAll(this->qsock);
+		qDebug()<<ball;
+        replyText = ball;
+        QStringList sl = replyText.split(" ");
+        assert(sl.at(0) == "215");
+        type = sl.at(1);
+        qDebug()<<"ftp system type: "<<type;
+        return 0;
+	}
+
+	return -1;
+}
 
 /// private
 QByteArray LibFtp::readAll(QTcpSocket *sock)

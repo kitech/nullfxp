@@ -19,21 +19,28 @@ class LibFtp : public QObject
 public:
     LibFtp(QObject *parent = 0);
     virtual ~LibFtp();
-
+    enum {TYPE_MIN = 0, TYPE_ASCII, TYPE_EBCID, TYPE_BIN,
+          TYPE_IMAGE, TYPE_LOCAL_BYTE,
+          TYPE_MAX};
     int connect(const QString host, short port = 21);
     int login(const QString &user = QString(), const QString &password = QString());
     int logout();
     int connectDataChannel();
     int list(QString path);
     int nlist(QString path);
-    int pwd();
+    int pwd(QString &path); // returned path
     int mkdir(QString path);
     int rmdir(QString path);
+    int remove(const QString path);
+    int rename(const QString src, const QString dest);
     int passive();
     int rein(const QString &user = QString(), const QString &password = QString()); // 重新登陆
-    int type();
+    int type(int type);
+    int noop();
+    int system(QString &type);
 
     QVector<QUrlInfo> getDirList();
+    QString getServerBanner();
     
 private:
     int parsePasvPort(QString &host, short &port);
@@ -47,6 +54,7 @@ private:
     QString pasvHost;
     short pasvPort;
     QVector<QUrlInfo> dirList;
+    QString servBanner;
 };
 
         
