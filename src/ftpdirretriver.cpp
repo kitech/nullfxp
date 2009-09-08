@@ -155,6 +155,7 @@ static int QUrlInfo2LIBSSH2_SFTP_ATTRIBUTES(QUrlInfo &ui, LIBSSH2_SFTP_ATTRIBUTE
         attr->permissions |= S_IXOTH;
     }
 
+    // TODO how got uid and gid. ftp not given it?
 }
 static QVector<directory_tree_item *> dirListToTreeNode(QVector<QUrlInfo> &dirList, directory_tree_item *pnode)
 {
