@@ -35,6 +35,7 @@ void TestNullfxp::storageTest()
     BaseStorage * storage = BaseStorage::instance();
 
     QMap<QString, QString> host;
+    host["protocol"] = "SFTP";
     host["show_name"] = "hahaha";
     host["host_name"] = "www.qtchina.net";
     host["user_name"] = "liuguangzhao";
@@ -115,12 +116,17 @@ void TestNullfxp::testCXXBaseSyntax()
 }
 
 #ifndef _MSC_VER
+#if (__GNUC__ >= 4) && (__GNUC_MINOR__ >= 4)
 #include <tr1/array>
+#else
+    #warning "you gcc version is to lower. need gcc >= 4.4.0 for all feature."
+#endif
 #endif
 
 void TestNullfxp::testCXX0XSyntax()
 {
 #ifndef _MSC_VER
+#if (__GNUC__ >= 4) && (__GNUC_MINOR__ >= 4)
     std::tr1::array<int, 0> tr1arr;
     QVERIFY(tr1arr.size() == 0);
     tr1arr[0] = 5;
@@ -130,5 +136,8 @@ void TestNullfxp::testCXX0XSyntax()
     QVERIFY(tr1arr.size() == 0);
     qDebug()<<"a[1]="<<tr1arr[1];
     //这个数组模板个数很奇怪啊。
+#else
+    #warning "you gcc version is to lower. need gcc >= 4.4.0 for all feature."
+#endif
 #endif    
 }

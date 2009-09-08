@@ -32,6 +32,8 @@ win32 {
     }
     RC_FILE = unitest.rc
 } else {
+    GCC_VERSION = $$system(gcc -dumpversion)
+    ## TODO gcc > 4.4.0 has -std=c++0x arguments
     QMAKE_CXXFLAGS += -std=c++0x
 }
 

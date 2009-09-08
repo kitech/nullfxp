@@ -265,7 +265,7 @@ void LocalView::closeEvent(QCloseEvent * event)
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     event->ignore ();
     //this->setVisible(false); 
-    QMessageBox::information(this, tr("Attemp to close this window?"), tr("You can't close this window."));
+    QMessageBox::information(this, tr("Attemp to close this window?"), tr("Close this window is not needed."));
 }
 
 void LocalView::slot_dir_tree_item_clicked(const QModelIndex & index)

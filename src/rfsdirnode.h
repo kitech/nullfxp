@@ -30,6 +30,7 @@ class directory_tree_item : public QObject
     Q_OBJECT;
 public:
     directory_tree_item(QObject *parent = 0)
+        : QObject(parent)
     {
         this->prev_retr_flag = 0;
         this->retrived = 0;

@@ -12,23 +12,10 @@ CONFIG += qt thread console warn_on ordered
 TARGET = nullfxp
 DESTDIR = ../bin
 
-win32 {
-    win32-g++ {
-        system(gcc -o gv.exe get_ver.c)
-    } else {
-	system(cl /Fegv.exe get_ver.c)
-    }
-} else {
-    system(gcc -o gv.exe get_ver.c)
-}
-
-!win32 {
-    VERSION = $$system(./gv.exe nullfxp-version.h)
-}
+VERSION=1.9.9.85  # using in nullfxp-version.h
 
 win32 {
 	CONFIG += release
-    VERSION = $$system(gv nullfxp-version.h)
     !win32-g++ {
          CONFIG -= embed_manifest_exe
          CONFIG -= embed_manifest_dll
@@ -160,8 +147,8 @@ HEADERS += nullfxp.h \
  libftp/libftp.h
 
 DISTFILES += ../CMakeLists.txt \
-CMakeLists.txt \
-libssh2/CMakeLists.txt
+          CMakeLists.txt \
+          libssh2/CMakeLists.txt
 
 win32 {
     win32-g++ {
@@ -208,6 +195,7 @@ win32-g++ {
     HOST_GCC_VERSION = $$system(gcc -dumpversion)
     DEFINES += GCC_MV=\"\\\"$$HOST_MACHINE-g++-$$HOST_GCC_VERSION\\\"\"
 }
+DEFINES += NULLFXP_VERSION_STR=\"\\\"$$VERSION\\\"\"
 
 INCLUDEPATH += . ./libssh2/include
 
