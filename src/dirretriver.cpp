@@ -29,9 +29,11 @@ DirRetriver::DirRetriver(QObject *parent)
 DirRetriver::~DirRetriver()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    libssh2_sftp_shutdown(this->ssh2_sftp);
-    libssh2_session_disconnect(this->ssh2_sess, "SSH_DISCONNECT_BY_APPLICATION");
-    libssh2_session_free(this->ssh2_sess);
+    if (this->conn->protocolType() == Connection::PROTO_SFTP) {
+        libssh2_sftp_shutdown(this->ssh2_sftp);
+        libssh2_session_disconnect(this->ssh2_sess, "SSH_DISCONNECT_BY_APPLICATION");
+        libssh2_session_free(this->ssh2_sess);
+    }
 }
 
 // void DirRetriver::set_ssh2_handler(void *ssh2_sess)

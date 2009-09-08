@@ -17,6 +17,8 @@
 #include "libssh2.h"
 #include "libssh2_sftp.h"
 
+class LibFtp;
+
 // 这个类及其子类的操作都是阻塞的socket
 class Connection : public QObject
 {
@@ -64,6 +66,8 @@ public:
     QTcpSocket *qdsock;
 
     bool user_canceled;
+
+    LibFtp *ftp;
 signals:
     void alivePong(int alive);
     void connect_state_changed(QString state_desc);

@@ -111,7 +111,8 @@ SOURCES += main.cpp \
  ftpview.cpp \
  dirretriver.cpp \
  ftpdirretriver.cpp \
- sshdirretriver.cpp
+ sshdirretriver.cpp \
+ libftp/libftp.cpp
 
 HEADERS += nullfxp.h \
  localview.h \
@@ -155,7 +156,8 @@ HEADERS += nullfxp.h \
  ftpview.h \
  dirretriver.h \
  ftpdirretriver.h \
- sshdirretriver.h
+ sshdirretriver.h \
+ libftp/libftp.h
 
 DISTFILES += ../CMakeLists.txt \
 CMakeLists.txt \

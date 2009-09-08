@@ -12,7 +12,7 @@
 #include "utils.h"
 #include "sshfileinfo.h"
 #include "globaloption.h"
-#include "remotedirretrivethread.h"
+#include "sshdirretriver.h"
 #include "fileproperties.h"
 
 #ifndef _MSC_VER

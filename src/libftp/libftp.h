@@ -20,18 +20,33 @@ public:
     LibFtp(QObject *parent = 0);
     virtual ~LibFtp();
 
-    int connect();
-    int login();
+    int connect(const QString host, short port = 21);
+    int login(const QString &user = QString(), const QString &password = QString());
     int logout();
+    int connectDataChannel();
     int list(QString path);
     int nlist(QString path);
     int pwd();
+    int mkdir(QString path);
     int rmdir(QString path);
+    int passive();
+    int rein(const QString &user = QString(), const QString &password = QString()); // 重新登陆
+    int type();
+
+    QVector<QUrlInfo> getDirList();
+    
+private:
+    int parsePasvPort(QString &host, short &port);
+    QByteArray readAll(QTcpSocket *sock);
+    QByteArray readAllByEndSymbol(QTcpSocket *sock);
+    bool parseDir(const QByteArray &buffer, const QString &userName, QUrlInfo *info);
 
 private:
     QTcpSocket *qsock;
     QTcpSocket *qdsock;
-    
+    QString pasvHost;
+    short pasvPort;
+    QVector<QUrlInfo> dirList;
 };
 
         

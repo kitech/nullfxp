@@ -140,8 +140,9 @@ void FTPView::init_popup_context_menu()
 
 FTPView::~FTPView()
 {
-    this->remoteview.treeView->setModel(0);
-    delete this->remote_dir_model;
+    // because this line will call in base view class RemoteView
+    // this->remoteview.treeView->setModel(0);
+    // delete this->remote_dir_model;
 }
 
 void FTPView::slot_show_fxp_command_log(bool show)
@@ -334,6 +335,7 @@ QString FTPView::get_selected_directory()
 void FTPView::setConnection(Connection *conn)
 {
     this->conn = conn;
+    this->setWindowTitle(this->conn->protocol + ": " + this->conn->userName + "@" + this->conn->hostName);
 }
 
 void FTPView::closeEvent(QCloseEvent *event)

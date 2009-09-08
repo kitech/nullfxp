@@ -50,7 +50,7 @@ public:
       2 表示UI已经请求过，我们只取回来了一部分数据，即这表示需要更新的结点
       8 表示UI已经请求过，我们已经放到处理队列的，但还没有获取来数据的
       9 表示UI已经请求过，并且更新到了最新目录结构状态。
-        
+      
       状态转换：
       0------> 8 ------ > 9 
       1------> 8 -------> 9
@@ -70,7 +70,7 @@ public:
     QString file_name;
     bool   linkToDir; // 是否是链接到目录的链接
      
-    LIBSSH2_SFTP_ATTRIBUTES attrib;
+    LIBSSH2_SFTP_ATTRIBUTES attrib; // 改用QUrlInfo ??? 这个好象不错啊,不过这个占用内存小
 
 public:
     bool isDir();

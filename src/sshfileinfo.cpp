@@ -280,12 +280,12 @@ SSHFileInfo SSHFileInfo::fromQFileInfo(QFileInfo &fi)
 
     if (fi.isFile() && !fi.isSymLink()) {
         attr.permissions |= S_IFREG;
-    }
-    if (fi.isDir()) {
-        attr.permissions |= S_IFDIR;
-    }
-    if (fi.isSymLink()) {
+    } else if (fi.isSymLink()) {
         attr.permissions |= S_IFLNK;
+    } else if (fi.isDir()) {
+        attr.permissions |= S_IFDIR;
+    } else {
+        qDebug()<<"unknown file type:"<<fi.fileName();
     }
 
     if (perm & QFile::ReadUser) {

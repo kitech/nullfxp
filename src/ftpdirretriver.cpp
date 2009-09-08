@@ -19,6 +19,7 @@
 
 #include "rfsdirnode.h"
 #include "connection.h"
+#include "libftp/libftp.h"
 
 ///////////////////////////////////
 FTPDirRetriver::FTPDirRetriver(QObject *parent)
@@ -104,6 +105,81 @@ void FTPDirRetriver::run()
     emit this->leave_remote_dir_retrive_loop();
 }
 
+static int QUrlInfo2LIBSSH2_SFTP_ATTRIBUTES(QUrlInfo &ui, LIBSSH2_SFTP_ATTRIBUTES *attr)
+{
+    int perm = ui.permissions();
+    assert(attr != NULL);
+
+    memset(attr, 0, sizeof(*attr));
+    attr->filesize = ui.size();
+    attr->atime = ui.lastRead().toTime_t();
+    attr->mtime = ui.lastModified().toTime_t();
+
+    if (ui.isFile() && !ui.isSymLink()) {
+        attr->permissions |= S_IFREG;
+    } else if (ui.isSymLink()) {
+        attr->permissions |= S_IFLNK;
+    } else if (ui.isDir()) {
+        attr->permissions |= S_IFDIR;
+    } else {
+        qDebug()<<"unknown file type:"<<ui.name();
+    }
+
+    if (perm & QFile::ReadUser) {
+        attr->permissions |= S_IRUSR;
+    }
+    if (perm & QFile::WriteUser) {
+        attr->permissions |= S_IWUSR;
+    }
+    if (perm & QFile::ExeUser) {
+        attr->permissions |= S_IXUSR;
+    }
+
+    if (perm & QFile::ReadGroup) {
+        attr->permissions |= S_IRGRP;
+    }
+    if (perm & QFile::WriteGroup) {
+        attr->permissions |= S_IWGRP;
+    }
+    if (perm & QFile::ExeGroup) {
+        attr->permissions |= S_IXGRP;
+    }
+
+    if (perm & QFile::ReadOther) {
+        attr->permissions |= S_IROTH;
+    }
+    if (perm & QFile::WriteOther) {
+        attr->permissions |= S_IWOTH;
+    }
+    if (perm & QFile::ExeOther) {
+        attr->permissions |= S_IXOTH;
+    }
+
+}
+static QVector<directory_tree_item *> dirListToTreeNode(QVector<QUrlInfo> &dirList, directory_tree_item *pnode)
+{
+    QVector<directory_tree_item *> nodes;
+    directory_tree_item *node;
+    LIBSSH2_SFTP_ATTRIBUTES attr;
+    
+    for (int i = 0 ; i < dirList.count(); i++) {
+        QUrlInfo ui = dirList.at(i);
+        
+        node = new directory_tree_item();
+        QUrlInfo2LIBSSH2_SFTP_ATTRIBUTES(ui, &node->attrib);
+        node->prev_retr_flag = 0;
+        node->retrived = 0;
+        node->delete_flag = 0;
+        node->row_number = i;
+        node->strip_path = pnode->strip_path + "/" + ui.name();
+        node->file_name = ui.name();
+        node->parent_item = pnode;
+
+        nodes.append(node);
+    }
+    return nodes;
+}
+
 int FTPDirRetriver::retrive_dir()
 {
     int exec_ret = -1;
@@ -132,17 +208,17 @@ int FTPDirRetriver::retrive_dir()
         }
 
         // passive
+        this->conn->ftp->passive();
+        this->conn->ftp->connectDataChannel();
+        
         // list 
-        tmp = QString("LIST %1\r\n").arg(parent_item->strip_path+"/");
-        q_debug()<<tmp;
-        this->conn->qsock->write(tmp.toAscii());
-        if (this->conn->qsock->waitForBytesWritten()
-            && this->conn->qsock->waitForReadyRead()) {
-            // ba = this->conn->readAll(this->conn->qsock);
-            ba = this->conn->qsock->readAll();
-            q_debug()<<ba;
+        this->conn->ftp->list(parent_item->strip_path+"/");
+        QVector<QUrlInfo> dirList = this->conn->ftp->getDirList();
+        for (int i = 0 ; i < dirList.count() ; i ++) {
+            QUrlInfo ui = dirList.at(i);
+            qDebug()<<ui.name()<<ui.lastModified()<<ui.permissions()<<ui.size()<<ui.isSymLink();
         }
-	
+        deltaItems = dirListToTreeNode(dirList, parent_item);
         //将多出的记录插入到树中
         for (int i = 0 ;i < deltaItems.count(); i ++) {
             deltaItems.at(i)->row_number = parent_item->childCount();
