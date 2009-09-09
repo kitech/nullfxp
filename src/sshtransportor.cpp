@@ -1,4 +1,4 @@
-// transferthread.cpp --- 
+// sshtransportor.cpp --- 
 // 
 // Author: liuguangzhao
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
@@ -32,24 +32,24 @@
 #include <QtCore>
 
 #include "globaloption.h"
-#include "transferthread.h"
+#include "sshtransportor.h"
 #include "remotehostconnectthread.h"
 #include "utils.h"
 #include "sshfileinfo.h"
 
-TransferThread::TransferThread(QObject *parent)
-    : QThread(parent), user_canceled(false)
+SSHTransportor::SSHTransportor(QObject *parent)
+    : Transportor(parent), user_canceled(false)
 {
     this->file_exist_over_write_method = OW_UNKNOWN;
 }
 
 
-TransferThread::~TransferThread()
+SSHTransportor::~SSHTransportor()
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 }
 
-int TransferThread::remote_is_dir(LIBSSH2_SFTP *ssh2_sftp, QString path)
+int SSHTransportor::remote_is_dir(LIBSSH2_SFTP *ssh2_sftp, QString path)
 {
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
     LIBSSH2_SFTP_HANDLE *sftp_handle ;
@@ -68,7 +68,7 @@ int TransferThread::remote_is_dir(LIBSSH2_SFTP *ssh2_sftp, QString path)
     return 0;
 }
 
-int TransferThread::remote_is_reg(LIBSSH2_SFTP *ssh2_sftp, QString path)
+int SSHTransportor::remote_is_reg(LIBSSH2_SFTP *ssh2_sftp, QString path)
 {
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
     LIBSSH2_SFTP_HANDLE *sftp_handle;
@@ -93,7 +93,7 @@ int TransferThread::remote_is_reg(LIBSSH2_SFTP *ssh2_sftp, QString path)
     return 0;
 }
 //假设这个path的编码方式是远程服务器上所用的编码方式
-int TransferThread::fxp_do_ls_dir(LIBSSH2_SFTP *ssh2_sftp, QString path,
+int SSHTransportor::fxp_do_ls_dir(LIBSSH2_SFTP *ssh2_sftp, QString path,
                                   QVector<QMap<char, QString> > &fileinfos)
 {
     LIBSSH2_SFTP_HANDLE *sftp_handle = 0 ;
@@ -140,7 +140,7 @@ int TransferThread::fxp_do_ls_dir(LIBSSH2_SFTP *ssh2_sftp, QString path,
 /**
  * 
  */
-void TransferThread::run()
+void SSHTransportor::run()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
@@ -466,7 +466,7 @@ void TransferThread::run()
     }
 }
 
-void TransferThread::set_transfer_info (TaskPackage src_pkg, TaskPackage dest_pkg)
+void SSHTransportor::set_transfer_info (TaskPackage src_pkg, TaskPackage dest_pkg)
 {
     this->src_pkg = src_pkg;
     this->dest_pkg = dest_pkg;
@@ -492,7 +492,7 @@ void TransferThread::set_transfer_info (TaskPackage src_pkg, TaskPackage dest_pk
     }
 }
 
-int TransferThread::do_download(QString remote_path, QString local_path, int pflag)
+int SSHTransportor::do_download(QString remote_path, QString local_path, int pflag)
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
     qDebug()<< "remote_path = "<<  remote_path  << " , local_path = " << local_path ;
@@ -580,7 +580,7 @@ int TransferThread::do_download(QString remote_path, QString local_path, int pfl
 }
 
 
-int TransferThread::do_upload(QString local_path, QString remote_path, int pflag)
+int SSHTransportor::do_upload(QString local_path, QString remote_path, int pflag)
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
     qDebug()<< "remote_path = "<<  remote_path  << " , local_path = " <<local_path;
@@ -698,7 +698,7 @@ int TransferThread::do_upload(QString local_path, QString remote_path, int pflag
     
     return 0;
 }
-int TransferThread::do_nrsftp_exchange(QString src_path, QString dest_path)
+int SSHTransportor::do_nrsftp_exchange(QString src_path, QString dest_path)
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
     qDebug()<<"nrsftp from: "<< src_path <<" to "<< dest_path ;
@@ -763,17 +763,17 @@ int TransferThread::do_nrsftp_exchange(QString src_path, QString dest_path)
     return 0;
 }
 
-void TransferThread::set_user_cancel(bool cancel)
+void SSHTransportor::set_user_cancel(bool cancel)
 {
     this->user_canceled = cancel ;
 }
 
-void TransferThread::wait_user_response()
+void SSHTransportor::wait_user_response()
 {
     this->wait_user_response_mutex.lock();
     this->wait_user_response_cond.wait(&this->wait_user_response_mutex);
 }
-void TransferThread::user_response_result(int result)
+void SSHTransportor::user_response_result(int result)
 {
     if (result >= OW_CANCEL && result <= OW_NO_ALL) {
         this->file_exist_over_write_method = result;

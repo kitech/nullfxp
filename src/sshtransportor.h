@@ -1,4 +1,4 @@
-/* transferthread.h --- 
+/* sshtransportor.h --- 
  * 
  * Author: liuguangzhao
  * Copyright (C) 2007-2010 liuguangzhao@users.sf.net
@@ -7,8 +7,8 @@
  * Version: $Id$
  */
 
-#ifndef TRANSFERTHREAD_H
-#define TRANSFERTHREAD_H
+#ifndef SSHTRANSPORTOR_H
+#define SSHTRANSPORTOR_H
 
 #include <vector>
 #include <map>
@@ -20,6 +20,9 @@
 #include "libssh2_sftp.h"
 
 #include "taskpackage.h"
+
+#include "transportor.h"
+
 /**
  * @author liuguangzhao <liuguangzhao@users.sf.net>
  * 
@@ -35,19 +38,19 @@
  * 还有其他的方案吗？
  */
 
-class TransferThread : public QThread
+class SSHTransportor : public Transportor
 {
-    Q_OBJECT
+    Q_OBJECT;
 public:
     
     enum {TRANSFER_MIN, TRANSFER_GET,TRANSFER_PUT,TRANSFER_EXCHANGE,TRANSFER_RETRIVE_TO_LOCAL,TRANSFER_RETRIVE_TO_REMOTE ,TRANSFER_MAX };
     enum {OW_UNKNOWN,OW_CANCEL, OW_YES,OW_YES_ALL,OW_RESUME,OW_NO, OW_NO_ALL};
     enum {ERRNO_BASE=100};
     
-    TransferThread(QObject *parent = 0);
-    ~TransferThread();
+    SSHTransportor(QObject *parent = 0);
+    virtual ~SSHTransportor();
 
-    void run();
+    virtual void run();
     
     //说明，在上传的时候local_file_names.count()可以大于1个，而remote_file_names.count()必须等于1
     //在下载的时候：local_file_names.count()必须等于1,而remote_file_names.count()可以大于1个

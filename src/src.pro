@@ -57,7 +57,8 @@ SOURCES += main.cpp \
  remotedirmodel.cpp \
  sftpdirmodel.cpp \
  progressdialog.cpp \
- transferthread.cpp \
+ transportor.cpp \
+ sshtransportor.cpp \
 # remotedirretrivethread.cpp \
  remotehostconnectthread.cpp \
  remotehostconnectingstatusdialog.cpp \
@@ -107,7 +108,8 @@ HEADERS += nullfxp.h \
  remotedirmodel.h \
  sftpdirmodel.h \
  progressdialog.h \
- transferthread.h \
+ transportor.h \
+ sshtransportor.h \
 # remotedirretrivethread.h \
  remotehostconnectthread.h \
  remotehostconnectingstatusdialog.h \
