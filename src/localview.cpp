@@ -194,7 +194,7 @@ void LocalView::slot_local_new_upload_requested()
     QString local_file_name;
     QByteArray ba;
 
-    QItemSelectionModel * ism = this->curr_item_view->selectionModel();
+    QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
     QModelIndexList mil = ism->selectedIndexes();
 
@@ -208,7 +208,7 @@ void LocalView::slot_local_new_upload_requested()
         local_file_name = this->model->filePath(midx);
         pkg.files<<local_file_name;
     }
-    emit   new_upload_requested(pkg);
+    emit new_upload_requested(pkg);
 }
 
 QString LocalView::get_selected_directory()

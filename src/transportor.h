@@ -53,7 +53,7 @@ public:
     
     //说明，在上传的时候local_file_names.count()可以大于1个，而remote_file_names.count()必须等于1
     //在下载的时候：local_file_names.count()必须等于1,而remote_file_names.count()可以大于1个
-    virtual void set_transfer_info(TaskPackage src_pkg, TaskPackage dest_pkg);
+    virtual void set_transport_info(TaskPackage src_pkg, TaskPackage dest_pkg);
     
     virtual int do_upload(QString src_path, QString dest_path, int pflag);
     virtual int do_download(QString src_path, QString dest_path, int pflag);
@@ -66,11 +66,34 @@ public:
     virtual void user_response_result(int result);
 
 protected:
-    virtual int remote_is_dir(LIBSSH2_SFTP * ssh2_sftp, QString path);
-    virtual int remote_is_reg(LIBSSH2_SFTP * ssh2_sftp, QString path); 
-    virtual int fxp_do_ls_dir(LIBSSH2_SFTP * ssh2_sftp, QString parent_path, QVector<QMap<char, QString> > & fileinfos);
+    virtual int remote_is_dir(LIBSSH2_SFTP *ssh2_sftp, QString path);
+    virtual int remote_is_reg(LIBSSH2_SFTP *ssh2_sftp, QString path); 
+    virtual int fxp_do_ls_dir(LIBSSH2_SFTP *ssh2_sftp, QString parent_path, QVector<QMap<char, QString> > & fileinfos);
 
     virtual void wait_user_response();
+
+    /*
+      FILE -> SFTP  SSHTransportor
+      FILE -> FTP   FTPTransportor
+      FTP -> FILE   FTPTransportor
+      SFTP -> FILE  SSHTransportor
+      FTP -> SFTP   ???
+      SFTP -> FTP   ???
+      FTP -> FTP    FTPTransportor
+      SFTP -> SFTP  SSHTransportor
+     */
+    virtual int run_FILE_to_SFTP();
+    virtual int run_SFTP_to_FILE();
+    virtual int run_SFTP_to_SFTP();
+    virtual int run_FILE_to_FTP();
+    virtual int run_FTP_to_FILE();
+    virtual int run_FTP_to_FTP();        // 负责根据情况调用下面的两种方式进行文件传输
+    virtual int run_FTP_to_FTP_via_relay(); // 通过中继方式传数据, 不需要服务器支持。
+    virtual int run_FTP_to_FTP_via_fxp();   // 通过FTP协议中的FXP方式传数据，需要服务器支持。
+    virtual int run_SFTP_to_FTP();
+    virtual int run_FTP_to_SFTP();
+
+    virtual void run_backup(); // will depcreated when the upper method impled
 
 signals:
     void  transfer_percent_changed(int percent, int total_transfered, int transfer_delta);
@@ -102,8 +125,8 @@ protected:
     quint32 total_transfered_file_count;
     quint64 current_file_size;
     quint64 current_file_transfered_length;
-    QString  current_src_file_name;
-    QString  current_dest_file_name;
+    QString current_src_file_name;
+    QString current_dest_file_name;
 
     QVector<QPair<TaskPackage, TaskPackage> > transfer_ready_queue;
     QVector<QPair<TaskPackage, TaskPackage> > transfer_done_queue;
@@ -113,7 +136,7 @@ protected:
     //
     QWaitCondition  wait_user_response_cond;
     QMutex     wait_user_response_mutex;
-    Connection *conn;
+    // Connection *conn; //no use 
 };
 
 

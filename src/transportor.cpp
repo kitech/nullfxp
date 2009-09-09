@@ -136,14 +136,103 @@ int Transportor::fxp_do_ls_dir(LIBSSH2_SFTP *ssh2_sftp, QString path,
     return 0 ; 
 }
 
+void Transportor::run()
+{
+    int srcProtocol = this->src_pkg.scheme;
+    int destProtocol = this->dest_pkg.scheme;
+
+    /*
+      FILE -> SFTP  SSHTransportor
+      FILE -> FTP   FTPTransportor
+      FTP -> FILE   FTPTransportor
+      SFTP -> FILE  SSHTransportor
+      FTP -> SFTP   ???
+      SFTP -> FTP   ???
+      FTP -> FTP    FTPTransportor
+      SFTP -> SFTP  SSHTransportor
+     */
+    if (srcProtocol == PROTO_FILE && destProtocol == PROTO_SFTP) {
+
+    } else if (srcProtocol == PROTO_FILE && destProtocol == PROTO_FTP) {
+
+    } else if (srcProtocol == PROTO_FTP && destProtocol == PROTO_FILE) {
+
+    } else if (srcProtocol == PROTO_SFTP && destProtocol == PROTO_FILE) {
+
+    } else if (srcProtocol == PROTO_FTP && destProtocol == PROTO_SFTP) {
+
+    } else if (srcProtocol == PROTO_SFTP && destProtocol == PROTO_FTP) {
+
+    } else if (srcProtocol == PROTO_FTP && destProtocol == PROTO_FTP) {
+
+    } else if (srcProtocol == PROTO_SFTP && destProtocol == PROTO_SFTP) {
+
+    } else {
+        q_debug()<<"Unsupported file transport type.";
+    }
+}
+
+// similar to current do_upload method
+int Transportor::run_FILE_to_SFTP()
+{
+    return 0;
+}
+
+// similar to current do_download method
+int Transportor::run_SFTP_to_FILE()
+{
+    return 0;
+}
+
+// similar to current do_nrsftp_exchange method
+int Transportor::run_SFTP_to_SFTP()
+{
+    return 0;
+}
+
+int Transportor::run_FILE_to_FTP()
+{
+    return 0;
+}
+
+int Transportor::run_FTP_to_FILE()
+{
+    return 0;
+}
+
+int Transportor::run_FTP_to_FTP()        // 负责根据情况调用下面的两种方式进行文件传输
+{
+    return 0;
+}
+
+int Transportor::run_FTP_to_FTP_via_relay() // 通过中继方式传数据, 不需要服务器支持。
+{
+    return 0;
+}
+
+int Transportor::run_FTP_to_FTP_via_fxp()   // 通过FTP协议中的FXP方式传数据，需要服务器支持。
+{
+    return 0;
+}
+
+int Transportor::run_SFTP_to_FTP()
+{
+    return 0;
+}
+
+int Transportor::run_FTP_to_SFTP()
+{
+    return 0;
+}
+
 /**
  * 
  */
-void Transportor::run()
+void Transportor::run_backup()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
-    LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib ;
+    LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
     RemoteHostConnectThread *rhct = 0 ;
 
     int rv = -1;
@@ -465,7 +554,7 @@ void Transportor::run()
     }
 }
 
-void Transportor::set_transfer_info (TaskPackage src_pkg, TaskPackage dest_pkg)
+void Transportor::set_transport_info (TaskPackage src_pkg, TaskPackage dest_pkg)
 {
     this->src_pkg = src_pkg;
     this->dest_pkg = dest_pkg;

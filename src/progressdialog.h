@@ -34,8 +34,8 @@ public slots:
     void slot_transfer_thread_finished();
     void slot_new_file_transfer_started(QString new_file_name);
         
-    void exec ();
-    void show ();
+    void exec();
+    void show();
     void slot_cancel_button_clicked();
     void slot_transfer_got_file_size(int size);
     void slot_transfer_log(QString log);
@@ -43,7 +43,8 @@ public slots:
                                QString src_file_date, QString dest_path,
                                QString dest_file_size, QString dest_file_date);
     void slot_ask_accepted(int which);
-    private slots:
+
+private slots:
     void slot_speed_timer_timeout();
 
 signals:
@@ -55,16 +56,16 @@ private:
     TaskPackage remote_pkg;
 
     // TransferThread *sftp_transfer_thread;
-    Transportor *sftp_transfer_thread;
+    Transportor *transportor;
     bool   first_show ;
-        
-    quint64 total_files_size ;
-    quint64 abtained_files_size ;
-    int     total_files_count ;
-    int     abtained_files_count ;
-    int  transfer_speed ;
+    
+    quint64 total_files_size;
+    quint64 abtained_files_size;
+    int     total_files_count;
+    int     abtained_files_count;
+    int  transfer_speed;
     QDateTime start_time;
-    QDateTime end_time ;
+    QDateTime end_time;
     QTimer  time_cacl_timer;
         
 private:    //UI element

@@ -510,10 +510,10 @@ void FTPView::slot_mkdir()
                                      QLineEdit::Normal,
                                      tr("new_direcotry"));
     if (dir_name == QString::null) {
-        return ;
+        return;
     } 
     if (dir_name.length() == 0) {
-        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+        qDebug()<<"selectedIndexes count :"<<mil.count()<<"why no item selected????";
         QMessageBox::critical(this, tr("waring..."), tr("no directory name supplyed "));
         return;
     }
@@ -666,8 +666,8 @@ void FTPView::slot_copy_url()
         : this->remote_dir_sort_filter_model->mapToSource(midx);    
     directory_tree_item *dti = (directory_tree_item*) aim_midx.internalPointer();
 
-    QString url = QString("sftp://%1@%2:%3%4").arg(this->user_name)
-        .arg(this->host_name).arg(this->port).arg(dti->strip_path);
+    QString url = QString("ftp://%1@%2:%3%4").arg(this->conn->userName)
+        .arg(this->conn->hostName).arg(this->conn->port).arg(dti->strip_path);
     QApplication::clipboard()->setText(url);
 }
 
@@ -689,9 +689,9 @@ void FTPView::slot_new_upload_requested(TaskPackage local_pkg, TaskPackage remot
 }
 void FTPView::slot_new_upload_requested(TaskPackage local_pkg)
 {
-    QString remote_file_name ;
+    QString remote_file_name;
     FTPView *remote_view = this ;
-    TaskPackage remote_pkg(PROTO_SFTP);
+    TaskPackage remote_pkg(PROTO_FTP);
 
     qDebug()<<" window title :" << remote_view->windowTitle();
 
@@ -701,10 +701,10 @@ void FTPView::slot_new_upload_requested(TaskPackage local_pkg)
         QMessageBox::critical(this, tr("Waring..."), tr("you should selecte a remote file directory."));
     } else {
         remote_pkg.files<<remote_file_name;
-        remote_pkg.host = this->host_name;
-        remote_pkg.username = this->user_name;
-        remote_pkg.password = this->password;
-        remote_pkg.port = QString("%1").arg(this->port);
+        remote_pkg.host = this->conn->hostName;
+        remote_pkg.username = this->conn->userName;
+        remote_pkg.password = this->conn->password;
+        remote_pkg.port = QString("%1").arg(this->conn->port);
         remote_pkg.pubkey = this->pubkey;
 
         this->slot_new_upload_requested(local_pkg, remote_pkg);

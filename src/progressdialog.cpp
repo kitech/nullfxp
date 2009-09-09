@@ -31,7 +31,9 @@
 #include "globaloption.h"
 #include "progressdialog.h"
 #include "fileexistaskdialog.h"
-#include "sshtransportor.h"
+// #include "sshtransportor.h"
+// #include "ftptransportor.h"
+#include "transportor.h"
 
 ProgressDialog::ProgressDialog(QWidget *parent )
     : QWidget(parent )
@@ -40,22 +42,22 @@ ProgressDialog::ProgressDialog(QWidget *parent )
     this->setObjectName("pv");
     //////////
     // this->sftp_transfer_thread = new TransferThread();
-    this->sftp_transfer_thread = new SSHTransportor();
+    this->transportor = new Transportor();
     
-    QObject::connect(this->sftp_transfer_thread,SIGNAL(finished()),
+    QObject::connect(this->transportor,SIGNAL(finished()),
             this,SLOT(slot_transfer_thread_finished()));
-    QObject::connect(this->sftp_transfer_thread,SIGNAL(transfer_percent_changed(int, int, int)),
+    QObject::connect(this->transportor,SIGNAL(transfer_percent_changed(int, int, int)),
                      this,SLOT(slot_set_transfer_percent(int, int, int)));
-    QObject::connect(this->sftp_transfer_thread,SIGNAL(transfer_new_file_started(QString)),
+    QObject::connect(this->transportor,SIGNAL(transfer_new_file_started(QString)),
                      this,SLOT(slot_new_file_transfer_started(QString)));
     QObject::connect(this->ui_progress_dialog.pushButton,SIGNAL( clicked()),
                      this,SLOT(slot_cancel_button_clicked()));
-    QObject::connect( this->sftp_transfer_thread,SIGNAL(transfer_got_file_size(int)),
+    QObject::connect( this->transportor,SIGNAL(transfer_got_file_size(int)),
                       this,SLOT(slot_transfer_got_file_size(int)));
-    QObject::connect(this->sftp_transfer_thread,SIGNAL(transfer_log(QString)),
+    QObject::connect(this->transportor,SIGNAL(transfer_log(QString)),
                      this,SLOT(slot_transfer_log(QString)) );
 
-    QObject::connect(this->sftp_transfer_thread, 
+    QObject::connect(this->transportor, 
                      SIGNAL(dest_file_exists(QString, QString, QString, QString, QString, QString)),
                      this, SLOT(slot_dest_file_exists(QString, QString, QString, QString, QString, QString)));
     
@@ -72,21 +74,34 @@ ProgressDialog::ProgressDialog(QWidget *parent )
 
 ProgressDialog::~ProgressDialog()
 {
-    delete this->sftp_transfer_thread;
+    delete this->transportor;
 }
 
 void ProgressDialog::set_transfer_info(TaskPackage local_pkg, TaskPackage remote_pkg)
 {
-    QString local_file_name ;
-    QString remote_file_name ;
-    QString tmp_str ;
+    QString local_file_name;
+    QString remote_file_name;
+    QString tmp_str;
     
     this->local_pkg = local_pkg;
     this->remote_pkg = remote_pkg;
 
-    this->sftp_transfer_thread->set_transfer_info(local_pkg, remote_pkg);
+    // transportor 对象应该是哪个呢？ 只应该有一个Transportor, 
+    // 在这个唯一的Transportor中根据不同的协议调用不同的传输
+    /*
+      FILE -> SFTP  SSHTransportor
+      FILE -> FTP   FTPTransportor
+      FTP -> FILE   FTPTransportor
+      SFTP -> FILE  SSHTransportor
+      FTP -> SFTP   ???
+      SFTP -> FTP   ???
+      FTP -> FTP    FTPTransportor
+      SFTP -> SFTP  SSHTransportor
+     */
+
+    this->transportor->set_transport_info(local_pkg, remote_pkg);
     
-    QString local_full_path ;
+    QString local_full_path;
     
     this->ui_progress_dialog.comboBox->clear();
     this->ui_progress_dialog.comboBox_2->clear();
@@ -132,8 +147,8 @@ void ProgressDialog::slot_transfer_thread_finished()
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
     
     //this->done(QDialog::Accepted);
-    int error_code = this->sftp_transfer_thread->get_error_code();
-    QString errorString = this->sftp_transfer_thread->get_error_message(error_code);
+    int error_code = this->transportor->get_error_code();
+    QString errorString = this->transportor->get_error_message(error_code);
     emit this->transfer_finished(error_code, errorString);
 }
 
@@ -142,7 +157,7 @@ void ProgressDialog::exec()
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
     if (this->first_show) {
         this->first_show = 0 ;
-        this->sftp_transfer_thread->start(); 
+        this->transportor->start(); 
     }
     //QDialog::exec();    
 }
@@ -151,7 +166,7 @@ void ProgressDialog::show ()
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
     if (this->first_show) {
         this->first_show = 0 ;
-        this->sftp_transfer_thread->start(); 
+        this->transportor->start(); 
     }
     QWidget::show(); 
 }
@@ -190,11 +205,11 @@ void ProgressDialog::closeEvent(QCloseEvent * event)
                                    tr("Are you sure to stop the transfomition ?"),
                                    QMessageBox::Ok | QMessageBox::Cancel );
     if (u_r == QMessageBox::Ok) {
-        this->sftp_transfer_thread->set_user_cancel(true);
+        this->transportor->set_user_cancel(true);
         //event->ignore();
         this->setVisible(false);
-        //emit this->transfer_finished(this->sftp_transfer_thread->get_error_code());
-        qDebug()<<"Transfer error: "<<this->sftp_transfer_thread->get_error_code();
+        //emit this->transfer_finished(this->transportor->get_error_code());
+        qDebug()<<"Transfer error: "<<this->transportor->get_error_code();
     } else {
         event->ignore();
     }
@@ -290,7 +305,7 @@ void ProgressDialog::slot_dest_file_exists(QString src_path, QString src_file_si
 void ProgressDialog::slot_ask_accepted(int which)
 {
   if (which >= Transportor::OW_CANCEL && which <= Transportor::OW_NO_ALL)
-      this->sftp_transfer_thread->user_response_result(which);
+      this->transportor->user_response_result(which);
   else
       qDebug()<<"No care response";
 }
