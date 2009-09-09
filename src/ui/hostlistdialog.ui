@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>355</width>
+    <width>392</width>
     <height>406</height>
    </rect>
   </property>
@@ -305,28 +305,12 @@ p, li { white-space: pre-wrap; }
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>257</x>
-     <y>392</y>
+     <x>381</x>
+     <y>395</y>
     </hint>
     <hint type="destinationlabel">
      <x>246</x>
-     <y>-5</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>pushButton</sender>
-   <signal>clicked()</signal>
-   <receiver>HostListDialog</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>185</x>
-     <y>387</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>135</x>
-     <y>381</y>
+     <y>0</y>
     </hint>
    </hints>
   </connection>

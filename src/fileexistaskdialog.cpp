@@ -7,7 +7,7 @@
 // Version: $Id$
 // 
 
-#include "transferthread.h"
+#include "transportor.h"
 #include "fileexistaskdialog.h"
 
 FileExistAskDialog::FileExistAskDialog(QWidget *parent)
@@ -43,27 +43,27 @@ void FileExistAskDialog::set_files(QString src_path, QString src_file_size, QStr
   
 void FileExistAskDialog::slot_reponse_button_clicked()
 {
-  QWidget * sender_widget = (QWidget*)sender();
+  QWidget *sender_widget = (QWidget*)sender();
   if(sender_widget == this->ui_dlg.pushButton){
-    emit this->acceptedOne(TransferThread::OW_YES);
+    emit this->acceptedOne(Transportor::OW_YES);
   }else if(sender_widget == this->ui_dlg.pushButton_2){
-    emit this->acceptedOne(TransferThread::OW_YES_ALL); 
+    emit this->acceptedOne(Transportor::OW_YES_ALL); 
   }else if(sender_widget == this->ui_dlg.pushButton_3){
-    emit this->acceptedOne(TransferThread::OW_RESUME); 
+    emit this->acceptedOne(Transportor::OW_RESUME); 
   }else if(sender_widget == this->ui_dlg.pushButton_4){
-    emit this->acceptedOne(TransferThread::OW_NO);
+    emit this->acceptedOne(Transportor::OW_NO);
   }else if(sender_widget == this->ui_dlg.pushButton_5){
-    emit    this->acceptedOne(TransferThread::OW_NO_ALL);
+    emit    this->acceptedOne(Transportor::OW_NO_ALL);
   }else if(sender_widget == this->ui_dlg.pushButton_6){
-    emit this->acceptedOne(TransferThread::OW_CANCEL);
+    emit this->acceptedOne(Transportor::OW_CANCEL);
   }else{
-    emit this->acceptedOne(TransferThread::OW_CANCEL);
+    emit this->acceptedOne(Transportor::OW_CANCEL);
   }
   this->reject();
 }
 
 void FileExistAskDialog::close()
 {
-  emit  this->acceptedOne(TransferThread::OW_CANCEL);
+  emit  this->acceptedOne(Transportor::OW_CANCEL);
   this->reject();
 }

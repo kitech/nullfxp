@@ -35,7 +35,7 @@ QVariant SessionDirModel::data(const QModelIndex &index, int role) const
     return QDirModel::data(index, role);
 }
 
-SessionDialog::SessionDialog(QWidget * parent)
+SessionDialog::SessionDialog(QWidget *parent)
     :QDialog(parent),optype(0)
 {
     this->ui_win.setupUi(this);
@@ -83,6 +83,9 @@ SessionDialog::SessionDialog(QWidget * parent)
                      this, SLOT(slot_paste_selected()));
     QObject::connect(this->ui_win.toolButton_10, SIGNAL(clicked()),
                      this, SLOT(slot_new_folder()));
+
+    QObject::connect(this->ui_win.pushButton, SIGNAL(clicked()),
+                     this, SLOT(slot_conntect_selected_host()));
 
     this->host_list_ctx_menu = 0;
     this->info_dlg = 0;

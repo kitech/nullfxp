@@ -31,6 +31,7 @@
 #include "globaloption.h"
 #include "progressdialog.h"
 #include "fileexistaskdialog.h"
+#include "sshtransportor.h"
 
 ProgressDialog::ProgressDialog(QWidget *parent )
     : QWidget(parent )
@@ -38,7 +39,8 @@ ProgressDialog::ProgressDialog(QWidget *parent )
     this->ui_progress_dialog.setupUi(this);
     this->setObjectName("pv");
     //////////
-    this->sftp_transfer_thread = new TransferThread();
+    // this->sftp_transfer_thread = new TransferThread();
+    this->sftp_transfer_thread = new SSHTransportor();
     
     QObject::connect(this->sftp_transfer_thread,SIGNAL(finished()),
             this,SLOT(slot_transfer_thread_finished()));
@@ -273,7 +275,7 @@ void ProgressDialog::slot_dest_file_exists(QString src_path, QString src_file_si
                                            QString dest_file_size, QString dest_file_date)
 {
     qDebug()<<"Dest file exists: "<<dest_path<<". src path:"<<src_path;
-    FileExistAskDialog * ask_dlg;
+    FileExistAskDialog *ask_dlg;
     int rv = 0;
 
     ask_dlg = new FileExistAskDialog(this);
@@ -287,7 +289,7 @@ void ProgressDialog::slot_dest_file_exists(QString src_path, QString src_file_si
 
 void ProgressDialog::slot_ask_accepted(int which)
 {
-  if (which >=TransferThread::OW_CANCEL && which <=TransferThread::OW_NO_ALL)
+  if (which >= Transportor::OW_CANCEL && which <= Transportor::OW_NO_ALL)
       this->sftp_transfer_thread->user_response_result(which);
   else
       qDebug()<<"No care response";

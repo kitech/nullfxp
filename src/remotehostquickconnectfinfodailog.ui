@@ -35,11 +35,6 @@
          <string>FTP</string>
         </property>
        </item>
-       <item>
-        <property name="text">
-         <string>FTPS</string>
-        </property>
-       </item>
       </widget>
      </item>
     </layout>

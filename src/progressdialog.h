@@ -15,8 +15,10 @@
 #include <QDialog>
 
 #include "taskpackage.h"
-#include "transferthread.h"
+// #include "transportor.h"
 #include "ui_progressdialog.h"
+
+class Transportor;
 
 class ProgressDialog : public QWidget
 {
@@ -52,7 +54,8 @@ private:
     TaskPackage local_pkg;
     TaskPackage remote_pkg;
 
-    TransferThread * sftp_transfer_thread ;
+    // TransferThread *sftp_transfer_thread;
+    Transportor *sftp_transfer_thread;
     bool   first_show ;
         
     quint64 total_files_size ;

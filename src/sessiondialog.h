@@ -43,14 +43,14 @@ public slots:
     void slot_paste_selected();
     void slot_new_folder();
 
-    QMap<QString,QString>  get_host_map();
+    QMap<QString, QString>  get_host_map();
 
 signals:
-    void connect_remote_host_requested(QMap<QString,QString> host);
+    void connect_remote_host_requested(QMap<QString, QString> host);
     void quick_connect();
 
 private slots:
-    void slot_ctx_menu_requested(const QPoint & pos);
+    void slot_ctx_menu_requested(const QPoint &pos);
     void slot_show_no_item_tip();
     void slot_item_clicked(const QModelIndex &index);
 
