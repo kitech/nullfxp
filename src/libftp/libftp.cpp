@@ -128,6 +128,16 @@ int LibFtp::connectDataChannel()
     return 0;    
 }
 
+int LibFtp::closeDataChannel()
+{
+    if (this->qdsock != NULL) {
+        this->qdsock->close();
+        delete this->qdsock;
+        this->qdsock = NULL;
+    }
+    return 0;
+}
+
 static void _q_fixupDateTime(QDateTime *dateTime)
 {
     // Adjust for future tolerance.
@@ -508,6 +518,58 @@ int LibFtp::chdir(QString path)
 	return -1;
 }
 
+// 在调用这个方法前，调用端需要正确设置本地当前目录，服务器当前目录
+// 否则会出现找不到目录的情况
+int LibFtp::put(const QString fileName)
+{
+	QString cmd;
+    QString sigLog;
+    QString replyText;
+
+	cmd = QString("STOR %1\r\n").arg(fileName);
+
+	this->qsock->write(cmd.toAscii());
+	qDebug()<<cmd;
+	
+	if (this->qsock->waitForBytesWritten()) {
+		QByteArray ball;
+		//read response
+        ball = this->readAll(this->qsock);
+        qDebug()<<ball;
+        replyText = ball;
+        QStringList sl = replyText.split(" ");
+        assert(sl.at(0) == "150"); // 550 no such file
+        return 0;
+	}
+    
+    return -1;
+}
+
+int LibFtp::get(const QString fileName)
+{
+	QString cmd;
+    QString sigLog;
+    QString replyText;
+
+	cmd = QString("RETR %1\r\n").arg(fileName);
+
+	this->qsock->write(cmd.toAscii());
+	qDebug()<<cmd;
+	
+	if (this->qsock->waitForBytesWritten()) {
+		QByteArray ball;
+		//read response
+        ball = this->readAll(this->qsock);
+        qDebug()<<ball;
+        replyText = ball;
+        QStringList sl = replyText.split(" ");
+        assert(sl.at(0) == "150"); // 550 no such file
+        return 0;
+	}
+    
+    return -1;    
+}
+
 int LibFtp::remove(const QString path)
 {
 	QString cmd;
@@ -673,6 +735,24 @@ int LibFtp::stat(QString path)
 	}
 
 	return -1;        
+}
+
+QTcpSocket *LibFtp::getDataSocket()
+{
+    return this->qdsock;
+}
+
+int LibFtp::swallowResponse()
+{
+    QByteArray ba;
+
+    ba = this->readAll(this->qsock);
+    qDebug()<<ba;
+    QStringList sl = QString(ba).split('\n');
+    sl = sl.at(sl.count() - 1).split(" ");
+    
+    return sl.at(0).toInt();
+    return 0;
 }
 
 /// private

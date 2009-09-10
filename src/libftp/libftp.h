@@ -26,12 +26,15 @@ public:
     int login(const QString &user = QString(), const QString &password = QString());
     int logout();
     int connectDataChannel();
+    int closeDataChannel();
     int list(QString path);
     int nlist(QString path);
     int pwd(QString &path); // returned path
     int mkdir(QString path);
     int rmdir(QString path);
     int chdir(QString path);
+    int put(const QString fileName);
+    int get(const QString fileName);
     int remove(const QString path);
     int rename(const QString src, const QString dest);
     int passive();
@@ -41,8 +44,11 @@ public:
     int system(QString &type);
     int stat(QString path);
 
+    int swallowResponse();
+    
     QVector<QUrlInfo> getDirList();
     QString getServerBanner();
+    QTcpSocket *getDataSocket();
     
 private:
     int parsePasvPort(QString &host, short &port);

@@ -58,7 +58,7 @@ public:
     QString decodedPassword; // 没用了？
     QString hostName;
     short   port;
-    QString pubkeyPath;
+    QString pubkey;
     QString homePath;
     
     LIBSSH2_SESSION *sess;

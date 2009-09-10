@@ -71,6 +71,7 @@ protected:
     virtual int fxp_do_ls_dir(LIBSSH2_SFTP *ssh2_sftp, QString parent_path, QVector<QMap<char, QString> > & fileinfos);
 
     virtual int isFTPDir(Connection *conn, QString path);
+    virtual int isFTPFile(Connection *conn, QString path);
 
     virtual void wait_user_response();
     virtual QMap<QString, QString> getHostInfo(TaskPackage &pkg);
@@ -97,6 +98,10 @@ protected:
     virtual int run_FTP_to_SFTP();
 
     virtual int run_FILE_to_FTP(QString srcFile, QString destFile);
+    virtual int run_FTP_to_FILE(QString srcFile, QString destFile);
+
+    int setLocalCurrentDirByFullPath(QString path);
+    int setFTPCurrentDirByFullPath(Connection *conn, QString path);
 
     virtual void run_backup(); // will depcreated when the upper method impled
 

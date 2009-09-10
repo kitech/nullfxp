@@ -242,7 +242,7 @@ void FTPView::slot_new_transfer()
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
      
     QString file_path;
-    TaskPackage remote_pkg(PROTO_SFTP);
+    TaskPackage remote_pkg(PROTO_FTP);
     
     if (this->in_remote_dir_retrive_loop) {
         QMessageBox::warning(this, tr("Notes:"), tr("Retriving remote directory tree,wait a minute please."));
@@ -269,11 +269,17 @@ void FTPView::slot_new_transfer()
         remote_pkg.files<<file_path;
     }
 
-    remote_pkg.host = this->host_name;
-    remote_pkg.port = QString("%1").arg(this->port);
-    remote_pkg.username = this->user_name;
-    remote_pkg.password = this->password;
-    remote_pkg.pubkey = this->pubkey;
+    // remote_pkg.host = this->host_name;
+    // remote_pkg.port = QString("%1").arg(this->port);
+    // remote_pkg.username = this->user_name;
+    // remote_pkg.password = this->password;
+    // remote_pkg.pubkey = this->pubkey;
+
+    remote_pkg.host = this->conn->hostName;
+    remote_pkg.port = QString("%1").arg(this->conn->port);
+    remote_pkg.username = this->conn->userName;
+    remote_pkg.password = this->conn->password;
+    remote_pkg.pubkey = this->conn->pubkey;
 
     this->slot_new_download_requested(remote_pkg);
 }

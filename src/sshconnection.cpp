@@ -302,8 +302,8 @@ int SSHConnection::sshAuth()
 
     ret = libssh2_userauth_hostbased_fromfile(this->sess, 
                                               this->userName.toAscii().data(),
-                                              this->pubkeyPath.toAscii().data(),
-                                              this->pubkeyPath.left(this->pubkeyPath.length()-4).toAscii().data(),
+                                              this->pubkey.toAscii().data(),
+                                              this->pubkey.left(this->pubkey.length()-4).toAscii().data(),
                                               QUrl::fromPercentEncoding(this->password.toAscii()).toAscii().data(),
                                               this->hostName.toAscii().data());
     //qDebug()<<this->user_name<<this->pubkey_path<<this->pubkey_path.left(this->pubkey_path.length()-4)
@@ -322,9 +322,9 @@ int SSHConnection::sshAuth()
     }
 
     if (ret == -1) {
-        if (this->pubkeyPath != QString::null && this->pubkeyPath.length() != 0) {
+        if (this->pubkey != QString::null && this->pubkey.length() != 0) {
             //publickey auth
-            emit connect_state_changed(QString(tr("User authing(PublicKey: %1)...")).arg(this->pubkeyPath));
+            emit connect_state_changed(QString(tr("User authing(PublicKey: %1)...")).arg(this->pubkey));
             if (this->user_canceled == true) {
                 // this->connect_status = 2 ;
                 libssh2_session_disconnect(this->sess, "");
@@ -335,8 +335,8 @@ int SSHConnection::sshAuth()
 
             ret = libssh2_userauth_publickey_fromfile(this->sess, 
                                                       this->userName.toAscii().data(),
-                                                      this->pubkeyPath.toAscii().data(),
-                                                      this->pubkeyPath.left(this->pubkeyPath.length()-4).toAscii().data(),
+                                                      this->pubkey.toAscii().data(),
+                                                      this->pubkey.left(this->pubkey.length()-4).toAscii().data(),
                                                       QUrl::fromPercentEncoding(this->password.toAscii()).toAscii().data());            //qDebug()<<this->user_name<<this->pubkey_path<<this->pubkey_path.left(this->pubkey_path.length()-4)
             //      <<this->decoded_password;
         } else {
@@ -348,7 +348,7 @@ int SSHConnection::sshAuth()
     }
     if (ret == -1) {
         //password auth
-        if (this->pubkeyPath == QString::null || this->pubkeyPath.length() == 0) {
+        if (this->pubkey == QString::null || this->pubkey.length() == 0) {
             emit connect_state_changed(tr("User authing (Password)..."));
         } else {
             char *emsg = 0;
