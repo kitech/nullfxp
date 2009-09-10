@@ -482,6 +482,32 @@ int LibFtp::rmdir(const QString path)
 
 	return -1;
 }
+
+int LibFtp::chdir(QString path)
+{
+	QString cmd;
+    QString sigLog;
+    QString replyText;
+
+	cmd = QString("CWD %1\r\n").arg(path);
+
+	this->qsock->write(cmd.toAscii());
+	qDebug()<<cmd;
+	
+	if (this->qsock->waitForBytesWritten()) {
+		QByteArray ball;
+		//read response
+		ball = this->readAll(this->qsock);
+		qDebug()<<ball;
+        replyText = ball;
+        QStringList sl = replyText.split(" ");
+        assert(sl.at(0) == "250"); // 550 no such file
+        return 0;
+	}
+
+	return -1;
+}
+
 int LibFtp::remove(const QString path)
 {
 	QString cmd;
@@ -595,6 +621,58 @@ int LibFtp::system(QString &type)
 	}
 
 	return -1;
+}
+int LibFtp::stat(QString path)
+{
+	QString cmd;
+    QString sigLog;
+    QString replyText;
+
+    this->dirList.clear();
+	cmd = QString("STAT %1\r\n").arg(path);
+
+	this->qsock->write(cmd.toAscii());
+	qDebug()<<cmd;
+	
+	if (this->qsock->waitForBytesWritten()) {
+		QByteArray ball;
+		//read response
+		ball = this->readAll(this->qsock);
+		qDebug()<<ball;
+        replyText = ball;
+
+        QStringList sl = replyText.split("\n");
+        // this->qsock->waitForReadyRead();
+        // qDebug()<<this->qsock->canReadLine();
+        // while (this->qsock->canReadLine()) { // why can not readLine the second line?
+        for (int i = 0; i < sl.count(); i++) {
+            QUrlInfo ui;
+            // QByteArray line = this->qsock->readLine();
+            QByteArray line = sl.at(i).toAscii();
+            qDebug("QFtpDTP read (list): '%s'", line.constData());
+            if (line.startsWith("211")) {
+                // not data line
+                continue;
+            }
+            if (line.startsWith("450")) {
+                return -1;
+            }
+            if (this->parseDir(line, QLatin1String(""), &ui)) {
+                // emit listInfo(i);
+                this->dirList.append(ui);
+            } else {
+                // some FTP servers don't return a 550 if the file or directory
+                // does not exist, but rather write a text to the data socket
+                // -- try to catch these cases
+                if (line.endsWith("No such file or directory\r\n"))
+                    // err = QString::fromLatin1(line);
+                    qDebug()<<line;
+            }
+        }
+        return 0;
+	}
+
+	return -1;        
 }
 
 /// private

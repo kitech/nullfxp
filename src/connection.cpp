@@ -82,3 +82,49 @@ int Connection::protocolType()
     }
     return PROTO_MIN;
 }
+
+QString Connection::get_status_desc(int status)
+{
+    static const char *status_desc[] = {
+        "CONN_OK",
+        "CONN_REFUSE",
+        "CONN_CANCEL",
+        "CONN_OTHER",
+        "CONN_RESOLVE_ERROR",
+        "CONN_SESS_ERROR",
+        "CONN_AUTH_ERROR",
+        "CONN_SFTP_ERROR",
+        "CONN_EXEC_ERROR"
+    };
+
+    QString emsg = QString(tr("No error."));
+    switch (status) {
+    case Connection::CONN_REFUSE:
+        emsg = QString(tr("Remote host not usable."));
+        break;
+    case Connection::CONN_AUTH_ERROR:
+        emsg = QString(tr("Auth faild. Check your name and password and retry again."));
+        break;
+    case Connection::CONN_RESOLVE_ERROR:
+        emsg = QString(tr("Can not resolve host name."));
+        break;
+    case Connection::CONN_SESS_ERROR:
+        emsg = QString(tr("Can not initial SSH session."));
+        break;
+    case Connection::CONN_SFTP_ERROR:
+        emsg = QString(tr("Can not initial SFTP handle."));
+        break;
+    case Connection::CONN_PROTOCOL_VERSION_NOT_MATCH_ERROR:
+        emsg = QString(tr("Server protocol version not match. Is it 1.x ?"));
+        break;
+    default:
+        emsg = QString(tr("Unknown error."));
+        break;
+    }
+    
+    if ((unsigned int)status > sizeof(status_desc)/sizeof(char*)) {
+        return "Unknown status";
+    } else {
+        return emsg;
+    }
+}

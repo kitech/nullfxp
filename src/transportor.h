@@ -70,7 +70,10 @@ protected:
     virtual int remote_is_reg(LIBSSH2_SFTP *ssh2_sftp, QString path); 
     virtual int fxp_do_ls_dir(LIBSSH2_SFTP *ssh2_sftp, QString parent_path, QVector<QMap<char, QString> > & fileinfos);
 
+    virtual int isFTPDir(Connection *conn, QString path);
+
     virtual void wait_user_response();
+    virtual QMap<QString, QString> getHostInfo(TaskPackage &pkg);
 
     /*
       FILE -> SFTP  SSHTransportor
@@ -92,6 +95,8 @@ protected:
     virtual int run_FTP_to_FTP_via_fxp();   // 通过FTP协议中的FXP方式传数据，需要服务器支持。
     virtual int run_SFTP_to_FTP();
     virtual int run_FTP_to_SFTP();
+
+    virtual int run_FILE_to_FTP(QString srcFile, QString destFile);
 
     virtual void run_backup(); // will depcreated when the upper method impled
 
@@ -136,7 +141,8 @@ protected:
     //
     QWaitCondition  wait_user_response_cond;
     QMutex     wait_user_response_mutex;
-    // Connection *conn; //no use 
+    Connection *sconn; // source Connection obj
+    Connection *dconn; // dest Connection obj
 };
 
 

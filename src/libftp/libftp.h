@@ -31,6 +31,7 @@ public:
     int pwd(QString &path); // returned path
     int mkdir(QString path);
     int rmdir(QString path);
+    int chdir(QString path);
     int remove(const QString path);
     int rename(const QString src, const QString dest);
     int passive();
@@ -38,6 +39,7 @@ public:
     int type(int type);
     int noop();
     int system(QString &type);
+    int stat(QString path);
 
     QVector<QUrlInfo> getDirList();
     QString getServerBanner();

@@ -35,11 +35,16 @@
 #include "remotehostconnectthread.h"
 #include "utils.h"
 #include "sshfileinfo.h"
+#include "sshconnection.h"
+#include "libftp/libftp.h"
+#include "ftpconnection.h"
 
 Transportor::Transportor(QObject *parent)
     : QThread(parent), user_canceled(false)
 {
     this->file_exist_over_write_method = OW_UNKNOWN;
+    this->sconn = 0;
+    this->dconn = 0;
 }
 
 
@@ -135,12 +140,34 @@ int Transportor::fxp_do_ls_dir(LIBSSH2_SFTP *ssh2_sftp, QString path,
     
     return 0 ; 
 }
+int Transportor::isFTPDir(Connection *conn, QString path)
+{
+    q_debug()<<"test file: "<<path<<conn->ftp;
+    int iret = conn->ftp->stat(path);
+    if (iret != 0) {
+        q_debug()<<"stat error";
+        return 0;
+    }
+    QVector<QUrlInfo> dirList = conn->ftp->getDirList();
+    if (dirList.count() == 0) {
+        q_debug()<<"dirList count == 0";
+        return 0;
+    }
+    if (dirList.at(0).name() == path) {
+        q_debug()<<"dirList first name == path";
+        return 0;
+    } else { // 第一个元素不是path的时候，就是目录
+        q_debug()<<"it must be a dir";
+        return 1;
+    }
+    return 0;
+}
 
 void Transportor::run()
 {
     int srcProtocol = this->src_pkg.scheme;
     int destProtocol = this->dest_pkg.scheme;
-
+    int iret = -1;
     /*
       FILE -> SFTP  SSHTransportor
       FILE -> FTP   FTPTransportor
@@ -152,21 +179,21 @@ void Transportor::run()
       SFTP -> SFTP  SSHTransportor
      */
     if (srcProtocol == PROTO_FILE && destProtocol == PROTO_SFTP) {
-
+        iret = this->run_FILE_to_SFTP();
     } else if (srcProtocol == PROTO_FILE && destProtocol == PROTO_FTP) {
-
+        iret = this->run_FILE_to_FTP();
     } else if (srcProtocol == PROTO_FTP && destProtocol == PROTO_FILE) {
-
+        iret = this->run_FTP_to_FILE();
     } else if (srcProtocol == PROTO_SFTP && destProtocol == PROTO_FILE) {
-
+        iret = this->run_SFTP_to_FILE();
     } else if (srcProtocol == PROTO_FTP && destProtocol == PROTO_SFTP) {
-
+        iret = this->run_FTP_to_SFTP();
     } else if (srcProtocol == PROTO_SFTP && destProtocol == PROTO_FTP) {
-
+        iret = this->run_SFTP_to_FTP();
     } else if (srcProtocol == PROTO_FTP && destProtocol == PROTO_FTP) {
-
+        iret = this->run_FTP_to_FTP();
     } else if (srcProtocol == PROTO_SFTP && destProtocol == PROTO_SFTP) {
-
+        iret = this->run_SFTP_to_SFTP();
     } else {
         q_debug()<<"Unsupported file transport type.";
     }
@@ -187,11 +214,150 @@ int Transportor::run_SFTP_to_FILE()
 // similar to current do_nrsftp_exchange method
 int Transportor::run_SFTP_to_SFTP()
 {
+    q_debug()<<"";
     return 0;
 }
 
 int Transportor::run_FILE_to_FTP()
 {
+    q_debug()<<"";
+    // LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
+    // RemoteHostConnectThread *rhct = 0 ;
+
+    int rv = -1;
+    int transfer_ret = -1 ;
+    //int debug_sleep_time = 5 ;
+    
+    TaskPackage src_atom_pkg;
+    TaskPackage dest_atom_pkg;
+
+    TaskPackage temp_src_atom_pkg;
+    TaskPackage temp_dest_atom_pkg;
+        
+    QVector<QMap<char, QString> >  fileinfos;
+    QVector<QUrlInfo> fileList;
+    
+    this->error_code = 0 ;
+    this->errorString = QString(tr("No error."));
+        
+    do {
+        src_atom_pkg = this->transfer_ready_queue.front().first;
+        dest_atom_pkg = this->transfer_ready_queue.front().second;
+        this->current_src_file_name = src_atom_pkg.files.at(0);
+        this->current_dest_file_name = dest_atom_pkg.files.at(0);
+ 
+        qDebug()<<this->current_src_file_name;
+        qDebug()<<this->current_dest_file_name;
+      
+        //提示开始处理新文件：
+        emit this->transfer_new_file_started(this->current_src_file_name);
+            
+        //连接到目录主机：
+        if (this->dconn == 0) {
+            qDebug()<<"connecting to dest ftp host:"<<dest_atom_pkg.username
+                    <<":"<<dest_atom_pkg.password<<"@"<<dest_atom_pkg.host <<":"<<dest_atom_pkg.port ;
+            emit  transfer_log("Connecting to destination host ...");
+            this->dconn = new FTPConnection();
+            this->dconn->setHostInfo(this->getHostInfo(dest_atom_pkg));
+            rv = this->dconn->connect();
+            q_debug()<<"LibFtp:"<<this->dconn->ftp;
+            // QString tmp_passwd = dest_atom_pkg.password;
+            // rhct = new RemoteHostConnectThread(dest_atom_pkg.username, tmp_passwd,
+            //                                    dest_atom_pkg.host, dest_atom_pkg.port.toInt(), dest_atom_pkg.pubkey);
+            // rhct->run();
+            //TODO get status code and then ...
+            // rv = rhct->get_connect_status();
+            if (rv != Connection::CONN_OK) {
+                qDebug()<<"Connect to Host Error: "<<rv<<":"<<this->dconn->get_status_desc(rv);
+                emit transfer_log("Connect Error: " + this->dconn->get_status_desc(rv));
+                this->error_code = transfer_ret = 6;
+                this->errorString = this->dconn->get_status_desc(rv);
+                break;
+            }
+            //get connect return code end
+            // this->dest_ssh2_sess = (LIBSSH2_SESSION*)rhct->get_ssh2_sess();
+            // this->dest_ssh2_sock = rhct->get_ssh2_sock();
+            // this->dest_ssh2_sftp = libssh2_sftp_init(this->dest_ssh2_sess);
+            // delete rhct ; rhct = 0 ;            
+            emit  transfer_log("Connect done.");
+        }
+
+        // 将文件上传到目录
+        if (QFileInfo(this->current_src_file_name).isFile()
+            // && remote_is_dir(this->dest_ssh2_sftp , this->current_dest_file_name)
+            && this->isFTPDir(this->dconn, this->current_dest_file_name)
+            ) {
+            QString remote_full_path = this->current_dest_file_name + "/"
+                + this->current_src_file_name.split ( "/" ).at ( this->current_src_file_name.split ( "/" ).count()-1 ) ;
+            qDebug() << "local file: " << this->current_src_file_name
+                     << "remote file:" << this->current_dest_file_name
+                     << "remote full file path: "<< remote_full_path ;
+            // transfer_ret = this->do_upload(this->current_src_file_name, remote_full_path, 0);
+            transfer_ret = this->run_FILE_to_FTP(this->current_src_file_name, remote_full_path);
+        } else if (QFileInfo(this->current_src_file_name).isDir()
+                   // && remote_is_dir(this->dest_ssh2_sftp, this->current_dest_file_name)
+                   && this->isFTPDir(this->dconn, this->current_dest_file_name)
+                   ) {
+            //将目录上传到目录
+            qDebug()<<"uploding dir to dir ...";
+            //this->sleep(debug_sleep_time);
+            //
+            //列出本地目录中的文件，加入到队列中，然后继续。
+            //如果列出的本地文件是目录，则在这里先确定远程存在此子目录，否则就要创建先。
+            fileinfos.clear();
+            fxp_local_do_ls(this->current_src_file_name, fileinfos);
+            qDebug()<<"ret:"<<transfer_ret<<" count:"<<fileinfos.size() ;
+
+            //这个远程目录属性应该和本地属性一样，所以就使用this->current_src_file_type
+            //不知道是不是有问题。
+            QString remote_full_path = this->current_dest_file_name + "/" 
+                + this->current_src_file_name.split("/").at(this->current_src_file_name.split("/").count()-1);
+
+            temp_dest_atom_pkg = dest_atom_pkg;
+            temp_dest_atom_pkg.setFile(remote_full_path);
+
+            //为远程建立目录
+            // memset(&ssh2_sftp_attrib,0,sizeof(ssh2_sftp_attrib));
+            // transfer_ret = libssh2_sftp_mkdir(this->dest_ssh2_sftp, 
+            //                                   GlobalOption::instance()->remote_codec->fromUnicode(remote_full_path), 
+            //                                   0755);
+            // qDebug()<<"libssh2_sftp_mkdir: "<< transfer_ret <<" :"<< remote_full_path;
+            rv = this->dconn->ftp->mkdir(GlobalOption::instance()->remote_codec->fromUnicode(remote_full_path));
+            assert(rv == 0);            
+
+            //添加到队列当中
+            for (int i = 0 ; i < fileinfos.size() ; i ++) {
+                temp_src_atom_pkg = src_atom_pkg;
+                temp_src_atom_pkg.setFile(this->current_src_file_name + "/" + fileinfos.at(i)['N']);
+                this->transfer_ready_queue.push_back(QPair<TaskPackage, TaskPackage>
+                                                     (temp_src_atom_pkg, temp_dest_atom_pkg));
+            }
+        } else {
+            //其他的情况暂时不考虑处理。跳过
+            //TODO return a error value , not only error code
+            this->error_code = 1;
+            //assert(1 == 2) ;
+            qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in " << __LINE__;
+        }
+       
+        this->transfer_ready_queue.erase(this->transfer_ready_queue.begin());
+        this->transfer_done_queue.push_back(QPair<TaskPackage, TaskPackage>(src_atom_pkg, dest_atom_pkg));
+    } while (this->transfer_ready_queue.size() > 0 && user_canceled == false) ;
+
+    qDebug() << " transfer_ret :" << transfer_ret << " ssh2 sftp shutdown:"<< this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
+    //TODO 选择性关闭 ssh2 会话，有可能是 src  ,也有可能是dest 
+    if (user_canceled == true) {
+        this->error_code = 3;
+    }
+    return 0;
+}
+int Transportor::run_FILE_to_FTP(QString srcFile, QString destFile)
+{
+    q_debug()<<"start :"<<srcFile<<" --> "<<destFile;
+    // 首先转到当前目录为srfFile所在目录，取得文件名
+    // FTP 上也转到相应的目录
+    // 是在这转呢，还是在LibFtp->put中转呢?
+    
     return 0;
 }
 
@@ -554,7 +720,7 @@ void Transportor::run_backup()
     }
 }
 
-void Transportor::set_transport_info (TaskPackage src_pkg, TaskPackage dest_pkg)
+void Transportor::set_transport_info(TaskPackage src_pkg, TaskPackage dest_pkg)
 {
     this->src_pkg = src_pkg;
     this->dest_pkg = dest_pkg;
@@ -849,6 +1015,28 @@ int Transportor::do_nrsftp_exchange(QString src_path, QString dest_path)
     }
 
     return 0;
+}
+
+QMap<QString, QString> Transportor::getHostInfo(TaskPackage &pkg)
+{
+    QMap<QString, QString> host;
+
+    if (pkg.scheme == PROTO_FTP) {
+        host["protocol"] = "FTP";
+    } else if (pkg.scheme == PROTO_SFTP) {
+        host["protocol"] = "SFTP";
+    } else if (pkg.scheme == PROTO_FILE) {
+        host["protocol"] = "FILE";
+    } else {
+        assert(0);
+    }
+    host["host_name"] = pkg.host;
+    host["port"] = pkg.port;
+    host["user_name"] = pkg.username;
+    host["password"] = pkg.password;
+    host["pubkey"] = pkg.pubkey;
+
+    return host;
 }
 
 void Transportor::set_user_cancel(bool cancel)

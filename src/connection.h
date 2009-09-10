@@ -44,6 +44,8 @@ public:
     QString userHomePath();
     int protocolType();
 
+    virtual QString get_status_desc(int status);
+
 public slots:
     virtual int alivePing();
 
