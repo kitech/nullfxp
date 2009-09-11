@@ -69,6 +69,13 @@ int LibFtp::login(const QString &user, const QString &password)
 		ball = this->readAll(this->qsock);
 		qDebug()<<ball;
 
+        // 对有些匿名服务器不需要输入密码的
+        // 像ftp.gnu.org
+        QStringList sl = QString(ball).split("\n");
+        if (sl.at(sl.count() - 2).split(" ").at(0) == "230") {
+            return 0;
+        }
+
 		if (password.length() == 0)  cmd = QString("PASS %1\r\n").arg("ftp");
 		else  cmd = QString("PASS %1\r\n").arg(password);
 
