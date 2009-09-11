@@ -92,13 +92,13 @@ protected:
     virtual int run_FILE_to_FTP();
     virtual int run_FTP_to_FILE();
     virtual int run_FTP_to_FTP();        // 负责根据情况调用下面的两种方式进行文件传输
-    virtual int run_FTP_to_FTP_via_relay(); // 通过中继方式传数据, 不需要服务器支持。
-    virtual int run_FTP_to_FTP_via_fxp();   // 通过FTP协议中的FXP方式传数据，需要服务器支持。
     virtual int run_SFTP_to_FTP();
     virtual int run_FTP_to_SFTP();
 
     virtual int run_FILE_to_FTP(QString srcFile, QString destFile);
     virtual int run_FTP_to_FILE(QString srcFile, QString destFile);
+    virtual int run_FTP_to_FTP_relay(QString srcFile, QString destFile); // 通过中继方式传数据, 不需要服务器支持。
+    virtual int run_FTP_to_FTP_fxp(QString srcFile, QString destFile);   // 通过FTP协议中的FXP方式传数据，需要服务器支持。
 
     int setLocalCurrentDirByFullPath(QString path);
     int setFTPCurrentDirByFullPath(Connection *conn, QString path);

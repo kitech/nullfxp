@@ -217,7 +217,7 @@ void FTPView::i_init_dir_view()
     //显示SSH服务器信息
     // QString ssh_server_version = libssh2_session_get_remote_version(this->ssh2_sess);
     // int ssh_sftp_version = libssh2_sftp_get_version(this->ssh2_sftp);
-    // QString status_msg = QString("Ready. (%1  SFTP: V%2)").arg(ssh_server_version).arg(ssh_sftp_version); 
+    // QString status_msg = QString("Ready. (%1  FTP: V%2)").arg(ssh_server_version).arg(ssh_sftp_version); 
     // this->status_bar->showMessage(status_msg);
 }
 
@@ -851,13 +851,19 @@ void FTPView::slot_drag_ready()
         mil = ism->selectedIndexes();
     }
 
-    TaskPackage tpkg(PROTO_SFTP);
+    TaskPackage tpkg(PROTO_FTP);
     
-    tpkg.host = this->host_name;
-    tpkg.username = this->user_name;
-    tpkg.password = this->password;
-    tpkg.port = QString("%1").arg(this->port);
-    tpkg.pubkey = this->pubkey;    
+    // tpkg.host = this->host_name;
+    // tpkg.username = this->user_name;
+    // tpkg.password = this->password;
+    // tpkg.port = QString("%1").arg(this->port);
+    // tpkg.pubkey = this->pubkey;    
+
+    tpkg.host = this->conn->hostName;
+    tpkg.username = this->conn->userName;
+    tpkg.password = this->conn->password;
+    tpkg.port = QString("%1").arg(this->conn->port);
+    tpkg.pubkey = this->conn->pubkey;
 
     for (int i = 0 ; i< mil.count() ;i += this->remote_dir_model->columnCount()) {
         QModelIndex midx = mil.at(i);
@@ -884,17 +890,24 @@ bool FTPView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction action,
     Q_UNUSED(column);
     
     TaskPackage local_pkg(PROTO_FILE);
-    TaskPackage remote_pkg(PROTO_SFTP);
+    TaskPackage remote_pkg(PROTO_FTP);
    
     directory_tree_item *aim_item = static_cast<directory_tree_item*>(parent.internalPointer());        
     QString remote_file_name = aim_item->strip_path ;
 
     remote_pkg.files<<remote_file_name;
-    remote_pkg.host = this->host_name;
-    remote_pkg.username = this->user_name;
-    remote_pkg.password = this->password;
-    remote_pkg.port = QString("%1").arg(this->port);
-    remote_pkg.pubkey = this->pubkey;    
+
+    // remote_pkg.host = this->host_name;
+    // remote_pkg.username = this->user_name;
+    // remote_pkg.password = this->password;
+    // remote_pkg.port = QString("%1").arg(this->port);
+    // remote_pkg.pubkey = this->pubkey;    
+
+    remote_pkg.host = this->conn->hostName;
+    remote_pkg.username = this->conn->userName;
+    remote_pkg.password = this->conn->password;
+    remote_pkg.port = QString("%1").arg(this->conn->port);
+    remote_pkg.pubkey = this->conn->pubkey;
     
     if (data->hasFormat("application/task-package")) {
         local_pkg = TaskPackage::fromRawData(data->data("application/task-package"));

@@ -153,7 +153,10 @@ int Transportor::isFTPDir(Connection *conn, QString path)
         q_debug()<<"dirList count == 0";
         return 0;
     }
-    if (dirList.at(0).name() == path) {
+    // 根据这个判断看来有很大问题，不同的FTP服务器有不同的结果
+    // 还是要用列出来的属性，dxxxxxxx串来判断
+    QFileInfo fi(path);
+    if (dirList.at(0).name() == path || dirList.at(0).name() == fi.fileName()) {
         q_debug()<<"dirList first name == path";
         return 0;
     } else { // 第一个元素不是path的时候，就是目录
@@ -610,15 +613,213 @@ int Transportor::run_FTP_to_FILE(QString srcFile, QString destFile)
 
 int Transportor::run_FTP_to_FTP()        // 负责根据情况调用下面的两种方式进行文件传输
 {
+    q_debug()<<"";
+    int rv = -1;
+    int transfer_ret = -1 ;
+    //int debug_sleep_time = 5 ;
+    
+    TaskPackage src_atom_pkg;
+    TaskPackage dest_atom_pkg;
+
+    TaskPackage temp_src_atom_pkg;
+    TaskPackage temp_dest_atom_pkg;
+        
+    QVector<QMap<char, QString> >  fileinfos;
+    QVector<QUrlInfo> fileList;
+    
+    this->error_code = 0 ;
+    this->errorString = QString(tr("No error."));
+        
+    do {
+        src_atom_pkg = this->transfer_ready_queue.front().first;
+        dest_atom_pkg = this->transfer_ready_queue.front().second;
+        this->current_src_file_name = src_atom_pkg.files.at(0);
+        this->current_dest_file_name = dest_atom_pkg.files.at(0);
+ 
+        qDebug()<<this->current_src_file_name;
+        qDebug()<<this->current_dest_file_name;
+      
+        //提示开始处理新文件：
+        emit this->transfer_new_file_started(this->current_src_file_name);
+
+        //处理nrftp协议
+        //连接到目的主机：
+        if (this->dconn == 0) {
+            qDebug()<<"connecting to dest ftp host:"<<dest_atom_pkg.username
+                    <<":"<<dest_atom_pkg.password<<"@"<<dest_atom_pkg.host <<":"<<dest_atom_pkg.port ;
+            emit  transfer_log("Connecting to destination host ...");
+            this->dconn = new FTPConnection();
+            this->dconn->setHostInfo(this->getHostInfo(dest_atom_pkg));
+            rv = this->dconn->connect();
+            q_debug()<<"LibFtp:"<<this->dconn->ftp;
+
+            if (rv != Connection::CONN_OK) {
+                qDebug()<<"Connect to Host Error: "<<rv<<":"<<this->dconn->get_status_desc(rv);
+                emit transfer_log("Connect Error: " + this->dconn->get_status_desc(rv));
+                this->error_code = transfer_ret = 6;
+                this->errorString = this->dconn->get_status_desc(rv);
+                break;
+            }
+            //get connect return code end
+            emit  transfer_log("Connect done.");
+        }
+
+        // 连接到源FTP主机
+        if (this->sconn == 0) {
+            qDebug()<<"connecting to src ftp host:"<<src_atom_pkg.username<<":"<<src_atom_pkg.password
+                    <<"@"<<src_atom_pkg.host <<":"<<src_atom_pkg.port ;
+            
+            emit transfer_log("Connecting to source host ...");
+
+            this->sconn = new FTPConnection();
+            this->sconn->setHostInfo(this->getHostInfo(src_atom_pkg));
+            rv = this->sconn->connect();
+            q_debug()<<"LibFtp:"<<this->sconn->ftp;
+            if (rv != Connection::CONN_OK) {
+                qDebug()<<"Connect to Host Error: "<<rv<<":"<<this->sconn->get_status_desc(rv);
+                emit transfer_log("Connect Error: " + this->sconn->get_status_desc(rv));
+                this->error_code = transfer_ret = 6;
+                this->errorString = this->sconn->get_status_desc(rv);
+                break;
+            }
+
+            emit transfer_log("Connect done.");
+        }
+
+        ////////////
+        if (
+            // remote_is_dir(this->src_ssh2_sftp, this->current_src_file_name) 
+            // && remote_is_dir(this->dest_ssh2_sftp,this->current_dest_file_name )
+            this->isFTPDir(this->sconn, this->current_src_file_name)
+            && this->isFTPDir(this->dconn, this->current_dest_file_name)
+            ) {
+            qDebug()<<"nrftp exchage dir to dir...";
+
+            fileList.clear();
+            transfer_ret = this->sconn->ftp->list(this->current_src_file_name + "/");
+            assert(transfer_ret == 0);
+            
+            temp_dest_atom_pkg = dest_atom_pkg;
+            temp_dest_atom_pkg.setFile(this->current_dest_file_name + "/" +
+                                       this->current_src_file_name.split("/").at(this->current_src_file_name.split("/").count()-1));
+            
+            //确保目标FTP上有这个目录。
+            // transfer_ret = QDir().mkpath(temp_dest_atom_pkg.files.at(0));
+            rv = this->dconn->ftp->mkdir(temp_dest_atom_pkg.files.at(0));
+            assert(rv == 0);
+            qDebug()<<"fxp_dest ftp_do_mkdir: "<<transfer_ret <<" "<< temp_dest_atom_pkg.files.at(0) ;
+            //加入到任务队列           
+            for (int i = 0; i < fileList.count(); i++) {
+                temp_src_atom_pkg = src_atom_pkg;
+                temp_src_atom_pkg.setFile(this->current_src_file_name + "/" + fileList.at(i).name());
+                
+                this->transfer_ready_queue.push_back(QPair<TaskPackage, TaskPackage>
+                                                     (temp_src_atom_pkg, temp_dest_atom_pkg));
+                //romote is source 
+            }
+        } else if (
+                   // remote_is_reg(this->src_ssh2_sftp, this->current_src_file_name) 
+                   // && remote_is_dir(this->dest_ssh2_sftp,this->current_dest_file_name)
+                   this->isFTPFile(this->sconn, this->current_src_file_name)
+                   && this->isFTPDir(this->dconn, this->current_dest_file_name)
+                   ) {
+            qDebug()<<" nrsftp exchage file to dir...";
+            QString dest_full_path = this->current_dest_file_name + "/" + this->current_src_file_name.split("/").at(this->current_src_file_name.split("/").count()-1);
+            // transfer_ret = this->do_nrsftp_exchange(this->current_src_file_name, dest_full_path);
+            if (1) {
+                transfer_ret = this->run_FTP_to_FTP_relay(this->current_src_file_name, dest_full_path);
+            } else {
+                transfer_ret = this->run_FTP_to_FTP_fxp(this->current_src_file_name, dest_full_path);
+            }
+        } else {
+            //其他的情况暂时不考虑处理。跳过
+            //TODO return a error value , not only error code
+            q_debug()<<"src: "<< src_atom_pkg<<" dest:"<< dest_atom_pkg;
+            this->error_code = 1 ;
+            //assert ( 1 == 2 ) ;
+            qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in " << __LINE__ ;
+        }
+       
+        this->transfer_ready_queue.erase(this->transfer_ready_queue.begin());
+        this->transfer_done_queue.push_back(QPair<TaskPackage, TaskPackage>(src_atom_pkg, dest_atom_pkg));
+    } while (this->transfer_ready_queue.size() > 0 && user_canceled == false) ;
+
+    qDebug() << " transfer_ret :" << transfer_ret << " ssh2 sftp shutdown:"<< this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
+    //TODO 选择性关闭 ssh2 会话，有可能是 src  ,也有可能是dest 
+    if (user_canceled == true) {
+        this->error_code = 3;
+    }
     return 0;
 }
 
-int Transportor::run_FTP_to_FTP_via_relay() // 通过中继方式传数据, 不需要服务器支持。
+int Transportor::run_FTP_to_FTP_relay(QString srcFile, QString destFile) // 通过中继方式传数据, 不需要服务器支持。
 {
+    q_debug()<<"start :"<<srcFile<<" --> "<<destFile;
+    
+    int iret = -1;
+    int len = -1;
+    char buf[8192];
+    QTcpSocket *srcDataSock = NULL, *destDataSock = NULL;
+
+    // FTP 上转到相应的当前工作目录
+    this->setFTPCurrentDirByFullPath(this->sconn, srcFile);
+    this->setFTPCurrentDirByFullPath(this->dconn, destFile);
+
+    // src cmd sequence
+    {
+        iret = this->sconn->ftp->type(LibFtp::TYPE_BIN);
+        assert(iret == 0);
+        iret = this->sconn->ftp->passive();
+        assert(iret == 0);
+
+        iret = this->sconn->ftp->connectDataChannel();
+        assert(iret == 0);
+
+        QFileInfo fi(srcFile);
+        iret = this->sconn->ftp->get(fi.fileName());
+        assert(iret == 0);
+
+        srcDataSock = this->sconn->ftp->getDataSocket();
+        assert(srcDataSock != NULL);
+    }
+
+    // dest cmd sequence
+    {
+        iret = this->dconn->ftp->type(LibFtp::TYPE_BIN);
+        assert(iret == 0);
+        iret = this->dconn->ftp->passive();
+        assert(iret == 0);
+
+        iret = this->dconn->ftp->connectDataChannel();
+        assert(iret == 0);
+
+        QFileInfo fi(srcFile);
+        iret = this->dconn->ftp->put(fi.fileName());
+        assert(iret == 0);
+    
+        destDataSock = this->dconn->ftp->getDataSocket();
+        assert(destDataSock != NULL);
+    }
+
+    srcDataSock->waitForReadyRead();
+    while ((iret = srcDataSock->read(buf, sizeof(buf))) > 0) {
+        len = destDataSock->write(buf, iret);
+        destDataSock->waitForBytesWritten();
+        assert(len == iret);
+        srcDataSock->waitForReadyRead();
+    }
+    iret = this->sconn->ftp->closeDataChannel();
+    iret = this->dconn->ftp->closeDataChannel();
+
+    // 是不是现在应该去读取ftp的ctrl socket的剩余信息了呢
+    iret = this->sconn->ftp->swallowResponse();
+    iret = this->dconn->ftp->swallowResponse();
+   
     return 0;
 }
 
-int Transportor::run_FTP_to_FTP_via_fxp()   // 通过FTP协议中的FXP方式传数据，需要服务器支持。
+// http://en.wikipedia.org/wiki/File_eXchange_Protocol
+int Transportor::run_FTP_to_FTP_fxp(QString srcFile, QString destFile)   // 通过FTP协议中的FXP方式传数据，需要服务器支持。
 {
     return 0;
 }
