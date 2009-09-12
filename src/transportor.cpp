@@ -143,24 +143,28 @@ int Transportor::fxp_do_ls_dir(LIBSSH2_SFTP *ssh2_sftp, QString path,
 int Transportor::isFTPDir(Connection *conn, QString path)
 {
     q_debug()<<"test file: "<<path<<conn->ftp;
-    int iret = conn->ftp->stat(path);
-    if (iret != 0) {
-        q_debug()<<"stat error";
-        return 0;
-    }
-    QVector<QUrlInfo> dirList = conn->ftp->getDirList();
-    if (dirList.count() == 0) {
-        q_debug()<<"dirList count == 0";
-        return 0;
-    }
-    // 根据这个判断看来有很大问题，不同的FTP服务器有不同的结果
-    // 还是要用列出来的属性，dxxxxxxx串来判断
-    QFileInfo fi(path);
-    if (dirList.at(0).name() == path || dirList.at(0).name() == fi.fileName()) {
-        q_debug()<<"dirList first name == path";
-        return 0;
-    } else { // 第一个元素不是path的时候，就是目录
-        q_debug()<<"it must be a dir";
+    // int iret = conn->ftp->stat(path);
+    // if (iret != 0) {
+    //     q_debug()<<"stat error";
+    //     return 0;
+    // }
+    // QVector<QUrlInfo> dirList = conn->ftp->getDirList();
+    // if (dirList.count() == 0) {
+    //     q_debug()<<"dirList count == 0";
+    //     return 0;
+    // }
+    // // 根据这个判断看来有很大问题，不同的FTP服务器有不同的结果
+    // // 还是要用列出来的属性，dxxxxxxx串来判断
+    // QFileInfo fi(path);
+    // if (dirList.at(0).name() == path || dirList.at(0).name() == fi.fileName()) {
+    //     q_debug()<<"dirList first name == path";
+    //     return 0;
+    // } else { // 第一个元素不是path的时候，就是目录
+    //     q_debug()<<"it must be a dir";
+    //     return 1;
+    // }
+    int iret = conn->ftp->chdir(path);
+    if (iret == 0) {
         return 1;
     }
     return 0;
@@ -726,7 +730,7 @@ int Transportor::run_FTP_to_FTP()        // 负责根据情况调用下面的两
             qDebug()<<" nrsftp exchage file to dir...";
             QString dest_full_path = this->current_dest_file_name + "/" + this->current_src_file_name.split("/").at(this->current_src_file_name.split("/").count()-1);
             // transfer_ret = this->do_nrsftp_exchange(this->current_src_file_name, dest_full_path);
-            if (1) {
+            if (0) {
                 transfer_ret = this->run_FTP_to_FTP_relay(this->current_src_file_name, dest_full_path);
             } else {
                 transfer_ret = this->run_FTP_to_FTP_fxp(this->current_src_file_name, dest_full_path);
@@ -737,7 +741,7 @@ int Transportor::run_FTP_to_FTP()        // 负责根据情况调用下面的两
             q_debug()<<"src: "<< src_atom_pkg<<" dest:"<< dest_atom_pkg;
             this->error_code = 1 ;
             //assert ( 1 == 2 ) ;
-            qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in " << __LINE__ ;
+            qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in " << __LINE__;
         }
        
         this->transfer_ready_queue.erase(this->transfer_ready_queue.begin());
@@ -821,6 +825,64 @@ int Transportor::run_FTP_to_FTP_relay(QString srcFile, QString destFile) // 通�
 // http://en.wikipedia.org/wiki/File_eXchange_Protocol
 int Transportor::run_FTP_to_FTP_fxp(QString srcFile, QString destFile)   // 通过FTP协议中的FXP方式传数据，需要服务器支持。
 {
+    q_debug()<<"start :"<<srcFile<<" --> "<<destFile;
+    
+    quint16 pasvPort = 0;
+    QString pasvHost;
+    int iret = -1;
+
+    // FTP 上转到相应的当前工作目录
+    this->setFTPCurrentDirByFullPath(this->sconn, srcFile);
+    this->setFTPCurrentDirByFullPath(this->dconn, destFile);
+
+    // dest cmd sequence
+    {
+        iret = this->dconn->ftp->type(LibFtp::TYPE_BIN);
+        assert(iret == 0);
+        iret = this->dconn->ftp->passive();
+        assert(iret == 0);
+
+        pasvPort = this->dconn->ftp->pasvPeer(pasvHost);
+    }
+
+    // src cmd sequence
+    {
+        iret = this->sconn->ftp->type(LibFtp::TYPE_BIN);
+        assert(iret == 0);
+
+        iret = this->sconn->ftp->port(pasvHost, pasvPort);
+        // assert(iret == 0);
+        if (iret != 0) {
+            // 是可能服务器不支持port命令, 关闭目标ftp的passive连接
+            iret = this->dconn->ftp->connectDataChannel();
+            assert(iret == 0);
+            iret = this->dconn->ftp->closeDataChannel();
+            q_debug()<<"maybe the source ftp do not suppert port command.";
+            return -1;
+        }
+    }
+
+    // dest 
+    {
+        QFileInfo fi(srcFile);
+        iret = this->dconn->ftp->put(fi.fileName());
+        assert(iret == 0);
+    }
+
+    // src 
+    {
+        QFileInfo fi(srcFile);
+        iret = this->sconn->ftp->get(fi.fileName());
+        assert(iret == 0);        
+    }
+
+    // 是不是现在应该去读取ftp的ctrl socket的剩余信息了呢
+    iret = this->sconn->ftp->swallowResponse();
+    iret = this->dconn->ftp->swallowResponse();
+
+    // 这儿应该有什么方法检测到两个服务器的传输进度及完成状态。
+    q_debug()<<"fxp transport done.";
+
     return 0;
 }
 

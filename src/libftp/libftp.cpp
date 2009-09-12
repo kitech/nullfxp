@@ -517,9 +517,12 @@ int LibFtp::chdir(QString path)
 		ball = this->readAll(this->qsock);
 		qDebug()<<ball;
         replyText = ball;
-        QStringList sl = replyText.split(" ");
-        assert(sl.at(0) == "250"); // 550 no such file
-        return 0;
+        QStringList sl = replyText.split("\n");
+        sl = sl.at(sl.count() - 2).split(" ");
+        // assert(sl.at(0) == "250"); // 550 no such file
+        if (sl.at(0) == "250") {
+            return 0;
+        }
 	}
 
 	return -1;
@@ -744,9 +747,48 @@ int LibFtp::stat(QString path)
 	return -1;        
 }
 
+int LibFtp::port(const QString hostip, const short port) // fxp
+{
+    QString hn = hostip;
+    hn = hn.replace(".", ",");
+    quint8 p1 = port >> 8 & 0x0F;
+    quint8 p2 = port & 0x0F;
+
+	QString cmd;
+    QString sigLog;
+    QString replyText;
+
+	cmd = QString("PORT %1,%2,%3\r\n").arg(hn).arg(p1).arg(p2);
+
+	this->qsock->write(cmd.toAscii());
+	qDebug()<<cmd;
+	
+	if (this->qsock->waitForBytesWritten()) {
+		QByteArray ball;
+		//read response
+		ball = this->readAll(this->qsock);
+		qDebug()<<ball;
+        replyText = ball;
+        QStringList sl = replyText.split(" ");
+        // assert(sl.at(0) == "200"); // maybe 500 Illegal PORT command
+        if (sl.at(0) == "200") {
+            return 0;
+        }
+	}
+
+
+    return -1;
+}
+
 QTcpSocket *LibFtp::getDataSocket()
 {
     return this->qdsock;
+}
+
+short LibFtp::pasvPeer(QString &hostip) // get passive peer ip
+{
+    hostip = this->pasvHost;
+    return this->pasvPort;
 }
 
 int LibFtp::swallowResponse()

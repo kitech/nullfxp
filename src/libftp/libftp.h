@@ -43,7 +43,9 @@ public:
     int noop();
     int system(QString &type);
     int stat(QString path);
-
+    int port(const QString hostip, const short port); // fxp
+    
+    short pasvPeer(QString &hostip); // get passive peer ip
     int swallowResponse();
     
     QVector<QUrlInfo> getDirList();
