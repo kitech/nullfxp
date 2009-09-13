@@ -55,8 +55,11 @@ public:
     //在下载的时候：local_file_names.count()必须等于1,而remote_file_names.count()可以大于1个
     virtual void set_transport_info(TaskPackage src_pkg, TaskPackage dest_pkg);
     
+    // depcreated
     virtual int do_upload(QString src_path, QString dest_path, int pflag);
+    // depcreated
     virtual int do_download(QString src_path, QString dest_path, int pflag);
+    // depcreated
     virtual int do_nrsftp_exchange(QString src_path, QString dest_path);
     
     virtual int get_error_code () { return this->error_code ;} 
@@ -95,14 +98,19 @@ protected:
     virtual int run_SFTP_to_FTP();
     virtual int run_FTP_to_SFTP();
 
+    virtual int run_FILE_to_SFTP(QString srcFile, QString destFile);
+    virtual int run_SFTP_to_FILE(QString srcFile, QString destFile);
+    virtual int run_SFTP_to_SFTP(QString srcFile, QString destFile);
     virtual int run_FILE_to_FTP(QString srcFile, QString destFile);
     virtual int run_FTP_to_FILE(QString srcFile, QString destFile);
     virtual int run_FTP_to_FTP_relay(QString srcFile, QString destFile); // 通过中继方式传数据, 不需要服务器支持。
     virtual int run_FTP_to_FTP_fxp(QString srcFile, QString destFile);   // 通过FTP协议中的FXP方式传数据，需要服务器支持。
+    
 
     int setLocalCurrentDirByFullPath(QString path);
     int setFTPCurrentDirByFullPath(Connection *conn, QString path);
 
+    // depcreated
     virtual void run_backup(); // will depcreated when the upper method impled
 
 signals:
