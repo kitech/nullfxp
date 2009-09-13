@@ -656,8 +656,6 @@ src/sshdirretriver.cpp -text
 src/sshdirretriver.h -text
 src/sshfileinfo.cpp -text
 src/sshfileinfo.h -text
-src/sshtransportor.cpp -text
-src/sshtransportor.h -text
 src/syncdiffermodel.cpp -text
 src/syncdiffermodel.h -text
 src/synchronizeoptiondialog.cpp -text

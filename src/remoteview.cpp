@@ -265,11 +265,17 @@ void RemoteView::slot_new_transfer()
         remote_pkg.files<<file_path;
     }
 
-    remote_pkg.host = this->host_name;
-    remote_pkg.port = QString("%1").arg(this->port);
-    remote_pkg.username = this->user_name;
-    remote_pkg.password = this->password;
-    remote_pkg.pubkey = this->pubkey;
+    // remote_pkg.host = this->host_name;
+    // remote_pkg.port = QString("%1").arg(this->port);
+    // remote_pkg.username = this->user_name;
+    // remote_pkg.password = this->password;
+    // remote_pkg.pubkey = this->pubkey;
+
+    remote_pkg.host = this->conn->hostName;
+    remote_pkg.port = QString("%1").arg(this->conn->port);
+    remote_pkg.username = this->conn->userName;
+    remote_pkg.password = this->conn->password;
+    remote_pkg.pubkey = this->conn->pubkey;
 
     this->slot_new_download_requested(remote_pkg);
 }
@@ -698,11 +704,18 @@ void RemoteView::slot_new_upload_requested(TaskPackage local_pkg)
         QMessageBox::critical(this, tr("Waring..."), tr("you should selecte a remote file directory."));
     } else {
         remote_pkg.files<<remote_file_name;
-        remote_pkg.host = this->host_name;
-        remote_pkg.username = this->user_name;
-        remote_pkg.password = this->password;
-        remote_pkg.port = QString("%1").arg(this->port);
-        remote_pkg.pubkey = this->pubkey;
+
+        // remote_pkg.host = this->host_name;
+        // remote_pkg.username = this->user_name;
+        // remote_pkg.password = this->password;
+        // remote_pkg.port = QString("%1").arg(this->port);
+        // remote_pkg.pubkey = this->pubkey;
+
+        remote_pkg.host = this->conn->hostName;
+        remote_pkg.port = QString("%1").arg(this->conn->port);
+        remote_pkg.username = this->conn->userName;
+        remote_pkg.password = this->conn->password;
+        remote_pkg.pubkey = this->conn->pubkey;
 
         this->slot_new_upload_requested(local_pkg, remote_pkg);
     }
@@ -844,11 +857,18 @@ void RemoteView::slot_drag_ready()
 
     TaskPackage tpkg(PROTO_SFTP);
     
-    tpkg.host = this->host_name;
-    tpkg.username = this->user_name;
-    tpkg.password = this->password;
-    tpkg.port = QString("%1").arg(this->port);
-    tpkg.pubkey = this->pubkey;    
+    // tpkg.host = this->host_name;
+    // tpkg.username = this->user_name;
+    // tpkg.password = this->password;
+    // tpkg.port = QString("%1").arg(this->port);
+    // tpkg.pubkey = this->pubkey;    
+
+    tpkg.host = this->conn->hostName;
+    tpkg.port = QString("%1").arg(this->conn->port);
+    tpkg.username = this->conn->userName;
+    tpkg.password = this->conn->password;
+    tpkg.pubkey = this->conn->pubkey;
+
 
     for (int i = 0 ; i< mil.count() ;i += this->remote_dir_model->columnCount()) {
         QModelIndex midx = mil.at(i);
@@ -881,12 +901,19 @@ bool RemoteView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction actio
     QString remote_file_name = aim_item->strip_path ;
 
     remote_pkg.files<<remote_file_name;
-    remote_pkg.host = this->host_name;
-    remote_pkg.username = this->user_name;
-    remote_pkg.password = this->password;
-    remote_pkg.port = QString("%1").arg(this->port);
-    remote_pkg.pubkey = this->pubkey;    
-    
+
+    // remote_pkg.host = this->host_name;
+    // remote_pkg.username = this->user_name;
+    // remote_pkg.password = this->password;
+    // remote_pkg.port = QString("%1").arg(this->port);
+    // remote_pkg.pubkey = this->pubkey;    
+
+    remote_pkg.host = this->conn->hostName;
+    remote_pkg.port = QString("%1").arg(this->conn->port);
+    remote_pkg.username = this->conn->userName;
+    remote_pkg.password = this->conn->password;
+    remote_pkg.pubkey = this->conn->pubkey;
+
     if (data->hasFormat("application/task-package")) {
         local_pkg = TaskPackage::fromRawData(data->data("application/task-package"));
         if (local_pkg.isValid(local_pkg)) {

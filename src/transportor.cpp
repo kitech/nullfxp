@@ -695,7 +695,7 @@ int Transportor::run_SFTP_to_FILE(QString srcFile, QString destFile)
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
     char buff[8192] = {0};
     
-    sftp_handle = libssh2_sftp_open(this->src_ssh2_sftp, gOpt->remote_codec->fromUnicode(destFile), LIBSSH2_FXF_READ, 0);
+    sftp_handle = libssh2_sftp_open(this->src_ssh2_sftp, gOpt->remote_codec->fromUnicode(srcFile), LIBSSH2_FXF_READ, 0);
     if (sftp_handle == NULL) {
         //TODO 错误消息通知用户。
         qDebug()<<"open sftp file error :"<<libssh2_sftp_last_error(this->src_ssh2_sftp);
@@ -705,11 +705,11 @@ int Transportor::run_SFTP_to_FILE(QString srcFile, QString destFile)
     memset(&ssh2_sftp_attrib, 0, sizeof(ssh2_sftp_attrib));
     libssh2_sftp_fstat(sftp_handle, &ssh2_sftp_attrib);
     file_size = ssh2_sftp_attrib.filesize;
-    qDebug()<<" remote file size :"<<file_size ;
+    qDebug()<<"remote file size :"<<file_size;
     emit this->transfer_got_file_size(file_size);
 
     //文件冲突检测
-    if (QFile(srcFile).exists()) {
+    if (QFile(destFile).exists()) {
         if (this->user_canceled) return 1;
         if (this->user_canceled) return 1;
         if (this->file_exist_over_write_method == OW_UNKNOWN
@@ -719,7 +719,7 @@ int Transportor::run_SFTP_to_FILE(QString srcFile, QString destFile)
             //TODO 通知用户远程文件已经存在，再做处理。                                                                          
             QString local_file_size, local_file_date;
             QString remote_file_size, remote_file_date;
-            QFileInfo fi(srcFile);
+            QFileInfo fi(destFile);
             local_file_size = QString("%1").arg(fi.size());
             local_file_date = fi.lastModified ().toString();
             remote_file_size = QString("%1").arg(ssh2_sftp_attrib.filesize);
@@ -727,7 +727,7 @@ int Transportor::run_SFTP_to_FILE(QString srcFile, QString destFile)
             remote_mtime.setTime_t(ssh2_sftp_attrib.mtime);
             remote_file_date = remote_mtime.toString();
             emit this->dest_file_exists(destFile, remote_file_size, remote_file_date,
-                                        srcFile,local_file_size,local_file_date);
+                                        srcFile, local_file_size, local_file_date);
             this->wait_user_response();
         }
 
@@ -740,7 +740,7 @@ int Transportor::run_SFTP_to_FILE(QString srcFile, QString destFile)
         }
     }
 
-    QFile q_file(srcFile);
+    QFile q_file(destFile);
     if (!q_file.open(QIODevice::ReadWrite | QIODevice::Truncate)) {
         //TODO 错误消息通知用户。
         qDebug()<<"open local file error:"<<q_file.errorString();        

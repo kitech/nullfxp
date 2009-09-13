@@ -83,12 +83,14 @@ int SSHConnection::connect()
     
     ret = this->initSocket();
     if (ret != 0) {
+        q_debug()<<"socket init error";
         return ret;
     }
 
     //create session
     ret = this->initSSHSession();
     if (ret != 0) {
+        q_debug()<<"sesion error";
         return ret;
     }
     
@@ -96,12 +98,14 @@ int SSHConnection::connect()
     //auth
     ret = this->sshAuth();
     if (ret != 0) {
+        q_debug()<<"auth error";
         return ret;
     }        
     
     // home path
     ret = this->sshHomePath();
     if (ret != 0) {
+        q_debug()<<"home path error";
         return ret;
     }
 
