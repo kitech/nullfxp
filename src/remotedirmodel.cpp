@@ -42,7 +42,7 @@ RemoteDirModel::RemoteDirModel(QObject *parent)
     this->keep_alive_interval = DEFAULT_KEEP_ALIVE_TIMEOUT;
     this->keep_alive_timer->setInterval(this->keep_alive_interval);
     QObject::connect(this->keep_alive_timer, SIGNAL(timeout()),
-                     this, SLOT( slot_keep_alive_time_out()));
+                     this, SLOT(slot_keep_alive_time_out()));
 }
 
 // void RemoteDirModel::set_ssh2_handler(void *ssh2_sess)
@@ -50,6 +50,26 @@ RemoteDirModel::RemoteDirModel(QObject *parent)
 //     this->remote_dir_retrive_thread->set_ssh2_handler(ssh2_sess);
 //     this->ssh2_sess = (LIBSSH2_SESSION*)ssh2_sess;
 // }
+
+RemoteDirModel::~RemoteDirModel()
+{
+    if (this->keep_alive_timer->isActive()) {
+        this->keep_alive_timer->stop();
+    }
+    delete this->keep_alive_timer ;
+    
+    if (this->dir_retriver->isRunning()) {
+        //TODO 怎么能友好的结束,  现在这么做只能让程序不崩溃掉。
+        qDebug() <<" remote_dir_retrive_thread is run , how stop ?";
+        this->dir_retriver->terminate();
+        //this->remote_dir_retrive_thread->wait();  //这个不好用
+        delete this->dir_retriver;        
+    } else {
+        delete this->dir_retriver;
+    }
+    if (tree_root != 0) delete tree_root;
+    //TODO: 删除model中的现有数据, 已经实现，上一行
+}
 
 void RemoteDirModel::setConnection(Connection *conn)
 {
@@ -167,26 +187,6 @@ void RemoteDirModel::set_user_home_path(QString user_home_path)
     if (this->keep_alive ) {
         this->keep_alive_timer->start();
     }
-}
-
-RemoteDirModel::~RemoteDirModel()
-{
-    if (this->keep_alive_timer->isActive()) {
-        this->keep_alive_timer->stop();
-    }
-    delete this->keep_alive_timer ;
-    
-    if (this->dir_retriver->isRunning()) {
-        //TODO 怎么能友好的结束,  现在这么做只能让程序不崩溃掉。
-        qDebug() <<" remote_dir_retrive_thread is run , how stop ?";
-        this->dir_retriver->terminate();
-        //this->remote_dir_retrive_thread->wait();  //这个不好用
-        delete this->dir_retriver;        
-    } else {
-        delete this->dir_retriver;
-    }
-    if (tree_root != 0) delete tree_root;
-    //TODO: 删除model中的现有数据, 已经实现，上一行
 }
 
 QModelIndex RemoteDirModel::index(int row, int column, const QModelIndex &parent) const

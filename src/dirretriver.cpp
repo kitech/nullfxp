@@ -24,24 +24,24 @@
 DirRetriver::DirRetriver(QObject *parent)
     : QThread(parent)
 {
+    this->conn = NULL;
 }
 
 DirRetriver::~DirRetriver()
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    if (this->conn->protocolType() == Connection::PROTO_SFTP) {
-        libssh2_sftp_shutdown(this->ssh2_sftp);
-        libssh2_session_disconnect(this->ssh2_sess, "SSH_DISCONNECT_BY_APPLICATION");
-        libssh2_session_free(this->ssh2_sess);
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<<__FILE__;
+    q_debug()<<this->conn;
+    if (this->conn) {
+        delete this->conn;
+        this->conn = NULL;
     }
+    // why this->conn is NULL?
+    // if (this->conn->protocolType() == Connection::PROTO_SFTP) {
+    //     libssh2_sftp_shutdown(this->ssh2_sftp);
+    //     libssh2_session_disconnect(this->ssh2_sess, "SSH_DISCONNECT_BY_APPLICATION");
+    //     libssh2_session_free(this->ssh2_sess);
+    // }
 }
-
-// void DirRetriver::set_ssh2_handler(void *ssh2_sess)
-// {
-//     this->ssh2_sess = (LIBSSH2_SESSION*)ssh2_sess;
-//     this->ssh2_sftp = libssh2_sftp_init(this->ssh2_sess);
-//     assert(this->ssh2_sftp != 0);
-// }
 
 void DirRetriver::setConnection(Connection *conn)
 {

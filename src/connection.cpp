@@ -16,6 +16,7 @@ Connection::Connection(QObject *parent)
     this->dsock = -1;
     this->qsock = NULL;
     this->qdsock = NULL;
+    this->user_canceled = false;
 }
 Connection::~Connection()
 {

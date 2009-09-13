@@ -42,9 +42,8 @@ public:
     ~SSHDirRetriver();
 
     //在实例初始化后马上调用，否则会导致程序崩溃
-    // void set_ssh2_handler(void *ssh2_sess);
     void setConnection(Connection *conn);
-    LIBSSH2_SFTP *get_ssh2_sftp();
+    // LIBSSH2_SFTP *get_ssh2_sftp();
     
     virtual void run();
         
@@ -99,10 +98,6 @@ private:
 
     std::map<directory_tree_item *, void *> dir_node_process_queue;
     std::vector<command_queue_elem*>  command_queue;
-       
-    LIBSSH2_SESSION *ssh2_sess;
-    LIBSSH2_SFTP *ssh2_sftp;
-    Connection *conn;
 };
 
 #endif

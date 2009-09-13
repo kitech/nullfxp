@@ -73,10 +73,16 @@ RemoteView::RemoteView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *
     this->remoteview.treeView->setAnimated(true);
 }
 
+RemoteView::~RemoteView()
+{
+    this->remoteview.treeView->setModel(0);
+    delete this->remote_dir_model;
+}
+
 void RemoteView::init_popup_context_menu()
 {
     this->dir_tree_context_menu = new QMenu();
-    QAction *action ;
+    QAction *action;
     action  = new QAction(tr("Download"), 0);
     this->dir_tree_context_menu->addAction(action);
     QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_new_transfer()));
@@ -133,12 +139,6 @@ void RemoteView::init_popup_context_menu()
     this->dir_tree_context_menu->addAction(action);
     QObject::connect(action, SIGNAL(triggered()), this, SLOT(rm_file_or_directory_recursively()));
     
-}
-
-RemoteView::~RemoteView()
-{
-    this->remoteview.treeView->setModel(0);
-    delete this->remote_dir_model ;
 }
 
 void RemoteView::slot_show_fxp_command_log(bool show)

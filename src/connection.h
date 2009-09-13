@@ -74,6 +74,6 @@ signals:
     void alivePong(int alive);
     void connect_state_changed(QString state_desc);
 };
-        
-        
+
+
 #endif /* _CONNECTION_H_ */

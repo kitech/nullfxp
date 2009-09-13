@@ -36,7 +36,6 @@ public:
     virtual ~DirRetriver();
 
     //在实例初始化后马上调用，否则会导致程序崩溃
-    // void set_ssh2_handler(void *ssh2_sess);
     virtual void setConnection(Connection *conn);
     // LIBSSH2_SFTP *get_ssh2_sftp();
     

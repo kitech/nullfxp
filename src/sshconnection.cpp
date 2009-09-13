@@ -66,6 +66,7 @@ SSHConnection::SSHConnection(QObject *parent)
 }
 SSHConnection::~SSHConnection()
 {
+    q_debug()<<"";
     if (this->qsock != NULL) {
         delete this->qsock;
         this->qsock = NULL;
@@ -83,14 +84,14 @@ int SSHConnection::connect()
     
     ret = this->initSocket();
     if (ret != 0) {
-        q_debug()<<"socket init error";
+        q_debug()<<"socket init error"<<ret<<this->get_status_desc(ret);;
         return ret;
     }
 
     //create session
     ret = this->initSSHSession();
     if (ret != 0) {
-        q_debug()<<"sesion error";
+        q_debug()<<"sesion error"<<ret<<this->get_status_desc(ret);;
         return ret;
     }
     
@@ -98,14 +99,14 @@ int SSHConnection::connect()
     //auth
     ret = this->sshAuth();
     if (ret != 0) {
-        q_debug()<<"auth error";
+        q_debug()<<"auth error"<<ret<<this->get_status_desc(ret);;
         return ret;
     }        
     
     // home path
     ret = this->sshHomePath();
     if (ret != 0) {
-        q_debug()<<"home path error";
+        q_debug()<<"home path error"<<ret<<this->get_status_desc(ret);;
         return ret;
     }
 

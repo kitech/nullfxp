@@ -32,18 +32,8 @@ SSHDirRetriver::SSHDirRetriver(QObject *parent)
 
 SSHDirRetriver::~SSHDirRetriver()
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    libssh2_sftp_shutdown(this->ssh2_sftp);
-    libssh2_session_disconnect(this->ssh2_sess, "SSH_DISCONNECT_BY_APPLICATION");
-    libssh2_session_free(this->ssh2_sess);
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 }
-
-// void SSHDirRetriver::set_ssh2_handler(void *ssh2_sess)
-// {
-//     this->ssh2_sess = (LIBSSH2_SESSION*)ssh2_sess;
-//     this->ssh2_sftp = libssh2_sftp_init(this->ssh2_sess);
-//     assert(this->ssh2_sftp != 0);
-// }
 
 void SSHDirRetriver::setConnection(Connection *conn)
 {
@@ -53,10 +43,10 @@ void SSHDirRetriver::setConnection(Connection *conn)
     assert(this->ssh2_sftp != 0);
 }
 
-LIBSSH2_SFTP *SSHDirRetriver::get_ssh2_sftp()
-{
-    return this->ssh2_sftp;
-}
+// LIBSSH2_SFTP *SSHDirRetriver::get_ssh2_sftp()
+// {
+//     return this->ssh2_sftp;
+// }
 
 void SSHDirRetriver::run()
 {
@@ -197,25 +187,25 @@ int  SSHDirRetriver::retrive_dir()
 
 int  SSHDirRetriver::mkdir()
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
     int exec_ret = -1;
     command_queue_elem *cmd_item = this->command_queue.at(0);
     
     QString abs_path = cmd_item->parent_item->strip_path + QString("/") + cmd_item->params;
     
-    qDebug()<< "abs  path :"<< abs_path;
+    qDebug()<<"abs  path :"<< abs_path;
     
     exec_ret = libssh2_sftp_mkdir(ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(abs_path).data(), 0777);
 
     this->add_node(cmd_item->parent_item, cmd_item->parent_model_internal_pointer);
     
-    return exec_ret ;
+    return exec_ret;
 }
 
 int  SSHDirRetriver::rmdir()
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
     int exec_ret = -1;
     QStringList  sys_dirs;
@@ -241,7 +231,7 @@ int  SSHDirRetriver::rmdir()
 
 int  SSHDirRetriver::rm_file_or_directory_recursively()
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
     int exec_ret = -1;
     QStringList  sys_dirs;
@@ -328,28 +318,28 @@ int SSHDirRetriver::rm_file_or_directory_recursively_ex(QString parent_path)  //
         }
     }
     
-    return exec_ret ;
+    return exec_ret;
 }
 
 // linux 路径名中不能出现的字符： ! 
 int  SSHDirRetriver::rename()
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
     int exec_ret = -1;
     QStringList  sys_dirs;
     sys_dirs<<"/usr"<<"/bin"<<"/sbin"<<"/lib"<<"/etc"<<"/dev"<<"/proc"
             <<"/mnt"<<"/sys"<<"/var";
     
-    command_queue_elem * cmd_item = this->command_queue.at(0);
+    command_queue_elem *cmd_item = this->command_queue.at(0);
     
     size_t sep_pos = cmd_item->params.indexOf('!');
     
     QString abs_path = cmd_item->parent_item->strip_path + "/" +  cmd_item->params.mid(0,sep_pos);
     QString abs_path_rename_to = cmd_item->parent_item->strip_path + "/" + cmd_item->params.mid(sep_pos+1,-1);
     
-    qDebug()<< "abs  path :"<< abs_path  
-            << " abs path rename to ;"<< abs_path_rename_to;
+    qDebug()<<"abs  path :"<<abs_path  
+            <<" abs path rename to ;"<<abs_path_rename_to;
     
     if (sys_dirs.contains(  abs_path )) {
         qDebug()<<" rm system directory , this is danger.";
@@ -361,7 +351,7 @@ int  SSHDirRetriver::rename()
 
     this->add_node(cmd_item->parent_item, cmd_item->parent_model_internal_pointer);
     
-    return exec_ret ;
+    return exec_ret;
 }
 
 int SSHDirRetriver::keep_alive()
