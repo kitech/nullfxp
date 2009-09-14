@@ -105,6 +105,8 @@ protected:
     virtual int run_FTP_to_FILE(QString srcFile, QString destFile);
     virtual int run_FTP_to_FTP_relay(QString srcFile, QString destFile); // 通过中继方式传数据, 不需要服务器支持。
     virtual int run_FTP_to_FTP_fxp(QString srcFile, QString destFile);   // 通过FTP协议中的FXP方式传数据，需要服务器支持。
+    virtual int run_SFTP_to_FTP(QString srcFile, QString destFile);
+    virtual int run_FTP_to_SFTP(QString srcFile, QString destFile);
     
 
     int setLocalCurrentDirByFullPath(QString path);
