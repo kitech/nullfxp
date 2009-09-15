@@ -18,11 +18,11 @@ LibFtp::LibFtp(QObject *parent)
 LibFtp::~LibFtp()
 {
 }
-int LibFtp::connect(const QString host, short port // = 21
-            )
+int LibFtp::connect(const QString host, short port)
 {
     QByteArray ba;
     QString replyText;
+
     this->qsock = new QTcpSocket();
     this->qsock->connectToHost(host, port);
     if (this->qsock->waitForConnected()) {
@@ -54,7 +54,8 @@ int LibFtp::login(const QString &user, const QString &password)
 	QString cmd;
     QString sigLog;
 
-    sigLog = this->readAll(this->qsock);
+    assert(this->qsock->bytesAvailable() == 0);
+    // sigLog = this->readAll(this->qsock);
     // q_debug()<<sigLog;
 
 	if (user.length() == 0) cmd = QString("USER %1\r\n").arg("ftp");
@@ -103,7 +104,6 @@ int LibFtp::logout()
     QString replyText;
 
 	cmd = QString("QUIT\r\n");
-
 	this->qsock->write(cmd.toAscii());
 	qDebug()<<cmd;
 	
@@ -328,7 +328,8 @@ int LibFtp::list(QString path)
     QString sigLog;
     QString replyText;
 
-    sigLog = this->readAll(this->qsock);
+    assert(this->qsock->bytesAvailable() == 0);
+    // sigLog = this->readAll(this->qsock);
     // q_debug()<<sigLog;
 
     this->dirList.clear();
@@ -383,11 +384,11 @@ int LibFtp::passive()
     QString sigLog;
     QString replyText;
 
-    sigLog = this->readAll(this->qsock);
-    // q_debug()<<sigLog;
+    assert(this->qsock->bytesAvailable() == 0);
+    // sigLog = this->readAll(this->qsock);
+    // q_debug()<<sigLog;    
 
 	cmd = QString("PASV\r\n");
-
 	this->qsock->write(cmd.toAscii());
 	qDebug()<<cmd;
 	
@@ -432,7 +433,6 @@ int LibFtp::pwd(QString &path)
     QString replyText;
 
 	cmd = QString("PWD\r\n");
-
 	this->qsock->write(cmd.toAscii());
 	qDebug()<<cmd;
 	
@@ -458,7 +458,6 @@ int LibFtp::mkdir(const QString path)
     QString replyText;
 
 	cmd = QString("MKD %1\r\n").arg(path);
-
 	this->qsock->write(cmd.toAscii());
 	qDebug()<<cmd;
 	
@@ -482,7 +481,6 @@ int LibFtp::rmdir(const QString path)
     QString replyText;
 
 	cmd = QString("RMD %1\r\n").arg(path);
-
 	this->qsock->write(cmd.toAscii());
 	qDebug()<<cmd;
 	
@@ -507,7 +505,6 @@ int LibFtp::chdir(QString path)
     QString replyText;
 
 	cmd = QString("CWD %1\r\n").arg(path);
-
 	this->qsock->write(cmd.toAscii());
 	qDebug()<<cmd;
 	
@@ -537,7 +534,6 @@ int LibFtp::put(const QString fileName)
     QString replyText;
 
 	cmd = QString("STOR %1\r\n").arg(fileName);
-
 	this->qsock->write(cmd.toAscii());
 	qDebug()<<cmd;
 	
@@ -562,7 +558,6 @@ int LibFtp::get(const QString fileName)
     QString replyText;
 
 	cmd = QString("RETR %1\r\n").arg(fileName);
-
 	this->qsock->write(cmd.toAscii());
 	qDebug()<<cmd;
 	
@@ -824,8 +819,7 @@ QByteArray LibFtp::readAllByEndSymbol(QTcpSocket *sock)
 	//qDebug()<<__FUNCTION__<<__LINE__;
 	sock->setReadBufferSize(1);
 	// qDebug()<<__FUNCTION__<<__LINE__;
-	while (sock->isOpen() && sock->waitForReadyRead(3000) )
-	{		
+	while (sock->isOpen() && sock->waitForReadyRead(3000)) {
 		// qDebug()<<__FUNCTION__<<__LINE__;
 		int rlen ;
 		char buff[8] = {0} ;
@@ -836,11 +830,11 @@ QByteArray LibFtp::readAllByEndSymbol(QTcpSocket *sock)
 			rlen = sock->read(buff, 1);
 			if (rlen != 1) break;
 			sall += QString(buff);
-			// qDebug()<<sall;
+            // qDebug()<<sall;
 						
 			if (sall.endsWith("\r\n")) {
 				//qDebug()<<"\\r\\n found"<<sall.length() <<(sall.at(sall.trimmed().lastIndexOf("\r\n")+5));
-				//qDebug() << sall.at(3);
+				// qDebug() << sall.at(3);
 				int lastindex = sall.trimmed().lastIndexOf("\r\n") ;
 				//qDebug()<< sall.mid(lastindex + 2 ,3).toInt() ;
 				if (sall.at(3) == QChar(' ')
