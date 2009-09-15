@@ -31,9 +31,7 @@ public slots:
     virtual int alivePing();
 
 private:
-    // int login(const QString &user, const QString &password);
-    // QByteArray readAll(QTcpSocket *sock);
-    // QByteArray readAllByEndSymbol(QTcpSocket *sock);
+
 };
 
 #endif /* _FTPCONNECTION_H_ */

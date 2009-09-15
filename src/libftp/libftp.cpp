@@ -103,6 +103,8 @@ int LibFtp::logout()
     QString sigLog;
     QString replyText;
 
+    assert(this->qsock->bytesAvailable() == 0);
+
 	cmd = QString("QUIT\r\n");
 	this->qsock->write(cmd.toAscii());
 	qDebug()<<cmd;
@@ -432,6 +434,8 @@ int LibFtp::pwd(QString &path)
     QString sigLog;
     QString replyText;
 
+    assert(this->qsock->bytesAvailable() == 0);
+
 	cmd = QString("PWD\r\n");
 	this->qsock->write(cmd.toAscii());
 	qDebug()<<cmd;
@@ -457,6 +461,8 @@ int LibFtp::mkdir(const QString path)
     QString sigLog;
     QString replyText;
 
+    assert(this->qsock->bytesAvailable() == 0);
+
 	cmd = QString("MKD %1\r\n").arg(path);
 	this->qsock->write(cmd.toAscii());
 	qDebug()<<cmd;
@@ -479,6 +485,8 @@ int LibFtp::rmdir(const QString path)
 	QString cmd;
     QString sigLog;
     QString replyText;
+
+    assert(this->qsock->bytesAvailable() == 0);
 
 	cmd = QString("RMD %1\r\n").arg(path);
 	this->qsock->write(cmd.toAscii());
@@ -503,6 +511,8 @@ int LibFtp::chdir(QString path)
 	QString cmd;
     QString sigLog;
     QString replyText;
+
+    assert(this->qsock->bytesAvailable() == 0);
 
 	cmd = QString("CWD %1\r\n").arg(path);
 	this->qsock->write(cmd.toAscii());
@@ -556,6 +566,8 @@ int LibFtp::get(const QString fileName)
 	QString cmd;
     QString sigLog;
     QString replyText;
+
+    assert(this->qsock->bytesAvailable() == 0);
 
 	cmd = QString("RETR %1\r\n").arg(fileName);
 	this->qsock->write(cmd.toAscii());
@@ -619,8 +631,10 @@ int LibFtp::type(int type)
         tname = "I";
         break;
     }
-	cmd = QString("TYPE %1\r\n").arg(tname);
 
+    assert(this->qsock->bytesAvailable() == 0);
+
+	cmd = QString("TYPE %1\r\n").arg(tname);
 	this->qsock->write(cmd.toAscii());
 	qDebug()<<cmd;
 	
@@ -644,8 +658,9 @@ int LibFtp::noop()
     QString sigLog;
     QString replyText;
 
-	cmd = QString("NOOP\r\n");
+    assert(this->qsock->bytesAvailable() == 0);
 
+	cmd = QString("NOOP\r\n");
 	this->qsock->write(cmd.toAscii());
 	qDebug()<<cmd;
 	
@@ -669,8 +684,9 @@ int LibFtp::system(QString &type)
     QString sigLog;
     QString replyText;
 
-	cmd = QString("SYST\r\n");
+    assert(this->qsock->bytesAvailable() == 0);
 
+	cmd = QString("SYST\r\n");
 	this->qsock->write(cmd.toAscii());
 	qDebug()<<cmd;
 	
@@ -694,6 +710,8 @@ int LibFtp::stat(QString path)
 	QString cmd;
     QString sigLog;
     QString replyText;
+
+    assert(this->qsock->bytesAvailable() == 0);
 
     this->dirList.clear();
 	cmd = QString("STAT %1\r\n").arg(path);
@@ -753,8 +771,9 @@ int LibFtp::port(const QString hostip, const short port) // fxp
     QString sigLog;
     QString replyText;
 
-	cmd = QString("PORT %1,%2,%3\r\n").arg(hn).arg(p1).arg(p2);
+    assert(this->qsock->bytesAvailable() == 0);
 
+	cmd = QString("PORT %1,%2,%3\r\n").arg(hn).arg(p1).arg(p2);
 	this->qsock->write(cmd.toAscii());
 	qDebug()<<cmd;
 	
@@ -773,6 +792,33 @@ int LibFtp::port(const QString hostip, const short port) // fxp
 
 
     return -1;
+}
+
+int LibFtp::size(QString path, quint64 &siz)
+{
+	QString cmd;
+    QString sigLog;
+    QString replyText;
+
+    assert(this->qsock->bytesAvailable() == 0);
+
+	cmd = QString("SIZE %1\r\n").arg(path);
+	this->qsock->write(cmd.toAscii());
+	qDebug()<<cmd;
+	
+	if (this->qsock->waitForBytesWritten()) {
+		QByteArray ball;
+		//read response
+		ball = this->readAll(this->qsock);
+		qDebug()<<ball;
+        replyText = ball;
+        QStringList sl = replyText.split(" ");
+        assert(sl.at(0) == "213");
+        siz = sl.at(1).trimmed().toULongLong();
+        return 0;
+	}
+
+	return -1;
 }
 
 QTcpSocket *LibFtp::getDataSocket()

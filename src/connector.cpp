@@ -40,6 +40,11 @@ void Connector::setHostInfo(QMap<QString, QString> host)
             this->conn = new SSHConnection();
         } else {
         }
+        if (this->conn != NULL) {
+
+            QObject::connect(this->conn, SIGNAL(connect_state_changed(QString)),
+                             this, SIGNAL(connect_state_changed(QString)));
+        }
     }
     assert(this->conn != NULL);
     this->conn->setHostInfo(host);

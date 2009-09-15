@@ -44,6 +44,7 @@ public:
     int system(QString &type);
     int stat(QString path);
     int port(const QString hostip, const short port); // fxp
+    int size(QString path, quint64 &siz);
     
     short pasvPeer(QString &hostip); // get passive peer ip
     int swallowResponse();
