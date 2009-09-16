@@ -339,6 +339,7 @@ void RemoteView::setConnection(Connection *conn)
     this->ssh2_sftp = libssh2_sftp_init(this->conn->sess);
     assert(this->ssh2_sftp != 0);    
     this->ssh2_sock = this->conn->sock;
+    this->setWindowTitle(this->windowTitle() + ": " + this->conn->userName + "@" + this->conn->hostName);
 }
 
 void RemoteView::closeEvent(QCloseEvent *event)

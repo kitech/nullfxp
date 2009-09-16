@@ -45,6 +45,12 @@ Transportor::Transportor(QObject *parent)
     this->file_exist_over_write_method = OW_UNKNOWN;
     this->sconn = 0;
     this->dconn = 0;
+    this->src_ssh2_sess = 0;
+    this->src_ssh2_sftp = 0;
+    this->src_ssh2_sock = 0;
+    this->dest_ssh2_sess = 0;
+    this->dest_ssh2_sftp = 0;
+    this->dest_ssh2_sock = 0;
 }
 
 
@@ -57,10 +63,11 @@ int Transportor::remote_is_dir(LIBSSH2_SFTP *ssh2_sftp, QString path)
 {
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
     LIBSSH2_SFTP_HANDLE *sftp_handle ;
-    
+    QByteArray bpath = GlobalOption::instance()->remote_codec->fromUnicode(path);
+
     memset(&ssh2_sftp_attrib, 0, sizeof(ssh2_sftp_attrib));
     
-    sftp_handle = libssh2_sftp_opendir(ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(path).data());
+    sftp_handle = libssh2_sftp_opendir(ssh2_sftp, bpath.data());
     
     if (sftp_handle != NULL) {
         libssh2_sftp_closedir(sftp_handle);
@@ -77,15 +84,15 @@ int Transportor::remote_is_reg(LIBSSH2_SFTP *ssh2_sftp, QString path)
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
     LIBSSH2_SFTP_HANDLE *sftp_handle;
     unsigned long flags;
-    long mode ;
-    int ret = 0 ;
+    long mode;
+    int ret = 0;
+    QByteArray bpath = GlobalOption::instance()->remote_codec->fromUnicode(path);
     
     memset(&ssh2_sftp_attrib, 0, sizeof(ssh2_sftp_attrib));
     flags = LIBSSH2_FXF_READ ;
     mode = 022;
     
-    sftp_handle = libssh2_sftp_open(ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(path).data(),
-                                    flags, mode );
+    sftp_handle = libssh2_sftp_open(ssh2_sftp, bpath.data(), flags, mode );
     
     if (sftp_handle != NULL) {
         ret = libssh2_sftp_fstat(sftp_handle, &ssh2_sftp_attrib);
@@ -101,7 +108,7 @@ int Transportor::fxp_do_ls_dir(LIBSSH2_SFTP *ssh2_sftp, QString path,
                                   QVector<QMap<char, QString> > &fileinfos)
 {
     LIBSSH2_SFTP_HANDLE *sftp_handle = 0 ;
-    LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib ;
+    LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
     QMap<char, QString> thefile;
     char file_name[PATH_MAX+1];
     QString file_size;
@@ -222,11 +229,11 @@ int Transportor::run_FILE_to_SFTP()
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
-    RemoteHostConnectThread *rhct = 0 ;
+    RemoteHostConnectThread *rhct = 0;
 
     int rv = -1;
-    int transfer_ret = -1 ;
-    //int debug_sleep_time = 5 ;
+    int transfer_ret = -1;
+    //int debug_sleep_time = 5;
     
     TaskPackage src_atom_pkg;
     TaskPackage dest_atom_pkg;
@@ -234,18 +241,18 @@ int Transportor::run_FILE_to_SFTP()
     TaskPackage temp_src_atom_pkg;
     TaskPackage temp_dest_atom_pkg;
         
-    QVector<QMap<char, QString> >  fileinfos ;
+    QVector<QMap<char, QString> >  fileinfos;
     
     this->error_code = 0 ;
     this->errorString = QString(tr("No error."));
     
-    this->dest_ssh2_sess = 0 ;
-    this->dest_ssh2_sftp = 0 ;
-    this->dest_ssh2_sock = 0 ;
+    this->dest_ssh2_sess = 0;
+    this->dest_ssh2_sftp = 0;
+    this->dest_ssh2_sock = 0;
         
-    this->src_ssh2_sess = 0 ;
-    this->src_ssh2_sftp = 0 ;
-    this->src_ssh2_sock = 0 ;
+    this->src_ssh2_sess = 0;
+    this->src_ssh2_sftp = 0;
+    this->src_ssh2_sock = 0;
     
     do {
         src_atom_pkg = this->transfer_ready_queue.front().first;
@@ -323,7 +330,7 @@ int Transportor::run_FILE_to_SFTP()
             fileinfos.clear();
 
             fxp_local_do_ls(this->current_src_file_name, fileinfos);
-            qDebug()<<"ret:"<<transfer_ret<<" count:"<<fileinfos.size() ;
+            qDebug()<<"ret:"<<transfer_ret<<"count:"<<fileinfos.size();
                
             //这个远程目录属性应该和本地属性一样，所以就使用this->current_src_file_type
             //不知道是不是有问题。
@@ -350,16 +357,16 @@ int Transportor::run_FILE_to_SFTP()
         } else {
             //其他的情况暂时不考虑处理。跳过
             //TODO return a error value , not only error code
-            this->error_code = 1 ;
-            //assert(1 == 2) ;
-            qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in " << __LINE__ ;
+            this->error_code = 1;
+            //assert(1 == 2);
+            qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in "<< __LINE__;
         }
 
         this->transfer_ready_queue.erase(this->transfer_ready_queue.begin());
         this->transfer_done_queue.push_back(QPair<TaskPackage, TaskPackage>(src_atom_pkg, dest_atom_pkg));
-    } while (this->transfer_ready_queue.size() > 0 && user_canceled == false) ;
+    } while (this->transfer_ready_queue.size() > 0 && user_canceled == false);
 
-    qDebug() << " transfer_ret :" << transfer_ret << " ssh2 sftp shutdown:"<< this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
+    qDebug()<<"transfer_ret :"<< transfer_ret<<" ssh2 sftp shutdown:"<< this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
     //TODO 选择性关闭 ssh2 会话，有可能是 src  ,也有可能是dest 
     if (this->src_ssh2_sftp != 0) {
         libssh2_sftp_shutdown(this->src_ssh2_sftp);
@@ -393,7 +400,7 @@ int Transportor::run_FILE_to_SFTP()
 #endif
         this->dest_ssh2_sock = -1;
     }
-    if (user_canceled == true) {
+    if (this->user_canceled == true) {
         this->error_code = 3;
     }
     return 0;
@@ -403,7 +410,7 @@ int Transportor::run_FILE_to_SFTP(QString srcFile, QString destFile)
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
     qDebug()<<"remote_path = "<<destFile<<" , local_path = "<<srcFile;
 
-    int pcnt = 0 ;
+    int pcnt = 0;
     int rlen, wlen;
     int file_size, tran_len = 0;
     LIBSSH2_SFTP_HANDLE *sftp_handle ;
@@ -464,7 +471,7 @@ int Transportor::run_FILE_to_SFTP(QString srcFile, QString destFile)
         }
         this->error_code = ERRNO_BASE + libssh2_sftp_last_error(this->dest_ssh2_sftp);
 	
-        return -1 ;
+        return -1;
     }
     
     memset(&ssh2_sftp_attrib,0,sizeof(ssh2_sftp_attrib));
@@ -504,7 +511,7 @@ int Transportor::run_FILE_to_SFTP(QString srcFile, QString destFile)
                 // qDebug()<< QString("100.0 *((double)%1  / (double)%2)").arg(tran_len).arg(file_size)<<" = "<<pcnt ;
                 emit this->transfer_percent_changed(pcnt, tran_len, wlen);
             }
-            if (user_canceled == true) {
+            if (this->user_canceled == true) {
                 break;
             }
         }
@@ -522,11 +529,11 @@ int Transportor::run_SFTP_to_FILE()
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
-    RemoteHostConnectThread *rhct = 0 ;
+    RemoteHostConnectThread *rhct = 0;
 
     int rv = -1;
-    int transfer_ret = -1 ;
-    //int debug_sleep_time = 5 ;
+    int transfer_ret = -1;
+    //int debug_sleep_time = 5;
     
     TaskPackage src_atom_pkg;
     TaskPackage dest_atom_pkg;
@@ -534,18 +541,18 @@ int Transportor::run_SFTP_to_FILE()
     TaskPackage temp_src_atom_pkg;
     TaskPackage temp_dest_atom_pkg;
         
-    QVector<QMap<char, QString> >  fileinfos ;
+    QVector<QMap<char, QString> >  fileinfos;
     
     this->error_code = 0 ;
     this->errorString = QString(tr("No error."));
     
-    this->dest_ssh2_sess = 0 ;
-    this->dest_ssh2_sftp = 0 ;
-    this->dest_ssh2_sock = 0 ;
+    this->dest_ssh2_sess = 0;
+    this->dest_ssh2_sftp = 0;
+    this->dest_ssh2_sock = 0;
         
-    this->src_ssh2_sess = 0 ;
-    this->src_ssh2_sftp = 0 ;
-    this->src_ssh2_sock = 0 ;
+    this->src_ssh2_sess = 0;
+    this->src_ssh2_sftp = 0;
+    this->src_ssh2_sock = 0;
     
     do {
         src_atom_pkg = this->transfer_ready_queue.front().first;
@@ -635,16 +642,16 @@ int Transportor::run_SFTP_to_FILE()
         } else {
             //其他的情况暂时不考虑处理。跳过。
             //TODO return a error value , not only error code 
-            this->error_code = 1 ;
-            //assert( 1 == 2 ) ; 
-            qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in " << __LINE__ ;
+            this->error_code = 1;
+            //assert( 1 == 2 );
+            qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in " << __LINE__;
         }
        
         this->transfer_ready_queue.erase(this->transfer_ready_queue.begin());
         this->transfer_done_queue.push_back(QPair<TaskPackage, TaskPackage>(src_atom_pkg, dest_atom_pkg));
     } while (this->transfer_ready_queue.size() > 0 && user_canceled == false) ;
 
-    qDebug() << " transfer_ret :" << transfer_ret << " ssh2 sftp shutdown:"<< this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
+    qDebug()<<"transfer_ret :"<< transfer_ret<<" ssh2 sftp shutdown:"<< this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
     //TODO 选择性关闭 ssh2 会话，有可能是 src  ,也有可能是dest 
     if (this->src_ssh2_sftp != 0) {
         libssh2_sftp_shutdown(this->src_ssh2_sftp);
@@ -678,7 +685,7 @@ int Transportor::run_SFTP_to_FILE()
 #endif
         this->dest_ssh2_sock = -1;
     }
-    if (user_canceled == true) {
+    if (this->user_canceled == true) {
         this->error_code = 3;
     }
     return 0;
@@ -699,7 +706,7 @@ int Transportor::run_SFTP_to_FILE(QString srcFile, QString destFile)
     if (sftp_handle == NULL) {
         //TODO 错误消息通知用户。
         qDebug()<<"open sftp file error :"<<libssh2_sftp_last_error(this->src_ssh2_sftp);
-        return -1 ;
+        return -1;
     }
     
     memset(&ssh2_sftp_attrib, 0, sizeof(ssh2_sftp_attrib));
@@ -757,7 +764,7 @@ int Transportor::run_SFTP_to_FILE(QString srcFile, QString destFile)
                 pcnt = 100.0 *((double)tran_len / (double)file_size);
                 emit this->transfer_percent_changed(pcnt, tran_len, wlen);
             }
-            if (user_canceled == true) {
+            if (this->user_canceled == true) {
                 break;
             }
         }
@@ -773,14 +780,14 @@ int Transportor::run_SFTP_to_FILE(QString srcFile, QString destFile)
 // similar to current do_nrsftp_exchange method
 int Transportor::run_SFTP_to_SFTP()
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
     RemoteHostConnectThread *rhct = 0 ;
 
     int rv = -1;
-    int transfer_ret = -1 ;
-    //int debug_sleep_time = 5 ;
+    int transfer_ret = -1;
+    //int debug_sleep_time = 5;
     
     TaskPackage src_atom_pkg;
     TaskPackage dest_atom_pkg;
@@ -788,7 +795,7 @@ int Transportor::run_SFTP_to_SFTP()
     TaskPackage temp_src_atom_pkg;
     TaskPackage temp_dest_atom_pkg;
         
-    QVector<QMap<char, QString> >  fileinfos ;
+    QVector<QMap<char, QString> >  fileinfos;
     
     this->error_code = 0 ;
     this->errorString = QString(tr("No error."));
@@ -894,16 +901,16 @@ int Transportor::run_SFTP_to_SFTP()
             //其他的情况暂时不考虑处理。跳过
             //TODO return a error value , not only error code
             q_debug()<<"src: "<< src_atom_pkg<<" dest:"<< dest_atom_pkg;
-            this->error_code = 1 ;
-            //assert ( 1 == 2 ) ;
-            qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in " << __LINE__ ;
+            this->error_code = 1;
+            //assert ( 1 == 2 );
+            qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in " << __LINE__;
         }
        
         this->transfer_ready_queue.erase(this->transfer_ready_queue.begin());
         this->transfer_done_queue.push_back(QPair<TaskPackage, TaskPackage>(src_atom_pkg, dest_atom_pkg));
     } while (this->transfer_ready_queue.size() > 0 && user_canceled == false) ;
 
-    qDebug() << " transfer_ret :" << transfer_ret << " ssh2 sftp shutdown:"<< this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
+    qDebug()<<" transfer_ret :"<< transfer_ret<<" ssh2 sftp shutdown:"<< this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
     //TODO 选择性关闭 ssh2 会话，有可能是 src  ,也有可能是dest 
     if (this->src_ssh2_sftp != 0) {
         libssh2_sftp_shutdown(this->src_ssh2_sftp);
@@ -937,7 +944,7 @@ int Transportor::run_SFTP_to_SFTP()
 #endif
         this->dest_ssh2_sock = -1;
     }
-    if (user_canceled == true) {
+    if (this->user_canceled == true) {
         this->error_code = 3;
     }
     q_debug()<<"";
@@ -1000,7 +1007,7 @@ int Transportor::run_SFTP_to_SFTP(QString srcFile, QString destFile)
             pcnt = 100.0 *((double)tran_len / (double)file_size);
             emit this->transfer_percent_changed(pcnt, tran_len, wlen);
         }
-        if (user_canceled == true) {
+        if (this->user_canceled == true) {
             break;
         }
     }
@@ -1011,12 +1018,9 @@ int Transportor::run_SFTP_to_SFTP(QString srcFile, QString destFile)
 int Transportor::run_FILE_to_FTP()
 {
     q_debug()<<"";
-    // LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
-    // RemoteHostConnectThread *rhct = 0 ;
-
     int rv = -1;
-    int transfer_ret = -1 ;
-    //int debug_sleep_time = 5 ;
+    int transfer_ret = -1;
+    //int debug_sleep_time = 5;
     
     TaskPackage src_atom_pkg;
     TaskPackage dest_atom_pkg;
@@ -1126,7 +1130,7 @@ int Transportor::run_FILE_to_FTP()
             //其他的情况暂时不考虑处理。跳过
             //TODO return a error value , not only error code
             this->error_code = 1;
-            //assert(1 == 2) ;
+            //assert(1 == 2);
             qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in " << __LINE__;
         }
        
@@ -1134,9 +1138,9 @@ int Transportor::run_FILE_to_FTP()
         this->transfer_done_queue.push_back(QPair<TaskPackage, TaskPackage>(src_atom_pkg, dest_atom_pkg));
     } while (this->transfer_ready_queue.size() > 0 && user_canceled == false) ;
 
-    qDebug() << " transfer_ret :" << transfer_ret << " ssh2 sftp shutdown:"<< this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
+    qDebug()<<"transfer_ret :"<< transfer_ret <<" ssh2 sftp shutdown:"<< this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
     //TODO 选择性关闭 ssh2 会话，有可能是 src  ,也有可能是dest 
-    if (user_canceled == true) {
+    if (this->user_canceled == true) {
         this->error_code = 3;
     }
     return 0;
@@ -1144,10 +1148,11 @@ int Transportor::run_FILE_to_FTP()
 int Transportor::run_FILE_to_FTP(QString srcFile, QString destFile)
 {
     q_debug()<<"start :"<<srcFile<<" --> "<<destFile;
-    
     int iret = -1;
-    int len = -1;
     char buf[8192];
+    int rlen, wlen, tran_len = 0;
+    int file_size = 0;
+    int pcnt = 0;
 
     // 首先转到当前目录为srfFile所在目录，取得文件名
     // FTP 上也转到相应的目录
@@ -1164,6 +1169,9 @@ int Transportor::run_FILE_to_FTP(QString srcFile, QString destFile)
     assert(iret == 0);
 
     QFileInfo fi(srcFile);
+    file_size = fi.size();
+    emit this->transfer_got_file_size(file_size);
+
     iret = this->dconn->ftp->put(fi.fileName());
     assert(iret == 0);
 
@@ -1174,10 +1182,26 @@ int Transportor::run_FILE_to_FTP(QString srcFile, QString destFile)
     QTcpSocket *dsock = this->dconn->ftp->getDataSocket();
     assert(dsock != NULL);
 
-    while ((iret = srcFp.read(buf, sizeof(buf))) > 0) {
-        len = dsock->write(buf, iret);
+    for (;;) {
+        rlen = srcFp.read(buf, sizeof(buf));
+        if (rlen <= 0) {
+            qDebug()<<" may be read end "<<rlen;
+            break;
+        }
+        wlen = dsock->write(buf, rlen);
         dsock->waitForBytesWritten();
-        assert(len == iret);
+        assert(wlen == rlen);
+        tran_len += wlen;
+
+        if (file_size == 0) {
+            emit this->transfer_percent_changed(100, tran_len, wlen);
+        } else {
+            pcnt = 100.0 *((double)tran_len / (double)file_size);
+            emit this->transfer_percent_changed(pcnt, tran_len, wlen);
+        }
+        if (this->user_canceled == true) {
+            break;
+        }
     }
     this->dconn->ftp->closeDataChannel();
     srcFp.close();
@@ -1215,8 +1239,8 @@ int Transportor::run_FTP_to_FILE()
 {
     q_debug()<<"";
     int rv = -1;
-    int transfer_ret = -1 ;
-    //int debug_sleep_time = 5 ;
+    int transfer_ret = -1;
+    //int debug_sleep_time = 5;
     
     TaskPackage src_atom_pkg;
     TaskPackage dest_atom_pkg;
@@ -1300,7 +1324,7 @@ int Transportor::run_FTP_to_FILE()
             
             //确保本地有这个目录。
             transfer_ret = QDir().mkpath(temp_dest_atom_pkg.files.at(0));
-            qDebug()<<" fxp_local_do_mkdir: "<<transfer_ret <<" "<< temp_dest_atom_pkg.files.at(0) ;
+            qDebug()<<" fxp_local_do_mkdir: "<<transfer_ret <<" "<< temp_dest_atom_pkg.files.at(0);
             //加入到任务队列
             // for (int i = 0 ; i < fileinfos.size() ; i ++) {
             //     temp_src_atom_pkg = src_atom_pkg;
@@ -1322,8 +1346,8 @@ int Transportor::run_FTP_to_FILE()
         } else {
             //其他的情况暂时不考虑处理。跳过。
             //TODO return a error value , not only error code 
-            this->error_code = 1 ;
-            //assert( 1 == 2 ) ; 
+            this->error_code = 1;
+            //assert( 1 == 2 ); 
             qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in " << __LINE__ ;
         }
        
@@ -1331,9 +1355,9 @@ int Transportor::run_FTP_to_FILE()
         this->transfer_done_queue.push_back(QPair<TaskPackage, TaskPackage>(src_atom_pkg, dest_atom_pkg));
     } while (this->transfer_ready_queue.size() > 0 && user_canceled == false) ;
 
-    qDebug() << " transfer_ret :" << transfer_ret << " ssh2 sftp shutdown:"<< this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
+    qDebug()<<" transfer_ret :"<<transfer_ret<< " ssh2 sftp shutdown:"<< this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
     //TODO 选择性关闭 ssh2 会话，有可能是 src  ,也有可能是dest 
-    if (user_canceled == true) {
+    if (this->user_canceled == true) {
         this->error_code = 3;
     }
     return 0;
@@ -1344,8 +1368,10 @@ int Transportor::run_FTP_to_FILE(QString srcFile, QString destFile)
     q_debug()<<"start :"<<srcFile<<" --> "<<destFile;
     
     int iret = -1;
-    int len = -1;
     char buf[8192];
+    int rlen, wlen, tran_len = 0;
+    quint64 file_size = 0;
+    int pcnt = 0;
 
     // 首先转到当前目录为srfFile所在目录，取得文件名
     // FTP 上也转到相应的目录
@@ -1353,17 +1379,25 @@ int Transportor::run_FTP_to_FILE(QString srcFile, QString destFile)
     this->setLocalCurrentDirByFullPath(destFile);
     this->setFTPCurrentDirByFullPath(this->sconn, srcFile);
 
-    iret = this->sconn->ftp->type(LibFtp::TYPE_BIN);
-    assert(iret == 0);
-    iret = this->sconn->ftp->passive();
-    assert(iret == 0);
+    {
+        iret = this->sconn->ftp->type(LibFtp::TYPE_BIN);
+        assert(iret == 0);
 
-    iret = this->sconn->ftp->connectDataChannel();
-    assert(iret == 0);
+        // 获取源文件大小, 必须在BIN模式下才能调用
+        iret = this->sconn->ftp->size(srcFile, file_size);
+        assert(iret == 0);
+        emit this->transfer_got_file_size(file_size);
 
-    QFileInfo fi(srcFile);
-    iret = this->sconn->ftp->get(fi.fileName());
-    assert(iret == 0);
+        iret = this->sconn->ftp->passive();
+        assert(iret == 0);
+
+        iret = this->sconn->ftp->connectDataChannel();
+        assert(iret == 0);
+
+        QFileInfo fi(srcFile);
+        iret = this->sconn->ftp->get(fi.fileName());
+        assert(iret == 0);
+    }
 
     QFile destFp(destFile);
     bool bret = destFp.open(QIODevice::ReadWrite);
@@ -1372,13 +1406,30 @@ int Transportor::run_FTP_to_FILE(QString srcFile, QString destFile)
     QTcpSocket *dsock = this->sconn->ftp->getDataSocket();
     assert(dsock != NULL);
 
-    dsock->waitForReadyRead();
-    while ((iret = dsock->read(buf, sizeof(buf))) > 0) {
-        len = destFp.write(buf, iret);
-        destFp.waitForBytesWritten(-1);
-        assert(len == iret);
+    for (;;) {
         dsock->waitForReadyRead();
+        rlen = dsock->read(buf, sizeof(buf));
+        if (rlen <= 0) {
+            qDebug()<<" may be read end "<<rlen;
+            break;
+        }
+        wlen = destFp.write(buf, rlen);
+        destFp.waitForBytesWritten(-1);
+        assert(wlen == rlen);
+
+        tran_len += wlen;
+
+        if (file_size == 0) {
+            emit this->transfer_percent_changed(100, tran_len, wlen);
+        } else {
+            pcnt = 100.0 *((double)tran_len / (double)file_size);
+            emit this->transfer_percent_changed(pcnt, tran_len, wlen);
+        }
+        if (this->user_canceled == true) {
+            break;
+        }
     }
+
     this->sconn->ftp->closeDataChannel();
     destFp.close();
 
@@ -1392,8 +1443,8 @@ int Transportor::run_FTP_to_FTP()        // 负责根据情况调用下面的两
 {
     q_debug()<<"";
     int rv = -1;
-    int transfer_ret = -1 ;
-    //int debug_sleep_time = 5 ;
+    int transfer_ret = -1;
+    //int debug_sleep_time = 5;
     
     TaskPackage src_atom_pkg;
     TaskPackage dest_atom_pkg;
@@ -1484,7 +1535,7 @@ int Transportor::run_FTP_to_FTP()        // 负责根据情况调用下面的两
             // transfer_ret = QDir().mkpath(temp_dest_atom_pkg.files.at(0));
             rv = this->dconn->ftp->mkdir(temp_dest_atom_pkg.files.at(0));
             assert(rv == 0);
-            qDebug()<<"fxp_dest ftp_do_mkdir: "<<transfer_ret <<" "<< temp_dest_atom_pkg.files.at(0) ;
+            qDebug()<<"fxp_dest ftp_do_mkdir: "<<transfer_ret <<" "<< temp_dest_atom_pkg.files.at(0);
             //加入到任务队列           
             for (int i = 0; i < fileList.count(); i++) {
                 temp_src_atom_pkg = src_atom_pkg;
@@ -1512,8 +1563,8 @@ int Transportor::run_FTP_to_FTP()        // 负责根据情况调用下面的两
             //其他的情况暂时不考虑处理。跳过
             //TODO return a error value , not only error code
             q_debug()<<"src: "<< src_atom_pkg<<" dest:"<< dest_atom_pkg;
-            this->error_code = 1 ;
-            //assert ( 1 == 2 ) ;
+            this->error_code = 1;
+            //assert ( 1 == 2 );
             qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in " << __LINE__;
         }
        
@@ -1521,9 +1572,9 @@ int Transportor::run_FTP_to_FTP()        // 负责根据情况调用下面的两
         this->transfer_done_queue.push_back(QPair<TaskPackage, TaskPackage>(src_atom_pkg, dest_atom_pkg));
     } while (this->transfer_ready_queue.size() > 0 && user_canceled == false) ;
 
-    qDebug() << " transfer_ret :" << transfer_ret << " ssh2 sftp shutdown:"<< this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
+    qDebug()<<"transfer_ret :"<<transfer_ret<<"ssh2 sftp shutdown:"<< this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
     //TODO 选择性关闭 ssh2 会话，有可能是 src  ,也有可能是dest 
-    if (user_canceled == true) {
+    if (this->user_canceled == true) {
         this->error_code = 3;
     }
     return 0;
@@ -1534,8 +1585,10 @@ int Transportor::run_FTP_to_FTP_relay(QString srcFile, QString destFile) // 通�
     q_debug()<<"start :"<<srcFile<<" --> "<<destFile;
     
     int iret = -1;
-    int len = -1;
     char buf[8192];
+    int rlen, wlen, tran_len = 0;
+    quint64 file_size = 0;
+    int pcnt = 0;
     QTcpSocket *srcDataSock = NULL, *destDataSock = NULL;
 
     // FTP 上转到相应的当前工作目录
@@ -1546,6 +1599,12 @@ int Transportor::run_FTP_to_FTP_relay(QString srcFile, QString destFile) // 通�
     {
         iret = this->sconn->ftp->type(LibFtp::TYPE_BIN);
         assert(iret == 0);
+
+        // 获取源文件大小, 必须在BIN模式下才能调用
+        iret = this->sconn->ftp->size(srcFile, file_size);
+        assert(iret == 0);
+        emit this->transfer_got_file_size(file_size);
+
         iret = this->sconn->ftp->passive();
         assert(iret == 0);
 
@@ -1578,13 +1637,30 @@ int Transportor::run_FTP_to_FTP_relay(QString srcFile, QString destFile) // 通�
         assert(destDataSock != NULL);
     }
 
-    srcDataSock->waitForReadyRead();
-    while ((iret = srcDataSock->read(buf, sizeof(buf))) > 0) {
-        len = destDataSock->write(buf, iret);
-        destDataSock->waitForBytesWritten();
-        assert(len == iret);
+    for (;;) {
         srcDataSock->waitForReadyRead();
+        rlen = srcDataSock->read(buf, sizeof(buf));
+        if (rlen <= 0) {
+            qDebug()<<" may be read end "<<rlen;
+            break;
+        }
+        wlen = destDataSock->write(buf, rlen);
+        destDataSock->waitForBytesWritten();
+        assert(wlen == rlen);
+
+        tran_len += wlen;
+
+        if (file_size == 0) {
+            emit this->transfer_percent_changed(100, tran_len, wlen);
+        } else {
+            pcnt = 100.0 *((double)tran_len / (double)file_size);
+            emit this->transfer_percent_changed(pcnt, tran_len, wlen);
+        }
+        if (this->user_canceled == true) {
+            break;
+        }
     }
+
     iret = this->sconn->ftp->closeDataChannel();
     iret = this->dconn->ftp->closeDataChannel();
 
@@ -1603,6 +1679,9 @@ int Transportor::run_FTP_to_FTP_fxp(QString srcFile, QString destFile)   // 通�
     quint16 pasvPort = 0;
     QString pasvHost;
     int iret = -1;
+    int rlen, wlen, tran_len = 0;
+    quint64 file_size = 0;
+    int pcnt = 0;
 
     // FTP 上转到相应的当前工作目录
     this->setFTPCurrentDirByFullPath(this->sconn, srcFile);
@@ -1622,6 +1701,11 @@ int Transportor::run_FTP_to_FTP_fxp(QString srcFile, QString destFile)   // 通�
     {
         iret = this->sconn->ftp->type(LibFtp::TYPE_BIN);
         assert(iret == 0);
+
+        // 获取源文件大小, 必须在BIN模式下才能调用
+        iret = this->sconn->ftp->size(srcFile, file_size);
+        assert(iret == 0);
+        emit this->transfer_got_file_size(file_size);
 
         iret = this->sconn->ftp->port(pasvHost, pasvPort);
         // assert(iret == 0);
@@ -1663,7 +1747,7 @@ int Transportor::run_SFTP_to_FTP()
 {
     q_debug()<<"";
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
-    RemoteHostConnectThread *rhct = 0 ;
+    RemoteHostConnectThread *rhct = 0;
 
     int rv = -1;
     int transfer_ret = -1 ;
@@ -1694,7 +1778,7 @@ int Transportor::run_SFTP_to_FTP()
         emit this->transfer_new_file_started(this->current_src_file_name);
 
         //处理nrftp协议
-        // 连接到源FTP主机
+        // 连接到源SFTP主机
         if (this->src_ssh2_sess == 0 || this->src_ssh2_sftp == 0) {
             emit  transfer_log("Connecting to destionation host ...");
             QString tmp_passwd = src_atom_pkg.password;
@@ -1773,8 +1857,8 @@ int Transportor::run_SFTP_to_FTP()
             //其他的情况暂时不考虑处理。跳过
             //TODO return a error value , not only error code
             q_debug()<<"src: "<< src_atom_pkg<<" dest:"<< dest_atom_pkg;
-            this->error_code = 1 ;
-            //assert ( 1 == 2 ) ;
+            this->error_code = 1;
+            //assert ( 1 == 2 );
             qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in " << __LINE__;
         }
        
@@ -1784,7 +1868,7 @@ int Transportor::run_SFTP_to_FTP()
 
     qDebug()<<"transfer_ret :"<<transfer_ret<<" ssh2 sftp shutdown:"<<this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
     //TODO 选择性关闭 ssh2 会话，有可能是 src  ,也有可能是dest 
-    if (user_canceled == true) {
+    if (this->user_canceled == true) {
         this->error_code = 3;
     }
     return 0;
@@ -1807,7 +1891,7 @@ int Transportor::run_SFTP_to_FTP(QString srcFile, QString destFile)
     if (sftp_handle == NULL) {
         //TODO 错误消息通知用户。
         qDebug()<<"open sftp file error :"<<libssh2_sftp_last_error(this->src_ssh2_sftp);
-        return -1 ;
+        return -1;
     }
     
     memset(&ssh2_sftp_attrib, 0, sizeof(ssh2_sftp_attrib));
@@ -1850,7 +1934,7 @@ int Transportor::run_SFTP_to_FTP(QString srcFile, QString destFile)
             emit this->transfer_percent_changed(pcnt, tran_len, wlen);
         }
         destDataSock->waitForBytesWritten();
-        if (user_canceled == true) {
+        if (this->user_canceled == true) {
             break;
         }
     }
@@ -1868,7 +1952,7 @@ int Transportor::run_FTP_to_SFTP()
 {
     q_debug()<<"";
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
-    RemoteHostConnectThread *rhct = 0 ;
+    RemoteHostConnectThread *rhct = 0;
 
     int rv = -1;
     int transfer_ret = -1 ;
@@ -1986,7 +2070,7 @@ int Transportor::run_FTP_to_SFTP()
             transfer_ret = libssh2_sftp_mkdir(this->dest_ssh2_sftp, 
                                               GlobalOption::instance()->remote_codec->fromUnicode(temp_dest_atom_pkg.files.at(0)), 
                                               0755);
-            qDebug()<<"fxp_local_do_mkdir: "<<transfer_ret <<" "<< temp_dest_atom_pkg.files.at(0) ;
+            qDebug()<<"fxp_local_do_mkdir: "<<transfer_ret <<" "<< temp_dest_atom_pkg.files.at(0);
 
             //加入到任务队列           
             for (int i = 0; i < fileList.count(); i++) {
@@ -2000,16 +2084,16 @@ int Transportor::run_FTP_to_SFTP()
         } else {
             //其他的情况暂时不考虑处理。跳过。
             //TODO return a error value , not only error code 
-            this->error_code = 1 ;
-            //assert( 1 == 2 ) ; 
-            qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in " << __LINE__ ;
+            this->error_code = 1;
+            //assert( 1 == 2 ); 
+            qDebug()<<"Unexpected transfer type:"<<__FILE__<<" in "<<__LINE__;
         }
        
         this->transfer_ready_queue.erase(this->transfer_ready_queue.begin());
         this->transfer_done_queue.push_back(QPair<TaskPackage, TaskPackage>(src_atom_pkg, dest_atom_pkg));
-    } while (this->transfer_ready_queue.size() > 0 && user_canceled == false) ;
+    } while (this->transfer_ready_queue.size() > 0 && user_canceled == false);
 
-    qDebug() << " transfer_ret :" << transfer_ret << " ssh2 sftp shutdown:"<< this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
+    qDebug()<<"transfer_ret :"<<transfer_ret<< " ssh2 sftp shutdown:"<< this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
     //TODO 选择性关闭 ssh2 会话，有可能是 src  ,也有可能是dest 
     if (user_canceled == true) {
         this->error_code = 3;
@@ -2024,11 +2108,10 @@ int Transportor::run_FTP_to_SFTP(QString srcFile, QString destFile)
     QTcpSocket *srcDataSock = NULL;
     int pcnt = 0 ;
     int rlen, wlen;
-    int file_size, tran_len = 0;
+    quint64 file_size, tran_len = 0;
     LIBSSH2_SFTP_HANDLE *sftp_handle ;
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
     char buff[5120] = {0};
-    int ret = 0;
 
     // FTP 上转到相应的当前工作目录
     this->setFTPCurrentDirByFullPath(this->sconn, srcFile);
@@ -2037,6 +2120,12 @@ int Transportor::run_FTP_to_SFTP(QString srcFile, QString destFile)
     {
         iret = this->sconn->ftp->type(LibFtp::TYPE_BIN);
         assert(iret == 0);
+
+        // 获取源文件大小, 必须在BIN模式下才能调用
+        iret = this->sconn->ftp->size(srcFile, file_size);
+        assert(iret == 0);
+        emit this->transfer_got_file_size(file_size);
+
         iret = this->sconn->ftp->passive();
         assert(iret == 0);
 
@@ -2067,46 +2156,39 @@ int Transportor::run_FTP_to_SFTP(QString srcFile, QString destFile)
         }
         this->error_code = ERRNO_BASE + libssh2_sftp_last_error(this->dest_ssh2_sftp);
 	
-        return -1 ;
+        return -1;
     }
     
     memset(&ssh2_sftp_attrib,0,sizeof(ssh2_sftp_attrib));
-    QFileInfo local_fi(srcFile);
-    file_size = local_fi.size();
-    qDebug()<<"local file size:" << file_size ;
-    emit this->transfer_got_file_size(file_size);
+    // QFileInfo local_fi(srcFile);
+    // file_size = local_fi.size();
+    // qDebug()<<"local file size:" << file_size ;
+    // emit this->transfer_got_file_size(file_size);
     
-    QFile q_file(srcFile);
-    if (!q_file.open( QIODevice::ReadOnly)) {
-        //TODO 错误消息通知用户。
-        qDebug()<<"open local file error:"<< q_file.errorString()  ;
-        //printf("open local file error:%s\n", strerror( errno ) );        
-    } else {
-        //read local file and then write to remote file
-        srcDataSock->waitForReadyRead();
-        while ((rlen = srcDataSock->read(buff, sizeof(buff))) > 0) {
-            wlen = libssh2_sftp_write(sftp_handle, buff, rlen);
-            Q_ASSERT(wlen == rlen);
-            if (wlen < rlen) {
-                q_debug()<<"write to server less then need write bytes";
-                // TODO 这种情况应该尝试再次写入剩余的数据
-            }
-            tran_len += wlen ;
+    //read ftp file and then write to sftp file
+    srcDataSock->waitForReadyRead();
+    while ((rlen = srcDataSock->read(buff, sizeof(buff))) > 0) {
+        wlen = libssh2_sftp_write(sftp_handle, buff, rlen);
+        Q_ASSERT(wlen == rlen);
+        if (wlen < rlen) {
+            q_debug()<<"write to server less then need write bytes";
+            // TODO 这种情况应该尝试再次写入剩余的数据
+        }
+        tran_len += wlen ;
             
-            //qDebug()<<" local read : "<< rlen << " sftp write :"<<wlen <<" up len :"<< tran_len ;
-            // 			qDebug() <<" read len :"<< rlen <<" , write len: "<< wlen 
-            //                    << " tran len: "<< tran_len ;
-            if (file_size == 0 ) {
-                emit this->transfer_percent_changed(100, tran_len, wlen);
-            } else {
-                pcnt = 100.0 *((double)tran_len  / (double)file_size);
-                // qDebug()<< QString("100.0 *((double)%1  / (double)%2)").arg(tran_len).arg(file_size)<<" = "<<pcnt ;
-                emit this->transfer_percent_changed(pcnt, tran_len, wlen);
-            }
-            srcDataSock->waitForReadyRead();
-            if (user_canceled == true) {
-                break;
-            }
+        //qDebug()<<" local read : "<< rlen << " sftp write :"<<wlen <<" up len :"<< tran_len ;
+        // 			qDebug() <<" read len :"<< rlen <<" , write len: "<< wlen 
+        //                    << " tran len: "<< tran_len ;
+        if (file_size == 0 ) {
+            emit this->transfer_percent_changed(100, tran_len, wlen);
+        } else {
+            pcnt = 100.0 *((double)tran_len  / (double)file_size);
+            // qDebug()<< QString("100.0 *((double)%1  / (double)%2)").arg(tran_len).arg(file_size)<<" = "<<pcnt ;
+            emit this->transfer_percent_changed(pcnt, tran_len, wlen);
+        }
+        srcDataSock->waitForReadyRead();
+        if (this->user_canceled == true) {
+            break;
         }
     }
     qDebug()<<"out cycle, close sftp...";
@@ -2737,7 +2819,7 @@ int Transportor::do_nrsftp_exchange(QString src_path, QString dest_path)
             pcnt = 100.0 *((double)tran_len / (double)file_size);
             emit this->transfer_percent_changed(pcnt, tran_len, wlen);
         }
-        if (user_canceled == true) {
+        if (this->user_canceled == true) {
             break;
         }
     }
@@ -2769,7 +2851,7 @@ QMap<QString, QString> Transportor::getHostInfo(TaskPackage &pkg)
 
 void Transportor::set_user_cancel(bool cancel)
 {
-    this->user_canceled = cancel ;
+    this->user_canceled = cancel;
 }
 
 void Transportor::wait_user_response()
@@ -2790,5 +2872,6 @@ void Transportor::user_response_result(int result)
 }
 
 // on windows 有一个问题：当两个从本地到同一远程主机的目录上传时，导致下面的错误：
-//Assertion failed: *lock == MUTEX_UNLOCKED, file ath.c, line 184
-//这是mingw32平台上的libgcrypt相关的问题。
+// Assertion failed: *lock == MUTEX_UNLOCKED, file ath.c, line 184
+// 这是mingw32平台上的libgcrypt相关的问题。
+// 这个问题应该不存在了吧
