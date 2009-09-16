@@ -593,6 +593,8 @@ int LibFtp::remove(const QString path)
     QString sigLog;
     QString replyText;
 
+    assert(this->qsock->bytesAvailable() == 0);
+
 	cmd = QString("DELE %1\r\n").arg(path);
 
 	this->qsock->write(cmd.toAscii());
@@ -610,6 +612,47 @@ int LibFtp::remove(const QString path)
 	}
 
 	return -1;
+}
+
+int LibFtp::rename(const QString src, const QString dest)
+{
+	QString cmd;
+    QString sigLog;
+    QString replyText;
+
+    assert(this->qsock->bytesAvailable() == 0);
+
+	cmd = QString("RNFR %1\r\n").arg(src);
+
+	this->qsock->write(cmd.toAscii());
+	qDebug()<<cmd;
+	
+	if (this->qsock->waitForBytesWritten()) {
+		QByteArray ball;
+		//read response
+		ball = this->readAll(this->qsock);
+		qDebug()<<ball;
+        replyText = ball;
+        QStringList sl = replyText.split(" ");
+        assert(sl.at(0) == "350"); // 350 350 File or directory exists, ready for destination name
+
+        cmd = QString("RNTO %1\r\n").arg(dest);
+        this->qsock->write(cmd.toAscii());
+        qDebug()<<cmd;
+	
+        if (this->qsock->waitForBytesWritten()) {
+            QByteArray ball;
+            //read response
+            ball = this->readAll(this->qsock);
+            qDebug()<<ball;
+            replyText = ball;
+            QStringList sl = replyText.split(" ");
+            assert(sl.at(0) == "250"); // 500 no such file
+            return 0;
+        }
+	}
+    
+    return -1;
 }
 
 int LibFtp::type(int type)

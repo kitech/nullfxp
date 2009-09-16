@@ -243,20 +243,21 @@ int FTPDirRetriver::retrive_dir()
 
 int  FTPDirRetriver::mkdir()
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
     int exec_ret = -1;
     command_queue_elem *cmd_item = this->command_queue.at(0);
     
     QString abs_path = cmd_item->parent_item->strip_path + QString("/") + cmd_item->params;
     
-    qDebug()<< "abs  path :"<< abs_path;
+    qDebug()<<"abs path :"<< abs_path;
     
-    exec_ret = libssh2_sftp_mkdir(ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(abs_path).data(), 0777);
+    // exec_ret = libssh2_sftp_mkdir(ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(abs_path).data(), 0777);
+    this->conn->ftp->mkdir(GlobalOption::instance()->remote_codec->fromUnicode(abs_path));
 
     this->add_node(cmd_item->parent_item, cmd_item->parent_model_internal_pointer);
     
-    return exec_ret ;
+    return exec_ret;
 }
 
 int  FTPDirRetriver::rmdir()
@@ -272,14 +273,15 @@ int  FTPDirRetriver::rmdir()
     
     QString abs_path = cmd_item->parent_item->strip_path + "/" + cmd_item->params;
 
-    qDebug()<< "abs  path :"<< abs_path;
+    qDebug()<<"abs  path :"<< abs_path;
     
     if (sys_dirs.contains(abs_path)) {
-        qDebug()<<" rm system directory , this is danger.";
+        qDebug()<<"rm system directory , this is danger.";
     } else {
-        exec_ret = libssh2_sftp_rmdir(ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(abs_path).data());
+        // exec_ret = libssh2_sftp_rmdir(ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(abs_path).data());
+        exec_ret = this->conn->ftp->rmdir(GlobalOption::instance()->remote_codec->fromUnicode(abs_path));
     }
-    //cmd_item->parent_item->retrived = 2 ;   //让上层视图更新这个结点
+    //cmd_item->parent_item->retrived = 2;   //让上层视图更新这个结点
     this->add_node(cmd_item->parent_item, cmd_item->parent_model_internal_pointer);
     
     return exec_ret;
@@ -387,22 +389,24 @@ int  FTPDirRetriver::rename()
     sys_dirs<<"/usr"<<"/bin"<<"/sbin"<<"/lib"<<"/etc"<<"/dev"<<"/proc"
             <<"/mnt"<<"/sys"<<"/var";
     
-    command_queue_elem * cmd_item = this->command_queue.at(0);
+    command_queue_elem *cmd_item = this->command_queue.at(0);
     
     size_t sep_pos = cmd_item->params.indexOf('!');
     
     QString abs_path = cmd_item->parent_item->strip_path + "/" +  cmd_item->params.mid(0,sep_pos);
     QString abs_path_rename_to = cmd_item->parent_item->strip_path + "/" + cmd_item->params.mid(sep_pos+1,-1);
     
-    qDebug()<< "abs  path :"<< abs_path  
-            << " abs path rename to ;"<< abs_path_rename_to;
+    qDebug()<<"abs  path :"<<abs_path  
+            <<"abs path rename to:"<< abs_path_rename_to;
     
-    if (sys_dirs.contains(  abs_path )) {
-        qDebug()<<" rm system directory , this is danger.";
+    if (sys_dirs.contains(abs_path)) {
+        qDebug()<<"rename system directory , this is danger.";
     } else {
-        exec_ret = libssh2_sftp_rename(ssh2_sftp,
-                                       GlobalOption::instance()->remote_codec->fromUnicode(abs_path).data(),
-                                       GlobalOption::instance()->remote_codec->fromUnicode(abs_path_rename_to));
+        // exec_ret = libssh2_sftp_rename(ssh2_sftp,
+        //                                GlobalOption::instance()->remote_codec->fromUnicode(abs_path).data(),
+        //                                GlobalOption::instance()->remote_codec->fromUnicode(abs_path_rename_to));
+        exec_ret = this->conn->ftp->rename(GlobalOption::instance()->remote_codec->fromUnicode(abs_path),
+                                           GlobalOption::instance()->remote_codec->fromUnicode(abs_path_rename_to));
     }
 
     this->add_node(cmd_item->parent_item, cmd_item->parent_model_internal_pointer);
@@ -420,7 +424,7 @@ int FTPDirRetriver::keep_alive()
     return exec_ret;
 }
 
-int FTPDirRetriver::fxp_do_ls_dir(QString path, QVector<QMap<char, QString> > & fileinfos)
+int FTPDirRetriver::fxp_do_ls_dir(QString path, QVector<QMap<char, QString> > &fileinfos)
 {
     
     return 0;

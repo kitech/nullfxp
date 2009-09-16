@@ -339,10 +339,10 @@ int  SSHDirRetriver::rename()
     QString abs_path_rename_to = cmd_item->parent_item->strip_path + "/" + cmd_item->params.mid(sep_pos+1,-1);
     
     qDebug()<<"abs  path :"<<abs_path  
-            <<" abs path rename to ;"<<abs_path_rename_to;
+            <<"abs path rename to ;"<<abs_path_rename_to;
     
     if (sys_dirs.contains(  abs_path )) {
-        qDebug()<<" rm system directory , this is danger.";
+        qDebug()<<"rename system directory , this is danger.";
     } else {
         exec_ret = libssh2_sftp_rename(ssh2_sftp,
                                        GlobalOption::instance()->remote_codec->fromUnicode(abs_path).data(),

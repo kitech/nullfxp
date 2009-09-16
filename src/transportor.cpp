@@ -1554,7 +1554,7 @@ int Transportor::run_FTP_to_FTP()        // 负责根据情况调用下面的两
             qDebug()<<" nrsftp exchage file to dir...";
             QString dest_full_path = this->current_dest_file_name + "/" + this->current_src_file_name.split("/").at(this->current_src_file_name.split("/").count()-1);
             // transfer_ret = this->do_nrsftp_exchange(this->current_src_file_name, dest_full_path);
-            if (0) {
+            if (1) {
                 transfer_ret = this->run_FTP_to_FTP_relay(this->current_src_file_name, dest_full_path);
             } else {
                 transfer_ret = this->run_FTP_to_FTP_fxp(this->current_src_file_name, dest_full_path);
@@ -1564,7 +1564,7 @@ int Transportor::run_FTP_to_FTP()        // 负责根据情况调用下面的两
             //TODO return a error value , not only error code
             q_debug()<<"src: "<< src_atom_pkg<<" dest:"<< dest_atom_pkg;
             this->error_code = 1;
-            //assert ( 1 == 2 );
+            //assert(1 == 2);
             qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in " << __LINE__;
         }
        
