@@ -346,6 +346,9 @@ int LibFtp::list(QString path)
 		ball = this->readAll(this->qsock);
 		qDebug()<<ball;
         replyText = ball;
+        QStringList sl = replyText.split("\n");
+        sl = sl.at(sl.count() - 2).split(" ");
+        assert(sl.at(0) == "150");
 
         // ball = this->readAll(this->qdsock);
         // qDebug()<<ball;
@@ -374,6 +377,11 @@ int LibFtp::list(QString path)
 
 		ball = this->readAll(this->qsock);
 		qDebug()<<ball;
+        replyText = ball;
+        sl = replyText.split("\n");
+        sl = sl.at(sl.count() - 2).split(" ");
+        assert(sl.at(0) == "226");
+        return 0;
 	}
 
 	return -1;        
@@ -554,7 +562,7 @@ int LibFtp::put(const QString fileName)
         qDebug()<<ball;
         replyText = ball;
         QStringList sl = replyText.split(" ");
-        assert(sl.at(0) == "150"); // 550 no such file
+        assert(sl.at(0) == "150"); // 550 no such file // 553 Disk full - please upload later
         return 0;
 	}
     
@@ -579,7 +587,8 @@ int LibFtp::get(const QString fileName)
         ball = this->readAll(this->qsock);
         qDebug()<<ball;
         replyText = ball;
-        QStringList sl = replyText.split(" ");
+        QStringList sl = replyText.split("\n");
+        sl = sl.at(sl.count()-2).split(" "); // fix pure-ftpd multi line response error.
         assert(sl.at(0) == "150"); // 550 no such file
         return 0;
 	}
@@ -886,6 +895,14 @@ int LibFtp::swallowResponse()
     
     return sl.at(0).toInt();
     return 0;
+}
+
+QString LibFtp::error()
+{
+    if (this->qsock != NULL) {
+        return this->qsock->errorString();
+    }
+    return QString();
 }
 
 /// private

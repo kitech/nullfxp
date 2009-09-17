@@ -52,6 +52,7 @@ public:
     QVector<QUrlInfo> getDirList();
     QString getServerBanner();
     QTcpSocket *getDataSocket();
+    QString error();
     
 private:
     int parsePasvPort(QString &host, short &port);

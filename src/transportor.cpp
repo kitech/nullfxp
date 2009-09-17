@@ -1315,6 +1315,8 @@ int Transportor::run_FTP_to_FILE()
             
             // local dir = curr local dir +  curr remote dir 的最后一层目录
             fileList.clear();
+            transfer_ret = this->sconn->ftp->passive();
+            transfer_ret = this->sconn->ftp->connectDataChannel();
             transfer_ret = this->sconn->ftp->list(this->current_src_file_name + "/");
             assert(transfer_ret == 0);
             
