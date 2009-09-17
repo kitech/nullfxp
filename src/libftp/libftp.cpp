@@ -14,6 +14,8 @@
 LibFtp::LibFtp(QObject *parent)
     : QObject(parent)
 {
+    this->qsock = NULL;
+    this->qdsock = NULL;
 }
 LibFtp::~LibFtp()
 {
@@ -569,6 +571,23 @@ int LibFtp::put(const QString fileName)
     return -1;
 }
 
+int LibFtp::putNoWaitResponse(const QString fileName)
+{
+	QString cmd;
+    QString sigLog;
+    QString replyText;
+
+	cmd = QString("STOR %1\r\n").arg(fileName);
+	this->qsock->write(cmd.toAscii());
+	qDebug()<<cmd;
+	
+	if (this->qsock->waitForBytesWritten()) {
+        return 0;
+	}
+    
+    return -1;
+}
+
 int LibFtp::get(const QString fileName)
 {
 	QString cmd;
@@ -590,6 +609,24 @@ int LibFtp::get(const QString fileName)
         QStringList sl = replyText.split("\n");
         sl = sl.at(sl.count()-2).split(" "); // fix pure-ftpd multi line response error.
         assert(sl.at(0) == "150"); // 550 no such file
+        return 0;
+	}
+    
+    return -1;    
+}
+int LibFtp::getNoWaitResponse(const QString fileName)
+{
+	QString cmd;
+    QString sigLog;
+    QString replyText;
+
+    assert(this->qsock->bytesAvailable() == 0);
+
+	cmd = QString("RETR %1\r\n").arg(fileName);
+	this->qsock->write(cmd.toAscii());
+	qDebug()<<cmd;
+	
+	if (this->qsock->waitForBytesWritten()) {
         return 0;
 	}
     
@@ -846,7 +883,29 @@ int LibFtp::port(const QString hostip, const short port) // fxp
 
     return -1;
 }
+int LibFtp::portNoWaitResponse(const QString hostip, const short port)
+{
+    QString hn = hostip;
+    hn = hn.replace(".", ",");
+    quint8 p1 = port >> 8 & 0x00FF;
+    quint8 p2 = port & 0x00FF;
 
+	QString cmd;
+    QString sigLog;
+    QString replyText;
+
+    assert(this->qsock->bytesAvailable() == 0);
+
+	cmd = QString("PORT %1,%2,%3\r\n").arg(hn).arg(p1).arg(p2);
+	this->qsock->write(cmd.toAscii());
+	qDebug()<<cmd;
+	
+	if (this->qsock->waitForBytesWritten()) {
+        return 0;
+	}
+
+    return -1;
+}
 int LibFtp::size(QString path, quint64 &siz)
 {
 	QString cmd;
@@ -898,6 +957,19 @@ int LibFtp::swallowResponse()
     return 0;
 }
 
+int LibFtp::waitForCtrlResponse()
+{
+    assert(this->qsock != NULL);
+    bool bret = this->qsock->waitForReadyRead(-1);
+    qDebug()<<__FILE__<<__LINE__<<bret;
+    if (bret) {
+        QByteArray ba = this->qsock->readAll();
+        qDebug()<<ba;
+        return 0;
+    }
+    return -1;
+}
+
 QString LibFtp::error()
 {
     if (this->qsock != NULL) {
@@ -917,10 +989,10 @@ QByteArray LibFtp::readAllByEndSymbol(QTcpSocket *sock)
 {
 	qDebug()<<__FUNCTION__<<__LINE__;
 
-	QByteArray ball ;
-	QString sall ;
+	QByteArray ball;
+	QString sall;
 
-	long bavable ;
+	long bavable;
 	//qDebug()<<__FUNCTION__<<__LINE__;
 	bavable = sock->readBufferSize();
 	//qDebug()<<__FUNCTION__<<__LINE__;
@@ -928,9 +1000,9 @@ QByteArray LibFtp::readAllByEndSymbol(QTcpSocket *sock)
 	// qDebug()<<__FUNCTION__<<__LINE__;
 	while (sock->isOpen() && sock->waitForReadyRead(3000)) {
 		// qDebug()<<__FUNCTION__<<__LINE__;
-		int rlen ;
-		char buff[8] = {0} ;
-		bool cmdend = false ;
+		int rlen;
+		char buff[8] = {0};
+		bool cmdend = false;
 		
 		while (true) {
 			//read n			

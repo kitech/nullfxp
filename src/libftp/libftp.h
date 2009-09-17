@@ -34,7 +34,9 @@ public:
     int rmdir(QString path);
     int chdir(QString path);
     int put(const QString fileName);
+    int putNoWaitResponse(const QString fileName);
     int get(const QString fileName);
+    int getNoWaitResponse(const QString fileName);
     int remove(const QString path);
     int rename(const QString src, const QString dest);
     int passive();
@@ -44,10 +46,12 @@ public:
     int system(QString &type);
     int stat(QString path);
     int port(const QString hostip, const short port); // fxp
+    int portNoWaitResponse(const QString hostip, const short port);
     int size(QString path, quint64 &siz);
     
     short pasvPeer(QString &hostip); // get passive peer ip
     int swallowResponse();
+    int waitForCtrlResponse();
     
     QVector<QUrlInfo> getDirList();
     QString getServerBanner();

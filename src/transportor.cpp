@@ -1556,7 +1556,7 @@ int Transportor::run_FTP_to_FTP()        // 负责根据情况调用下面的两
             qDebug()<<" nrsftp exchage file to dir...";
             QString dest_full_path = this->current_dest_file_name + "/" + this->current_src_file_name.split("/").at(this->current_src_file_name.split("/").count()-1);
             // transfer_ret = this->do_nrsftp_exchange(this->current_src_file_name, dest_full_path);
-            if (1) {
+            if (0) {
                 transfer_ret = this->run_FTP_to_FTP_relay(this->current_src_file_name, dest_full_path);
             } else {
                 transfer_ret = this->run_FTP_to_FTP_fxp(this->current_src_file_name, dest_full_path);
@@ -1709,12 +1709,12 @@ int Transportor::run_FTP_to_FTP_fxp(QString srcFile, QString destFile)   // 通�
         assert(iret == 0);
         emit this->transfer_got_file_size(file_size);
 
-        iret = this->sconn->ftp->port(pasvHost, pasvPort);
+        iret = this->sconn->ftp->portNoWaitResponse(pasvHost, pasvPort);
         // assert(iret == 0);
         if (iret != 0) {
             // 是可能服务器不支持port命令, 关闭目标ftp的passive连接
-            iret = this->dconn->ftp->connectDataChannel();
-            assert(iret == 0);
+            // iret = this->dconn->ftp->connectDataChannel();
+            // assert(iret == 0);
             iret = this->dconn->ftp->closeDataChannel();
             q_debug()<<"maybe the source ftp do not suppert port command.";
             return -1;
@@ -1724,20 +1724,27 @@ int Transportor::run_FTP_to_FTP_fxp(QString srcFile, QString destFile)   // 通�
     // dest 
     {
         QFileInfo fi(srcFile);
-        iret = this->dconn->ftp->put(fi.fileName());
+        iret = this->dconn->ftp->putNoWaitResponse(fi.fileName());
         assert(iret == 0);
     }
 
     // src 
     {
         QFileInfo fi(srcFile);
-        iret = this->sconn->ftp->get(fi.fileName());
+        iret = this->sconn->ftp->getNoWaitResponse(fi.fileName());
         assert(iret == 0);        
     }
-
+    // TODO fxp数据传输进度计算。
     // 是不是现在应该去读取ftp的ctrl socket的剩余信息了呢
-    iret = this->sconn->ftp->swallowResponse();
-    iret = this->dconn->ftp->swallowResponse();
+    iret = this->sconn->ftp->swallowResponse(); // src port ok
+    iret = this->dconn->ftp->swallowResponse(); // dest bin mode ready
+    iret = this->sconn->ftp->swallowResponse(); // src bin mode ready
+    // 这从开始，等待fxp数据传输完成，之后源和目的FTP都会返回，226 Transfer complete
+    
+    iret = this->sconn->ftp->waitForCtrlResponse();
+    iret = this->dconn->ftp->waitForCtrlResponse();
+
+    emit this->transfer_percent_changed(100, file_size, file_size);
 
     // 这儿应该有什么方法检测到两个服务器的传输进度及完成状态。
     q_debug()<<"fxp transport done.";

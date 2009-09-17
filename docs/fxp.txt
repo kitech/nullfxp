@@ -1,0 +1,23 @@
+dest:
+230 User gzleo logged in
+TYPE I
+200 Type set to I
+PORT 127,0,0,1,222,42
+STOR /home/gzleo/qt4-static-loongson.tar.bz2
+200 PORT command successful
+150 Opening BINARY mode data connection for /home/gzleo/qt4-static-loongson.tar.bz2
+226 Transfer complete
+
+src:
+TYPE I
+200 Type set to I
+PASS
+503 You are already logged in
+PASV
+227 Entering Passive Mode (127,0,0,1,222,42).
+RETR qt4-static-loongson.tar.bz2
+550 qt4-static-loongson.tar.bz2: No such file or directory
+RETR /home/gzleo/qt4-static-loongson.tar.bz2
+150 Opening BINARY mode data connection for /home/gzleo/qt4-static-loongson.tar.bz2
+226 Transfer complete
+
