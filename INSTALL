@@ -1,8 +1,15 @@
+INSTALL --- 
+;; 
+;; Author: liuguangzhao
+;; Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+;; URL: http://www.qtchina.net http://nullget.sourceforge.net
+;; Created: 2007-09-02 11:22:00 +0800
+;; Version: $Id$
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-nullfxp 在 *nix平台安装步骤：
+I) nullfxp 在 *nix平台安装步骤：
                                                 
-depens: 
-
+depens:
 1、 Qt 4 C++ Library 
 2、 OpenSSL Library
 3、 svn client
@@ -11,9 +18,9 @@ depens:
 1、Qt 4 装在 /usr/ 目录下，那么qmake 在/usr/bin/目录下
 2、OpenSSL 将在 /usr/ 目录下
 
-安装：
+安装步骤：
 bash> cd
-bash> svn co https://nullfxp.svn.sourceforge.net/svnroot/nullfxp/trunk nullfxp-svn
+bash> svn co http://nullfxp.svn.sourceforge.net/svnroot/nullfxp/trunk nullfxp-svn
 ...显示从svn下载下来的源码文件
 bash> cd nullfxp-svn
 bash> /usr/bin/qmake -v             ##确定你的Qt库版本,如下我版本如下，但至少需要Qt 4.0 或者以上版本
@@ -26,10 +33,12 @@ bash> make
 
 bash> ./bin/nullfxp
 
-可以开始使用了。
+可以开始使用nullfxp了。
+
+另外，在安装的时候，可以直接下载源代码包，解压编译安装。
+
+II) Windows XP+ 平台安装
+coming soon ...
 
 如果发现有什么问题，请发邮件到 liuguangzhao@users.sf.net 寻求帮助。
 或者也可以将您发现的本程序的 Bug 直接提交到此项目的 Bug 管理系统，地址是：http://www.qtchina.net/bug/
-
-( 2007/09/02 )
-
