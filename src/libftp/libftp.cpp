@@ -816,8 +816,8 @@ int LibFtp::port(const QString hostip, const short port) // fxp
 {
     QString hn = hostip;
     hn = hn.replace(".", ",");
-    quint8 p1 = port >> 8 & 0x0F;
-    quint8 p2 = port & 0x0F;
+    quint8 p1 = port >> 8 & 0x00FF;
+    quint8 p2 = port & 0x00FF;
 
 	QString cmd;
     QString sigLog;
@@ -837,7 +837,8 @@ int LibFtp::port(const QString hostip, const short port) // fxp
         replyText = ball;
         QStringList sl = replyText.split(" ");
         // assert(sl.at(0) == "200"); // maybe 500 Illegal PORT command
-        if (sl.at(0) == "200") {
+        // pure-ftpd: 501 Sorry, but I won't connect to ports < 1024
+        if (sl.at(0) == "200") {            
             return 0;
         }
 	}

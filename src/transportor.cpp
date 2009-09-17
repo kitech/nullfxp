@@ -226,7 +226,7 @@ void Transportor::run()
 // similar to current do_upload method
 int Transportor::run_FILE_to_SFTP()
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
     RemoteHostConnectThread *rhct = 0;
@@ -364,7 +364,7 @@ int Transportor::run_FILE_to_SFTP()
 
         this->transfer_ready_queue.erase(this->transfer_ready_queue.begin());
         this->transfer_done_queue.push_back(QPair<TaskPackage, TaskPackage>(src_atom_pkg, dest_atom_pkg));
-    } while (this->transfer_ready_queue.size() > 0 && user_canceled == false);
+    } while (this->transfer_ready_queue.size() > 0 && this->user_canceled == false);
 
     qDebug()<<"transfer_ret :"<< transfer_ret<<" ssh2 sftp shutdown:"<< this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
     //TODO 选择性关闭 ssh2 会话，有可能是 src  ,也有可能是dest 
@@ -649,9 +649,9 @@ int Transportor::run_SFTP_to_FILE()
        
         this->transfer_ready_queue.erase(this->transfer_ready_queue.begin());
         this->transfer_done_queue.push_back(QPair<TaskPackage, TaskPackage>(src_atom_pkg, dest_atom_pkg));
-    } while (this->transfer_ready_queue.size() > 0 && user_canceled == false) ;
+    } while (this->transfer_ready_queue.size() > 0 && this->user_canceled == false);
 
-    qDebug()<<"transfer_ret :"<< transfer_ret<<" ssh2 sftp shutdown:"<< this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
+    qDebug()<<"transfer_ret :"<<transfer_ret<<" ssh2 sftp shutdown:"<<this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
     //TODO 选择性关闭 ssh2 会话，有可能是 src  ,也有可能是dest 
     if (this->src_ssh2_sftp != 0) {
         libssh2_sftp_shutdown(this->src_ssh2_sftp);
@@ -903,12 +903,12 @@ int Transportor::run_SFTP_to_SFTP()
             q_debug()<<"src: "<< src_atom_pkg<<" dest:"<< dest_atom_pkg;
             this->error_code = 1;
             //assert ( 1 == 2 );
-            qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in " << __LINE__;
+            qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in "<< __LINE__;
         }
        
         this->transfer_ready_queue.erase(this->transfer_ready_queue.begin());
         this->transfer_done_queue.push_back(QPair<TaskPackage, TaskPackage>(src_atom_pkg, dest_atom_pkg));
-    } while (this->transfer_ready_queue.size() > 0 && user_canceled == false) ;
+    } while (this->transfer_ready_queue.size() > 0 && this->user_canceled == false);
 
     qDebug()<<" transfer_ret :"<< transfer_ret<<" ssh2 sftp shutdown:"<< this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
     //TODO 选择性关闭 ssh2 会话，有可能是 src  ,也有可能是dest 
@@ -1136,9 +1136,9 @@ int Transportor::run_FILE_to_FTP()
        
         this->transfer_ready_queue.erase(this->transfer_ready_queue.begin());
         this->transfer_done_queue.push_back(QPair<TaskPackage, TaskPackage>(src_atom_pkg, dest_atom_pkg));
-    } while (this->transfer_ready_queue.size() > 0 && user_canceled == false) ;
+    } while (this->transfer_ready_queue.size() > 0 && this->user_canceled == false);
 
-    qDebug()<<"transfer_ret :"<< transfer_ret <<" ssh2 sftp shutdown:"<< this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
+    qDebug()<<"transfer_ret :"<<transfer_ret <<" ssh2 sftp shutdown:"<<this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
     //TODO 选择性关闭 ssh2 会话，有可能是 src  ,也有可能是dest 
     if (this->user_canceled == true) {
         this->error_code = 3;
@@ -1350,12 +1350,12 @@ int Transportor::run_FTP_to_FILE()
             //TODO return a error value , not only error code 
             this->error_code = 1;
             //assert( 1 == 2 ); 
-            qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in " << __LINE__ ;
+            qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in "<<__LINE__;
         }
        
         this->transfer_ready_queue.erase(this->transfer_ready_queue.begin());
         this->transfer_done_queue.push_back(QPair<TaskPackage, TaskPackage>(src_atom_pkg, dest_atom_pkg));
-    } while (this->transfer_ready_queue.size() > 0 && user_canceled == false) ;
+    } while (this->transfer_ready_queue.size() > 0 && this->user_canceled == false);
 
     qDebug()<<" transfer_ret :"<<transfer_ret<< " ssh2 sftp shutdown:"<< this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
     //TODO 选择性关闭 ssh2 会话，有可能是 src  ,也有可能是dest 
@@ -1564,15 +1564,15 @@ int Transportor::run_FTP_to_FTP()        // 负责根据情况调用下面的两
         } else {
             //其他的情况暂时不考虑处理。跳过
             //TODO return a error value , not only error code
-            q_debug()<<"src: "<< src_atom_pkg<<" dest:"<< dest_atom_pkg;
+            q_debug()<<"src: "<< src_atom_pkg<<" dest:"<<dest_atom_pkg;
             this->error_code = 1;
             //assert(1 == 2);
-            qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in " << __LINE__;
+            qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in "<<__LINE__;
         }
        
         this->transfer_ready_queue.erase(this->transfer_ready_queue.begin());
         this->transfer_done_queue.push_back(QPair<TaskPackage, TaskPackage>(src_atom_pkg, dest_atom_pkg));
-    } while (this->transfer_ready_queue.size() > 0 && user_canceled == false) ;
+    } while (this->transfer_ready_queue.size() > 0 && this->user_canceled == false);
 
     qDebug()<<"transfer_ret :"<<transfer_ret<<"ssh2 sftp shutdown:"<< this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
     //TODO 选择性关闭 ssh2 会话，有可能是 src  ,也有可能是dest 
@@ -1861,12 +1861,12 @@ int Transportor::run_SFTP_to_FTP()
             q_debug()<<"src: "<< src_atom_pkg<<" dest:"<< dest_atom_pkg;
             this->error_code = 1;
             //assert ( 1 == 2 );
-            qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in " << __LINE__;
+            qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in "<<__LINE__;
         }
        
         this->transfer_ready_queue.erase(this->transfer_ready_queue.begin());
         this->transfer_done_queue.push_back(QPair<TaskPackage, TaskPackage>(src_atom_pkg, dest_atom_pkg));
-    } while (this->transfer_ready_queue.size() > 0 && user_canceled == false) ;
+    } while (this->transfer_ready_queue.size() > 0 && this->user_canceled == false);
 
     qDebug()<<"transfer_ret :"<<transfer_ret<<" ssh2 sftp shutdown:"<<this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
     //TODO 选择性关闭 ssh2 会话，有可能是 src  ,也有可能是dest 
@@ -2093,7 +2093,7 @@ int Transportor::run_FTP_to_SFTP()
        
         this->transfer_ready_queue.erase(this->transfer_ready_queue.begin());
         this->transfer_done_queue.push_back(QPair<TaskPackage, TaskPackage>(src_atom_pkg, dest_atom_pkg));
-    } while (this->transfer_ready_queue.size() > 0 && user_canceled == false);
+    } while (this->transfer_ready_queue.size() > 0 && this->user_canceled == false);
 
     qDebug()<<"transfer_ret :"<<transfer_ret<< " ssh2 sftp shutdown:"<< this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
     //TODO 选择性关闭 ssh2 会话，有可能是 src  ,也有可能是dest 
@@ -2491,7 +2491,7 @@ void Transportor::run_backup()
        
         this->transfer_ready_queue.erase(this->transfer_ready_queue.begin());
         this->transfer_done_queue.push_back(QPair<TaskPackage, TaskPackage>(src_atom_pkg, dest_atom_pkg));
-    } while (this->transfer_ready_queue.size() > 0 && user_canceled == false) ;
+    } while (this->transfer_ready_queue.size() > 0 && this->user_canceled == false);
 
     qDebug() << " transfer_ret :" << transfer_ret << " ssh2 sftp shutdown:"<< this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
     //TODO 选择性关闭 ssh2 会话，有可能是 src  ,也有可能是dest 
