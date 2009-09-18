@@ -530,14 +530,14 @@ void RemoteView::slot_mkdir()
 
 void RemoteView::slot_rmdir()
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
     if (ism == 0) {
         qDebug()<<" why???? no QItemSelectionModel??";
         QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
-        return  ;
+        return;
     }
     
     QModelIndexList mil = ism->selectedIndexes();
@@ -545,7 +545,7 @@ void RemoteView::slot_rmdir()
     if (mil.count() == 0) {
         qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
         QMessageBox::critical(this, tr("Waring..."), tr("No item selected")+"                         ");
-        return ;
+        return;
     }
     
     QModelIndex midx = mil.at(0);
@@ -553,26 +553,26 @@ void RemoteView::slot_rmdir()
         ? this->remote_dir_sort_filter_model_ex->mapToSource(midx)
         : this->remote_dir_sort_filter_model->mapToSource(midx);    
     directory_tree_item *dti = (directory_tree_item*) aim_midx.internalPointer();
-    QModelIndex parent_model =  aim_midx.parent() ;
+    QModelIndex parent_model =  aim_midx.parent();
     directory_tree_item *parent_item = (directory_tree_item*)parent_model.internalPointer();
     
     //TODO 检查所选择的项是不是目录
     
     this->remote_dir_model->slot_execute_command(parent_item, parent_model.internalPointer(),
-                                                 SSH2_FXP_RMDIR, dti->file_name   );
+                                                 SSH2_FXP_RMDIR, dti->file_name);
     
 }
 
 void RemoteView::rm_file_or_directory_recursively()
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
     if (ism == 0) {
-        qDebug()<<" why???? no QItemSelectionModel??";
+        qDebug()<<"why???? no QItemSelectionModel??";
         QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
-        return  ;
+        return;
     }
     
     QModelIndexList mil = ism->selectedIndexes();
@@ -580,7 +580,7 @@ void RemoteView::rm_file_or_directory_recursively()
     if (mil.count() == 0) {
         qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
         QMessageBox::critical(this, tr("Waring..."), tr("No item selected"));
-        return ;
+        return;
     }
     //TODO 处理多选的情况
     QModelIndex midx = mil.at(0);
@@ -589,8 +589,8 @@ void RemoteView::rm_file_or_directory_recursively()
         : this->remote_dir_sort_filter_model->mapToSource(midx);
     directory_tree_item *dti = (directory_tree_item*) aim_midx.internalPointer();
     if (QMessageBox::warning(this, tr("Warning:"), 
-                            tr("Are you sure remove this directory and it's subnodes"),
-                            QMessageBox::Yes, QMessageBox::Cancel) == QMessageBox::Yes) {
+                             tr("Are you sure remove this directory and it's subnodes"),
+                             QMessageBox::Yes, QMessageBox::Cancel) == QMessageBox::Yes) {
         QModelIndex parent_model =  aim_midx.parent() ;
         directory_tree_item *parent_item = (directory_tree_item*)parent_model.internalPointer();
         
@@ -601,22 +601,22 @@ void RemoteView::rm_file_or_directory_recursively()
 
 void RemoteView::slot_rename()
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
     if (ism == 0) {
         qDebug()<<" why???? no QItemSelectionModel??";
         QMessageBox::critical(this, tr("waring..."), tr("maybe you haven't connected"));                
-        return  ;
+        return;
     }
     
     QModelIndexList mil = ism->selectedIndexes();
     
     if (mil.count() == 0 ) {
-        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+        qDebug()<<"selectedIndexes count :"<< mil.count() << " why no item selected????";
         QMessageBox::critical(this, tr("waring..."), tr("no item selected"));
-        return ;
+        return;
     }
     this->curr_item_view->edit(mil.at(0));
 }
@@ -625,17 +625,17 @@ void RemoteView::slot_copy_path()
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
     if (ism == 0) {
-        qDebug()<<" why???? no QItemSelectionModel??";
+        qDebug()<<"why???? no QItemSelectionModel??";
         QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));
-        return  ;
+        return;
     }
     
     QModelIndexList mil = ism->selectedIndexes();
     
     if (mil.count() == 0) {
-        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+        qDebug()<<"selectedIndexes count :"<< mil.count() << " why no item selected????";
         QMessageBox::critical(this, tr("Waring..."), tr("No item selected")+"                         ");
-        return ;
+        return;
     }
     
     QModelIndex midx = mil.at(0);
@@ -652,9 +652,9 @@ void RemoteView::slot_copy_url()
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
     if (ism == 0) {
-        qDebug()<<" why???? no QItemSelectionModel??";
+        qDebug()<<"why???? no QItemSelectionModel??";
         QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));
-        return  ;
+        return;
     }
     
     QModelIndexList mil = ism->selectedIndexes();
@@ -662,7 +662,7 @@ void RemoteView::slot_copy_url()
     if (mil.count() == 0) {
         qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
         QMessageBox::critical(this, tr("Waring..."), tr("No item selected")+"                         ");
-        return ;
+        return;
     }
     
     QModelIndex midx = mil.at(0);

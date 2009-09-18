@@ -244,18 +244,18 @@ int  SSHDirRetriver::rm_file_or_directory_recursively()
     parent_item = cmd_item->parent_item;
     
     QString abs_path = cmd_item->parent_item->strip_path + "/" +  cmd_item->params;
-    qDebug()<< "abs  path :"<< abs_path;
+    qDebug()<<"abs path :"<<abs_path;
     
     if (sys_dirs.contains(abs_path)) {
-        qDebug()<<" rm  system directory recusively , this is danger.";
+        qDebug()<<"rm  system directory recusively , this is danger.";
     } else {
         //找到这个要删除的结点并删除
         for (unsigned int  i = 0 ; i < parent_item->child_items.size() ; i ++) {
             child_item = parent_item->child_items[i];
             if (child_item->file_name.compare( cmd_item->params ) == 0) {
-                qDebug()<<"found whill remove file:"<<child_item->strip_path;
+                qDebug()<<"found will remove file:"<<child_item->strip_path;
                 this->rm_file_or_directory_recursively_ex(child_item->strip_path);
-                break ;
+                break;
             }
         }
     }
@@ -268,7 +268,7 @@ int  SSHDirRetriver::rm_file_or_directory_recursively()
 //TODO 现在删除隐藏文件或者目录还有问题：即以  .  字符开头的项
 int SSHDirRetriver::rm_file_or_directory_recursively_ex(QString parent_path)  // <==> rm -rf
 {
-    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<<__FILE__;
     
     int exec_ret = -1;
    
@@ -307,14 +307,14 @@ int SSHDirRetriver::rm_file_or_directory_recursively_ex(QString parent_path)  //
     }
     
     //删除这个目录
-    abs_path = GlobalOption::instance()->remote_codec->fromUnicode(parent_path) ;//+ "/" + parent_item->file_name ;
+    abs_path = GlobalOption::instance()->remote_codec->fromUnicode(parent_path);//+ "/" + parent_item->file_name ;
     //qDebug()<<"rmdir: "<< abs_path;
     exec_ret = libssh2_sftp_rmdir(ssh2_sftp, abs_path.toAscii().data());
     if (exec_ret != 0) //可能这是一个文件，不是目录，那么使用删除文件的指令
     {
         exec_ret = libssh2_sftp_unlink(ssh2_sftp, abs_path.toAscii().data());
         if (exec_ret != 0) {
-            qDebug()<< "Can't remove file or directory ("<< libssh2_sftp_last_error(ssh2_sftp) <<"): "<< abs_path ;
+            qDebug()<< "Can't remove file or directory ("<< libssh2_sftp_last_error(ssh2_sftp) <<"): "<< abs_path;
         }
     }
     
@@ -338,7 +338,7 @@ int  SSHDirRetriver::rename()
     QString abs_path = cmd_item->parent_item->strip_path + "/" +  cmd_item->params.mid(0,sep_pos);
     QString abs_path_rename_to = cmd_item->parent_item->strip_path + "/" + cmd_item->params.mid(sep_pos+1,-1);
     
-    qDebug()<<"abs  path :"<<abs_path  
+    qDebug()<<"abs  path :"<<abs_path
             <<"abs path rename to ;"<<abs_path_rename_to;
     
     if (sys_dirs.contains(  abs_path )) {
@@ -367,7 +367,7 @@ int SSHDirRetriver::keep_alive()
 
     exec_ret = libssh2_sftp_stat(ssh2_sftp,full_path,&ssh2_sftp_attrib);
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<< " stat : "<< exec_ret
-            <<" sftp errno:"<< libssh2_sftp_last_error(ssh2_sftp) ;
+            <<"sftp errno:"<< libssh2_sftp_last_error(ssh2_sftp);
     //TODO 在网络失去连接的时候如何向上层类通知，并进行重新连接
     return exec_ret;
 }
