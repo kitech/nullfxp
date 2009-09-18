@@ -19,16 +19,20 @@
 
 #include "ui_fileproperties.h"
 
+class Connection;
+
 class FilePropertiesRetriveThread : public QThread
 {
     Q_OBJECT;
 public:
     FilePropertiesRetriveThread(LIBSSH2_SFTP *ssh2_sftp, QString file_path, QObject *parent = 0);
-    ~FilePropertiesRetriveThread();
+    FilePropertiesRetriveThread(Connection *conn, QString file_path, QObject *parent = 0);
+    virtual ~FilePropertiesRetriveThread();
     virtual void run ();
 signals:
     void file_attr_abtained(QString file_name, void *attr);
 private:
+    Connection *conn;
     LIBSSH2_SFTP *ssh2_sftp;
     QString file_path ;
 };
@@ -41,8 +45,9 @@ class FileProperties : public  QDialog
     Q_OBJECT;
 public:
     FileProperties(QWidget *parent = 0);
-    ~FileProperties();
+    virtual ~FileProperties();
     void set_ssh2_sftp(void *ssh2_sftp);
+    void setConnection(Connection *conn);
     
     void set_file_info_model_list(QModelIndexList &mil);
 
@@ -57,6 +62,7 @@ private:
 
     Ui::FileProperties ui_file_prop_dialog;
     LIBSSH2_SFTP *ssh2_sftp;
+    Connection *conn;
 };
 
 class LocalFileProperties: public QDialog

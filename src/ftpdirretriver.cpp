@@ -421,6 +421,9 @@ int FTPDirRetriver::keep_alive()
     char strip_path [PATH_MAX+1] = {0};
 
     //TODO 在网络失去连接的时候如何向上层类通知，并进行重新连接
+    assert(this->conn);
+    exec_ret = this->conn->ftp->noop();
+
     return exec_ret;
 }
 

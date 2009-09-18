@@ -26,12 +26,22 @@ extern QHash<QString, QString> gMimeHash;
 #warning "maybe there is some way to drop this thread"
 #endif
 
+#include "connection.h"
+
 FilePropertiesRetriveThread::FilePropertiesRetriveThread(LIBSSH2_SFTP *ssh2_sftp,
                                                          QString file_path, QObject *parent)
   : QThread(parent)
 {
     this->ssh2_sftp = ssh2_sftp;
     this->file_path = GlobalOption::instance()->remote_codec->fromUnicode(file_path);
+    this->conn = 0;
+}
+FilePropertiesRetriveThread::FilePropertiesRetriveThread(Connection *conn, QString file_path, QObject *parent)
+  : QThread(parent)
+{
+    this->ssh2_sftp = 0;
+    this->file_path = GlobalOption::instance()->remote_codec->fromUnicode(file_path);
+    this->conn = conn;
 }
 FilePropertiesRetriveThread::~FilePropertiesRetriveThread()
 {
@@ -40,8 +50,8 @@ void FilePropertiesRetriveThread::run()
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     int rv = 0;
-    LIBSSH2_SFTP_ATTRIBUTES * sftp_attrib = (LIBSSH2_SFTP_ATTRIBUTES*)malloc( sizeof( LIBSSH2_SFTP_ATTRIBUTES));
-    memset( sftp_attrib,0,sizeof( LIBSSH2_SFTP_ATTRIBUTES ));
+    LIBSSH2_SFTP_ATTRIBUTES *sftp_attrib = (LIBSSH2_SFTP_ATTRIBUTES*)malloc(sizeof(LIBSSH2_SFTP_ATTRIBUTES));
+    memset(sftp_attrib,0,sizeof( LIBSSH2_SFTP_ATTRIBUTES ));
 	rv = libssh2_sftp_stat(ssh2_sftp, file_path.toAscii().data(), sftp_attrib);
     if (rv != 0) {
         qDebug()<<this->file_path;
@@ -54,8 +64,10 @@ void FilePropertiesRetriveThread::run()
 FileProperties::FileProperties(QWidget *parent)
     : QDialog(parent)
 {
-	this->ui_file_prop_dialog.setupUi(this);
+    this->ssh2_sftp = 0;
+    this->conn = 0;
 
+	this->ui_file_prop_dialog.setupUi(this);
     this->ui_file_prop_dialog.label_13->setPixmap(QPixmap(":/icons/nullget-1.png").scaledToHeight(50));
 }
 
@@ -65,6 +77,10 @@ FileProperties::~FileProperties()
 void FileProperties::set_ssh2_sftp(void *ssh2_sftp)
 {
     this->ssh2_sftp = (LIBSSH2_SFTP*)ssh2_sftp;
+}
+void FileProperties::setConnection(Connection *conn)
+{
+    this->conn = conn;
 }
 
 void FileProperties::set_file_info_model_list(QModelIndexList &mil)
