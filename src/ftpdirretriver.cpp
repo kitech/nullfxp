@@ -215,11 +215,14 @@ int FTPDirRetriver::retrive_dir()
         this->conn->ftp->connectDataChannel();
         
         // list 
-        this->conn->ftp->list(parent_item->strip_path+"/");
+        this->conn->ftp->lista(parent_item->strip_path+"/");
         QVector<QUrlInfo> dirList = this->conn->ftp->getDirList();
-        for (int i = 0 ; i < dirList.count() ; i ++) {
+        for (int i = dirList.count() - 1 ; i >= 0 ; i--) {
             QUrlInfo ui = dirList.at(i);
             qDebug()<<ui.name()<<ui.lastModified()<<ui.permissions()<<ui.size()<<ui.isSymLink();
+            if (ui.name() == "." || ui.name() == "..") {
+                dirList.remove(i); // 去掉本目录及上级目录这个特殊目录
+            }
         }
         deltaItems = dirListToTreeNode(dirList, parent_item);
         //将多出的记录插入到树中
