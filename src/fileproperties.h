@@ -25,21 +25,23 @@ class FilePropertiesRetriveThread : public QThread
 {
     Q_OBJECT;
 public:
-    FilePropertiesRetriveThread(LIBSSH2_SFTP *ssh2_sftp, QString file_path, QObject *parent = 0);
-    FilePropertiesRetriveThread(Connection *conn, QString file_path, QObject *parent = 0);
+    FilePropertiesRetriveThread(Connection *conn, LIBSSH2_SFTP *ssh2_sftp, QString file_path, QObject *parent = 0);
     virtual ~FilePropertiesRetriveThread();
-    virtual void run ();
+    virtual void run();
+    virtual void run_sftp();
+    virtual void run_ftp();
+
 signals:
     void file_attr_abtained(QString file_name, void *attr);
 private:
     Connection *conn;
     LIBSSH2_SFTP *ssh2_sftp;
-    QString file_path ;
+    QString file_path;
 };
 
 /**
-	@author liuguangzhao <gzl@localhost>
-*/
+ * @author liuguangzhao <gzl@localhost>
+ */
 class FileProperties : public  QDialog
 {
     Q_OBJECT;

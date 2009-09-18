@@ -27,37 +27,153 @@ extern QHash<QString, QString> gMimeHash;
 #endif
 
 #include "connection.h"
+#include "libftp/libftp.h"
 
-FilePropertiesRetriveThread::FilePropertiesRetriveThread(LIBSSH2_SFTP *ssh2_sftp,
+static int QUrlInfo2LIBSSH2_SFTP_ATTRIBUTES(QUrlInfo &ui, LIBSSH2_SFTP_ATTRIBUTES *attr)
+{
+    assert(attr != NULL);
+    int perm = ui.permissions();
+
+    memset(attr, 0, sizeof(*attr));
+    attr->filesize = ui.size();
+    attr->atime = ui.lastRead().toTime_t();
+    attr->mtime = ui.lastModified().toTime_t();
+
+    if (ui.isFile() && !ui.isSymLink()) {
+        attr->permissions |= S_IFREG;
+    } else if (ui.isSymLink()) {
+        attr->permissions |= S_IFLNK;
+    } else if (ui.isDir()) {
+        attr->permissions |= S_IFDIR;
+    } else {
+        qDebug()<<"unknown file type:"<<ui.name();
+    }
+
+    if (perm & QUrlInfo::ReadOwner) {
+        attr->permissions |= S_IRUSR;
+    }
+    if (perm & QUrlInfo::WriteOwner) {
+        attr->permissions |= S_IWUSR;
+    }
+    if (perm & QUrlInfo::ExeOwner) {
+        attr->permissions |= S_IXUSR;
+    }
+
+    if (perm & QUrlInfo::ReadGroup) {
+        attr->permissions |= S_IRGRP;
+    }
+    if (perm & QUrlInfo::WriteGroup) {
+        attr->permissions |= S_IWGRP;
+    }
+    if (perm & QFile::ExeGroup) {
+        attr->permissions |= S_IXGRP;
+    }
+
+    if (perm & QUrlInfo::ReadOther) {
+        attr->permissions |= S_IROTH;
+    }
+    if (perm & QUrlInfo::WriteOther) {
+        attr->permissions |= S_IWOTH;
+    }
+    if (perm & QUrlInfo::ExeOther) {
+        attr->permissions |= S_IXOTH;
+    }
+
+    // TODO how got uid and gid. ftp not given it?
+    return 0;
+}
+
+FilePropertiesRetriveThread::FilePropertiesRetriveThread(Connection *conn, LIBSSH2_SFTP *ssh2_sftp, 
                                                          QString file_path, QObject *parent)
   : QThread(parent)
 {
     this->ssh2_sftp = ssh2_sftp;
-    this->file_path = GlobalOption::instance()->remote_codec->fromUnicode(file_path);
-    this->conn = 0;
-}
-FilePropertiesRetriveThread::FilePropertiesRetriveThread(Connection *conn, QString file_path, QObject *parent)
-  : QThread(parent)
-{
-    this->ssh2_sftp = 0;
     this->file_path = GlobalOption::instance()->remote_codec->fromUnicode(file_path);
     this->conn = conn;
 }
 FilePropertiesRetriveThread::~FilePropertiesRetriveThread()
 {
 }
+
 void FilePropertiesRetriveThread::run()
+{
+    assert(this->conn != NULL);
+    if (this->conn->protocolType() == Connection::PROTO_SFTP) {
+        this->run_sftp();
+    } else if (this->conn->protocolType() == Connection::PROTO_FTP) {
+        this->run_ftp();
+    } else {
+        assert(0);
+    }
+}
+
+void FilePropertiesRetriveThread::run_sftp()
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     int rv = 0;
     LIBSSH2_SFTP_ATTRIBUTES *sftp_attrib = (LIBSSH2_SFTP_ATTRIBUTES*)malloc(sizeof(LIBSSH2_SFTP_ATTRIBUTES));
-    memset(sftp_attrib,0,sizeof( LIBSSH2_SFTP_ATTRIBUTES ));
+
+    memset(sftp_attrib, 0, sizeof(LIBSSH2_SFTP_ATTRIBUTES));
+
 	rv = libssh2_sftp_stat(ssh2_sftp, file_path.toAscii().data(), sftp_attrib);
     if (rv != 0) {
         qDebug()<<this->file_path;
         qDebug()<<"sftp stat error:"<<libssh2_sftp_last_error(ssh2_sftp);
     }
-    emit file_attr_abtained(this->file_path, sftp_attrib);
+    emit file_attr_abtained(this->file_path, sftp_attrib);    
+}
+void FilePropertiesRetriveThread::run_ftp()
+{
+    //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    int rv = 0;
+    LIBSSH2_SFTP_ATTRIBUTES *sftp_attrib = (LIBSSH2_SFTP_ATTRIBUTES*)malloc(sizeof(LIBSSH2_SFTP_ATTRIBUTES));
+    memset(sftp_attrib, 0, sizeof(LIBSSH2_SFTP_ATTRIBUTES));
+    LibFtp *ftp = this->conn->ftp;
+    QVector<QUrlInfo> fileList;
+
+    rv = ftp->chdir(this->file_path);
+    if (rv == 0) {
+        // it is dir
+        rv = ftp->passive();
+        assert(rv == 0);
+        rv = ftp->connectDataChannel();
+        assert(rv == 0);
+        rv = ftp->lista(this->file_path);
+        assert(rv == 0);
+        rv = ftp->closeDataChannel();
+        fileList = ftp->getDirList();
+        // lista的结果有时候是该目录下的文件和子目录，
+        // 有时候是这个目录本身
+        if (fileList.count() == 1) {
+            QUrlInfo ui = fileList.at(0);
+            rv = QUrlInfo2LIBSSH2_SFTP_ATTRIBUTES(ui, sftp_attrib);
+        } else {
+            for (int i = 0; i < fileList.count(); ++i) {
+                if (fileList.at(i).name() == ".") {
+                    QUrlInfo ui = fileList.at(i);
+                    rv = QUrlInfo2LIBSSH2_SFTP_ATTRIBUTES(ui, sftp_attrib);
+                    break;
+                }
+            }
+        }
+    } else {
+        rv = ftp->passive();
+        assert(rv == 0);
+        rv = ftp->connectDataChannel();
+        assert(rv == 0);
+        rv = ftp->list(this->file_path);
+        assert(rv == 0);
+        rv = ftp->closeDataChannel();
+        fileList = ftp->getDirList();
+        if (fileList.count() == 1) {
+            QUrlInfo ui = fileList.at(0);
+            rv = QUrlInfo2LIBSSH2_SFTP_ATTRIBUTES(ui, sftp_attrib);
+        } else {
+            assert(0);
+        }
+    }
+
+    emit file_attr_abtained(this->file_path, sftp_attrib);    
 }
 
 ///////////////////////////////////////////////////
@@ -113,10 +229,11 @@ void FileProperties::set_file_info_model_list(QModelIndexList &mil)
     }
     
     QString file_path = this->ui_file_prop_dialog.lineEdit_3->text()
-        + QString ( "/" ) + this->ui_file_prop_dialog.lineEdit->text() ;
+        + QString("/") + this->ui_file_prop_dialog.lineEdit->text();
 
     FilePropertiesRetriveThread *rt = 0;
-    rt = new FilePropertiesRetriveThread(this->ssh2_sftp, file_path, this);
+    // rt = new FilePropertiesRetriveThread(this->ssh2_sftp, file_path, this);
+    rt = new FilePropertiesRetriveThread(this->conn, this->ssh2_sftp, file_path, this);
     QObject::connect(rt, SIGNAL(file_attr_abtained(QString, void*)), 
                      this, SLOT(slot_file_attr_abtained(QString, void*)));
     rt->start();
@@ -284,7 +401,6 @@ LocalFileProperties::~LocalFileProperties()
 
 void LocalFileProperties::set_file_info_model_list(QString file_name)
 {
-
     this->ui_file_prop_dialog.label_13->setPixmap(this->fileIcon(file_name).pixmap(50, 50).scaledToHeight(50));
 
     QFileInfo fi(file_name);
@@ -345,20 +461,20 @@ void LocalFileProperties::update_perm_table(QString file_name)
     QFile::Permissions fp = fi.permissions();
 
     {
-        this->ui_file_prop_dialog.checkBox->setChecked ( fp & QFile::ReadOwner/*rp=='r'*/ );
-        this->ui_file_prop_dialog.checkBox_2->setChecked ( fp & QFile::WriteOwner/*wp=='w'*/ );
-        this->ui_file_prop_dialog.checkBox_3->setChecked ( fp & QFile::ExeOwner/*xp=='x'*/ );
+        this->ui_file_prop_dialog.checkBox->setChecked(fp & QFile::ReadOwner/*rp=='r'*/);
+        this->ui_file_prop_dialog.checkBox_2->setChecked(fp & QFile::WriteOwner/*wp=='w'*/);
+        this->ui_file_prop_dialog.checkBox_3->setChecked(fp & QFile::ExeOwner/*xp=='x'*/);
     }
     {
-        this->ui_file_prop_dialog.checkBox_4->setChecked ( fp & QFile::ReadGroup /*rp=='r'*/ );
-        this->ui_file_prop_dialog.checkBox_5->setChecked (fp & QFile::WriteGroup /*wp=='w'*/ );
-        this->ui_file_prop_dialog.checkBox_6->setChecked (fp & QFile::ExeGroup /*xp=='x'*/ );
+        this->ui_file_prop_dialog.checkBox_4->setChecked(fp & QFile::ReadGroup /*rp=='r'*/);
+        this->ui_file_prop_dialog.checkBox_5->setChecked(fp & QFile::WriteGroup /*wp=='w'*/);
+        this->ui_file_prop_dialog.checkBox_6->setChecked(fp & QFile::ExeGroup /*xp=='x'*/);
     }
     {
 
-        this->ui_file_prop_dialog.checkBox_7->setChecked (fp & QFile::ReadOther/*rp=='r'*/ );
-        this->ui_file_prop_dialog.checkBox_8->setChecked (fp & QFile::WriteOther /*wp=='w'*/ );
-        this->ui_file_prop_dialog.checkBox_9->setChecked (fp & QFile::ExeOther /*xp=='x'*/ );
+        this->ui_file_prop_dialog.checkBox_7->setChecked(fp & QFile::ReadOther/*rp=='r'*/);
+        this->ui_file_prop_dialog.checkBox_8->setChecked(fp & QFile::WriteOther /*wp=='w'*/);
+        this->ui_file_prop_dialog.checkBox_9->setChecked(fp & QFile::ExeOther /*xp=='x'*/);
     }
 }
 

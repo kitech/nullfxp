@@ -371,7 +371,7 @@ void FTPView::slot_custom_ui_area()
     
     QSizePolicy sp;
     sp.setVerticalPolicy(QSizePolicy::Ignored);
-    this->remoteview.listView->setSizePolicy( sp ) ;
+    this->remoteview.listView->setSizePolicy(sp);
     //这个设置必须在show之前设置才有效果
     this->remoteview.splitter->setStretchFactor(0,1);
     this->remoteview.splitter->setStretchFactor(1,2);
@@ -453,11 +453,11 @@ void FTPView::slot_show_properties()
     
     if (ism == 0) {
         qDebug()<<" why???? no QItemSelectionModel??";        
-        return ;
+        return;
     }
     
     QModelIndexList mil = ism->selectedIndexes();
-    QModelIndexList aim_mil ;
+    QModelIndexList aim_mil;
     if (this->curr_item_view == this->remoteview.treeView) {
         for (int i = 0 ; i < mil.count() ; i ++) {
             aim_mil << this->remote_dir_sort_filter_model_ex->mapToSource(mil.at(i));
@@ -473,8 +473,9 @@ void FTPView::slot_show_properties()
     }
     //  文件类型，大小，几个时间，文件权限
     //TODO 从模型中取到这些数据并显示在属性对话框中。
-    FileProperties * fp = new FileProperties(this);
-    fp->set_ssh2_sftp(this->ssh2_sftp);
+    FileProperties *fp = new FileProperties(this);
+    // fp->set_ssh2_sftp(this->ssh2_sftp);
+    fp->setConnection(this->conn);
     fp->set_file_info_model_list(aim_mil);
     fp->exec();
     delete fp ;
@@ -482,14 +483,14 @@ void FTPView::slot_show_properties()
 
 void FTPView::slot_mkdir()
 {
-    QString dir_name ;
+    QString dir_name;
     
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
     if (ism == 0) {
         qDebug()<<" why???? no QItemSelectionModel??";
         QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
-        return ;
+        return;
     }
     
     QModelIndexList mil = ism->selectedIndexes();

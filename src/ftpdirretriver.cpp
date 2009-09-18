@@ -107,8 +107,8 @@ void FTPDirRetriver::run()
 
 static int QUrlInfo2LIBSSH2_SFTP_ATTRIBUTES(QUrlInfo &ui, LIBSSH2_SFTP_ATTRIBUTES *attr)
 {
-    int perm = ui.permissions();
     assert(attr != NULL);
+    int perm = ui.permissions();
 
     memset(attr, 0, sizeof(*attr));
     attr->filesize = ui.size();
@@ -125,38 +125,40 @@ static int QUrlInfo2LIBSSH2_SFTP_ATTRIBUTES(QUrlInfo &ui, LIBSSH2_SFTP_ATTRIBUTE
         qDebug()<<"unknown file type:"<<ui.name();
     }
 
-    if (perm & QFile::ReadUser) {
+    if (perm & QUrlInfo::ReadOwner) {
         attr->permissions |= S_IRUSR;
     }
-    if (perm & QFile::WriteUser) {
+    if (perm & QUrlInfo::WriteOwner) {
         attr->permissions |= S_IWUSR;
     }
-    if (perm & QFile::ExeUser) {
+    if (perm & QUrlInfo::ExeOwner) {
         attr->permissions |= S_IXUSR;
     }
 
-    if (perm & QFile::ReadGroup) {
+    if (perm & QUrlInfo::ReadGroup) {
         attr->permissions |= S_IRGRP;
     }
-    if (perm & QFile::WriteGroup) {
+    if (perm & QUrlInfo::WriteGroup) {
         attr->permissions |= S_IWGRP;
     }
     if (perm & QFile::ExeGroup) {
         attr->permissions |= S_IXGRP;
     }
 
-    if (perm & QFile::ReadOther) {
+    if (perm & QUrlInfo::ReadOther) {
         attr->permissions |= S_IROTH;
     }
-    if (perm & QFile::WriteOther) {
+    if (perm & QUrlInfo::WriteOther) {
         attr->permissions |= S_IWOTH;
     }
-    if (perm & QFile::ExeOther) {
+    if (perm & QUrlInfo::ExeOther) {
         attr->permissions |= S_IXOTH;
     }
 
     // TODO how got uid and gid. ftp not given it?
+    return 0;
 }
+
 static QVector<directory_tree_item *> dirListToTreeNode(QVector<QUrlInfo> &dirList, directory_tree_item *pnode)
 {
     QVector<directory_tree_item *> nodes;

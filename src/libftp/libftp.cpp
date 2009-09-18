@@ -390,6 +390,69 @@ int LibFtp::list(QString path)
     return 0;
 }
 
+int LibFtp::lista(QString path)
+{
+	QString cmd;
+    QString sigLog;
+    QString replyText;
+
+    assert(this->qsock->bytesAvailable() == 0);
+    // sigLog = this->readAll(this->qsock);
+    // q_debug()<<sigLog;
+
+    this->dirList.clear();
+	cmd = QString("LIST -a %1\r\n").arg(path);
+
+	this->qsock->write(cmd.toAscii());
+	qDebug()<<cmd;
+	
+	if (this->qsock->waitForBytesWritten()) {
+		QByteArray ball;
+		//read response
+		ball = this->readAll(this->qsock);
+		qDebug()<<ball;
+        replyText = ball;
+        QStringList sl = replyText.split("\n");
+        sl = sl.at(sl.count() - 2).split(" ");
+        assert(sl.at(0) == "150");
+
+        // ball = this->readAll(this->qdsock);
+        // qDebug()<<ball;
+        this->qdsock->waitForReadyRead();
+        qDebug()<<this->qdsock->canReadLine();
+        while (this->qdsock->canReadLine()) {
+            QUrlInfo i;
+            QByteArray line = this->qdsock->readLine();
+            qDebug("QFtpDTP read (list): '%s'", line.constData());
+
+            if (this->parseDir(line, QLatin1String(""), &i)) {
+                // emit listInfo(i);
+                this->dirList.append(i);
+            } else {
+                // some FTP servers don't return a 550 if the file or directory
+                // does not exist, but rather write a text to the data socket
+                // -- try to catch these cases
+                if (line.endsWith("No such file or directory\r\n"))
+                    // err = QString::fromLatin1(line);
+                    qDebug()<<line;
+            }
+        }
+        this->qdsock->close();
+        delete this->qdsock;
+        this->qdsock = NULL;
+
+		ball = this->readAll(this->qsock);
+		qDebug()<<ball;
+        replyText = ball;
+        sl = replyText.split("\n");
+        sl = sl.at(sl.count() - 2).split(" ");
+        assert(sl.at(0) == "226");
+        return 0;
+	}
+
+	return -1;
+}
+
 int LibFtp::passive()
 {
 	QString cmd;

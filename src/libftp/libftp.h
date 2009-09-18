@@ -28,6 +28,7 @@ public:
     int connectDataChannel();
     int closeDataChannel();
     int list(QString path);
+    int lista(QString path);
     int nlist(QString path);
     int pwd(QString &path); // returned path
     int mkdir(QString path);

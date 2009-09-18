@@ -451,11 +451,11 @@ void RemoteView::slot_show_properties()
     
     if (ism == 0) {
         qDebug()<<" why???? no QItemSelectionModel??";        
-        return ;
+        return;
     }
     
     QModelIndexList mil = ism->selectedIndexes();
-    QModelIndexList aim_mil ;
+    QModelIndexList aim_mil;
     if (this->curr_item_view == this->remoteview.treeView) {
         for (int i = 0 ; i < mil.count() ; i ++) {
             aim_mil << this->remote_dir_sort_filter_model_ex->mapToSource(mil.at(i));
@@ -471,11 +471,12 @@ void RemoteView::slot_show_properties()
     }
     //  文件类型，大小，几个时间，文件权限
     //TODO 从模型中取到这些数据并显示在属性对话框中。
-    FileProperties * fp = new FileProperties(this);
+    FileProperties *fp = new FileProperties(this);
     fp->set_ssh2_sftp(this->ssh2_sftp);
+    fp->setConnection(this->conn);
     fp->set_file_info_model_list(aim_mil);
     fp->exec();
-    delete fp ;
+    delete fp;
 }
 
 void RemoteView::slot_mkdir()
