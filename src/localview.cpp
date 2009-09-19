@@ -263,9 +263,11 @@ void LocalView::update_layout()
 void LocalView::closeEvent(QCloseEvent * event)
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    event->ignore ();
+    event->ignore();
     //this->setVisible(false); 
-    QMessageBox::information(this, tr("Attemp to close this window?"), tr("Close this window is not needed."));
+    // QMessageBox::information(this, tr("Attemp to close this window?"), tr("Close this window is not needed."));
+    // 把这个窗口最小化是不是好些。
+    this->showMinimized();
 }
 
 void LocalView::slot_dir_tree_item_clicked(const QModelIndex & index)

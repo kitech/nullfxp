@@ -45,6 +45,8 @@ int LibFtp::connect(const QString host, short port)
         qDebug()<<"Got server banner:"<<this->servBanner;
     } else {
         qDebug()<<this->qsock->errorString();
+        this->errno = -1;
+        this->errmsg = this->qsock->errorString();
         return -1; // Connection::CONN_OTHER;
     }
 
@@ -627,8 +629,14 @@ int LibFtp::put(const QString fileName)
         qDebug()<<ball;
         replyText = ball;
         QStringList sl = replyText.split(" ");
-        assert(sl.at(0) == "150"); // 550 no such file // 553 Disk full - please upload later
-        return 0;
+        this->setError(150, replyText);
+        // assert(sl.at(0) == "150");
+        // 550 no such file 
+        // 553 Disk full - please upload later
+        // 550 Permission denied.
+        if (sl.at(0) == "150") {
+            return 0;
+        }
 	}
     
     return -1;
@@ -1033,15 +1041,40 @@ int LibFtp::waitForCtrlResponse()
     return -1;
 }
 
-QString LibFtp::error()
+QString LibFtp::errorString()
 {
     if (this->qsock != NULL) {
-        return this->qsock->errorString();
+        // return this->qsock->errorString();
+        return this->errmsg;
     }
     return QString();
 }
 
 /// private
+void LibFtp::setError(int okno, QString msg)
+{
+    if (msg.isEmpty()) {
+        return;
+    }
+    QStringList sl = msg.split(" ");
+    if (okno == sl.at(0).toInt()) {
+        this->errno = 0;
+        this->errmsg = "Sucess.";
+    } else {
+        switch (sl.at(0).toInt()) {
+        case 0:
+            qDebug()<<__FILE__<<__LINE__<<"No response.";
+            this->errno = 600;
+            this->errmsg = "No response.";
+            break;
+        default:
+            this->errno = sl.at(0).toInt();
+            this->errmsg = msg.trimmed();
+            break;
+        };
+    }
+}
+
 QByteArray LibFtp::readAll(QTcpSocket *sock)
 {
 	QByteArray ball;

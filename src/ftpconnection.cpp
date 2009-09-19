@@ -29,14 +29,14 @@ int FTPConnection::connect()
     emit connect_state_changed(tr("Connecting to %1:%2 ...")
                                .arg(this->hostName).arg(this->port));
     if (this->ftp->connect(this->hostName, this->port) != 0) {
-        emit connect_state_changed(tr("Connect error: ") + this->ftp->error());
+        emit connect_state_changed(tr("Connect error: ") + this->ftp->errorString());
         return Connection::CONN_OTHER;
     }
     emit connect_state_changed(tr("Connect OK %1:%2. Login %3@%4 ...")
                                .arg(this->hostName).arg(this->port)
                                .arg(this->userName).arg(this->hostName));
     if (this->ftp->login(this->userName, this->password) != 0) {
-        emit connect_state_changed(tr("Connect error: ") + this->ftp->error());
+        emit connect_state_changed(tr("Connect error: ") + this->ftp->errorString());
         return Connection::CONN_AUTH_ERROR;
     }
 
@@ -44,7 +44,7 @@ int FTPConnection::connect()
     if (this->ftp->pwd(this->homePath) != 0) {
         q_debug()<<"ftp home path error:";
         this->homePath = QString("/"); // set default homePath of ftp
-        emit connect_state_changed(tr("Connect error:") + this->ftp->error());
+        emit connect_state_changed(tr("Connect error:") + this->ftp->errorString());
     }
     emit connect_state_changed(tr("Connect done."));
     

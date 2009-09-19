@@ -57,13 +57,14 @@ public:
     QVector<QUrlInfo> getDirList();
     QString getServerBanner();
     QTcpSocket *getDataSocket();
-    QString error();
+    QString errorString();
     
 private:
     int parsePasvPort(QString &host, short &port);
     QByteArray readAll(QTcpSocket *sock);
     QByteArray readAllByEndSymbol(QTcpSocket *sock);
     bool parseDir(const QByteArray &buffer, const QString &userName, QUrlInfo *info);
+    void setError(int okno, QString msg);
 
 private:
     QTcpSocket *qsock;
@@ -72,6 +73,8 @@ private:
     short pasvPort;
     QVector<QUrlInfo> dirList;
     QString servBanner;
+    int errno;
+    QString errmsg;
 };
 
         
