@@ -73,7 +73,7 @@ private:
     short pasvPort;
     QVector<QUrlInfo> dirList;
     QString servBanner;
-    int errno;
+    int errnum;
     QString errmsg;
 };
 
