@@ -574,8 +574,13 @@ int LibFtp::rmdir(const QString path)
 		qDebug()<<ball;
         replyText = ball;
         QStringList sl = replyText.split(" ");
-        assert(sl.at(0) == "250"); // 550 no such file
-        return 0;
+        // assert(sl.at(0) == "250"); // 550 no such file
+        // 550 Can't remove directory: Directory not empty
+        if (sl.at(0) == "250") {
+            return 0;
+        } else {
+            qDebug()<<"cmd faild: "<<replyText.trimmed();
+        }
 	}
 
 	return -1;
@@ -724,8 +729,13 @@ int LibFtp::remove(const QString path)
 		qDebug()<<ball;
         replyText = ball;
         QStringList sl = replyText.split(" ");
-        assert(sl.at(0) == "250"); // 500 no such file
-        return 0;
+        // assert(sl.at(0) == "250"); // 500 no such file
+        // 550 Prohibited file name
+        if (sl.at(0) == "250") {
+            return 0;
+        } else {
+            qDebug()<<"cmd faild: "<<replyText.trimmed();
+        }
 	}
 
 	return -1;

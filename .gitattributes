@@ -149,6 +149,7 @@ src/icons/mimetypes/application-x-kvtml.png -text
 src/icons/mimetypes/application-x-lha.png -text
 src/icons/mimetypes/application-x-lyx.png -text
 src/icons/mimetypes/application-x-lzma-compressed-tar.png -text
+src/icons/mimetypes/application-x-lzma.png -text
 src/icons/mimetypes/application-x-lzop.png -text
 src/icons/mimetypes/application-x-m4.png -text
 src/icons/mimetypes/application-x-marble.png -text

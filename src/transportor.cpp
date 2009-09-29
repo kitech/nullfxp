@@ -730,7 +730,7 @@ int Transportor::run_SFTP_to_FILE(QString srcFile, QString destFile)
             local_file_size = QString("%1").arg(fi.size());
             local_file_date = fi.lastModified ().toString();
             remote_file_size = QString("%1").arg(ssh2_sftp_attrib.filesize);
-            QDateTime remote_mtime ;
+            QDateTime remote_mtime;
             remote_mtime.setTime_t(ssh2_sftp_attrib.mtime);
             remote_file_date = remote_mtime.toString();
             emit this->dest_file_exists(destFile, remote_file_size, remote_file_date,
@@ -783,7 +783,7 @@ int Transportor::run_SFTP_to_SFTP()
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
-    RemoteHostConnectThread *rhct = 0 ;
+    RemoteHostConnectThread *rhct = 0;
 
     int rv = -1;
     int transfer_ret = -1;
