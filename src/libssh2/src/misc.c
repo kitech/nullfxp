@@ -78,7 +78,7 @@ static int wsa2errno(void)
  * to set errno
  */
 ssize_t
-_libssh2_recv(int socket, void *buffer, size_t length, int flags)
+_libssh2_recv(libssh2_socket_t socket, void *buffer, size_t length, int flags)
 {
     ssize_t rc = recv(socket, buffer, length, flags);
 #ifdef WIN32
@@ -97,7 +97,7 @@ _libssh2_recv(int socket, void *buffer, size_t length, int flags)
  * to set errno
  */
 ssize_t
-_libssh2_send(int socket, const void *buffer, size_t length, int flags)
+_libssh2_send(libssh2_socket_t socket, const void *buffer, size_t length, int flags)
 {
     ssize_t rc = send(socket, buffer, length, flags);
 #ifdef WIN32
@@ -426,3 +426,81 @@ void _libssh2_list_remove(struct list_node *entry)
     else
         entry->head->last = entry->prev;
 }
+
+#if 0
+/* insert a node before the given 'after' entry */
+void _libssh2_list_insert(struct list_node *after, /* insert before this */
+                          struct list_node *entry)
+{
+    /* 'after' is next to 'entry' */
+    bentry->next = after;
+
+    /* entry's prev is then made to be the prev after current has */
+    entry->prev = after->prev;
+
+    /* the node that is now before 'entry' was previously before 'after'
+       and must be made to point to 'entry' correctly */
+    if(entry->prev)
+        entry->prev->next = entry;
+
+    /* after's prev entry points back to entry */
+    after->prev = entry;
+
+    /* after's next entry is still the same as before */
+
+    /* entry's head is the same as after's */
+    entry->head = after->head;
+}
+
+#endif
+
+
+
+#ifdef WIN32
+/*
+ * gettimeofday
+ * Implementation according to:
+ * The Open Group Base Specifications Issue 6
+ * IEEE Std 1003.1, 2004 Edition
+ */
+  
+/*
+ *  THIS SOFTWARE IS NOT COPYRIGHTED
+ *
+ *  This source code is offered for use in the public domain. You may
+ *  use, modify or distribute it freely.
+ *
+ *  This code is distributed in the hope that it will be useful but
+ *  WITHOUT ANY WARRANTY. ALL WARRANTIES, EXPRESS OR IMPLIED ARE HEREBY
+ *  DISCLAIMED. This includes but is not limited to warranties of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ *  Contributed by:
+ *  Danny Smith <dannysmith@users.sourceforge.net>
+ */
+
+/* Offset between 1/1/1601 and 1/1/1970 in 100 nanosec units */
+#define _W32_FT_OFFSET (116444736000000000ULL)
+
+
+int __cdecl gettimeofday(struct timeval *tp,
+                         void *tzp)
+ {
+  union {
+    unsigned long long ns100; /*time since 1 Jan 1601 in 100ns units */
+    FILETIME ft;
+  }  _now;
+
+  if(tp)
+    {
+      GetSystemTimeAsFileTime (&_now.ft);
+      tp->tv_usec=(long)((_now.ns100 / 10ULL) % 1000000ULL );
+      tp->tv_sec= (long)((_now.ns100 - _W32_FT_OFFSET) / 10000000ULL);
+    }
+  /* Always return 0 as per Open Group Base Specifications Issue 6.
+     Do not set errno on error.  */
+  return 0;
+}
+
+
+#endif

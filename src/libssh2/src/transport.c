@@ -95,10 +95,10 @@ debugdump(LIBSSH2_SESSION * session,
 
 /* decrypt() decrypts 'len' bytes from 'source' to 'dest'.
  *
- * returns PACKET_NONE on success and PACKET_FAIL on failure
+ * returns 0 on success and negative on failure
  */
 
-static libssh2pack_t
+static int
 decrypt(LIBSSH2_SESSION * session, unsigned char *source,
         unsigned char *dest, int len)
 {
@@ -134,7 +134,7 @@ decrypt(LIBSSH2_SESSION * session, unsigned char *source,
  * fullpacket() gets called when a full packet has been received and properly
  * collected.
  */
-static libssh2pack_t
+static int
 fullpacket(LIBSSH2_SESSION * session, int encrypted /* 1 or 0 */ )
 {
     unsigned char macbuf[MAX_MACSIZE];
@@ -232,11 +232,8 @@ fullpacket(LIBSSH2_SESSION * session, int encrypted /* 1 or 0 */ )
         rc = _libssh2_packet_add(session, p->payload,
                                  session->fullpacket_payload_len,
                                  session->fullpacket_macstate);
-        if (rc == PACKET_EAGAIN) {
-            return PACKET_EAGAIN;
-        } else if (rc < 0) {
-            return PACKET_FAIL;
-        }
+        if (rc)
+            return rc;
     }
 
     session->fullpacket_state = libssh2_NB_state_idle;
@@ -248,22 +245,21 @@ fullpacket(LIBSSH2_SESSION * session, int encrypted /* 1 or 0 */ )
 /*
  * _libssh2_transport_read
  *
- * Collect a packet into the input brigade block only controls whether or not
- * to wait for a packet to start.
+ * Collect a packet into the input queue.
  *
- * Returns packet type added to input brigade (PACKET_NONE if nothing added),
- * or PACKET_FAIL on failure and PACKET_EAGAIN if it couldn't process a full
- * packet.
+ * Returns packet type added to input queue (0 if nothing added), or a
+ * negative error number.
  */
 
 /*
  * This function reads the binary stream as specified in chapter 6 of RFC4253
  * "The Secure Shell (SSH) Transport Layer Protocol"
+ *
+ * DOES NOT call libssh2_error() for ANY error case.
  */
-libssh2pack_t
-_libssh2_transport_read(LIBSSH2_SESSION * session)
+int _libssh2_transport_read(LIBSSH2_SESSION * session)
 {
-    libssh2pack_t rc = -1;
+    int rc = LIBSSH2_ERROR_SOCKET_NONE;
     struct transportpacket *p = &session->packet;
     int remainbuf;
     int remainpack;
@@ -272,7 +268,6 @@ _libssh2_transport_read(LIBSSH2_SESSION * session)
     unsigned char block[MAX_BLOCKSIZE];
     int blocksize;
     int encrypted = 1;
-    int status;
 
     /* default clear the bit */
     session->socket_block_directions &= ~LIBSSH2_SESSION_BLOCK_INBOUND;
@@ -297,16 +292,9 @@ _libssh2_transport_read(LIBSSH2_SESSION * session)
          */
         _libssh2_debug(session, LIBSSH2_DBG_TRANS, "Redirecting into the"
                        " key re-exchange");
-        status = libssh2_kex_exchange(session, 1, &session->startup_key_state);
-        if (status == PACKET_EAGAIN) {
-            libssh2_error(session, LIBSSH2_ERROR_EAGAIN,
-                          "Would block exchanging encryption keys", 0);
-            return PACKET_EAGAIN;
-        } else if (status) {
-            libssh2_error(session, LIBSSH2_ERROR_KEX_FAILURE,
-                          "Unable to exchange encryption keys",0);
-            return LIBSSH2_ERROR_KEX_FAILURE;
-        }
+        rc = libssh2_kex_exchange(session, 1, &session->startup_key_state);
+        if (rc)
+            return rc;
     }
 
     /*
@@ -371,7 +359,7 @@ _libssh2_transport_read(LIBSSH2_SESSION * session)
                 /* check if this is due to EAGAIN and return the special
                    return code if so, error out normally otherwise */
                 if ((nread < 0) && (errno == EAGAIN)) {
-                    session->socket_block_directions =
+                    session->socket_block_directions |=
                         LIBSSH2_SESSION_BLOCK_INBOUND;
                     return PACKET_EAGAIN;
                 }
@@ -400,6 +388,8 @@ _libssh2_transport_read(LIBSSH2_SESSION * session)
                    check is only done for the initial block since once we have
                    got the start of a block we can in fact deal with fractions
                 */
+                session->socket_block_directions |=
+                    LIBSSH2_SESSION_BLOCK_INBOUND;
                 return PACKET_EAGAIN;
             }
 
@@ -570,7 +560,7 @@ _libssh2_transport_read(LIBSSH2_SESSION * session)
                     session->readPack_state = libssh2_NB_state_jump1;
                 }
 
-                return PACKET_EAGAIN;
+                return rc;
             }
 
             p->total_num = 0;   /* no packet buffer available */
@@ -582,7 +572,7 @@ _libssh2_transport_read(LIBSSH2_SESSION * session)
     return PACKET_FAIL;         /* we never reach this point */
 }
 
-static libssh2pack_t
+static int
 send_existing(LIBSSH2_SESSION * session, unsigned char *data,
               unsigned long data_len, ssize_t * ret)
 {
@@ -630,13 +620,13 @@ send_existing(LIBSSH2_SESSION * session, unsigned char *data,
             /* send failure! */
             return PACKET_FAIL;
         }
-        session->socket_block_directions = LIBSSH2_SESSION_BLOCK_OUTBOUND;
+        session->socket_block_directions |= LIBSSH2_SESSION_BLOCK_OUTBOUND;
         return PACKET_EAGAIN;
     }
 
     p->osent += rc;         /* we sent away this much data */
 
-    return PACKET_NONE;
+    return p->osent < data_len ? PACKET_EAGAIN : PACKET_NONE;
 }
 
 /*
@@ -653,6 +643,8 @@ send_existing(LIBSSH2_SESSION * session, unsigned char *data,
  * NOTE: this function does not verify that 'data_len' is less than ~35000
  * which is what all implementations should support at least as packet size.
  * (RFC4253 section 6.1)
+ *
+ * This function DOES not call libssh2_error() on any errors.
  */
 int
 _libssh2_transport_write(LIBSSH2_SESSION * session, unsigned char *data,
@@ -673,7 +665,7 @@ _libssh2_transport_write(LIBSSH2_SESSION * session, unsigned char *data,
     int encrypted;
     int i;
     ssize_t ret;
-    libssh2pack_t rc;
+    int rc;
     unsigned char *orgdata = data;
     unsigned long orgdata_len = data_len;
 
@@ -791,7 +783,7 @@ _libssh2_transport_write(LIBSSH2_SESSION * session, unsigned char *data,
     if (ret != total_length) {
         if ((ret > 0) || ((ret == -1) && (errno == EAGAIN))) {
             /* the whole packet could not be sent, save the rest */
-            session->socket_block_directions = LIBSSH2_SESSION_BLOCK_OUTBOUND;
+            session->socket_block_directions |= LIBSSH2_SESSION_BLOCK_OUTBOUND;
             p->odata = orgdata;
             p->olen = orgdata_len;
             p->osent = (ret == -1) ? 0 : ret;

@@ -2,6 +2,9 @@ AUTOMAKE_OPTIONS = foreign nostdinc
 
 SUBDIRS = src example tests docs
 
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = libssh2.pc
+
 include_HEADERS =			\
 	include/libssh2.h		\
 	include/libssh2_publickey.h	\
@@ -16,8 +19,7 @@ NETWAREFILES =  nw/keepscreen.c \
 DSP = win32/libssh2.dsp
 VCPROJ = win32/libssh2.vcproj
 
-#Need to include $(VCPROJ) to CLEANFILES and WIN32FILES when I get a proper vc8proj.head|foot
-CLEANFILES = $(DSP)
+DISTCLEANFILES = $(DSP)
 
 WIN32FILES = win32/Makefile.win32 win32/libssh2.dsw     \
 win32/config.mk win32/Makefile win32/test/Makefile.win32 \
@@ -25,14 +27,14 @@ win32/libssh2_config.h win32/tests.dsp win32/rules.mk $(DSP) \
 win32/msvcproj.head win32/msvcproj.foot
 
 EXTRA_DIST = $(WIN32FILES) buildconf $(NETWAREFILES) get_ver.awk HACKING \
- maketgz NMakefile TODO RELEASE-NOTES
+ maketgz NMakefile TODO RELEASE-NOTES libssh2.pc.in
 
 ACLOCAL_AMFLAGS = -I m4
 
 .PHONY: ChangeLog
 ChangeLog:
 	echo "see NEWS" > ./ChangeLog
-CLEANFILES += ChangeLog
+DISTCLEANFILES += ChangeLog
 
 dist-hook:
 	rm -rf $(top_builddir)/tests/log

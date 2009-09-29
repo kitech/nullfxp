@@ -69,22 +69,20 @@
         }                                                                   \
 }
 
-/* kex_method_diffie_hellman_groupGP_sha1_key_exchange
+/*
+ * diffie_hellman_sha1
+ *
  * Diffie Hellman Key Exchange, Group Agnostic
  */
-static int
-kex_method_diffie_hellman_groupGP_sha1_key_exchange(LIBSSH2_SESSION *session,
-                                                    _libssh2_bn * g,
-                                                    _libssh2_bn * p,
-                                                    int group_order,
-                                                    unsigned char
-                                                    packet_type_init,
-                                                    unsigned char
-                                                    packet_type_reply,
-                                                    unsigned char *midhash,
-                                                    unsigned long midhash_len,
-                                                    kmdhgGPsha1kex_state_t
-                                                    * exchange_state)
+static int diffie_hellman_sha1(LIBSSH2_SESSION *session,
+                               _libssh2_bn *g,
+                               _libssh2_bn *p,
+                               int group_order,
+                               unsigned char packet_type_init,
+                               unsigned char packet_type_reply,
+                               unsigned char *midhash,
+                               unsigned long midhash_len,
+                               kmdhgGPsha1kex_state_t *exchange_state)
 {
     int ret = 0;
     int rc;
@@ -122,7 +120,7 @@ kex_method_diffie_hellman_groupGP_sha1_key_exchange(LIBSSH2_SESSION *session,
         if (!exchange_state->e_packet) {
             libssh2_error(session, LIBSSH2_ERROR_ALLOC, "Out of memory error",
                           0);
-            ret = -1;
+            ret = LIBSSH2_ERROR_ALLOC;
             goto clean_exit;
         }
         exchange_state->e_packet[0] = packet_type_init;
@@ -146,11 +144,11 @@ kex_method_diffie_hellman_groupGP_sha1_key_exchange(LIBSSH2_SESSION *session,
         rc = _libssh2_transport_write(session, exchange_state->e_packet,
                                       exchange_state->e_packet_len);
         if (rc == PACKET_EAGAIN) {
-            return PACKET_EAGAIN;
+            return rc;
         } else if (rc) {
-            libssh2_error(session, LIBSSH2_ERROR_SOCKET_SEND,
+            libssh2_error(session, rc,
                           "Unable to send KEX init message", 0);
-            ret = -1;
+            ret = rc;
             goto clean_exit;
         }
         exchange_state->state = libssh2_NB_state_sent;
@@ -168,10 +166,10 @@ kex_method_diffie_hellman_groupGP_sha1_key_exchange(LIBSSH2_SESSION *session,
             burn_type =
                 _libssh2_packet_burn(session, &exchange_state->burn_state);
             if (burn_type == PACKET_EAGAIN) {
-                return PACKET_EAGAIN;
+                return burn_type;
             } else if (burn_type <= 0) {
                 /* Failed to receive a packet */
-                ret = -1;
+                ret = burn_type;
                 goto clean_exit;
             }
             session->burn_optimistic_kexinit = 0;
@@ -191,12 +189,12 @@ kex_method_diffie_hellman_groupGP_sha1_key_exchange(LIBSSH2_SESSION *session,
                                      &exchange_state->s_packet_len, 0, NULL,
                                      0, &exchange_state->req_state);
         if (rc == PACKET_EAGAIN) {
-            return PACKET_EAGAIN;
+            return rc;
         }
         if (rc) {
             libssh2_error(session, LIBSSH2_ERROR_TIMEOUT,
                           "Timed out waiting for KEX reply", 0);
-            ret = -1;
+            ret = rc;
             goto clean_exit;
         }
 
@@ -211,7 +209,7 @@ kex_method_diffie_hellman_groupGP_sha1_key_exchange(LIBSSH2_SESSION *session,
             libssh2_error(session, LIBSSH2_ERROR_ALLOC,
                           "Unable to allocate memory for a copy of the host key",
                           0);
-            ret = -1;
+            ret = LIBSSH2_ERROR_ALLOC;
             goto clean_exit;
         }
         memcpy(session->server_hostkey, exchange_state->s,
@@ -263,12 +261,12 @@ kex_method_diffie_hellman_groupGP_sha1_key_exchange(LIBSSH2_SESSION *session,
         }
 #endif /* LIBSSH2DEBUG */
 
-        if (session->hostkey->
-            init(session, session->server_hostkey, session->server_hostkey_len,
-                 &session->server_hostkey_abstract)) {
+        if (session->hostkey->init(session, session->server_hostkey,
+                                   session->server_hostkey_len,
+                                   &session->server_hostkey_abstract)) {
             libssh2_error(session, LIBSSH2_ERROR_HOSTKEY_INIT,
                           "Unable to initialize hostkey importer", 0);
-            ret = -1;
+            ret = LIBSSH2_ERROR_HOSTKEY_INIT;
             goto clean_exit;
         }
 
@@ -296,7 +294,7 @@ kex_method_diffie_hellman_groupGP_sha1_key_exchange(LIBSSH2_SESSION *session,
         if (!exchange_state->k_value) {
             libssh2_error(session, LIBSSH2_ERROR_ALLOC,
                           "Unable to allocate buffer for K", 0);
-            ret = -1;
+            ret = LIBSSH2_ERROR_ALLOC;
             goto clean_exit;
         }
         _libssh2_htonu32(exchange_state->k_value,
@@ -421,11 +419,10 @@ kex_method_diffie_hellman_groupGP_sha1_key_exchange(LIBSSH2_SESSION *session,
     if (exchange_state->state == libssh2_NB_state_sent2) {
         rc = _libssh2_transport_write(session, &exchange_state->c, 1);
         if (rc == PACKET_EAGAIN) {
-            return PACKET_EAGAIN;
+            return rc;
         } else if (rc) {
-            libssh2_error(session, LIBSSH2_ERROR_SOCKET_SEND,
-                          "Unable to send NEWKEYS message", 0);
-            ret = -1;
+            libssh2_error(session, rc, "Unable to send NEWKEYS message", 0);
+            ret = rc;
             goto clean_exit;
         }
 
@@ -438,11 +435,10 @@ kex_method_diffie_hellman_groupGP_sha1_key_exchange(LIBSSH2_SESSION *session,
                                      &exchange_state->tmp_len, 0, NULL, 0,
                                      &exchange_state->req_state);
         if (rc == PACKET_EAGAIN) {
-            return PACKET_EAGAIN;
+            return rc;
         } else if (rc) {
-            libssh2_error(session, LIBSSH2_ERROR_TIMEOUT,
-                          "Timed out waiting for NEWKEYS", 0);
-            ret = -1;
+            libssh2_error(session, rc, "Timed out waiting for NEWKEYS", 0);
+            ret = rc;
             goto clean_exit;
         }
         /* The first key exchange has been performed,
@@ -457,7 +453,9 @@ kex_method_diffie_hellman_groupGP_sha1_key_exchange(LIBSSH2_SESSION *session,
         if (!session->session_id) {
             session->session_id = LIBSSH2_ALLOC(session, SHA_DIGEST_LENGTH);
             if (!session->session_id) {
-                ret = -1;
+                libssh2_error(session, LIBSSH2_ERROR_ALLOC,
+                              "Unable to allocate buffer for SHA digest", 0);
+                ret = LIBSSH2_ERROR_ALLOC;
                 goto clean_exit;
             }
             memcpy(session->session_id, exchange_state->h_sig_comp,
@@ -489,7 +487,7 @@ kex_method_diffie_hellman_groupGP_sha1_key_exchange(LIBSSH2_SESSION *session,
                                                         secret_len, "C");
             if (!secret) {
                 LIBSSH2_FREE(session, iv);
-                ret = -1;
+                ret = LIBSSH2_ERROR_KEX_FAILURE;
                 goto clean_exit;
             }
             if (session->local.crypt->
@@ -497,7 +495,7 @@ kex_method_diffie_hellman_groupGP_sha1_key_exchange(LIBSSH2_SESSION *session,
                      &free_secret, 1, &session->local.crypt_abstract)) {
                 LIBSSH2_FREE(session, iv);
                 LIBSSH2_FREE(session, secret);
-                ret = -1;
+                ret = LIBSSH2_ERROR_KEX_FAILURE;
                 goto clean_exit;
             }
 
@@ -528,7 +526,7 @@ kex_method_diffie_hellman_groupGP_sha1_key_exchange(LIBSSH2_SESSION *session,
                                                         session->remote.crypt->
                                                         iv_len, "B");
             if (!iv) {
-                ret = -1;
+                ret = LIBSSH2_ERROR_KEX_FAILURE;
                 goto clean_exit;
             }
             LIBSSH2_KEX_METHOD_DIFFIE_HELLMAN_SHA1_HASH(secret,
@@ -536,7 +534,7 @@ kex_method_diffie_hellman_groupGP_sha1_key_exchange(LIBSSH2_SESSION *session,
                                                         secret_len, "D");
             if (!secret) {
                 LIBSSH2_FREE(session, iv);
-                ret = -1;
+                ret = LIBSSH2_ERROR_KEX_FAILURE;
                 goto clean_exit;
             }
             if (session->remote.crypt->
@@ -544,7 +542,7 @@ kex_method_diffie_hellman_groupGP_sha1_key_exchange(LIBSSH2_SESSION *session,
                      &free_secret, 0, &session->remote.crypt_abstract)) {
                 LIBSSH2_FREE(session, iv);
                 LIBSSH2_FREE(session, secret);
-                ret = -1;
+                ret = LIBSSH2_ERROR_KEX_FAILURE;
                 goto clean_exit;
             }
 
@@ -573,7 +571,7 @@ kex_method_diffie_hellman_groupGP_sha1_key_exchange(LIBSSH2_SESSION *session,
                                                         session->local.mac->
                                                         key_len, "E");
             if (!key) {
-                ret = -1;
+                ret = LIBSSH2_ERROR_KEX_FAILURE;
                 goto clean_exit;
             }
             session->local.mac->init(session, key, &free_key,
@@ -599,7 +597,7 @@ kex_method_diffie_hellman_groupGP_sha1_key_exchange(LIBSSH2_SESSION *session,
                                                         session->remote.mac->
                                                         key_len, "F");
             if (!key) {
-                ret = -1;
+                ret = LIBSSH2_ERROR_KEX_FAILURE;
                 goto clean_exit;
             }
             session->remote.mac->init(session, key, &free_key,
@@ -691,18 +689,11 @@ kex_method_diffie_hellman_group1_sha1_key_exchange(LIBSSH2_SESSION *session,
 
         key_state->state = libssh2_NB_state_created;
     }
-
-    ret =
-        kex_method_diffie_hellman_groupGP_sha1_key_exchange(session,
-                                                            key_state->g,
-                                                            key_state->p, 128,
-                                                            SSH_MSG_KEXDH_INIT,
-                                                            SSH_MSG_KEXDH_REPLY,
-                                                            NULL, 0,
-                                                            &key_state->
-                                                            exchange_state);
+    ret = diffie_hellman_sha1(session, key_state->g, key_state->p, 128,
+                              SSH_MSG_KEXDH_INIT, SSH_MSG_KEXDH_REPLY,
+                              NULL, 0, &key_state->exchange_state);
     if (ret == PACKET_EAGAIN) {
-        return PACKET_EAGAIN;
+        return ret;
     }
 
     _libssh2_bn_free(key_state->p);
@@ -774,18 +765,11 @@ kex_method_diffie_hellman_group14_sha1_key_exchange(LIBSSH2_SESSION *session,
 
         key_state->state = libssh2_NB_state_created;
     }
-    ret =
-        kex_method_diffie_hellman_groupGP_sha1_key_exchange(session,
-                                                            key_state->g,
-                                                            key_state->p,
-                                                            256,
-                                                            SSH_MSG_KEXDH_INIT,
-                                                            SSH_MSG_KEXDH_REPLY,
-                                                            NULL, 0,
-                                                            &key_state->
-                                                            exchange_state);
+    ret = diffie_hellman_sha1(session, key_state->g, key_state->p,
+                              256, SSH_MSG_KEXDH_INIT, SSH_MSG_KEXDH_REPLY,
+                              NULL, 0, &key_state->exchange_state);
     if (ret == PACKET_EAGAIN) {
-        return PACKET_EAGAIN;
+        return ret;
     }
 
     key_state->state = libssh2_NB_state_idle;
@@ -839,11 +823,11 @@ kex_method_diffie_hellman_group_exchange_sha1_key_exchange
         rc = _libssh2_transport_write(session, key_state->request,
                                    key_state->request_len);
         if (rc == PACKET_EAGAIN) {
-            return PACKET_EAGAIN;
+            return rc;
         } else if (rc) {
-            libssh2_error(session, LIBSSH2_ERROR_SOCKET_SEND,
+            libssh2_error(session, rc,
                           "Unable to send Group Exchange Request", 0);
-            ret = -1;
+            ret = rc;
             goto dh_gex_clean_exit;
         }
 
@@ -855,11 +839,11 @@ kex_method_diffie_hellman_group_exchange_sha1_key_exchange
                                      &key_state->data, &key_state->data_len,
                                      0, NULL, 0, &key_state->req_state);
         if (rc == PACKET_EAGAIN) {
-            return PACKET_EAGAIN;
+            return rc;
         } else if (rc) {
-            libssh2_error(session, LIBSSH2_ERROR_TIMEOUT,
+            libssh2_error(session, rc,
                           "Timeout waiting for GEX_GROUP reply", 0);
-            ret = -1;
+            ret = rc;
             goto dh_gex_clean_exit;
         }
 
@@ -878,14 +862,14 @@ kex_method_diffie_hellman_group_exchange_sha1_key_exchange
         _libssh2_bn_from_bin(key_state->g, g_len, s);
         s += g_len;
 
-        ret =
-            kex_method_diffie_hellman_groupGP_sha1_key_exchange
-            (session, key_state->g, key_state->p, p_len,
-             SSH_MSG_KEX_DH_GEX_INIT, SSH_MSG_KEX_DH_GEX_REPLY,
-             key_state->data + 1, key_state->data_len - 1,
-             &key_state->exchange_state);
+        ret = diffie_hellman_sha1(session, key_state->g, key_state->p, p_len,
+                                  SSH_MSG_KEX_DH_GEX_INIT,
+                                  SSH_MSG_KEX_DH_GEX_REPLY,
+                                  key_state->data + 1,
+                                  key_state->data_len - 1,
+                                  &key_state->exchange_state);
         if (ret == PACKET_EAGAIN) {
-            return PACKET_EAGAIN;
+            return ret;
         }
 
         LIBSSH2_FREE(session, key_state->data);
@@ -1056,7 +1040,7 @@ static int kexinit(LIBSSH2_SESSION * session)
         if (!data) {
             libssh2_error(session, LIBSSH2_ERROR_ALLOC,
                           "Unable to allocate memory", 0);
-            return -1;
+            return LIBSSH2_ERROR_ALLOC;
         }
 
         *(s++) = SSH_MSG_KEXINIT;
@@ -1139,14 +1123,14 @@ static int kexinit(LIBSSH2_SESSION * session)
     if (rc == PACKET_EAGAIN) {
         session->kexinit_data = data;
         session->kexinit_data_len = data_len;
-        return PACKET_EAGAIN;
+        return rc;
     }
     else if (rc) {
         LIBSSH2_FREE(session, data);
-        libssh2_error(session, LIBSSH2_ERROR_SOCKET_SEND,
+        libssh2_error(session, rc,
                       "Unable to send KEXINIT packet to remote host", 0);
         session->kexinit_state = libssh2_NB_state_idle;
-        return -1;
+        return rc;
     }
 
     if (session->local.kexinit) {
@@ -1662,6 +1646,8 @@ static int kex_agree_methods(LIBSSH2_SESSION * session, unsigned char *data,
 /* libssh2_kex_exchange
  * Exchange keys
  * Returns 0 on success, non-zero on failure
+ *
+ * Returns some errors without libssh2_error()
  */
 int
 libssh2_kex_exchange(LIBSSH2_SESSION * session, int reexchange,
@@ -1704,7 +1690,7 @@ libssh2_kex_exchange(LIBSSH2_SESSION * session, int reexchange,
             retcode = kexinit(session);
             if (retcode == PACKET_EAGAIN) {
                 session->state &= ~LIBSSH2_STATE_KEX_ACTIVE;
-                return PACKET_EAGAIN;
+                return retcode;
             } else if (retcode) {
                 session->local.kexinit = key_state->oldlocal;
                 session->local.kexinit_len = key_state->oldlocal_len;
@@ -1725,7 +1711,7 @@ libssh2_kex_exchange(LIBSSH2_SESSION * session, int reexchange,
                                         &key_state->req_state);
             if (retcode == PACKET_EAGAIN) {
                 session->state &= ~LIBSSH2_STATE_KEX_ACTIVE;
-                return PACKET_EAGAIN;
+                return retcode;
             }
             else if (retcode) {
                 if (session->local.kexinit) {
@@ -1746,9 +1732,8 @@ libssh2_kex_exchange(LIBSSH2_SESSION * session, int reexchange,
             session->remote.kexinit_len = key_state->data_len;
 
             if (kex_agree_methods(session, key_state->data,
-                                  key_state->data_len)) {
-                rc = -1;
-            }
+                                  key_state->data_len))
+                rc = LIBSSH2_ERROR_KEX_FAILURE;
 
             key_state->state = libssh2_NB_state_sent2;
         }
@@ -1758,16 +1743,15 @@ libssh2_kex_exchange(LIBSSH2_SESSION * session, int reexchange,
 
     if (rc == 0) {
         if (key_state->state == libssh2_NB_state_sent2) {
-            retcode =
-                session->kex->exchange_keys(session,
-                                            &key_state->key_state_low);
+            retcode = session->kex->exchange_keys(session,
+                                                  &key_state->key_state_low);
             if (retcode == PACKET_EAGAIN) {
                 session->state &= ~LIBSSH2_STATE_KEX_ACTIVE;
-                return PACKET_EAGAIN;
+                return retcode;
             } else if (retcode) {
                 libssh2_error(session, LIBSSH2_ERROR_KEY_EXCHANGE_FAILURE,
                               "Unrecoverable error exchanging keys", 0);
-                rc = -1;
+                rc = retcode;
             }
         }
     }

@@ -106,6 +106,9 @@ banner_receive(LIBSSH2_SESSION * session)
             || (session->banner_TxRx_banner[banner_len - 1] != '\n'))) {
         char c = '\0';
 
+        /* no incoming block yet! */
+        session->socket_block_directions &= ~LIBSSH2_SESSION_BLOCK_INBOUND;
+
         ret = _libssh2_recv(session->socket_fd, &c, 1,
                             LIBSSH2_SOCKET_RECV_FLAGS(session));
 
@@ -207,6 +210,9 @@ banner_send(LIBSSH2_SESSION * session)
         session->banner_TxRx_state = libssh2_NB_state_created;
     }
 
+    /* no outgoing block yet! */
+    session->socket_block_directions &= ~LIBSSH2_SESSION_BLOCK_OUTBOUND;
+
     ret = _libssh2_send(session->socket_fd,
                         banner + session->banner_TxRx_total_send,
                         banner_len - session->banner_TxRx_total_send,
@@ -238,7 +244,7 @@ banner_send(LIBSSH2_SESSION * session)
  * is copied from the libcurl sources with permission.
  */
 static int
-session_nonblock(int sockfd,   /* operate on this */
+session_nonblock(libssh2_socket_t sockfd,   /* operate on this */
                  int nonblock /* TRUE or FALSE */ )
 {
 #undef SETBLOCK
@@ -529,7 +535,7 @@ int _libssh2_wait_socket(LIBSSH2_SESSION *session)
 }
 
 static int
-session_startup(LIBSSH2_SESSION *session, int sock)
+session_startup(LIBSSH2_SESSION *session, libssh2_socket_t sock)
 {
     int rc;
 
@@ -556,35 +562,22 @@ session_startup(LIBSSH2_SESSION *session, int sock)
         session->startup_state = libssh2_NB_state_created;
     }
 
-    /* TODO: Liveness check */
-
     if (session->startup_state == libssh2_NB_state_created) {
         rc = banner_send(session);
-        if (rc == PACKET_EAGAIN) {
-            libssh2_error(session, LIBSSH2_ERROR_EAGAIN,
-                          "Would block sending banner to remote host", 0);
-            return LIBSSH2_ERROR_EAGAIN;
-        } else if (rc) {
-            /* Unable to send banner? */
-            libssh2_error(session, LIBSSH2_ERROR_BANNER_SEND,
-                          "Error sending banner to remote host", 0);
-            return LIBSSH2_ERROR_BANNER_SEND;
+        if (rc) {
+            libssh2_error(session, rc,
+                          "Failed sending banner", 0);
+            return rc;
         }
-
         session->startup_state = libssh2_NB_state_sent;
     }
 
     if (session->startup_state == libssh2_NB_state_sent) {
         rc = banner_receive(session);
-        if (rc == PACKET_EAGAIN) {
-            libssh2_error(session, LIBSSH2_ERROR_EAGAIN,
-                          "Would block waiting for banner", 0);
-            return LIBSSH2_ERROR_EAGAIN;
-        } else if (rc) {
-            /* Unable to receive banner from remote */
-            libssh2_error(session, LIBSSH2_ERROR_BANNER_NONE,
-                          "Timeout waiting for banner", 0);
-            return LIBSSH2_ERROR_BANNER_NONE;
+        if (rc) {
+            libssh2_error(session, rc,
+                          "Failed getting banner", 0);
+            return rc;
         }
 
         session->startup_state = libssh2_NB_state_sent1;
@@ -592,14 +585,10 @@ session_startup(LIBSSH2_SESSION *session, int sock)
 
     if (session->startup_state == libssh2_NB_state_sent1) {
         rc = libssh2_kex_exchange(session, 0, &session->startup_key_state);
-        if (rc == PACKET_EAGAIN) {
-            libssh2_error(session, LIBSSH2_ERROR_EAGAIN,
-                          "Would block exchanging encryption keys", 0);
-            return LIBSSH2_ERROR_EAGAIN;
-        } else if (rc) {
-            libssh2_error(session, LIBSSH2_ERROR_KEX_FAILURE,
+        if (rc) {
+            libssh2_error(session, rc,
                           "Unable to exchange encryption keys", 0);
-            return LIBSSH2_ERROR_KEX_FAILURE;
+            return rc;
         }
 
         session->startup_state = libssh2_NB_state_sent2;
@@ -622,15 +611,10 @@ session_startup(LIBSSH2_SESSION *session, int sock)
     if (session->startup_state == libssh2_NB_state_sent3) {
         rc = _libssh2_transport_write(session, session->startup_service,
                                       sizeof("ssh-userauth") + 5 - 1);
-        if (rc == PACKET_EAGAIN) {
-            libssh2_error(session, LIBSSH2_ERROR_EAGAIN,
-                          "Would block asking for ssh-userauth service", 0);
-            return LIBSSH2_ERROR_EAGAIN;
-        }
-        else if (rc) {
-            libssh2_error(session, LIBSSH2_ERROR_SOCKET_SEND,
+        if (rc) {
+            libssh2_error(session, rc,
                           "Unable to ask for ssh-userauth service", 0);
-            return LIBSSH2_ERROR_SOCKET_SEND;
+            return rc;
         }
 
         session->startup_state = libssh2_NB_state_sent4;
@@ -641,11 +625,9 @@ session_startup(LIBSSH2_SESSION *session, int sock)
                                      &session->startup_data,
                                      &session->startup_data_len, 0, NULL, 0,
                                      &session->startup_req_state);
-        if (rc == PACKET_EAGAIN) {
-            return LIBSSH2_ERROR_EAGAIN;
-        } else if (rc) {
-            return LIBSSH2_ERROR_SOCKET_DISCONNECT;
-        }
+        if (rc)
+            return rc;
+
         session->startup_service_length =
             _libssh2_ntohu32(session->startup_data + 1);
 
@@ -699,6 +681,9 @@ static int
 session_free(LIBSSH2_SESSION *session)
 {
     int rc;
+    LIBSSH2_PACKET *pkg;
+    LIBSSH2_CHANNEL *ch;
+    LIBSSH2_LISTENER *l;
 
     if (session->free_state == libssh2_NB_state_idle) {
         _libssh2_debug(session, LIBSSH2_DBG_TRANS, "Freeing session resource",
@@ -708,13 +693,15 @@ session_free(LIBSSH2_SESSION *session)
     }
 
     if (session->free_state == libssh2_NB_state_created) {
-        while (session->channels.head) {
-            LIBSSH2_CHANNEL *tmp = session->channels.head;
+        while ((ch = _libssh2_list_first(&session->channels))) {
 
-            rc = libssh2_channel_free(session->channels.head);
-            if (rc == PACKET_EAGAIN) {
-                return PACKET_EAGAIN;
-            }
+            rc = libssh2_channel_free(ch);
+            if (rc == PACKET_EAGAIN)
+                return rc;
+#if 0
+            /* Daniel's note: I'm leaving this code here right now since it
+               looks so weird I'm stumped. Why would libssh2_channel_free()
+               fail and forces this to be done? */
             if (tmp == session->channels.head) {
                 /* channel_free couldn't do it's job, perform a messy cleanup */
                 tmp = session->channels.head;
@@ -728,17 +715,17 @@ session_free(LIBSSH2_SESSION *session)
                 /* reverse linking isn't important here, we're killing the
                  * structure */
             }
+#endif
         }
 
         session->state = libssh2_NB_state_sent;
     }
 
     if (session->state == libssh2_NB_state_sent) {
-        while (session->listeners) {
-            rc = libssh2_channel_forward_cancel(session->listeners);
-            if (rc == PACKET_EAGAIN) {
-                return PACKET_EAGAIN;
-            }
+        while ((l = _libssh2_list_first(&session->listeners))) {
+            rc = libssh2_channel_forward_cancel(l);
+            if (rc == PACKET_EAGAIN)
+                return rc;
         }
 
         session->state = libssh2_NB_state_sent1;
@@ -908,16 +895,14 @@ session_free(LIBSSH2_SESSION *session)
         LIBSSH2_FREE(session, session->err_msg);
     }
 
-    /* Cleanup any remaining packets */
-    while (session->packets.head) {
-        LIBSSH2_PACKET *tmp = session->packets.head;
-
-        /* unlink */
-        session->packets.head = tmp->next;
+    /* Cleanup all remaining packets */
+    while ((pkg = _libssh2_list_first(&session->packets))) {
+        /* unlink the node */
+        _libssh2_list_remove(&pkg->node);
 
         /* free */
-        LIBSSH2_FREE(session, tmp->data);
-        LIBSSH2_FREE(session, tmp);
+        LIBSSH2_FREE(session, pkg->data);
+        LIBSSH2_FREE(session, pkg);
     }
 
     if(session->socket_prev_blockstate)
@@ -1007,7 +992,7 @@ session_disconnect(LIBSSH2_SESSION *session, int reason,
     rc = _libssh2_transport_write(session, session->disconnect_data,
                                   session->disconnect_data_len);
     if (rc == PACKET_EAGAIN) {
-        return PACKET_EAGAIN;
+        return rc;
     }
 
     LIBSSH2_FREE(session, session->disconnect_data);
@@ -1245,7 +1230,7 @@ LIBSSH2_API int
 libssh2_poll_channel_read(LIBSSH2_CHANNEL * channel, int extended)
 {
     LIBSSH2_SESSION *session = channel->session;
-    LIBSSH2_PACKET *packet = session->packets.head;
+    LIBSSH2_PACKET *packet = _libssh2_list_first(&session->packets);
 
     while (packet) {
         if ( channel->local.id == _libssh2_ntohu32(packet->data + 1)) {
@@ -1259,7 +1244,7 @@ libssh2_poll_channel_read(LIBSSH2_CHANNEL * channel, int extended)
             }
             /* else - no data of any type is ready to be read */
         }
-        packet = packet->next;
+        packet = _libssh2_list_next(&packet->node);
     }
 
     return 0;
@@ -1285,7 +1270,7 @@ poll_channel_write(LIBSSH2_CHANNEL * channel)
 static inline int
 poll_listener_queued(LIBSSH2_LISTENER * listener)
 {
-    return listener->queue ? 1 : 0;
+    return _libssh2_list_first(&listener->queue) ? 1 : 0;
 }
 
 /*
@@ -1346,7 +1331,7 @@ libssh2_poll(LIBSSH2_POLLFD * fds, unsigned int nfds, long timeout)
     }
 #elif defined(HAVE_SELECT)
     LIBSSH2_SESSION *session = NULL;
-    int maxfd = 0;
+    libssh2_socket_t maxfd = 0;
     fd_set rfds, wfds;
     struct timeval tv;
 
@@ -1456,8 +1441,7 @@ libssh2_poll(LIBSSH2_POLLFD * fds, unsigned int nfds, long timeout)
                         ((fds[i].revents & LIBSSH2_POLLFD_POLLIN) == 0)) {
                         /* No connections known of yet */
                         fds[i].revents |=
-                            poll_listener_queued(fds[i].fd.
-                                                 listener) ?
+                            poll_listener_queued(fds[i].fd. listener) ?
                             LIBSSH2_POLLFD_POLLIN : 0;
                     }
                     if (fds[i].fd.listener->session->socket_state ==

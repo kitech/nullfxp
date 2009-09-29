@@ -85,6 +85,7 @@
 #include "libssh2.h"
 #include "libssh2_publickey.h"
 #include "libssh2_sftp.h"
+#include "misc.h" /* for the linked list stuff */
 
 #ifndef FALSE
 #define FALSE 0
@@ -96,10 +97,9 @@
 /* Provide iovec / writev on WIN32 platform. */
 #ifdef WIN32
 
-/* same as WSABUF */
 struct iovec {
-    u_long iov_len;
-    char *iov_base;
+    size_t iov_len;
+    void * iov_base;
 };
 
 #define inline __inline
@@ -149,6 +149,12 @@ static inline int writev(int sock, struct iovec *iov, int nvecs)
 
 #endif
 
+#ifdef WIN32
+typedef SOCKET libssh2_socket_t;
+#else /* !WIN32 */
+typedef int libssh2_socket_t;
+#endif /* WIN32 */
+
 /* RFC4253 section 6.1 Maximum Packet Length says:
  *
  * "All implementations MUST be able to process packets with
@@ -187,10 +193,6 @@ typedef struct _LIBSSH2_CRYPT_METHOD LIBSSH2_CRYPT_METHOD;
 typedef struct _LIBSSH2_COMP_METHOD LIBSSH2_COMP_METHOD;
 
 typedef struct _LIBSSH2_PACKET LIBSSH2_PACKET;
-typedef struct _LIBSSH2_PACKET_BRIGADE LIBSSH2_PACKET_BRIGADE;
-typedef struct _LIBSSH2_CHANNEL_BRIGADE LIBSSH2_CHANNEL_BRIGADE;
-
-typedef int libssh2pack_t;
 
 typedef enum
 {
@@ -288,6 +290,7 @@ typedef struct packet_queue_listener_state_t
     uint32_t sport;
     uint32_t host_len;
     uint32_t shost_len;
+    LIBSSH2_CHANNEL *channel;
 } packet_queue_listener_state_t;
 
 #define X11FwdUnAvil "X11 Forward Unavailable"
@@ -302,10 +305,13 @@ typedef struct packet_x11_open_state_t
     uint32_t packet_size;
     uint32_t sport;
     uint32_t shost_len;
+    LIBSSH2_CHANNEL *channel;
 } packet_x11_open_state_t;
 
 struct _LIBSSH2_PACKET
 {
+    struct list_node node; /* linked list header */
+
     unsigned char type;
 
     /* Unencrypted Payload (no type byte, no padding, just the facts ma'am) */
@@ -318,15 +324,6 @@ struct _LIBSSH2_PACKET
 
     /* Can the message be confirmed? */
     int mac;
-
-    LIBSSH2_PACKET_BRIGADE *brigade;
-
-    LIBSSH2_PACKET *next, *prev;
-};
-
-struct _LIBSSH2_PACKET_BRIGADE
-{
-    LIBSSH2_PACKET *head, *tail;
 };
 
 typedef struct _libssh2_channel_data
@@ -343,6 +340,8 @@ typedef struct _libssh2_channel_data
 
 struct _LIBSSH2_CHANNEL
 {
+    struct list_node node;
+
     unsigned char *channel_type;
     unsigned channel_type_len;
 
@@ -354,8 +353,6 @@ struct _LIBSSH2_CHANNEL
     unsigned long adjust_queue;
 
     LIBSSH2_SESSION *session;
-
-    LIBSSH2_CHANNEL *next, *prev;
 
     void *abstract;
       LIBSSH2_CHANNEL_CLOSE_FUNC((*close_cb));
@@ -399,8 +396,6 @@ struct _LIBSSH2_CHANNEL
 
     /* State variables used in libssh2_channel_read_ex() */
     libssh2_nonblocking_states read_state;
-    LIBSSH2_PACKET *read_packet;
-    LIBSSH2_PACKET *read_next;
 
     uint32_t read_local_id;
 
@@ -429,23 +424,20 @@ struct _LIBSSH2_CHANNEL
     libssh2_nonblocking_states extData2_state;
 };
 
-struct _LIBSSH2_CHANNEL_BRIGADE
-{
-    LIBSSH2_CHANNEL *head, *tail;
-};
-
 struct _LIBSSH2_LISTENER
 {
+    struct list_node node; /* linked list header */
+
     LIBSSH2_SESSION *session;
 
     char *host;
     int port;
 
-    LIBSSH2_CHANNEL *queue;
+    /* a list of CHANNELs for this listener */
+    struct list_head queue;
+
     int queue_size;
     int queue_maxsize;
-
-    LIBSSH2_LISTENER *prev, *next;
 
     /* State variables used in libssh2_channel_forward_cancel() */
     libssh2_nonblocking_states chanFwdCncl_state;
@@ -547,8 +539,9 @@ struct _LIBSSH2_PUBLICKEY
 
 struct _LIBSSH2_SFTP_HANDLE
 {
+    struct list_node node;
+
     LIBSSH2_SFTP *sftp;
-    LIBSSH2_SFTP_HANDLE *prev, *next;
 
     /* This is a pre-allocated buffer used for sending SFTP requests as the
        whole thing might not get sent in one go. This buffer is used for read,
@@ -586,9 +579,10 @@ struct _LIBSSH2_SFTP
 
     unsigned long request_id, version;
 
-    LIBSSH2_PACKET_BRIGADE packets;
+    struct list_head packets;
 
-    LIBSSH2_SFTP_HANDLE *handles;
+    /* a list of _LIBSSH2_SFTP_HANDLE structs */
+    struct list_head sftp_handles;
 
     unsigned long last_errno;
 
@@ -713,18 +707,19 @@ struct _LIBSSH2_SESSION
     /* (local as source of data -- packet_write ) */
     libssh2_endpoint_data local;
 
-    /* Inbound Data buffer -- Sometimes the packet that comes in isn't the
+    /* Inbound Data linked list -- Sometimes the packet that comes in isn't the
        packet we're ready for */
-    LIBSSH2_PACKET_BRIGADE packets;
+    struct list_head packets;
 
     /* Active connection channels */
-    LIBSSH2_CHANNEL_BRIGADE channels;
+    struct list_head channels;
+
     unsigned long next_channel;
 
-    LIBSSH2_LISTENER *listeners;
+    struct list_head listeners; /* list of LIBSSH2_LISTENER structs */
 
     /* Actual I/O socket */
-    int socket_fd;
+    libssh2_socket_t socket_fd;
     int socket_state;
     int socket_block_directions;
     int socket_prev_blockstate; /* stores the state of the socket blockiness
@@ -811,7 +806,7 @@ struct _LIBSSH2_SESSION
     unsigned char *userauth_pblc_b;
     packet_requirev_state_t userauth_pblc_packet_requirev_state;
 
-    /* State variables used in llibssh2_userauth_keyboard_interactive_ex() */
+    /* State variables used in libssh2_userauth_keyboard_interactive_ex() */
     libssh2_nonblocking_states userauth_kybd_state;
     unsigned char *userauth_kybd_data;
     unsigned long userauth_kybd_data_len;
@@ -860,7 +855,6 @@ struct _LIBSSH2_SESSION
 
     /* State variables used in libssh2_packet_add() */
     libssh2_nonblocking_states packAdd_state;
-    LIBSSH2_PACKET *packAdd_packet;
     LIBSSH2_CHANNEL *packAdd_channel;
     unsigned long packAdd_data_head;
     key_exchange_state_t packAdd_key_state;
@@ -871,7 +865,7 @@ struct _LIBSSH2_SESSION
     libssh2_nonblocking_states fullpacket_state;
     int fullpacket_macstate;
     int fullpacket_payload_len;
-    libssh2pack_t fullpacket_packet_type;
+    int fullpacket_packet_type;
 
     /* State variables used in libssh2_sftp_init() */
     libssh2_nonblocking_states sftpInit_state;
@@ -927,22 +921,6 @@ struct _LIBSSH2_SESSION
 #define LIBSSH2_SOCKET_SEND_FLAGS(session)      0
 #define LIBSSH2_SOCKET_RECV_FLAGS(session)      0
 #endif
-
-/* -------- */
-
-/* First take towards a generic linked list handling code for libssh2
-   internals */
-
-struct list_head {
-    struct list_node *last;
-    struct list_node *first;
-};
-
-struct list_node {
-    struct list_node *next;
-    struct list_node *prev;
-    struct list_head *head;
-};
 
 /* --------- */
 
@@ -1161,8 +1139,8 @@ libssh2_uint64_t _libssh2_ntohu64(const unsigned char *buf);
 void _libssh2_htonu32(unsigned char *buf, unsigned int val);
 
 #ifdef WIN32
-ssize_t _libssh2_recv(int socket, void *buffer, size_t length, int flags);
-ssize_t _libssh2_send(int socket, const void *buffer, size_t length, int flags);
+ssize_t _libssh2_recv(libssh2_socket_t socket, void *buffer, size_t length, int flags);
+ssize_t _libssh2_send(libssh2_socket_t socket, const void *buffer, size_t length, int flags);
 #else
 #define _libssh2_recv(a,b,c,d) recv(a,b,c,d)
 #define _libssh2_send(a,b,c,d) send(a,b,c,d)
@@ -1174,20 +1152,21 @@ ssize_t _libssh2_send(int socket, const void *buffer, size_t length, int flags);
 int _libssh2_wait_socket(LIBSSH2_SESSION *session);
 
 
-/* CAUTION: some of these error codes are returned in the public API and is
-   there known with other #defined names from the public header file. They
-   should not be changed. */
+/* These started out as private return codes for the transport layer, but was
+   converted to using the library-wide return codes to easy propagation of the
+   error reasons all over etc without risking mixups. The PACKET_* names are
+   left only to reduce the impact of changing the code all over.*/
 
-#define PACKET_TIMEOUT  -7
-#define PACKET_BADUSE   -6
-#define PACKET_COMPRESS -5
-#define PACKET_TOOBIG   -4
-#define PACKET_ENOMEM   -3
+#define PACKET_TIMEOUT  LIBSSH2_ERROR_TIMEOUT
+#define PACKET_BADUSE   LIBSSH2_ERROR_BAD_USE
+#define PACKET_COMPRESS LIBSSH2_ERROR_COMPRESS
+#define PACKET_TOOBIG   LIBSSH2_ERROR_OUT_OF_BOUNDARY
+#define PACKET_ENOMEM   LIBSSH2_ERROR_ALLOC
 #define PACKET_EAGAIN   LIBSSH2_ERROR_EAGAIN
-#define PACKET_FAIL     -1
-#define PACKET_NONE      0
+#define PACKET_FAIL     LIBSSH2_ERROR_SOCKET_NONE
+#define PACKET_NONE     LIBSSH2_ERROR_NONE
 
-libssh2pack_t _libssh2_packet_read(LIBSSH2_SESSION * session);
+int _libssh2_packet_read(LIBSSH2_SESSION * session);
 
 int _libssh2_packet_ask(LIBSSH2_SESSION * session, unsigned char packet_type,
                         unsigned char **data, unsigned long *data_len,

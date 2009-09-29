@@ -95,13 +95,13 @@ typedef long long libssh2_int64_t;
    to make the BANNER define (used by src/session.c) be a valid SSH
    banner. Release versions have no appended strings and may of course not
    have dashes either. */
-#define LIBSSH2_VERSION "1.2"
+#define LIBSSH2_VERSION "1.2.1"
 
 /* The numeric version number is also available "in parts" by using these
    defines: */
 #define LIBSSH2_VERSION_MAJOR 1
 #define LIBSSH2_VERSION_MINOR 2
-#define LIBSSH2_VERSION_PATCH 
+#define LIBSSH2_VERSION_PATCH 1
 
 /* This is the numeric version of the libssh2 version number, meant for easier
    parsing and comparions by programs. The LIBSSH2_VERSION_NUM define will
@@ -118,7 +118,7 @@ typedef long long libssh2_int64_t;
    and it is always a greater number in a more recent release. It makes
    comparisons with greater than and less than work.
 */
-#define LIBSSH2_VERSION_NUM 0x010200
+#define LIBSSH2_VERSION_NUM 0x010201
 
 /*
  * This is the date and time when the full source package was created. The
@@ -129,7 +129,7 @@ typedef long long libssh2_int64_t;
  *
  * "Mon Feb 12 11:35:33 UTC 2007"
  */
-#define LIBSSH2_TIMESTAMP "Mon Aug 10 20:38:23 UTC 2009"
+#define LIBSSH2_TIMESTAMP "Tue Sep 29 11:20:45 UTC 2009"
 
 /* Part of every banner, user specified or not */
 #define LIBSSH2_SSH_BANNER                  "SSH-2.0-libssh2_" LIBSSH2_VERSION
@@ -363,6 +363,9 @@ typedef struct _LIBSSH2_POLLFD {
 #define LIBSSH2_ERROR_PUBLICKEY_PROTOCOL        -36
 #define LIBSSH2_ERROR_EAGAIN                    -37
 #define LIBSSH2_ERROR_BUFFER_TOO_SMALL          -38
+#define LIBSSH2_ERROR_BAD_USE                   -39
+#define LIBSSH2_ERROR_COMPRESS                  -40
+#define LIBSSH2_ERROR_OUT_OF_BOUNDARY           -41
 
 /* Session API */
 LIBSSH2_API LIBSSH2_SESSION *
@@ -682,6 +685,7 @@ LIBSSH2_API
 const char *libssh2_version(int req_version_num);
 
 #define HAVE_LIBSSH2_KNOWNHOST_API 0x010101 /* since 1.1.1 */
+#define HAVE_LIBSSH2_VERSION_API   0x010100 /* libssh2_version since 1.1 */
 
 struct libssh2_knownhost {
     unsigned int magic;  /* magic stored by the library */
