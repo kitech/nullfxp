@@ -1117,7 +1117,12 @@ int Transportor::run_FILE_to_FTP()
             //                                   0755);
             // qDebug()<<"libssh2_sftp_mkdir: "<< transfer_ret <<" :"<< remote_full_path;
             rv = this->dconn->ftp->mkdir(GlobalOption::instance()->remote_codec->fromUnicode(remote_full_path));
-            assert(rv == 0);            
+            if (rv != 0) {
+                assert(rv == 0);
+                q_debug()<<"ftp mkdir error:";
+                this->error_code = 1;
+                break;
+            }
 
             //添加到队列当中
             for (int i = 0 ; i < fileinfos.size() ; i ++) {
@@ -1294,9 +1299,9 @@ int Transportor::run_FTP_to_FILE()
                 QString local_full_path = this->current_dest_file_name + "/"
                     + this->current_src_file_name.split("/").at(this->current_src_file_name.split("/").count()-1);
 
-                qDebug() << "local file: " << this->current_src_file_name
-                         << "remote file:" << this->current_dest_file_name
-                         << "local full file path: "<< local_full_path ;
+                qDebug()<<"local file: " << this->current_src_file_name
+                        <<"remote file:" << this->current_dest_file_name
+                        <<"local full file path: "<< local_full_path;
 
                 // transfer_ret = this->do_download(this->current_src_file_name, local_full_path, 0);
                 transfer_ret = this->run_FTP_to_FILE(this->current_src_file_name, local_full_path);
@@ -1536,8 +1541,14 @@ int Transportor::run_FTP_to_FTP()        // 负责根据情况调用下面的两
             //确保目标FTP上有这个目录。
             // transfer_ret = QDir().mkpath(temp_dest_atom_pkg.files.at(0));
             rv = this->dconn->ftp->mkdir(temp_dest_atom_pkg.files.at(0));
-            assert(rv == 0);
             qDebug()<<"fxp_dest ftp_do_mkdir: "<<transfer_ret <<" "<< temp_dest_atom_pkg.files.at(0);
+            if (rv != 0) {
+                assert(rv == 0);
+                q_debug()<<"ftp mkdir error:";
+                this->error_code = 1;
+                break;
+            }
+
             //加入到任务队列           
             for (int i = 0; i < fileList.count(); i++) {
                 temp_src_atom_pkg = src_atom_pkg;
