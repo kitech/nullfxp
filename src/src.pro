@@ -3,7 +3,7 @@
 # Author: liuguangzhao
 # Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 # URL: http://www.qtchina.net http://nullget.sourceforge.net
-# Created: 2009-05-18 22:03:19 +0800
+# Created: 2008-05-18 22:03:19 +0800
 # Version: $Id$
 # 
 
@@ -201,11 +201,14 @@ RESOURCES = nullfxp.qrc
 
 # install settings
 # DISTFILES += ./bin/nullfxp ./bin/unitest
-document.path = /usr/share/docs
+document.path = /opt/nullfxp/share/docs
 document.files = ../INSTALL ../README ../AUTHORS ../ChangeLog
 
-icons.path = /usr/share/icons
-icons.files = ./icons/*
+icons.path = /opt/nullfxp/share/icons
+icons.files = ./icons/* 
 
-target.path += /usr/bin
-INSTALLS += target document icons
+mimes.path = /opt/nullfxp/share/icons/mimetypes
+mimes.files = ./icons/mimetypes/*
+
+target.path += /opt/nullfxp/bin
+INSTALLS += target document icons mimes

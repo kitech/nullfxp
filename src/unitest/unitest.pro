@@ -39,5 +39,5 @@ win32 {
 
 win32:LIBS += -lQtTest -lws2_32  -lgdi32 
 
-target.path = /usr/bin
+target.path = /opt/nullfxp/bin
 INSTALLS += target

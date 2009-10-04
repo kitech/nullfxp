@@ -20,17 +20,17 @@
      <x>0</x>
      <y>0</y>
      <width>749</width>
-     <height>22</height>
+     <height>30</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFfff">
     <property name="title">
      <string>&amp;Remote</string>
     </property>
+    <addaction name="actionSession"/>
+    <addaction name="separator"/>
     <addaction name="actionConnect"/>
     <addaction name="actionDisconnect"/>
-    <addaction name="separator"/>
-    <addaction name="actionSession"/>
    </widget>
    <widget class="QMenu" name="menuOidfgsdf">
     <property name="title">

@@ -1,4 +1,7 @@
+NullFXP is a cross-platform sftp/ftp/secure ftp client with GUI, based on Qt technology. It support multi host connection and multi transport each other supported protocol at meanwhile.
 
+Homepage:
+        http://www.qtchina.net
 
 
 代码格式： emacs
