@@ -59,11 +59,12 @@ int LibFtp::login(const QString &user, const QString &password)
     QString sigLog;
 
     assert(this->qsock->bytesAvailable() == 0);
-    // sigLog = this->readAll(this->qsock);
-    // q_debug()<<sigLog;
 
-	if (user.length() == 0) cmd = QString("USER %1\r\n").arg("ftp");
-	else   cmd = QString("USER %1\r\n").arg(user);
+	if (user.length() == 0) {
+        cmd = QString("USER %1\r\n").arg("ftp");
+    } else {
+        cmd = QString("USER %1\r\n").arg(user);
+    }
 
 	this->qsock->write(cmd.toAscii());
 	qDebug()<<cmd;
@@ -120,8 +121,10 @@ int LibFtp::logout()
 		qDebug()<<ball;
         replyText = ball;
         QStringList sl = replyText.split(" ");
+        if (sl.at(0) == "221") {
+            return 0;
+        }
         assert(sl.at(0) == "221");
-        return 0;
 	}
 
 	return -1;
@@ -384,8 +387,10 @@ int LibFtp::list(QString path)
         replyText = ball;
         sl = replyText.split("\n");
         sl = sl.at(sl.count() - 2).split(" ");
+        if (sl.at(0) == "226") {
+            return 0;
+        }
         assert(sl.at(0) == "226");
-        return 0;
 	}
 
 	return -1;        
@@ -448,8 +453,10 @@ int LibFtp::lista(QString path)
         replyText = ball;
         sl = replyText.split("\n");
         sl = sl.at(sl.count() - 2).split(" ");
+        if (sl.at(0) == "226") {
+            return 0;
+        }
         assert(sl.at(0) == "226");
-        return 0;
 	}
 
 	return -1;
@@ -524,8 +531,10 @@ int LibFtp::pwd(QString &path)
         QStringList sl = replyText.split(" ");
         path = sl.at(1).split("\"").at(1);
         qDebug()<<"the pwd is :"<<path;
+        if (sl.at(0) == "257") {
+            return 0;
+        }
         assert(sl.at(0) == "257");
-        return 0;
 	}
 
 	return -1;    
@@ -549,8 +558,10 @@ int LibFtp::mkdir(const QString path)
 		qDebug()<<ball;
         replyText = ball;
         QStringList sl = replyText.split(" ");
+        if (sl.at(0) == "257") {
+            return 0;
+        }
         assert(sl.at(0) == "257"); // 550 perm denied
-        return 0;
 	}
 
 	return -1;
@@ -574,12 +585,12 @@ int LibFtp::rmdir(const QString path)
 		qDebug()<<ball;
         replyText = ball;
         QStringList sl = replyText.split(" ");
-        // assert(sl.at(0) == "250"); // 550 no such file
-        // 550 Can't remove directory: Directory not empty
         if (sl.at(0) == "250") {
             return 0;
         } else {
             qDebug()<<"cmd faild: "<<replyText.trimmed();
+            assert(sl.at(0) == "250"); // 550 no such file
+            // 550 Can't remove directory: Directory not empty
         }
 	}
 
@@ -606,10 +617,10 @@ int LibFtp::chdir(QString path)
         replyText = ball;
         QStringList sl = replyText.split("\n");
         sl = sl.at(sl.count() - 2).split(" ");
-        // assert(sl.at(0) == "250"); // 550 no such file
         if (sl.at(0) == "250") {
             return 0;
         }
+        assert(sl.at(0) == "250"); // 550 no such file
 	}
 
 	return -1;
@@ -684,8 +695,10 @@ int LibFtp::get(const QString fileName)
         replyText = ball;
         QStringList sl = replyText.split("\n");
         sl = sl.at(sl.count()-2).split(" "); // fix pure-ftpd multi line response error.
+        if (sl.at(0) == "150") {
+            return 0;
+        }
         assert(sl.at(0) == "150"); // 550 no such file
-        return 0;
 	}
     
     return -1;    
@@ -761,7 +774,10 @@ int LibFtp::rename(const QString src, const QString dest)
 		qDebug()<<ball;
         replyText = ball;
         QStringList sl = replyText.split(" ");
-        assert(sl.at(0) == "350"); // 350 350 File or directory exists, ready for destination name
+        if (sl.at(0) != "350") {
+            assert(sl.at(0) == "350"); // 350 350 File or directory exists, ready for destination name
+            return -1;
+        }
 
         cmd = QString("RNTO %1\r\n").arg(dest);
         this->qsock->write(cmd.toAscii());
@@ -774,8 +790,10 @@ int LibFtp::rename(const QString src, const QString dest)
             qDebug()<<ball;
             replyText = ball;
             QStringList sl = replyText.split(" ");
+            if (sl.at(0) == "250") {
+                return 0;
+            }
             assert(sl.at(0) == "250"); // 500 no such file
-            return 0;
         }
 	}
     
@@ -815,8 +833,10 @@ int LibFtp::type(int type)
 		qDebug()<<ball;
         replyText = ball;
         QStringList sl = replyText.split(" ");
+        if (sl.at(0) == "200") {
+            return 0;
+        }
         assert(sl.at(0) == "200");
-        return 0;
 	}
 
 	return -1;
@@ -841,8 +861,10 @@ int LibFtp::noop()
 		qDebug()<<ball;
         replyText = ball;
         QStringList sl = replyText.split(" ");
+        if (sl.at(0) == "200") {
+            return 0;
+        }
         assert(sl.at(0) == "200");
-        return 0;
 	}
 
 	return -1;
@@ -867,10 +889,12 @@ int LibFtp::system(QString &type)
 		qDebug()<<ball;
         replyText = ball;
         QStringList sl = replyText.split(" ");
+        if (sl.at(0) == "215") {
+            type = sl.at(1);
+            qDebug()<<"ftp system type: "<<type;
+            return 0;    
+        }
         assert(sl.at(0) == "215");
-        type = sl.at(1);
-        qDebug()<<"ftp system type: "<<type;
-        return 0;
 	}
 
 	return -1;
@@ -1006,9 +1030,11 @@ int LibFtp::size(QString path, quint64 &siz)
 		qDebug()<<ball;
         replyText = ball;
         QStringList sl = replyText.split(" ");
+        if (sl.at(0) == "213") {
+            siz = sl.at(1).trimmed().toULongLong();
+            return 0;
+        }
         assert(sl.at(0) == "213");
-        siz = sl.at(1).trimmed().toULongLong();
-        return 0;
 	}
 
 	return -1;
