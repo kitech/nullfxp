@@ -41,9 +41,11 @@ rm -vfr $dirname/../nullfxp/share/icons/.directory
 rm -vfr $dirname/../nullfxp/share/icons/mimetypes/.directory
 ln -sv ../share/icons $dirname/../nullfxp/lib/
 
-VER_FILE=$dirname/../src/nullfxp-version.h
+# VER_FILE=$dirname/../src/nullfxp-version.h
+VER_FILE=$dirname/../src/src.pro
 echo $VER_FILE
-VERSION=`cat $VER_FILE|grep NullFXP|awk '{print $4}'`
+# VERSION=`cat $VER_FILE|grep NullFXP|awk '{print $4}'`
+VERSION=`cat src/src.pro |grep VERSION=|awk '{print $1}'|awk -F= '{print $2}'`
 echo $VERSION
 
 USED_OPENSSL_SSL=`ldd $dirname/../nullfxp/lib/nullfxp|grep libssl|awk '{print $3}'` 
