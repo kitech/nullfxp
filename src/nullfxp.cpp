@@ -29,7 +29,7 @@
 #include "progressdialog.h"
 #include "remotehostconnectingstatusdialog.h"
 #include "remotehostquickconnectinfodialog.h"
-#include "remotehostconnectthread.h"
+// #include "remotehostconnectthread.h"
 #include "sessiondialog.h"
 #include "connection.h"
 #include "connector.h"
@@ -211,37 +211,38 @@ void NullFXP::connect_to_remote_host(QMap<QString, QString> host)
     }
 }
 
-void NullFXP::connect_to_remote_sftp_host(QMap<QString,QString> host)
-{
-    QString protocol;
-    QString username;
-    QString password;
-    QString remoteaddr;
-    short   port;
-    QString pubkey = QString::null;
+// depcreated
+// void NullFXP::connect_to_remote_sftp_host(QMap<QString,QString> host)
+// {
+//     QString protocol;
+//     QString username;
+//     QString password;
+//     QString remoteaddr;
+//     short   port;
+//     QString pubkey = QString::null;
 
-    protocol = host["protocol"];
-    username = host["user_name"];
-    password = host["password"];
-    remoteaddr = host["host_name"];
-    port = (host["port"].length() == 0) ? 22 : host["port"].toShort();
-    if (host.contains("pubkey")) {
-        pubkey = host["pubkey"];
-    }
-    // qDebug()<<host<<"\n"<<QUrl::fromPercentEncoding(password.toAscii());
-    this->connect_status_dailog = new RemoteHostConnectingStatusDialog(username, remoteaddr, this, Qt::Dialog);
-    QObject::connect(this->connect_status_dailog, SIGNAL(cancel_connect()),
-                     this, SLOT(slot_cancel_connect()));
-    remote_conn_thread = new RemoteHostConnectThread(username, password, remoteaddr, port, pubkey);
-    QObject::connect(this->remote_conn_thread, SIGNAL(connect_finished(int, void *, int)),
-                     this, SLOT(slot_connect_remote_host_finished (int, void *, int)));
+//     protocol = host["protocol"];
+//     username = host["user_name"];
+//     password = host["password"];
+//     remoteaddr = host["host_name"];
+//     port = (host["port"].length() == 0) ? 22 : host["port"].toShort();
+//     if (host.contains("pubkey")) {
+//         pubkey = host["pubkey"];
+//     }
+//     // qDebug()<<host<<"\n"<<QUrl::fromPercentEncoding(password.toAscii());
+//     this->connect_status_dailog = new RemoteHostConnectingStatusDialog(username, remoteaddr, this, Qt::Dialog);
+//     QObject::connect(this->connect_status_dailog, SIGNAL(cancel_connect()),
+//                      this, SLOT(slot_cancel_connect()));
+//     remote_conn_thread = new RemoteHostConnectThread(username, password, remoteaddr, port, pubkey);
+//     QObject::connect(this->remote_conn_thread, SIGNAL(connect_finished(int, void *, int)),
+//                      this, SLOT(slot_connect_remote_host_finished (int, void *, int)));
 
-    QObject::connect(this->remote_conn_thread, SIGNAL(connect_state_changed(QString)),
-                     this->connect_status_dailog, SLOT(slot_connect_state_changed(QString)));
+//     QObject::connect(this->remote_conn_thread, SIGNAL(connect_state_changed(QString)),
+//                      this->connect_status_dailog, SLOT(slot_connect_state_changed(QString)));
         
-    this->remote_conn_thread->start();        
-    this->connect_status_dailog->exec();
-}
+//     this->remote_conn_thread->start();        
+//     this->connect_status_dailog->exec();
+// }
 void NullFXP::connect_to_remote_ftp_host(QMap<QString,QString> host)
 {
     q_debug()<<"";
@@ -302,51 +303,51 @@ void NullFXP::slot_show_session_dialog()
     delete sess_dlg;
 }
 
-void NullFXP::slot_connect_remote_host_finished(int status, void *ssh2_sess, int ssh2_sock)
-{
-    RemoteHostConnectThread *conn_thread = static_cast< RemoteHostConnectThread*>(sender());
+// void NullFXP::slot_connect_remote_host_finished(int status, void *ssh2_sess, int ssh2_sock)
+// {
+//     RemoteHostConnectThread *conn_thread = static_cast< RemoteHostConnectThread*>(sender());
     
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    if (status == RemoteHostConnectThread::CONN_OK ) {
-        RemoteView *remote_view = new RemoteView(this->mdiArea, this->localView);
+//     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+//     if (status == RemoteHostConnectThread::CONN_OK ) {
+//         RemoteView *remote_view = new RemoteView(this->mdiArea, this->localView);
         
-        mdiArea->addSubWindow(remote_view);
-        QMdiSubWindow *local_sub_win = mdiArea->subWindowList(QMdiArea::CreationOrder).at(mdiArea->subWindowList(QMdiArea::CreationOrder).count()-1);
+//         mdiArea->addSubWindow(remote_view);
+//         QMdiSubWindow *local_sub_win = mdiArea->subWindowList(QMdiArea::CreationOrder).at(mdiArea->subWindowList(QMdiArea::CreationOrder).count()-1);
         
-        remote_view->slot_custom_ui_area();
-        //remote_view->show();
-        local_sub_win->show();
-        //调整本地目录树窗口的大小
-        //QList<QMdiSubWindow *> mdiSubWindow = mdiArea->subWindowList();
-        //qDebug()<<" mdi sub window count :"<< mdiSubWindow.count();        
-        //local_sub_win->setGeometry( local_sub_win->x(),local_sub_win->y(), mdiArea->width()/2,  mdiArea->height()*18/19 );
-        local_sub_win->resize(mdiArea->width()/2, mdiArea->height()*18/19);
+//         remote_view->slot_custom_ui_area();
+//         //remote_view->show();
+//         local_sub_win->show();
+//         //调整本地目录树窗口的大小
+//         //QList<QMdiSubWindow *> mdiSubWindow = mdiArea->subWindowList();
+//         //qDebug()<<" mdi sub window count :"<< mdiSubWindow.count();        
+//         //local_sub_win->setGeometry( local_sub_win->x(),local_sub_win->y(), mdiArea->width()/2,  mdiArea->height()*18/19 );
+//         local_sub_win->resize(mdiArea->width()/2, mdiArea->height()*18/19);
         
-        // remote_view->set_ssh2_handler(ssh2_sess, ssh2_sock);
-        remote_view->set_user_home_path(QString(this->remote_conn_thread->get_user_home_path().c_str()));
-        // remote_view->set_host_info(conn_thread->get_host_name(),
-        //                            conn_thread->get_user_name(),
-        //                            conn_thread->get_password(),
-        //                            conn_thread->get_port(),
-        //                            conn_thread->get_pubkey());
-        //初始化远程目录树        
-        remote_view->i_init_dir_view();
-    } else if (status == RemoteHostConnectThread::CONN_CANCEL) {   //use canceled connection
-        qDebug()<<"user canceled connecting";
-    } else {
-        //assert ( 1==2 );
-        //this->connect_status_dailog->setVisible(false);
-        this->connect_status_dailog->stop_progress_bar();
+//         // remote_view->set_ssh2_handler(ssh2_sess, ssh2_sock);
+//         remote_view->set_user_home_path(QString(this->remote_conn_thread->get_user_home_path().c_str()));
+//         // remote_view->set_host_info(conn_thread->get_host_name(),
+//         //                            conn_thread->get_user_name(),
+//         //                            conn_thread->get_password(),
+//         //                            conn_thread->get_port(),
+//         //                            conn_thread->get_pubkey());
+//         //初始化远程目录树        
+//         remote_view->i_init_dir_view();
+//     } else if (status == RemoteHostConnectThread::CONN_CANCEL) {   //use canceled connection
+//         qDebug()<<"user canceled connecting";
+//     } else {
+//         //assert ( 1==2 );
+//         //this->connect_status_dailog->setVisible(false);
+//         this->connect_status_dailog->stop_progress_bar();
     
-        QString emsg = conn_thread->get_status_desc(status);
-        QMessageBox::critical(this, tr("Connect Error:"), emsg);
-    }
-    this->connect_status_dailog->accept();
-    delete this->connect_status_dailog;
-    this->connect_status_dailog = 0;
-    delete this->remote_conn_thread;
-    this->remote_conn_thread = 0;
-}
+//         QString emsg = conn_thread->get_status_desc(status);
+//         QMessageBox::critical(this, tr("Connect Error:"), emsg);
+//     }
+//     this->connect_status_dailog->accept();
+//     delete this->connect_status_dailog;
+//     this->connect_status_dailog = 0;
+//     delete this->remote_conn_thread;
+//     this->remote_conn_thread = 0;
+// }
 void NullFXP::slot_connect_remote_host_finished(int status, Connection *conn)
 {
     q_debug()<<status<<conn;
@@ -409,10 +410,12 @@ void NullFXP::slot_connect_remote_host_finished(int status, Connection *conn)
     delete this->connector;
     this->connector = 0;    
 }
+
 void NullFXP::slot_cancel_connect()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    this->remote_conn_thread->set_user_canceled();
+    // this->remote_conn_thread->set_user_canceled();
+    this->connector->setUserCanceled();
 }
 
 void NullFXP::slot_new_upload_requested(TaskPackage local_pkg)
@@ -420,21 +423,21 @@ void NullFXP::slot_new_upload_requested(TaskPackage local_pkg)
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     RemoteView *remote_view = this->get_top_most_remote_view();
     if (remote_view == 0) {
-        qDebug()<<" may be not connected ";
-        return ;
+        qDebug()<<"may be not connected";
+        return;
     }
     remote_view->slot_new_upload_requested(local_pkg);
 }
 
 void NullFXP::slot_show_transfer_queue(bool show)
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     transfer_queue_list_view->setVisible(show);
 }
 
 void NullFXP::slot_show_fxp_command_log(bool show)
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     RemoteView *remote_view = this->get_top_most_remote_view();
     if (remote_view != 0)
         remote_view->slot_show_fxp_command_log(show);

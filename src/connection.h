@@ -39,6 +39,7 @@ public:
     virtual int reconnect();
     virtual bool isConnected();
     virtual bool isRealConnected();
+    virtual bool setUserCanceled();
     void setHostInfo(QMap<QString, QString> host);
     QMap<QString, QString> hostInfo();
     QString userHomePath();

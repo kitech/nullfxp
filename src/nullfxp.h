@@ -43,7 +43,7 @@ class LocalView;
 class RemoteView;
 class RemoteHostConnectingStatusDialog;
 class RemoteHostQuickConnectInfoDialog;
-class RemoteHostConnectThread ;
+// class RemoteHostConnectThread ;
 class ForwardConnectDaemon;
 class Connection;
 class Connector;
@@ -66,14 +66,14 @@ public slots:
         
     void connect_to_remote_host() ;
     void connect_to_remote_host(QMap<QString,QString> host);
-    void connect_to_remote_sftp_host(QMap<QString,QString> host);
+    // void connect_to_remote_sftp_host(QMap<QString,QString> host);
     void connect_to_remote_ftp_host(QMap<QString,QString> host);
     void slot_disconnect_from_remote_host();
     void slot_cancel_connect();
 
 
-
-    void slot_connect_remote_host_finished(int status, void *ssh2_sess, int ssh2_sock);
+    // depcreated
+    // void slot_connect_remote_host_finished(int status, void *ssh2_sess, int ssh2_sock);
     void slot_connect_remote_host_finished(int status, Connection *conn);
         
     void slot_new_upload_requested(TaskPackage local_pkg);
@@ -107,7 +107,7 @@ private:
 
     RemoteHostConnectingStatusDialog *connect_status_dailog;
     RemoteHostQuickConnectInfoDialog *quick_connect_info_dailog;
-    RemoteHostConnectThread *remote_conn_thread;
+    // RemoteHostConnectThread *remote_conn_thread;
     Connector *connector;
 
     ForwardConnectDaemon *fcd;

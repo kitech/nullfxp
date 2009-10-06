@@ -49,6 +49,12 @@ void Connector::setHostInfo(QMap<QString, QString> host)
     assert(this->conn != NULL);
     this->conn->setHostInfo(host);
 }
+void Connector::setUserCanceled()
+{
+    assert(this->conn != NULL);
+    this->conn->setUserCanceled();
+}
+
 void Connector::run()
 {
     assert(this->conn != NULL);

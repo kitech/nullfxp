@@ -112,9 +112,6 @@ protected:
     int setLocalCurrentDirByFullPath(QString path);
     int setFTPCurrentDirByFullPath(Connection *conn, QString path);
 
-    // depcreated
-    // virtual void run_backup(); // will depcreated when the upper method impled
-
 signals:
     void transfer_percent_changed(int percent, int total_transfered, int transfer_delta);
     void transfer_new_file_started(QString new_file_name);

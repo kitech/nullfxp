@@ -48,6 +48,11 @@ bool Connection::isRealConnected()
     return this->connected;
 }
 
+bool Connection::setUserCanceled()
+{
+    this->user_canceled = true;
+}
+
 void Connection::setHostInfo(QMap<QString, QString> host)
 {
     this->protocol = host["protocol"];
