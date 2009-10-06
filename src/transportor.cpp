@@ -32,7 +32,7 @@
 
 #include "globaloption.h"
 #include "transportor.h"
-#include "remotehostconnectthread.h"
+// #include "remotehostconnectthread.h"
 #include "utils.h"
 #include "sshfileinfo.h"
 #include "sshconnection.h"
@@ -47,10 +47,10 @@ Transportor::Transportor(QObject *parent)
     this->dconn = 0;
     this->src_ssh2_sess = 0;
     this->src_ssh2_sftp = 0;
-    this->src_ssh2_sock = 0;
+    // this->src_ssh2_sock = 0;
     this->dest_ssh2_sess = 0;
     this->dest_ssh2_sftp = 0;
-    this->dest_ssh2_sock = 0;
+    /// this->dest_ssh2_sock = 0;
 }
 
 Transportor::~Transportor()
@@ -208,7 +208,7 @@ int Transportor::run_FILE_to_SFTP()
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
-    RemoteHostConnectThread *rhct = 0;
+    // RemoteHostConnectThread *rhct = 0;
 
     int rv = -1;
     int transfer_ret = -1;
@@ -227,11 +227,11 @@ int Transportor::run_FILE_to_SFTP()
     
     this->dest_ssh2_sess = 0;
     this->dest_ssh2_sftp = 0;
-    this->dest_ssh2_sock = 0;
+    // this->dest_ssh2_sock = 0;
         
     this->src_ssh2_sess = 0;
     this->src_ssh2_sftp = 0;
-    this->src_ssh2_sock = 0;
+    // this->src_ssh2_sock = 0;
     
     do {
         src_atom_pkg = this->transfer_ready_queue.front().first;
@@ -264,45 +264,58 @@ int Transportor::run_FILE_to_SFTP()
             
         //连接到目录主机：
         qDebug()<<"connecting to dest ssh host:"<<dest_atom_pkg.username
-                <<":"<<dest_atom_pkg.password<<"@"<<dest_atom_pkg.host <<":"<<dest_atom_pkg.port ;
-        if (this->dest_ssh2_sess == 0 || this->dest_ssh2_sftp == 0) {
-            emit  transfer_log("Connecting to destination host ...");
-            QString tmp_passwd = dest_atom_pkg.password;
-            rhct = new RemoteHostConnectThread(dest_atom_pkg.username, tmp_passwd,
-                                               dest_atom_pkg.host, dest_atom_pkg.port.toInt(), dest_atom_pkg.pubkey);
-            rhct->run();
-            //TODO get status code and then ...
-            rv = rhct->get_connect_status();
-            if (rv != RemoteHostConnectThread::CONN_OK) {
-                qDebug()<<"Connect to Host Error: "<<rv<<":"<<rhct->get_status_desc(rv);
-                emit transfer_log("Connect Error: " + rhct->get_status_desc(rv));
+                <<":"<<dest_atom_pkg.password<<"@"<<dest_atom_pkg.host <<":"<<dest_atom_pkg.port;
+        // if (this->dest_ssh2_sess == 0 || this->dest_ssh2_sftp == 0) {
+        //     emit  transfer_log("Connecting to destination host ...");
+        //     QString tmp_passwd = dest_atom_pkg.password;
+        //     rhct = new RemoteHostConnectThread(dest_atom_pkg.username, tmp_passwd,
+        //                                        dest_atom_pkg.host, dest_atom_pkg.port.toInt(), dest_atom_pkg.pubkey);
+        //     rhct->run();
+        //     //TODO get status code and then ...
+        //     rv = rhct->get_connect_status();
+        //     if (rv != RemoteHostConnectThread::CONN_OK) {
+        //         qDebug()<<"Connect to Host Error: "<<rv<<":"<<rhct->get_status_desc(rv);
+        //         emit transfer_log("Connect Error: " + rhct->get_status_desc(rv));
+        //         this->error_code = transfer_ret = 6;
+        //         this->errorString = rhct->get_status_desc(rv);
+        //         break;
+        //     }
+        //     //get connect return code end
+        //     this->dest_ssh2_sess = (LIBSSH2_SESSION*)rhct->get_ssh2_sess();
+        //     this->dest_ssh2_sock = rhct->get_ssh2_sock();
+        //     this->dest_ssh2_sftp = libssh2_sftp_init(this->dest_ssh2_sess);
+        //     delete rhct ; rhct = 0 ;
+        //     emit  transfer_log("Connect done.");
+        // }
+        // switch to SSHConnection
+        if (this->dconn == 0) {
+            emit  transfer_log("Connecting to destination ssh host ...");
+            this->dconn = new SSHConnection();
+            this->dconn->setHostInfo(this->dest_pkg.hostInfo());
+            rv = this->dconn->connect();
+            if (rv != Connection::CONN_OK) {
+                qDebug()<<"Connect to Host Error: "<<rv
+                        <<":"<<this->dconn->get_status_desc(rv);
+                emit transfer_log("Connect Error: " + this->dconn->get_status_desc(rv));
                 this->error_code = transfer_ret = 6;
-                this->errorString = rhct->get_status_desc(rv);
+                this->errorString = this->dconn->get_status_desc(rv);
                 break;
             }
-            //get connect return code end
-            this->dest_ssh2_sess = (LIBSSH2_SESSION*)rhct->get_ssh2_sess();
-            this->dest_ssh2_sock = rhct->get_ssh2_sock();
-            this->dest_ssh2_sftp = libssh2_sftp_init(this->dest_ssh2_sess);
-            delete rhct ; rhct = 0 ;
             emit  transfer_log("Connect done.");
+            //get connect return code end
+            this->dest_ssh2_sess = this->dconn->sess;
+            this->dest_ssh2_sftp = libssh2_sftp_init(this->dest_ssh2_sess);
         }
-        // switch to SSHConnection
-        // if (this->dconn == 0) {
-        //     emit  transfer_log("Connecting to destination ssh host ...");
-        //     this->dconn = new SSHConnection();
-            
-        // }
 
         // 将文件上传到目录
         if (QFileInfo(this->current_src_file_name).isFile()
             && remote_is_dir(this->dest_ssh2_sftp , this->current_dest_file_name)) {
             QString remote_full_path = this->current_dest_file_name + "/"
                 + this->current_src_file_name.split ( "/" ).at ( this->current_src_file_name.split ( "/" ).count()-1 ) ;
-            qDebug() << "local file: " << this->current_src_file_name
-                     << "remote file:" << this->current_dest_file_name
-                     << "remote full file path: "<< remote_full_path ;
-            // transfer_ret = this->do_upload(this->current_src_file_name, remote_full_path, 0);
+            qDebug()<<"local file: "<<this->current_src_file_name
+                    <<"remote file:"<<this->current_dest_file_name
+                    <<"remote full file path: "<<remote_full_path;
+
             transfer_ret = this->run_FILE_to_SFTP(this->current_src_file_name, remote_full_path);
         } else if (QFileInfo(this->current_src_file_name).isDir()
                    && remote_is_dir(this->dest_ssh2_sftp, this->current_dest_file_name)) {
@@ -361,14 +374,14 @@ int Transportor::run_FILE_to_SFTP()
         libssh2_session_free(this->src_ssh2_sess);
         this->src_ssh2_sess = 0 ;
     }
-    if (this->src_ssh2_sock > 0) {
-#ifdef WIN32
-        ::closesocket(this->src_ssh2_sock);
-#else  
-        ::close(this->src_ssh2_sock);
-#endif
-        this->src_ssh2_sock = -1;
-    }
+//     if (this->src_ssh2_sock > 0) {
+// #ifdef WIN32
+//         ::closesocket(this->src_ssh2_sock);
+// #else  
+//         ::close(this->src_ssh2_sock);
+// #endif
+//         this->src_ssh2_sock = -1;
+//     }
     if (this->dest_ssh2_sftp != 0) {
         libssh2_sftp_shutdown(this->dest_ssh2_sftp);
         this->dest_ssh2_sftp = 0 ;
@@ -377,14 +390,14 @@ int Transportor::run_FILE_to_SFTP()
         libssh2_session_free(this->dest_ssh2_sess);
         this->dest_ssh2_sess = 0 ;
     }
-    if (this->dest_ssh2_sock > 0) {
-#ifdef WIN32
-        ::closesocket(this->dest_ssh2_sock);
-#else  
-        ::close(this->dest_ssh2_sock);
-#endif
-        this->dest_ssh2_sock = -1;
-    }
+//     if (this->dest_ssh2_sock > 0) {
+// #ifdef WIN32
+//         ::closesocket(this->dest_ssh2_sock);
+// #else  
+//         ::close(this->dest_ssh2_sock);
+// #endif
+//         this->dest_ssh2_sock = -1;
+//     }
     if (this->user_canceled == true) {
         this->error_code = 3;
     }
@@ -514,7 +527,7 @@ int Transportor::run_SFTP_to_FILE()
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
-    RemoteHostConnectThread *rhct = 0;
+    // RemoteHostConnectThread *rhct = 0;
 
     int rv = -1;
     int transfer_ret = -1;
@@ -533,11 +546,11 @@ int Transportor::run_SFTP_to_FILE()
     
     this->dest_ssh2_sess = 0;
     this->dest_ssh2_sftp = 0;
-    this->dest_ssh2_sock = 0;
+    // this->dest_ssh2_sock = 0;
         
     this->src_ssh2_sess = 0;
     this->src_ssh2_sftp = 0;
-    this->src_ssh2_sock = 0;
+    // this->src_ssh2_sock = 0;
     
     do {
         src_atom_pkg = this->transfer_ready_queue.front().first;
@@ -570,20 +583,39 @@ int Transportor::run_SFTP_to_FILE()
         //连接到目录主机：
         qDebug()<<"connecting to src ssh host:"<<src_atom_pkg.username<<":"<<src_atom_pkg.password
                 <<"@"<<src_atom_pkg.host <<":"<<src_atom_pkg.port ;
-        if (this->src_ssh2_sess == 0 || this->src_ssh2_sftp == 0) {
-            emit  transfer_log("Connecting to source host ...");
-            QString tmp_passwd = src_atom_pkg.password;
+        // if (this->src_ssh2_sess == 0 || this->src_ssh2_sftp == 0) {
+        //     emit  transfer_log("Connecting to source host ...");
+        //     QString tmp_passwd = src_atom_pkg.password;
 
-            rhct = new RemoteHostConnectThread(src_atom_pkg.username, tmp_passwd, src_atom_pkg.host, 
-                                               src_atom_pkg.port.toInt(), src_atom_pkg.pubkey);
-            rhct->run();
-            //TODO get status code and then ...
-            this->src_ssh2_sess = (LIBSSH2_SESSION*)rhct->get_ssh2_sess();
-            this->src_ssh2_sock = rhct->get_ssh2_sock();
-            this->src_ssh2_sftp = libssh2_sftp_init(this->src_ssh2_sess);
-            delete rhct ; rhct = 0 ;
+        //     rhct = new RemoteHostConnectThread(src_atom_pkg.username, tmp_passwd, src_atom_pkg.host, 
+        //                                        src_atom_pkg.port.toInt(), src_atom_pkg.pubkey);
+        //     rhct->run();
+        //     //TODO get status code and then ...
+        //     this->src_ssh2_sess = (LIBSSH2_SESSION*)rhct->get_ssh2_sess();
+        //     // this->src_ssh2_sock = rhct->get_ssh2_sock();
+        //     this->src_ssh2_sftp = libssh2_sftp_init(this->src_ssh2_sess);
+        //     delete rhct ; rhct = 0 ;
+        //     emit  transfer_log("Connect done.");
+        // }
+        if (this->sconn == 0) {
+            emit  transfer_log("Connecting to source ssh host ...");
+            this->sconn = new SSHConnection();
+            this->sconn->setHostInfo(this->src_pkg.hostInfo());
+            rv = this->sconn->connect();
+            if (rv != Connection::CONN_OK) {
+                qDebug()<<"Connect to Host Error: "<<rv
+                        <<":"<<this->sconn->get_status_desc(rv);
+                emit transfer_log("Connect Error: " + this->sconn->get_status_desc(rv));
+                this->error_code = transfer_ret = 6;
+                this->errorString = this->sconn->get_status_desc(rv);
+                break;
+            }
             emit  transfer_log("Connect done.");
+            //get connect return code end
+            this->src_ssh2_sess = this->sconn->sess;
+            this->src_ssh2_sftp = libssh2_sftp_init(this->src_ssh2_sess);
         }
+
         //将文件下载到目录
         if (remote_is_reg(this->src_ssh2_sftp, this->current_src_file_name) 
             && QFileInfo(this->current_dest_file_name).isDir()) {
@@ -646,14 +678,14 @@ int Transportor::run_SFTP_to_FILE()
         libssh2_session_free(this->src_ssh2_sess);
         this->src_ssh2_sess = 0 ;
     }
-    if (this->src_ssh2_sock > 0) {
-#ifdef WIN32
-        ::closesocket(this->src_ssh2_sock);
-#else  
-        ::close(this->src_ssh2_sock);
-#endif
-        this->src_ssh2_sock = -1;
-    }
+//     if (this->src_ssh2_sock > 0) {
+// #ifdef WIN32
+//         ::closesocket(this->src_ssh2_sock);
+// #else  
+//         ::close(this->src_ssh2_sock);
+// #endif
+//         this->src_ssh2_sock = -1;
+//     }
     if (this->dest_ssh2_sftp != 0) {
         libssh2_sftp_shutdown(this->dest_ssh2_sftp);
         this->dest_ssh2_sftp = 0 ;
@@ -662,14 +694,14 @@ int Transportor::run_SFTP_to_FILE()
         libssh2_session_free(this->dest_ssh2_sess);
         this->dest_ssh2_sess = 0 ;
     }
-    if (this->dest_ssh2_sock > 0) {
-#ifdef WIN32
-        ::closesocket(this->dest_ssh2_sock);
-#else  
-        ::close(this->dest_ssh2_sock);
-#endif
-        this->dest_ssh2_sock = -1;
-    }
+//     if (this->dest_ssh2_sock > 0) {
+// #ifdef WIN32
+//         ::closesocket(this->dest_ssh2_sock);
+// #else  
+//         ::close(this->dest_ssh2_sock);
+// #endif
+//         this->dest_ssh2_sock = -1;
+//     }
     if (this->user_canceled == true) {
         this->error_code = 3;
     }
@@ -768,7 +800,7 @@ int Transportor::run_SFTP_to_SFTP()
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
-    RemoteHostConnectThread *rhct = 0;
+    // RemoteHostConnectThread *rhct = 0;
 
     int rv = -1;
     int transfer_ret = -1;
@@ -787,11 +819,11 @@ int Transportor::run_SFTP_to_SFTP()
     
     this->dest_ssh2_sess = 0 ;
     this->dest_ssh2_sftp = 0 ;
-    this->dest_ssh2_sock = 0 ;
+    // this->dest_ssh2_sock = 0 ;
         
     this->src_ssh2_sess = 0 ;
     this->src_ssh2_sftp = 0 ;
-    this->src_ssh2_sock = 0 ;
+    // this->src_ssh2_sock = 0 ;
     
     do {
         src_atom_pkg = this->transfer_ready_queue.front().first;
@@ -821,34 +853,72 @@ int Transportor::run_SFTP_to_SFTP()
        
         emit this->transfer_new_file_started(this->current_src_file_name);
         //处理nrsftp协议
-        if (this->src_ssh2_sess == 0 || this->src_ssh2_sftp == 0) {
-            emit  transfer_log("Connecting to destionation host ...");
-            QString tmp_passwd = src_atom_pkg.password;
+        // if (this->src_ssh2_sess == 0 || this->src_ssh2_sftp == 0) {
+        //     emit  transfer_log("Connecting to destionation host ...");
+        //     QString tmp_passwd = src_atom_pkg.password;
 
-            rhct = new RemoteHostConnectThread(src_atom_pkg.username, tmp_passwd, src_atom_pkg.host, 
-                                               src_atom_pkg.port.toInt(), src_atom_pkg.pubkey);
-            rhct->run();
-            //TODO get status code and then ...
-            this->src_ssh2_sess = (LIBSSH2_SESSION*)rhct->get_ssh2_sess();
-            this->src_ssh2_sock = rhct->get_ssh2_sock();
+        //     rhct = new RemoteHostConnectThread(src_atom_pkg.username, tmp_passwd, src_atom_pkg.host, 
+        //                                        src_atom_pkg.port.toInt(), src_atom_pkg.pubkey);
+        //     rhct->run();
+        //     //TODO get status code and then ...
+        //     this->src_ssh2_sess = (LIBSSH2_SESSION*)rhct->get_ssh2_sess();
+        //     // this->src_ssh2_sock = rhct->get_ssh2_sock();
+        //     this->src_ssh2_sftp = libssh2_sftp_init(this->src_ssh2_sess);
+        //     delete rhct ; rhct = 0 ;
+        //     emit  transfer_log("Connect done.");
+        // }
+        // if (this->dest_ssh2_sess == 0 || this->dest_ssh2_sftp == 0 ) {
+        //     emit  transfer_log("Connecting to source host ...");
+        //     QString tmp_passwd = dest_atom_pkg.password;
+
+        //     rhct = new RemoteHostConnectThread(dest_atom_pkg.username, tmp_passwd, dest_atom_pkg.host,
+        //                                        dest_atom_pkg.port.toInt(), dest_atom_pkg.pubkey);
+        //     rhct->run();
+        //     //TODO get status code and then ...
+        //     this->dest_ssh2_sess = (LIBSSH2_SESSION*)rhct->get_ssh2_sess();
+        //     // this->dest_ssh2_sock = rhct->get_ssh2_sock();
+        //     this->dest_ssh2_sftp = libssh2_sftp_init(this->dest_ssh2_sess);
+        //     delete rhct ; rhct = 0 ;
+        //     emit  transfer_log("Connect done.");
+        // }
+
+        if (this->sconn == 0) {
+            emit  transfer_log("Connecting to source ssh host ...");
+            this->sconn = new SSHConnection();
+            this->sconn->setHostInfo(this->src_pkg.hostInfo());
+            rv = this->sconn->connect();
+            if (rv != Connection::CONN_OK) {
+                qDebug()<<"Connect to Host Error: "<<rv
+                        <<":"<<this->sconn->get_status_desc(rv);
+                emit transfer_log("Connect Error: " + this->sconn->get_status_desc(rv));
+                this->error_code = transfer_ret = 6;
+                this->errorString = this->sconn->get_status_desc(rv);
+                break;
+            }
+            emit  transfer_log("Connect done.");
+            //get connect return code end
+            this->src_ssh2_sess = this->sconn->sess;
             this->src_ssh2_sftp = libssh2_sftp_init(this->src_ssh2_sess);
-            delete rhct ; rhct = 0 ;
-            emit  transfer_log("Connect done.");
         }
-        if (this->dest_ssh2_sess == 0 || this->dest_ssh2_sftp == 0 ) {
-            emit  transfer_log("Connecting to source host ...");
-            QString tmp_passwd = dest_atom_pkg.password;
-
-            rhct = new RemoteHostConnectThread(dest_atom_pkg.username, tmp_passwd, dest_atom_pkg.host,
-                                               dest_atom_pkg.port.toInt(), dest_atom_pkg.pubkey);
-            rhct->run();
-            //TODO get status code and then ...
-            this->dest_ssh2_sess = (LIBSSH2_SESSION*)rhct->get_ssh2_sess();
-            this->dest_ssh2_sock = rhct->get_ssh2_sock();
+        if (this->dconn == 0) {
+            emit  transfer_log("Connecting to destionation ssh host ...");
+            this->dconn = new SSHConnection();
+            this->dconn->setHostInfo(this->dest_pkg.hostInfo());
+            rv = this->dconn->connect();
+            if (rv != Connection::CONN_OK) {
+                qDebug()<<"Connect to Host Error: "<<rv
+                        <<":"<<this->dconn->get_status_desc(rv);
+                emit transfer_log("Connect Error: " + this->dconn->get_status_desc(rv));
+                this->error_code = transfer_ret = 6;
+                this->errorString = this->dconn->get_status_desc(rv);
+                break;
+            }
+            emit  transfer_log("Connect done.");
+            //get connect return code end
+            this->dest_ssh2_sess = this->dconn->sess;
             this->dest_ssh2_sftp = libssh2_sftp_init(this->dest_ssh2_sess);
-            delete rhct ; rhct = 0 ;
-            emit  transfer_log("Connect done.");
         }
+
         ////////////
         if (remote_is_dir(this->src_ssh2_sftp, this->current_src_file_name) 
             && remote_is_dir(this->dest_ssh2_sftp,this->current_dest_file_name ) ) {
@@ -905,14 +975,14 @@ int Transportor::run_SFTP_to_SFTP()
         libssh2_session_free(this->src_ssh2_sess);
         this->src_ssh2_sess = 0 ;
     }
-    if (this->src_ssh2_sock > 0) {
-#ifdef WIN32
-        ::closesocket(this->src_ssh2_sock);
-#else  
-        ::close(this->src_ssh2_sock);
-#endif
-        this->src_ssh2_sock = -1;
-    }
+//     if (this->src_ssh2_sock > 0) {
+// #ifdef WIN32
+//         ::closesocket(this->src_ssh2_sock);
+// #else  
+//         ::close(this->src_ssh2_sock);
+// #endif
+//         this->src_ssh2_sock = -1;
+//     }
     if (this->dest_ssh2_sftp != 0) {
         libssh2_sftp_shutdown(this->dest_ssh2_sftp);
         this->dest_ssh2_sftp = 0 ;
@@ -921,14 +991,14 @@ int Transportor::run_SFTP_to_SFTP()
         libssh2_session_free(this->dest_ssh2_sess);
         this->dest_ssh2_sess = 0 ;
     }
-    if (this->dest_ssh2_sock > 0) {
-#ifdef WIN32
-        ::closesocket(this->dest_ssh2_sock);
-#else  
-        ::close(this->dest_ssh2_sock);
-#endif
-        this->dest_ssh2_sock = -1;
-    }
+//     if (this->dest_ssh2_sock > 0) {
+// #ifdef WIN32
+//         ::closesocket(this->dest_ssh2_sock);
+// #else  
+//         ::close(this->dest_ssh2_sock);
+// #endif
+//         this->dest_ssh2_sock = -1;
+//     }
     if (this->user_canceled == true) {
         this->error_code = 3;
     }
@@ -1711,7 +1781,7 @@ int Transportor::run_SFTP_to_FTP()
 {
     q_debug()<<"";
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
-    RemoteHostConnectThread *rhct = 0;
+    // RemoteHostConnectThread *rhct = 0;
 
     int rv = -1;
     int transfer_ret = -1 ;
@@ -1743,20 +1813,39 @@ int Transportor::run_SFTP_to_FTP()
 
         //处理nrftp协议
         // 连接到源SFTP主机
-        if (this->src_ssh2_sess == 0 || this->src_ssh2_sftp == 0) {
-            emit  transfer_log("Connecting to destionation host ...");
-            QString tmp_passwd = src_atom_pkg.password;
+        // if (this->src_ssh2_sess == 0 || this->src_ssh2_sftp == 0) {
+        //     emit  transfer_log("Connecting to destionation host ...");
+        //     QString tmp_passwd = src_atom_pkg.password;
 
-            rhct = new RemoteHostConnectThread(src_atom_pkg.username, tmp_passwd, src_atom_pkg.host, 
-                                               src_atom_pkg.port.toInt(), src_atom_pkg.pubkey);
-            rhct->run();
-            //TODO get status code and then ...
-            this->src_ssh2_sess = (LIBSSH2_SESSION*)rhct->get_ssh2_sess();
-            this->src_ssh2_sock = rhct->get_ssh2_sock();
-            this->src_ssh2_sftp = libssh2_sftp_init(this->src_ssh2_sess);
-            delete rhct ; rhct = 0 ;
+        //     rhct = new RemoteHostConnectThread(src_atom_pkg.username, tmp_passwd, src_atom_pkg.host, 
+        //                                        src_atom_pkg.port.toInt(), src_atom_pkg.pubkey);
+        //     rhct->run();
+        //     //TODO get status code and then ...
+        //     this->src_ssh2_sess = (LIBSSH2_SESSION*)rhct->get_ssh2_sess();
+        //     // this->src_ssh2_sock = rhct->get_ssh2_sock();
+        //     this->src_ssh2_sftp = libssh2_sftp_init(this->src_ssh2_sess);
+        //     delete rhct ; rhct = 0 ;
+        //     emit  transfer_log("Connect done.");
+        // }
+        if (this->sconn == 0) {
+            emit  transfer_log("Connecting to source ssh host ...");
+            this->sconn = new SSHConnection();
+            this->sconn->setHostInfo(this->src_pkg.hostInfo());
+            rv = this->sconn->connect();
+            if (rv != Connection::CONN_OK) {
+                qDebug()<<"Connect to Host Error: "<<rv
+                        <<":"<<this->sconn->get_status_desc(rv);
+                emit transfer_log("Connect Error: " + this->sconn->get_status_desc(rv));
+                this->error_code = transfer_ret = 6;
+                this->errorString = this->sconn->get_status_desc(rv);
+                break;
+            }
             emit  transfer_log("Connect done.");
+            //get connect return code end
+            this->src_ssh2_sess = this->sconn->sess;
+            this->src_ssh2_sftp = libssh2_sftp_init(this->src_ssh2_sess);
         }
+
 
         //连接到目的FTP主机：
         if (this->dconn == 0) {
@@ -1913,7 +2002,7 @@ int Transportor::run_FTP_to_SFTP()
 {
     q_debug()<<"";
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
-    RemoteHostConnectThread *rhct = 0;
+    // RemoteHostConnectThread *rhct = 0;
 
     int rv = -1;
     int transfer_ret = -1 ;
@@ -1967,28 +2056,47 @@ int Transportor::run_FTP_to_SFTP()
         //连接到目录主机：
         qDebug()<<"connecting to dest ssh host:"<<dest_atom_pkg.username
                 <<":"<<dest_atom_pkg.password<<"@"<<dest_atom_pkg.host <<":"<<dest_atom_pkg.port ;
-        if (this->dest_ssh2_sess == 0 || this->dest_ssh2_sftp == 0) {
-            emit  transfer_log("Connecting to destination host ...");
-            QString tmp_passwd = dest_atom_pkg.password;
-            rhct = new RemoteHostConnectThread(dest_atom_pkg.username, tmp_passwd,
-                                               dest_atom_pkg.host, dest_atom_pkg.port.toInt(), dest_atom_pkg.pubkey);
-            rhct->run();
-            //TODO get status code and then ...
-            rv = rhct->get_connect_status();
-            if (rv != RemoteHostConnectThread::CONN_OK) {
-                qDebug()<<"Connect to Host Error: "<<rv<<":"<<rhct->get_status_desc(rv);
-                emit transfer_log("Connect Error: " + rhct->get_status_desc(rv));
+        // if (this->dest_ssh2_sess == 0 || this->dest_ssh2_sftp == 0) {
+        //     emit  transfer_log("Connecting to destination host ...");
+        //     QString tmp_passwd = dest_atom_pkg.password;
+        //     rhct = new RemoteHostConnectThread(dest_atom_pkg.username, tmp_passwd,
+        //                                        dest_atom_pkg.host, dest_atom_pkg.port.toInt(), dest_atom_pkg.pubkey);
+        //     rhct->run();
+        //     //TODO get status code and then ...
+        //     rv = rhct->get_connect_status();
+        //     if (rv != RemoteHostConnectThread::CONN_OK) {
+        //         qDebug()<<"Connect to Host Error: "<<rv<<":"<<rhct->get_status_desc(rv);
+        //         emit transfer_log("Connect Error: " + rhct->get_status_desc(rv));
+        //         this->error_code = transfer_ret = 6;
+        //         this->errorString = rhct->get_status_desc(rv);
+        //         break;
+        //     }
+        //     //get connect return code end
+        //     this->dest_ssh2_sess = (LIBSSH2_SESSION*)rhct->get_ssh2_sess();
+        //     // this->dest_ssh2_sock = rhct->get_ssh2_sock();
+        //     this->dest_ssh2_sftp = libssh2_sftp_init(this->dest_ssh2_sess);
+        //     delete rhct ; rhct = 0 ;
+        //     emit  transfer_log("Connect done.");
+        // }
+        if (this->dconn == 0) {
+            emit  transfer_log("Connecting to destionation ssh host ...");
+            this->dconn = new SSHConnection();
+            this->dconn->setHostInfo(this->dest_pkg.hostInfo());
+            rv = this->dconn->connect();
+            if (rv != Connection::CONN_OK) {
+                qDebug()<<"Connect to Host Error: "<<rv
+                        <<":"<<this->dconn->get_status_desc(rv);
+                emit transfer_log("Connect Error: " + this->dconn->get_status_desc(rv));
                 this->error_code = transfer_ret = 6;
-                this->errorString = rhct->get_status_desc(rv);
+                this->errorString = this->dconn->get_status_desc(rv);
                 break;
             }
-            //get connect return code end
-            this->dest_ssh2_sess = (LIBSSH2_SESSION*)rhct->get_ssh2_sess();
-            this->dest_ssh2_sock = rhct->get_ssh2_sock();
-            this->dest_ssh2_sftp = libssh2_sftp_init(this->dest_ssh2_sess);
-            delete rhct ; rhct = 0 ;
             emit  transfer_log("Connect done.");
+            //get connect return code end
+            this->dest_ssh2_sess = this->dconn->sess;
+            this->dest_ssh2_sftp = libssh2_sftp_init(this->dest_ssh2_sess);
         }
+
 
         //将文件传到目录
         if (this->isFTPFile(this->sconn, this->current_src_file_name)

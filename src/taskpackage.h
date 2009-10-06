@@ -40,6 +40,7 @@ class TaskPackage
     static QString getProtocolNameById(int protocol_id);
     QByteArray toRawData();
     static TaskPackage fromRawData(QByteArray ba);
+    QMap<QString, QString> hostInfo();
 
     int scheme;
     QStringList files;

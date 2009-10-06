@@ -7,6 +7,8 @@
 // Version: $Id$
 // 
 
+#include <assert.h>
+
 #include "taskpackage.h"
 
 TaskPackage::TaskPackage()
@@ -153,4 +155,29 @@ TaskPackage TaskPackage::fromRawData(QByteArray ba)
     return pkg;
 }
 
+QMap<QString, QString> TaskPackage::hostInfo()
+{
+    QMap<QString, QString> host;
+
+    // host["show_name"] = this->show_name;
+    if (this->scheme == PROTO_FILE) {
+        host["protocol"] = "FILE";
+    } else if (this->scheme == PROTO_FTP) {
+        host["protocol"] = "FTP";
+    } else if (this->scheme == PROTO_SFTP) {
+        host["protocol"] = "SFTP";
+    } else {
+        assert(0);
+    }
+    host["host_name"] = this->host;
+    host["user_name"] = this->username;
+    host["password"] = this->password;
+    host["password"] = QUrl::toPercentEncoding(host["password"]);
+    host["port"] = this->port;
+    if (this->pubkey != QString::null && this->pubkey.length() > 0) {
+        host["pubkey"] = this->pubkey;
+    }
+
+    return host;
+}
 

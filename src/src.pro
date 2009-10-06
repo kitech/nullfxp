@@ -12,7 +12,7 @@ CONFIG += qt thread console warn_on ordered
 TARGET = nullfxp
 DESTDIR = ../bin
 
-VERSION=2.0.0.68  # using in nullfxp-version.h
+VERSION=2.0.0.69  # using in nullfxp-version.h
 
 win32 {
 	CONFIG += release
