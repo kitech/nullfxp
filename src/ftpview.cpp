@@ -28,7 +28,6 @@
 #ifndef _MSC_VER
 #warning "wrapper lower class, drop this include"
 #endif
-
 #include "rfsdirnode.h"
 
 #include "completelineeditdelegate.h"
@@ -291,7 +290,8 @@ QString FTPView::get_selected_directory()
     QItemSelectionModel *ism = this->remoteview.treeView->selectionModel();
     
     if (ism == 0) {
-        QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
+        QMessageBox::critical(this, tr("Waring..."),
+                              tr("Maybe you haven't connected"));                
         return file_path;
     }
     
@@ -299,18 +299,51 @@ QString FTPView::get_selected_directory()
 
     for (int i = 0 ; i < mil.size(); i +=4) {
         QModelIndex midx = mil.at(i);
-        QModelIndex aim_midx =  this->remote_dir_sort_filter_model_ex->mapToSource(midx);
-        directory_tree_item *dti = (directory_tree_item*) aim_midx.internalPointer();
-        qDebug()<<dti->file_name <<" "<< dti->strip_path;
+        QModelIndex aim_midx = this->remote_dir_sort_filter_model_ex->mapToSource(midx);
+        directory_tree_item *dti = (directory_tree_item*)aim_midx.internalPointer();
+        q_debug()<<dti->file_name<<" "<<dti->strip_path;
         if (this->remote_dir_sort_filter_model_ex->isDir(midx)) {
-        	  file_path = dti->strip_path;
+            file_path = dti->strip_path;
         } else {
-        	  file_path = "";
+            file_path = "";
         }
     }
     
     return file_path;
 }
+
+QPair<QString, QString> FTPView::get_selected_directory(bool pair)
+{
+    QPair<QString, QString> file_path;
+    // QString file_path;
+    
+    QItemSelectionModel *ism = this->remoteview.treeView->selectionModel();
+    
+    if (ism == 0) {
+        QMessageBox::critical(this, tr("Waring..."),
+                              tr("Maybe you haven't connected"));                
+        return file_path;
+    }
+    
+    QModelIndexList mil = ism->selectedIndexes();
+
+    for (int i = 0 ; i < mil.size(); i +=4) {
+        QModelIndex midx = mil.at(i);
+        QModelIndex aim_midx = this->remote_dir_sort_filter_model_ex->mapToSource(midx);
+        directory_tree_item *dti = (directory_tree_item*)aim_midx.internalPointer();
+        qDebug()<<dti->file_name<<" "<<dti->strip_path;
+        if (this->remote_dir_sort_filter_model_ex->isDir(midx)) {
+            file_path.first = dti->strip_path;
+            file_path.second = dti->file_name;
+        } else {
+            file_path.first = "";
+            file_path.second = "";
+        }
+    }
+    
+    return file_path;
+}
+
 
 // void FTPView::set_ssh2_handler(void *ssh2_sess, int ssh2_sock)
 // {
@@ -496,18 +529,19 @@ void FTPView::slot_mkdir()
     QModelIndexList mil = ism->selectedIndexes();
     
     if (mil.count() == 0) {
-        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+        qDebug()<<"selectedIndexes count :"<<mil.count()<<" why no item selected????";
         QMessageBox::critical(this, tr("Waring..."), tr("No item selected"));
-        return ;
+        return;
     }
     
     QModelIndex midx = mil.at(0);
-    QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) ? this->remote_dir_sort_filter_model_ex->mapToSource(midx): this->remote_dir_sort_filter_model->mapToSource(midx) ;
+    QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) ? this->remote_dir_sort_filter_model_ex->mapToSource(midx): this->remote_dir_sort_filter_model->mapToSource(midx);
     directory_tree_item *dti = (directory_tree_item*)(aim_midx.internalPointer());
     
     //检查所选择的项是不是目录
     if (!this->remote_dir_model->isDir(aim_midx)) {
-        QMessageBox::critical(this, tr("waring..."), tr("The selected item is not a directory."));
+        QMessageBox::critical(this, tr("waring..."),
+                              tr("The selected item is not a directory."));
         return ;
     }
     
@@ -662,8 +696,8 @@ void FTPView::slot_copy_url()
     QModelIndexList mil = ism->selectedIndexes();
     
     if (mil.count() == 0) {
-        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
-        QMessageBox::critical(this, tr("Waring..."), tr("No item selected")+"                         ");
+        qDebug()<<"selectedIndexes count :"<<mil.count()<<" why no item selected????";
+        QMessageBox::critical(this, tr("Waring..."), tr("No item selected") +"                         ");
         return ;
     }
     
@@ -681,7 +715,7 @@ void FTPView::slot_copy_url()
 
 void FTPView::slot_new_upload_requested(TaskPackage local_pkg, TaskPackage remote_pkg)
 {
-    FTPView *remote_view = this ;
+    FTPView *remote_view = this;
     ProgressDialog *pdlg = new ProgressDialog();
 
     pdlg->set_transfer_info(local_pkg, remote_pkg);
@@ -696,18 +730,22 @@ void FTPView::slot_new_upload_requested(TaskPackage local_pkg, TaskPackage remot
 }
 void FTPView::slot_new_upload_requested(TaskPackage local_pkg)
 {
-    QString remote_file_name;
-    FTPView *remote_view = this ;
+    // QString remote_file_name;
+    QPair<QString, QString> remote_file_name;
+    FTPView *remote_view = this;
     TaskPackage remote_pkg(PROTO_FTP);
 
-    qDebug()<<" window title :" << remote_view->windowTitle();
+    qDebug()<<"window title :"<<remote_view->windowTitle();
 
-    remote_file_name = remote_view->get_selected_directory();    
+    remote_file_name = remote_view->get_selected_directory(true);    
 
-    if (remote_file_name.length() == 0) {
-        QMessageBox::critical(this, tr("Waring..."), tr("you should selecte a remote file directory."));
+    // 在向根目录传文件时，这个检测是有问题的。 strip_path="/"  path=""
+    if (remote_file_name.first.length() == 0
+        && remote_file_name.second.length() == 0) {
+        QMessageBox::critical(this, tr("Waring..."),
+                              tr("you should selecte a remote file directory."));
     } else {
-        remote_pkg.files<<remote_file_name;
+        remote_pkg.files<<remote_file_name.first;
         remote_pkg.host = this->conn->hostName;
         remote_pkg.username = this->conn->userName;
         remote_pkg.password = this->conn->password;
@@ -721,7 +759,7 @@ void FTPView::slot_new_upload_requested(TaskPackage local_pkg)
 void FTPView::slot_new_download_requested(TaskPackage local_pkg, TaskPackage remote_pkg)
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    FTPView *remote_view = this ;
+    FTPView *remote_view = this;
         
     ProgressDialog *pdlg = new ProgressDialog(0);
     // src is remote file , dest if localfile 
@@ -745,9 +783,9 @@ void FTPView::slot_new_download_requested(TaskPackage remote_pkg)
     qDebug()<<local_file_path;
     if (local_file_path.length() == 0 
         || !QFileInfo(local_file_path).isDir()) {
-        //        || !is_dir(GlobalOption::instance()->locale_codec->fromUnicode(local_file_path).data())) {
-        qDebug()<<" selected a local file directory  please";
-        QMessageBox::critical(this, tr("waring..."), tr("you should selecte a local file directory."));
+        qDebug()<<"selected a local file directory  please";
+        QMessageBox::critical(this, tr("waring..."), 
+                              tr("you should selecte a local file directory."));
     } else {
         local_pkg.files<<local_file_path;
         this->slot_new_download_requested(local_pkg, remote_pkg);
@@ -756,8 +794,8 @@ void FTPView::slot_new_download_requested(TaskPackage remote_pkg)
 
 void FTPView::slot_transfer_finished(int status, QString errorString)
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
-    FTPView *remote_view = this ;
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
+    FTPView *remote_view = this;
     
     ProgressDialog *pdlg = (ProgressDialog*)sender();
 

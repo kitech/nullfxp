@@ -42,6 +42,9 @@ public:
     virtual ~FTPView();
 
     QString get_selected_directory();
+    // 返回一个值不够用，一个地方需要同时检测两个值，trip_path, file_name,
+    // 这个函数同时返回这两个值, first=strip_path, second=file_name
+    QPair<QString, QString> get_selected_directory(bool pair);
     //
     // void set_host_info(QString host_name, QString user_name, QString password, short port, QString pubkey);
     // void set_ssh2_handler(void *ssh2_sess, int ssh2_sock );
