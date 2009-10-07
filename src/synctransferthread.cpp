@@ -21,7 +21,8 @@
 
 #include "utils.h"
 #include "globaloption.h"
-#include "remotehostconnectthread.h"
+// #include "remotehostconnectthread.h"
+#include "sshconnection.h"
 #include "basestorage.h"
 #include "sshfileinfo.h"
 
@@ -369,12 +370,16 @@ bool SyncTransferThread::connectToRemoteHost()
     this->remoteHost = host = storage->getHost(sess_name);
     q_debug()<<host;
     
-    RemoteHostConnectThread *conn 
-        = new RemoteHostConnectThread(host["user_name"], host["password"], host["host_name"],
-                                      host["port"].toShort(), host["pubkey"]);
-    conn->run();
-    ssh2_sess = (LIBSSH2_SESSION*)conn->get_ssh2_sess();
-    delete conn; conn = NULL;
+    // RemoteHostConnectThread *conn 
+    //     = new RemoteHostConnectThread(host["user_name"], host["password"], host["host_name"],
+    //                                   host["port"].toShort(), host["pubkey"]);
+    // conn->run();
+    // ssh2_sess = (LIBSSH2_SESSION*)conn->get_ssh2_sess();
+    // delete conn; conn = NULL;
+    SSHConnection *conn = new SSHConnection();
+    conn->setHostInfo(host);
+    conn->connect();
+    ssh2_sess = conn->sess;
     Q_ASSERT(ssh2_sess != NULL);
 
     ssh2_sftp = libssh2_sftp_init(ssh2_sess);

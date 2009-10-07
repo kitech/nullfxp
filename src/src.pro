@@ -12,7 +12,7 @@ CONFIG += qt thread console warn_on ordered
 TARGET = nullfxp
 DESTDIR = ../bin
 
-VERSION=2.0.0.69  # using in nullfxp-version.h
+VERSION=2.0.0.70  # using in nullfxp-version.h
 
 win32 {
 	CONFIG += release
@@ -58,7 +58,7 @@ SOURCES += main.cpp \
  sftpdirmodel.cpp \
  progressdialog.cpp \
  transportor.cpp \
- remotehostconnectthread.cpp \
+# remotehostconnectthread.cpp \
  remotehostconnectingstatusdialog.cpp \
  remotehostquickconnectinfodialog.cpp \
  aboutnullfxp.cpp \
@@ -107,7 +107,7 @@ HEADERS += nullfxp.h \
  sftpdirmodel.h \
  progressdialog.h \
  transportor.h \
- remotehostconnectthread.h \
+# remotehostconnectthread.h \
  remotehostconnectingstatusdialog.h \
  remotehostquickconnectinfodialog.h \
  aboutnullfxp.h \
