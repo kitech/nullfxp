@@ -430,7 +430,7 @@ int LibFtp::lista(QString path)
         while (this->qdsock->canReadLine()) {
             QUrlInfo i;
             QByteArray line = this->qdsock->readLine();
-            qDebug("QFtpDTP read (list): '%s'", line.constData());
+            qDebug("LibFtpDTP read (list): '%s'", line.constData());
 
             if (this->parseDir(line, QLatin1String(""), &i)) {
                 // emit listInfo(i);
@@ -450,13 +450,17 @@ int LibFtp::lista(QString path)
 
 		ball = this->readAll(this->qsock);
 		qDebug()<<ball;
-        replyText = ball;
-        sl = replyText.split("\n");
-        sl = sl.at(sl.count() - 2).split(" ");
-        if (sl.at(0) == "226") {
-            return 0;
+        if (!ball.isEmpty()) {
+            replyText = ball;
+            sl = replyText.split("\n");
+            if (sl.count() > 0) {
+                sl = sl.at(sl.count() - 2).split(" ");
+                if (sl.at(0) == "226") {
+                    return 0;
+                }
+                assert(sl.at(0) == "226");
+            }
         }
-        assert(sl.at(0) == "226");
 	}
 
 	return -1;
@@ -484,9 +488,9 @@ int LibFtp::passive()
         replyText = ball;
         QRegExp addrPortPattern(QLatin1String("(\\d+),(\\d+),(\\d+),(\\d+),(\\d+),(\\d+)"));
         if (addrPortPattern.indexIn(replyText) == -1) {
-            qDebug("QFtp: bad 227 response -- address and port information missing");
+            qDebug("LibFtp: bad 227 response -- address and port information missing");
             // this error should be reported
-            assert(1 == 2);
+            // assert(1 == 2);
         } else {
             QStringList lst = addrPortPattern.capturedTexts();
             QString host = lst[1] + QLatin1Char('.') + lst[2] + QLatin1Char('.') + lst[3] + QLatin1Char('.') + lst[4];
@@ -620,7 +624,8 @@ int LibFtp::chdir(QString path)
         if (sl.at(0) == "250") {
             return 0;
         }
-        assert(sl.at(0) == "250"); // 550 no such file
+        // assert(sl.at(0) == "250"); // 550 no such file
+        // 550 Failed to change directory.
 	}
 
 	return -1;
@@ -1125,12 +1130,16 @@ QByteArray LibFtp::readAllByEndSymbol(QTcpSocket *sock)
 	QString sall;
 
 	long bavable;
+    int maxRetry = 3;
+    int retryTimes = 0;
 	//qDebug()<<__FUNCTION__<<__LINE__;
 	bavable = sock->readBufferSize();
 	//qDebug()<<__FUNCTION__<<__LINE__;
 	sock->setReadBufferSize(1);
 	// qDebug()<<__FUNCTION__<<__LINE__;
-	while (sock->isOpen() && sock->waitForReadyRead(3000)) {
+
+ lableRetryRead:
+	while (sock->isOpen() && sock->waitForReadyRead(6000)) {
 		// qDebug()<<__FUNCTION__<<__LINE__;
 		int rlen;
 		char buff[8] = {0};
@@ -1164,6 +1173,14 @@ QByteArray LibFtp::readAllByEndSymbol(QTcpSocket *sock)
         // sleep(1);
 	}
 	
+    if (sall.length() == 0) {
+        if (retryTimes > maxRetry) {
+
+        } else {
+            retryTimes ++;
+            goto lableRetryRead;
+        }
+    }
 	//qDebug()<<sall.right(4)<<sock->errorString();
 	sock->setReadBufferSize(bavable);
 	ball = sall.toAscii();
