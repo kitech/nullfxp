@@ -16,6 +16,7 @@ LibFtp::LibFtp(QObject *parent)
 {
     this->qsock = NULL;
     this->qdsock = NULL;
+    this->setEncoding("UTF-8");
 }
 LibFtp::~LibFtp()
 {
@@ -368,6 +369,8 @@ int LibFtp::list(QString path)
 
             if (this->parseDir(line, QLatin1String(""), &i)) {
                 // emit listInfo(i);
+                // 转换文件名编码
+                i.setName(this->codec->toUnicode(i.name().toAscii()));
                 this->dirList.append(i);
             } else {
                 // some FTP servers don't return a 550 if the file or directory
@@ -434,6 +437,8 @@ int LibFtp::lista(QString path)
 
             if (this->parseDir(line, QLatin1String(""), &i)) {
                 // emit listInfo(i);
+                // 转换文件名编码
+                i.setName(this->codec->toUnicode(i.name().toAscii()));
                 this->dirList.append(i);
             } else {
                 // some FTP servers don't return a 550 if the file or directory
@@ -1114,6 +1119,17 @@ void LibFtp::setError(int okno, QString msg)
             break;
         };
     }
+}
+int LibFtp::setEncoding(QString encoding)
+{
+    this->encoding = encoding;
+    QTextCodec *c = QTextCodec::codecForName(encoding.toAscii());
+    if (c == NULL) {
+        qDebug()<<"Seting Unsupported encoding:"<<encoding;
+    } else {
+        this->codec = c;
+    }
+    return 0;
 }
 
 QByteArray LibFtp::readAll(QTcpSocket *sock)

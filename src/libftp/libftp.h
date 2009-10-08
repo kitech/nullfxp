@@ -58,6 +58,7 @@ public:
     QString getServerBanner();
     QTcpSocket *getDataSocket();
     QString errorString();
+    int setEncoding(QString encoding);
     
 private:
     int parsePasvPort(QString &host, short &port);
@@ -75,6 +76,8 @@ private:
     QString servBanner;
     int errnum;
     QString errmsg;
+    QString encoding;
+    QTextCodec *codec;
 };
 
         

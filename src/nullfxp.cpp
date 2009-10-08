@@ -29,7 +29,6 @@
 #include "progressdialog.h"
 #include "remotehostconnectingstatusdialog.h"
 #include "remotehostquickconnectinfodialog.h"
-// #include "remotehostconnectthread.h"
 #include "sessiondialog.h"
 #include "connection.h"
 #include "connector.h"
@@ -94,7 +93,9 @@ NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
                      this, SLOT(slot_show_remote_view(bool)));
 
     //////////////
-    about_nullfxp_dialog = new AboutNullFXP(this);
+    QObject::connect(this->mUIMain.actionCheck_for_update, SIGNAL(triggered()),
+                     this, SLOT(slot_check_for_updates()));
+    this->about_nullfxp_dialog = NULL;
     QObject::connect(this->mUIMain.actionAbout_NullFXP, SIGNAL(triggered()),
                      this, SLOT(slot_about_nullfxp()));
     QObject::connect(this->mUIMain.actionAbout_Qt, SIGNAL(triggered()),
@@ -118,7 +119,7 @@ NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
     QDesktopWidget *dw = new QDesktopWidget();
     //qDebug()<<dw->screenGeometry();
     this->resize(dw->screenGeometry().width()*5/6, dw->screenGeometry().height()*5/6);
-    delete dw ;
+    delete dw;
     //调整本地目录树窗口的大小
     //QList<QMdiSubWindow *> mdiSubWindow = mdiArea->subWindowList();
     //qDebug()<<" mdi sub window count :"<< mdiSubWindow.count();
@@ -143,6 +144,9 @@ NullFXP::~NullFXP()
 }
 void NullFXP::slot_about_nullfxp()
 {
+    if (this->about_nullfxp_dialog == NULL) {
+        this->about_nullfxp_dialog = new AboutNullFXP();
+    }
     this->about_nullfxp_dialog->setVisible(true);
 }
 
@@ -514,3 +518,8 @@ RemoteView *NullFXP::get_top_most_remote_view()
     return remote_view;
 }
 
+void NullFXP::slot_check_for_updates()
+{
+    q_debug()<<""<<"curr version:"<<NULLFXP_VERSION_STR;
+    
+}
