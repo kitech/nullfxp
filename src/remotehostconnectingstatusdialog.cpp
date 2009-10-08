@@ -12,21 +12,23 @@
 
 #include "remotehostconnectingstatusdialog.h"
 
-RemoteHostConnectingStatusDialog::RemoteHostConnectingStatusDialog ( QString user_name,QString host_name,QWidget* parent, Qt::WindowFlags f ) : QDialog ( parent, f )
+RemoteHostConnectingStatusDialog::RemoteHostConnectingStatusDialog(QString user_name, QString host_name, QString port, QWidget *parent, Qt::WindowFlags f)
+    : QDialog(parent, f)
 {
-	this->user_name= user_name;
-	this->host_name=host_name;
+	this->user_name = user_name;
+	this->host_name = host_name;
+    this->port = port;
     
     connect_status_dialog.setupUi(this);
     
     this->connect_status_dialog.progressBar->setValue(0);
-    this->connect_status_dialog.lineEdit->setText(QString("%1@%2").arg(user_name).arg(host_name));
+    this->connect_status_dialog.lineEdit->setText(QString("%1@%2:%3")
+                                                  .arg(user_name).arg(host_name).arg(port));
     QObject::connect(&this->timer,SIGNAL(timeout()),
-                      this,SLOT(slot_time_out()) ) ;
+                     this, SLOT(slot_time_out()));
     
     timer.setInterval(100);
     timer.start();
-    
 }
 
 

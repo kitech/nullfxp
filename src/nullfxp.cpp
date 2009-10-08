@@ -206,57 +206,27 @@ void NullFXP::connect_to_remote_host(QMap<QString, QString> host)
     if (protocol == "FTPS") {
         q_debug()<<"Not impled";
     } else if (protocol == "FTP") {
-        this->connect_to_remote_ftp_host(host);
+        this->connect_to_remote_host2(host);
     } else if (protocol == "SFTP") {
         // this->connect_to_remote_sftp_host(host);
-        this->connect_to_remote_ftp_host(host);
+        this->connect_to_remote_host2(host);
     } else {
         q_debug()<<"Unknown host protocol:"<<protocol;
     }
 }
 
-// depcreated
-// void NullFXP::connect_to_remote_sftp_host(QMap<QString,QString> host)
-// {
-//     QString protocol;
-//     QString username;
-//     QString password;
-//     QString remoteaddr;
-//     short   port;
-//     QString pubkey = QString::null;
-
-//     protocol = host["protocol"];
-//     username = host["user_name"];
-//     password = host["password"];
-//     remoteaddr = host["host_name"];
-//     port = (host["port"].length() == 0) ? 22 : host["port"].toShort();
-//     if (host.contains("pubkey")) {
-//         pubkey = host["pubkey"];
-//     }
-//     // qDebug()<<host<<"\n"<<QUrl::fromPercentEncoding(password.toAscii());
-//     this->connect_status_dailog = new RemoteHostConnectingStatusDialog(username, remoteaddr, this, Qt::Dialog);
-//     QObject::connect(this->connect_status_dailog, SIGNAL(cancel_connect()),
-//                      this, SLOT(slot_cancel_connect()));
-//     remote_conn_thread = new RemoteHostConnectThread(username, password, remoteaddr, port, pubkey);
-//     QObject::connect(this->remote_conn_thread, SIGNAL(connect_finished(int, void *, int)),
-//                      this, SLOT(slot_connect_remote_host_finished (int, void *, int)));
-
-//     QObject::connect(this->remote_conn_thread, SIGNAL(connect_state_changed(QString)),
-//                      this->connect_status_dailog, SLOT(slot_connect_state_changed(QString)));
-        
-//     this->remote_conn_thread->start();        
-//     this->connect_status_dailog->exec();
-// }
-void NullFXP::connect_to_remote_ftp_host(QMap<QString,QString> host)
+void NullFXP::connect_to_remote_host2(QMap<QString, QString> host)
 {
     q_debug()<<"";
     QString username;
     QString hostname;
+    QString port;
 
     username = host["user_name"];
     hostname = host["host_name"];
+    port = host["port"];
 
-    this->connect_status_dailog = new RemoteHostConnectingStatusDialog(username, hostname, this, Qt::Dialog);
+    this->connect_status_dailog = new RemoteHostConnectingStatusDialog(username, hostname, port, this, Qt::Dialog);
     QObject::connect(this->connect_status_dailog, SIGNAL(cancel_connect()),
                      this, SLOT(slot_cancel_connect()));
 
@@ -504,7 +474,7 @@ void NullFXP::slot_show_remote_view(bool triggered)
 
 RemoteView *NullFXP::get_top_most_remote_view() 
 {
-    RemoteView *remote_view = 0 ;
+    RemoteView *remote_view = 0;
     QList<QMdiSubWindow *> sub_window_list = this->mdiArea->subWindowList(QMdiArea::StackingOrder);
     int sub_wnd_count = sub_window_list.count() ;
     

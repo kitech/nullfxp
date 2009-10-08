@@ -16,34 +16,35 @@
 #include "ui_remotehostconnectingstatusdialog.h"
 
 /**
-	@author liuguangzhao <gzl@localhost>
-*/
+ * 连接到服务器的状态进度提示对话框类
+ */
 class RemoteHostConnectingStatusDialog : public QDialog
 {
-Q_OBJECT
+    Q_OBJECT;
 public:
-    RemoteHostConnectingStatusDialog(QString user_name,QString host_name,QWidget* parent, Qt::WindowFlags f);
+    RemoteHostConnectingStatusDialog(QString user_name, QString host_name, QString port, QWidget *parent, Qt::WindowFlags f);
 
     ~RemoteHostConnectingStatusDialog();
     
-    public slots:
-        void  slot_connect_state_changed(QString state_desc );
+public slots:
+    void slot_connect_state_changed(QString state_desc);
 	void stop_progress_bar();
 
-    private slots:
-        void slot_time_out();
-    signals:
-        void cancel_connect();
+private slots:
+    void slot_time_out();
+signals:
+    void cancel_connect();
         
-    private:
-        QString host_name;
-        QString user_name ;
-            
-        QTimer  timer ;
+private:
+    QString host_name;
+    QString user_name;
+    QString port;
+    QTimer  timer;
         
-        Ui::RemoteHostConnectingStatusDialog connect_status_dialog;
-    protected:
-        virtual void closeEvent ( QCloseEvent * event ) ;
+    Ui::RemoteHostConnectingStatusDialog connect_status_dialog;
+
+protected:
+    virtual void closeEvent(QCloseEvent *event);
 };
 
 #endif
