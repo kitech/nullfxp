@@ -14,6 +14,8 @@ DEPENDPATH += .
 INCLUDEPATH += .
 INCLUDEPATH += .. ../libssh2/include/
 
+include(../../install.pri)
+
 QT += testlib
 
 # Input
@@ -39,5 +41,5 @@ win32 {
 
 win32:LIBS += -lQtTest -lws2_32  -lgdi32 
 
-target.path = /opt/nullfxp/bin
+target.path = $$BINDIR
 INSTALLS += target

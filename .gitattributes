@@ -8,6 +8,7 @@
 /README -text
 bin/touch.exe -text
 docs/fxp.txt -text
+/install.pri -text
 /nullfxp.kdevelop -text
 /nullfxp.pro -text
 packages/gentoo/net-ftp/nullfxp/nullfxp-1.5.2.ebuild -text

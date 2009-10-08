@@ -14,6 +14,8 @@ DESTDIR = ../bin
 
 VERSION=2.0.0.70  # using in nullfxp-version.h
 
+include(../install.pri)
+
 win32 {
 	CONFIG += release
     !win32-g++ {
@@ -193,7 +195,9 @@ win32-g++ {
     HOST_GCC_VERSION = $$system(gcc -dumpversion)
     DEFINES += GCC_MV=\"\\\"$$HOST_MACHINE-g++-$$HOST_GCC_VERSION\\\"\"
 }
-DEFINES += NULLFXP_VERSION_STR=\"\\\"$$VERSION\\\"\"
+DEFINES += NULLFXP_VERSION_STR=\"\\\"$$VERSION\\\"\" 
+DEFINES += DATADIR=\"\\\"$$DATADIR\\\"\"
+DEFINES += PKGDATADIR=\"\\\"$$PKGDATADIR\\\"\"
 
 INCLUDEPATH += . ./libssh2/include
 
@@ -201,14 +205,14 @@ RESOURCES = nullfxp.qrc
 
 # install settings
 # DISTFILES += ./bin/nullfxp ./bin/unitest
-document.path = /opt/nullfxp/share/docs
+document.path = $$DATADIR/docs
 document.files = ../INSTALL ../README ../AUTHORS ../ChangeLog
 
-icons.path = /opt/nullfxp/share/icons
+icons.path = $$DATADIR/icons
 icons.files = ./icons/* 
 
-mimes.path = /opt/nullfxp/share/icons/mimetypes
+mimes.path = $$DATADIR/icons/mimetypes
 mimes.files = ./icons/mimetypes/*
 
-target.path += /opt/nullfxp/bin
+target.path += $$BINDIR
 INSTALLS += target document icons mimes
