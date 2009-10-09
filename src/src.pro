@@ -196,8 +196,8 @@ win32-g++ {
     DEFINES += GCC_MV=\"\\\"$$HOST_MACHINE-g++-$$HOST_GCC_VERSION\\\"\"
 }
 DEFINES += NULLFXP_VERSION_STR=\"\\\"$$VERSION\\\"\" 
-DEFINES += DATADIR=\"\\\"$$DATADIR\\\"\"
-DEFINES += PKGDATADIR=\"\\\"$$PKGDATADIR\\\"\"
+DEFINES += NXDATADIR=\"\\\"$$DATADIR\\\"\"
+DEFINES += NXPKGDATADIR=\"\\\"$$PKGDATADIR\\\"\"
 
 INCLUDEPATH += . ./libssh2/include
 
