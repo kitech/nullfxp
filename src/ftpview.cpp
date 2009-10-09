@@ -958,6 +958,7 @@ bool FTPView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction action,
         QList<QUrl> files = data->urls();
         if (files.count() == 0) {
             // return false;
+            assert(0);
         } else {
             for (int i = 0 ; i < files.count(); i++) {
                 local_pkg.files<<files.at(i).path();

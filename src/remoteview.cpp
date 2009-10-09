@@ -481,7 +481,7 @@ void RemoteView::slot_show_properties()
 
 void RemoteView::slot_mkdir()
 {
-    QString dir_name ;
+    QString dir_name;
     
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
@@ -679,7 +679,7 @@ void RemoteView::slot_copy_url()
 
 void RemoteView::slot_new_upload_requested(TaskPackage local_pkg, TaskPackage remote_pkg)
 {
-    RemoteView *remote_view = this ;
+    RemoteView *remote_view = this;
     ProgressDialog *pdlg = new ProgressDialog();
 
     pdlg->set_transfer_info(local_pkg, remote_pkg);
@@ -900,7 +900,7 @@ bool RemoteView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction actio
     TaskPackage remote_pkg(PROTO_SFTP);
    
     directory_tree_item *aim_item = static_cast<directory_tree_item*>(parent.internalPointer());        
-    QString remote_file_name = aim_item->strip_path ;
+    QString remote_file_name = aim_item->strip_path;
 
     remote_pkg.files<<remote_file_name;
 
@@ -927,9 +927,15 @@ bool RemoteView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction actio
         QList<QUrl> files = data->urls();
         if (files.count() == 0) {
             // return false;
+            assert(0);
         } else {
             for (int i = 0 ; i < files.count(); i++) {
-                local_pkg.files<<files.at(i).path();
+                QString path = files.at(i).path();
+                #ifdef WIN32
+                // because on win32, now path=/C:/xxxxx
+                path = path.right(path.length() - 1);
+                #endif
+                local_pkg.files<<path;
             }
             this->slot_new_upload_requested(local_pkg, remote_pkg);
         }        

@@ -35,7 +35,7 @@ class RemoteView : public QWidget
 {
     Q_OBJECT;
 public:
-    RemoteView( QMdiArea *main_mdi_area, LocalView *local_view, QWidget *parent = 0);
+    RemoteView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *parent = 0);
     virtual ~RemoteView();
 
     virtual QString get_selected_directory();
@@ -46,7 +46,7 @@ public:
     virtual void set_user_home_path(QString user_home_path);
     virtual void setConnection(Connection *conn);
     
-    bool is_in_remote_dir_retrive_loop() 
+    virtual bool is_in_remote_dir_retrive_loop() 
     { return this->in_remote_dir_retrive_loop ; }
     
     virtual void update_layout();
