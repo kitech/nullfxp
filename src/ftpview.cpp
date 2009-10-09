@@ -164,7 +164,6 @@ void FTPView::i_init_dir_view()
     this->remote_dir_sort_filter_model_ex->setSourceModel(this->remote_dir_model);
     
     this->remoteview.treeView->setModel(remote_dir_sort_filter_model_ex);
-    // this->remoteview.treeView->setModel(this->remote_dir_model);
     this->remoteview.treeView->setAcceptDrops(true);
     this->remoteview.treeView->setDragEnabled(false);
     this->remoteview.treeView->setDropIndicatorShown(true);
@@ -196,7 +195,7 @@ void FTPView::i_init_dir_view()
     if (this->remote_dir_sort_filter_model->rowCount(this->remote_dir_sort_filter_model->index(this->user_home_path)) > 0) {
         this->table_row_height = this->remoteview.tableView->rowHeight(0)*2/3;
     } else {
-        this->table_row_height = 20 ;
+        this->table_row_height = 20;
     }
     for (int i = 0; i < this->remote_dir_sort_filter_model->rowCount(this->remote_dir_sort_filter_model->index(this->user_home_path)); i ++) {
         this->remoteview.tableView->setRowHeight(i, this->table_row_height);
@@ -227,7 +226,7 @@ void FTPView::slot_disconnect_from_remote_host()
     this->remote_dir_model = 0;
 }
 
-void FTPView::slot_dir_tree_customContextMenuRequested(const QPoint & pos)
+void FTPView::slot_dir_tree_customContextMenuRequested(const QPoint &pos)
 {
     this->curr_item_view = static_cast<QAbstractItemView*>(sender());
     QPoint real_pos = this->curr_item_view->mapToGlobal(pos);

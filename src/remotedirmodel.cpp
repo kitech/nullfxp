@@ -113,7 +113,7 @@ void RemoteDirModel::set_user_home_path(QString user_home_path)
     //初始化目录案例：
     // 1.      /home/users/l/li/liuguangzhao
     // 2.      /root
-    // 3.       /home/gzl
+    // 3.      /home/gzl
     // 4.      /
 
     //{创建初始化目录树
@@ -163,7 +163,12 @@ void RemoteDirModel::set_user_home_path(QString user_home_path)
         //assign
         temp_tree_item->parent_item = temp_parent_tree_item;
         temp_tree_item->row_number = 0;    //指的是此结点在父结点中的第几个结点，在这里预置的只能为0
-        temp_tree_item->retrived = (sep_pos == NULL) ?0:1;   //半满结点
+        // fixed only / can not list dir automatically when init
+        if (user_home_path.length() == 1 && user_home_path == "/") {
+            temp_tree_item->retrived = 0;
+        } else {
+            temp_tree_item->retrived = (sep_pos == NULL) ? 0:1;   // 半满结点
+        }
         temp_tree_item->strip_path = temp_strip_path;
         temp_tree_item->file_name = temp_path_name;
         temp_tree_item->prev_retr_flag = -1;
@@ -176,7 +181,10 @@ void RemoteDirModel::set_user_home_path(QString user_home_path)
 
         //pre_sep_pos
         pre_sep_pos = sep_pos;
-        if (sep_pos == NULL || user_home_path.length() == 1) break;
+        if (sep_pos == NULL 
+            || (user_home_path.length() == 1 && user_home_path == "/")) {
+            break;
+        }
     }
     qDebug()<<"seach end :"<<buff;
 
@@ -434,7 +442,7 @@ int RemoteDirModel::rowCount(const QModelIndex &parent) const
     int row_count = 0;
 
     if (!parent.isValid()) {
-        row_count = 1 ;
+        row_count = 1;
     } else {
         directory_tree_item *parent_item = static_cast<directory_tree_item*>(parent.internalPointer());
         assert(parent_item != NULL);
@@ -442,8 +450,8 @@ int RemoteDirModel::rowCount(const QModelIndex &parent) const
         // q_debug()<<parent<<"opening "<<parent_item->strip_path<<parent_item->file_name;
 
         if (parent_item->retrived == 0
-             // || parent_item->retrived == 1
-             || parent_item->retrived == 2 ) //为了lazy模式的需要，才做一个假数据。
+            // || parent_item->retrived == 1
+            || parent_item->retrived == 2 ) //为了lazy模式的需要，才做一个假数据。
         {
             //或者是不是要在这里取子结点的行数，即去远程找数据呢。
             // row_count =1 ;
@@ -454,7 +462,7 @@ int RemoteDirModel::rowCount(const QModelIndex &parent) const
         row_count = parent_item->child_items.size();
         // row_count =1 ;
     }
-    //qDebug()<< "row_count="<<row_count ;
+    //qDebug()<< "row_count="<<row_count;
     return row_count ;
 }
 
@@ -465,9 +473,11 @@ bool RemoteDirModel::hasChildren(const QModelIndex &parent) const
         directory_tree_item *curr_item = static_cast<directory_tree_item*>(parent.internalPointer());
         if (curr_item != NULL) {
             // q_debug()<<parent<<this->isDir(parent)<<"opening "<<curr_item->strip_path<<curr_item->file_name;
-            return this->isDir(parent) || this->isSymLinkToDir(parent);
+            bool hc = this->isDir(parent) || this->isSymLinkToDir(parent);
+            return hc;
         } else {
-            // q_debug()<<parent<<"parent pointer null";
+            q_debug()<<parent<<"parent pointer null";
+            assert(0);
         }
         return true;
     } else {
