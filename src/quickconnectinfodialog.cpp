@@ -1,19 +1,19 @@
-// remotehostquickconnectinfodialog.cpp --- 
+// quickconnectinfodialog.cpp --- 
 // 
 // Author: liuguangzhao
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-08-08 11:28:59 +0800
-// Version: $Id$
+// Version: $Id: quickconnectinfodialog.cpp 475 2009-09-05 14:58:13Z liuguangzhao $
 // 
 
 #include  <QtGui>
 
 #include "utils.h"
 
-#include "remotehostquickconnectinfodialog.h"
+#include "quickconnectinfodialog.h"
 
-RemoteHostQuickConnectInfoDialog::RemoteHostQuickConnectInfoDialog(QWidget* parent, Qt::WindowFlags f): QDialog(parent, f)
+QuickConnectInfoDialog::QuickConnectInfoDialog(QWidget* parent, Qt::WindowFlags f): QDialog(parent, f)
 {
     this->quick_connect_info_dialog.setupUi(this);
     QObject::connect(this->quick_connect_info_dialog.checkBox_3, SIGNAL(stateChanged(int)),
@@ -27,43 +27,43 @@ RemoteHostQuickConnectInfoDialog::RemoteHostQuickConnectInfoDialog(QWidget* pare
 }
 
 
-RemoteHostQuickConnectInfoDialog::~RemoteHostQuickConnectInfoDialog()
+QuickConnectInfoDialog::~QuickConnectInfoDialog()
 {
 }
 
-QString RemoteHostQuickConnectInfoDialog::get_protocol()
+QString QuickConnectInfoDialog::get_protocol()
 {
     return this->quick_connect_info_dialog.comboBox->currentText().trimmed();
 }
-QString RemoteHostQuickConnectInfoDialog::get_user_name ()
+QString QuickConnectInfoDialog::get_user_name ()
 {
     return this->quick_connect_info_dialog.lineEdit_3->text().trimmed();
 }
 
-QString RemoteHostQuickConnectInfoDialog::get_host_name ()
+QString QuickConnectInfoDialog::get_host_name ()
 {
     return this->quick_connect_info_dialog.lineEdit->text().trimmed();
 }
 
-QString RemoteHostQuickConnectInfoDialog::get_password()
+QString QuickConnectInfoDialog::get_password()
 {
     QString passwd = this->quick_connect_info_dialog.lineEdit_4->text();
     passwd = QUrl::toPercentEncoding(passwd);
     return passwd;
 }
-short  RemoteHostQuickConnectInfoDialog::get_port()
+short  QuickConnectInfoDialog::get_port()
 {
     QString str_port = this->quick_connect_info_dialog.lineEdit_2->text().trimmed();
     int port = str_port.toShort();
     
     return port;
 }
-QString RemoteHostQuickConnectInfoDialog::get_pubkey()
+QString QuickConnectInfoDialog::get_pubkey()
 {
     return this->pubkey_path;
 }
 
-void RemoteHostQuickConnectInfoDialog::set_active_host(QMap<QString,QString> host)
+void QuickConnectInfoDialog::set_active_host(QMap<QString,QString> host)
 {
     QString show_name = host["show_name"];
     QString protocol = host["protocol"];
@@ -103,7 +103,7 @@ void RemoteHostQuickConnectInfoDialog::set_active_host(QMap<QString,QString> hos
     }
 }
 
-QMap<QString,QString> RemoteHostQuickConnectInfoDialog::get_host_map()
+QMap<QString,QString> QuickConnectInfoDialog::get_host_map()
 {
     QMap<QString,QString> host;
 
@@ -121,7 +121,7 @@ QMap<QString,QString> RemoteHostQuickConnectInfoDialog::get_host_map()
   return host;
 }
 
-void RemoteHostQuickConnectInfoDialog::slot_pubkey_checked(int state)
+void QuickConnectInfoDialog::slot_pubkey_checked(int state)
 {
     if (state == Qt::Checked || state == Qt::PartiallyChecked) {
         this->quick_connect_info_dialog.toolButton->setEnabled(true);
@@ -130,7 +130,7 @@ void RemoteHostQuickConnectInfoDialog::slot_pubkey_checked(int state)
     }
 }
 
-void RemoteHostQuickConnectInfoDialog::slot_select_pubkey()
+void QuickConnectInfoDialog::slot_select_pubkey()
 {
     QString path = QString::null;
     QString init_dir;
@@ -162,7 +162,7 @@ void RemoteHostQuickConnectInfoDialog::slot_select_pubkey()
     }
 }
 
-void RemoteHostQuickConnectInfoDialog::slot_protocol_changed(int index)
+void QuickConnectInfoDialog::slot_protocol_changed(int index)
 {
     switch (index) {
     case 0:

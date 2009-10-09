@@ -28,8 +28,8 @@
 #include "localview.h"
 #include "remoteview.h"
 #include "progressdialog.h"
-#include "remotehostconnectingstatusdialog.h"
-#include "remotehostquickconnectinfodialog.h"
+#include "connectingstatusdialog.h"
+#include "quickconnectinfodialog.h"
 #include "remotehostconnectthread.h"
 #include "forwardconnectdaemon.h"
 

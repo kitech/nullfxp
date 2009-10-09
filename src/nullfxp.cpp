@@ -27,8 +27,8 @@
 #include "localview.h"
 #include "remoteview.h"
 #include "progressdialog.h"
-#include "remotehostconnectingstatusdialog.h"
-#include "remotehostquickconnectinfodialog.h"
+#include "connectingstatusdialog.h"
+#include "quickconnectinfodialog.h"
 #include "sessiondialog.h"
 #include "connection.h"
 #include "connector.h"
@@ -163,7 +163,7 @@ void NullFXP::connect_to_remote_host()
     QMap<QString,QString> host, old_host;
     //提示输入远程主机信息
 
-    this->quick_connect_info_dailog = new RemoteHostQuickConnectInfoDialog(this);
+    this->quick_connect_info_dailog = new QuickConnectInfoDialog(this);
     if (this->quick_connect_info_dailog->exec() == QDialog::Accepted) {
         protocol = this->quick_connect_info_dailog->get_protocol();
         username = this->quick_connect_info_dailog->get_user_name();
@@ -226,7 +226,7 @@ void NullFXP::connect_to_remote_host2(QMap<QString, QString> host)
     hostname = host["host_name"];
     port = host["port"];
 
-    this->connect_status_dailog = new RemoteHostConnectingStatusDialog(username, hostname, port, this, Qt::Dialog);
+    this->connect_status_dailog = new ConnectingStatusDialog(username, hostname, port, this, Qt::Dialog);
     QObject::connect(this->connect_status_dailog, SIGNAL(cancel_connect()),
                      this, SLOT(slot_cancel_connect()));
 

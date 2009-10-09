@@ -9,7 +9,7 @@
 
 #include "utils.h"
 
-#include "remotehostquickconnectinfodialog.h"
+#include "quickconnectinfodialog.h"
 
 #include "sessiondialog.h"
 
@@ -153,7 +153,7 @@ QMap<QString,QString> SessionDialog::get_host_map()
 {
     QMap<QString,QString> host;
     if (this->info_dlg != 0)
-        host = ((RemoteHostQuickConnectInfoDialog*)this->info_dlg)->get_host_map();
+        host = ((QuickConnectInfoDialog*)this->info_dlg)->get_host_map();
     else
         host = selected_host;
     return host;
@@ -193,7 +193,7 @@ void SessionDialog::slot_edit_selected_host()
             QMap<QString,QString> host = this->storage->getHost(show_name);
             QMap<QString,QString> host_new;
             //qDebug()<<host;
-            RemoteHostQuickConnectInfoDialog *info_dlg = new RemoteHostQuickConnectInfoDialog(this);
+            QuickConnectInfoDialog *info_dlg = new QuickConnectInfoDialog(this);
             info_dlg->set_active_host(host);
             if (info_dlg->exec() == QDialog::Accepted) {
                 host_new = info_dlg->get_host_map();

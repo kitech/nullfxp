@@ -1,30 +1,30 @@
-// remotehostconnectingstatusdialog.h --- 
+// connectingstatusdialog.h --- 
 // 
 // Author: liuguangzhao
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-07-22 21:18:30 +0800
-// Version: $Id$
+// Version: $Id: connectingstatusdialog.h 536 2009-10-08 15:38:00Z liuguangzhao $
 // 
 
-#ifndef REMOTEHOSTCONNECTINGSTATUSDIALOG_H
-#define REMOTEHOSTCONNECTINGSTATUSDIALOG_H
+#ifndef CONNECTINGSTATUSDIALOG_H
+#define CONNECTINGSTATUSDIALOG_H
 
 #include <QtCore>
 #include <QDialog>
 
-#include "ui_remotehostconnectingstatusdialog.h"
+#include "ui_connectingstatusdialog.h"
 
 /**
  * 连接到服务器的状态进度提示对话框类
  */
-class RemoteHostConnectingStatusDialog : public QDialog
+class ConnectingStatusDialog : public QDialog
 {
     Q_OBJECT;
 public:
-    RemoteHostConnectingStatusDialog(QString user_name, QString host_name, QString port, QWidget *parent, Qt::WindowFlags f);
+    ConnectingStatusDialog(QString user_name, QString host_name, QString port, QWidget *parent, Qt::WindowFlags f);
 
-    ~RemoteHostConnectingStatusDialog();
+    ~ConnectingStatusDialog();
     
 public slots:
     void slot_connect_state_changed(QString state_desc);
@@ -41,7 +41,7 @@ private:
     QString port;
     QTimer  timer;
         
-    Ui::RemoteHostConnectingStatusDialog connect_status_dialog;
+    Ui::ConnectingStatusDialog connect_status_dialog;
 
 protected:
     virtual void closeEvent(QCloseEvent *event);

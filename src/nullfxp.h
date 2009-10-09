@@ -41,16 +41,15 @@ class QSignalMapper;
 
 class LocalView;
 class RemoteView;
-class RemoteHostConnectingStatusDialog;
-class RemoteHostQuickConnectInfoDialog;
-// class RemoteHostConnectThread ;
+class ConnectingStatusDialog;
+class QuickConnectInfoDialog;
 class ForwardConnectDaemon;
 class Connection;
 class Connector;
 
 /**
-	@author liuguangzhao <gzl@localhost>
-*/
+ * NullFXP 主窗口类
+ */
 class NullFXP : public QMainWindow
 {
     Q_OBJECT;
@@ -99,8 +98,8 @@ private:
     Ui::MainWindow mUIMain;
     AboutNullFXP  *about_nullfxp_dialog;
 
-    RemoteHostConnectingStatusDialog *connect_status_dailog;
-    RemoteHostQuickConnectInfoDialog *quick_connect_info_dailog;
+    ConnectingStatusDialog *connect_status_dailog;
+    QuickConnectInfoDialog *quick_connect_info_dailog;
 
     Connector *connector;
 

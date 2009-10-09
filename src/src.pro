@@ -38,8 +38,8 @@ FORMS += nullfxp.ui \
  localview.ui \
  remoteview.ui \
  progressdialog.ui \
- remotehostconnectingstatusdialog.ui \
- remotehostquickconnectfinfodailog.ui \
+ connectingstatusdialog.ui \
+ quickconnectinfodialog.ui \
  aboutnullfxp.ui \
  globaloptionsdialog.ui \
  fileproperties.ui \
@@ -61,8 +61,8 @@ SOURCES += main.cpp \
  progressdialog.cpp \
  transportor.cpp \
 # remotehostconnectthread.cpp \
- remotehostconnectingstatusdialog.cpp \
- remotehostquickconnectinfodialog.cpp \
+ connectingstatusdialog.cpp \
+ quickconnectinfodialog.cpp \
  aboutnullfxp.cpp \
  globaloption.cpp \
  globaloptionsdialog.cpp \
@@ -110,8 +110,8 @@ HEADERS += nullfxp.h \
  progressdialog.h \
  transportor.h \
 # remotehostconnectthread.h \
- remotehostconnectingstatusdialog.h \
- remotehostquickconnectinfodialog.h \
+ connectingstatusdialog.h \
+ quickconnectinfodialog.h \
  aboutnullfxp.h \
  globaloption.h \
  globaloptionsdialog.h \

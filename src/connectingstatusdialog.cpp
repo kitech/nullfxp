@@ -1,18 +1,18 @@
-// remotehostconnectingstatusdialog.cpp --- 
+// connectingstatusdialog.cpp --- 
 // 
 // Author: liuguangzhao
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-07-22 21:18:55 +0800
-// Version: $Id$
+// Version: $Id: connectingstatusdialog.cpp 536 2009-10-08 15:38:00Z liuguangzhao $
 // 
 
 #include <QtCore>
 #include <QtGui>
 
-#include "remotehostconnectingstatusdialog.h"
+#include "connectingstatusdialog.h"
 
-RemoteHostConnectingStatusDialog::RemoteHostConnectingStatusDialog(QString user_name, QString host_name, QString port, QWidget *parent, Qt::WindowFlags f)
+ConnectingStatusDialog::ConnectingStatusDialog(QString user_name, QString host_name, QString port, QWidget *parent, Qt::WindowFlags f)
     : QDialog(parent, f)
 {
 	this->user_name = user_name;
@@ -32,12 +32,12 @@ RemoteHostConnectingStatusDialog::RemoteHostConnectingStatusDialog(QString user_
 }
 
 
-RemoteHostConnectingStatusDialog::~RemoteHostConnectingStatusDialog()
+ConnectingStatusDialog::~ConnectingStatusDialog()
 {
   this->stop_progress_bar();
 }
 
-void RemoteHostConnectingStatusDialog::slot_time_out()
+void ConnectingStatusDialog::slot_time_out()
 {
     if(this->connect_status_dialog.progressBar->value()==100)
     {
@@ -49,19 +49,19 @@ void RemoteHostConnectingStatusDialog::slot_time_out()
     }
 }
 
-void  RemoteHostConnectingStatusDialog::slot_connect_state_changed(QString state_desc )
+void  ConnectingStatusDialog::slot_connect_state_changed(QString state_desc )
 {
     this->connect_status_dialog.lineEdit_2->setText( state_desc ) ;
     qDebug()<<state_desc;
 }
 
-void RemoteHostConnectingStatusDialog::closeEvent ( QCloseEvent * event ) 
+void ConnectingStatusDialog::closeEvent ( QCloseEvent * event ) 
 {
     emit cancel_connect();
     event->ignore();
     this->setVisible(false);
 }
-void RemoteHostConnectingStatusDialog::stop_progress_bar()
+void ConnectingStatusDialog::stop_progress_bar()
 {
   timer.stop();
   this->connect_status_dialog.progressBar->setValue(100);
