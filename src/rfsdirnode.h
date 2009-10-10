@@ -79,7 +79,14 @@ public:
     bool isSymLinkToDir();
     int childCount();
     bool hasChild(QString name);
+    directory_tree_item *findChindByName(QString name);
+    bool matchChecksum(QDateTime mdate, quint64 fsize);
+    bool matchChecksum(LIBSSH2_SFTP_ATTRIBUTES *attr);
+    // 设置本结点中的子结点名字为name的结点的删除标记
     bool setDeleteFlag(QString name, bool del);
+    // 设置本结点的删除标记
+    bool setDeleteFlag(bool del);
+
     directory_tree_item *parent();
     directory_tree_item *childAt(int index);
     QString filePath();

@@ -226,7 +226,8 @@ int FTPDirRetriver::retrive_dir()
             }
         }
         deltaItems = dirListToTreeNode(dirList, parent_item);
-        //将多出的记录插入到树中
+        // 将多出的记录插入到树中,这儿使用的方法是，全部删除，再加入所有得到的数据。
+        // 效率上会有所损失,是不是改为dirretriver.cpp中一样的机制呢。
         for (int i = 0 ; i < deltaItems.count(); i ++) {
             deltaItems.at(i)->row_number = parent_item->childCount();
             parent_item->child_items.insert(std::make_pair(parent_item->childCount(), deltaItems.at(i)));

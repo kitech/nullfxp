@@ -588,8 +588,8 @@ void RemoteDirModel::slot_remote_dir_node_retrived(directory_tree_item *parent_i
     for (int i = parent_item->child_items.size()-1 ; i >=0  ; i --) {
         if (parent_item->child_items[i]->delete_flag == 1) {
             row = parent_item->child_items[i]->row_number ;
-            qDebug()<< "find should delete item "<<i
-                    <<" row num:"<< row;
+            qDebug()<<"find should delete item: "<<i
+                    <<"row num:"<<row;
 
             this->removeRows(row, 1,
                              this->createIndex(parent_item->row_number, 0,

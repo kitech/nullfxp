@@ -63,6 +63,36 @@ bool directory_tree_item::hasChild(QString name)
     return false;
 }
 
+directory_tree_item *directory_tree_item::findChindByName(QString name)
+{
+    directory_tree_item *child = NULL;
+    for (unsigned int i = 0 ; i < this->child_items.size(); i++) {
+        if (child_items[i]->file_name == name) {
+            child = child_items[i];
+            break;
+        }
+    } 
+    return child;
+}
+bool directory_tree_item::matchChecksum(QDateTime mdate, quint64 fsize)
+{
+    if (this->attrib.mtime == mdate.toTime_t()
+        && fsize == this->attrib.filesize) {
+        return true;
+    }
+    return false;
+}
+
+bool directory_tree_item::matchChecksum(LIBSSH2_SFTP_ATTRIBUTES *attr)
+{
+    assert(attr != NULL);
+    if (this->attrib.mtime == attr->mtime
+        && this->attrib.filesize == attr->filesize) {
+        return true;
+    }
+    return false;
+}
+
 bool directory_tree_item::setDeleteFlag(QString name, bool del)
 {
     for (unsigned int i = 0 ; i < this->child_items.size(); i++) {
@@ -74,6 +104,12 @@ bool directory_tree_item::setDeleteFlag(QString name, bool del)
     
     return false;
 }
+bool directory_tree_item::setDeleteFlag(bool del)
+{
+    this->delete_flag = del;
+    return true;
+}
+
 directory_tree_item *directory_tree_item::childAt(int index)
 {
     return this->child_items[index];

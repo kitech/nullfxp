@@ -102,7 +102,7 @@ int  SSHDirRetriver::retrive_dir()
 {
     int exec_ret = -1;
     
-    directory_tree_item *parent_item, *new_item;
+    directory_tree_item *parent_item, *new_item, *tmp_item;
     void *parent_model_internal_pointer;
 
     QString tmp;
@@ -145,7 +145,10 @@ int  SSHDirRetriver::retrive_dir()
             if (strlen(file_name) == 2 && file_name[0] == '.' && file_name[1] == '.') continue;
             //不处理隐藏文件? 处理隐藏文件,在这要提供隐藏文件，上层使用过滤代理模型提供显示隐藏文件的功能。
             tmp = QString(GlobalOption::instance()->remote_codec->toUnicode(file_name));
-            if (parent_item->setDeleteFlag(tmp, 0)) {
+            tmp_item = parent_item->findChindByName(tmp);
+            // if (parent_item->setDeleteFlag(tmp, 0)) {
+            if (tmp_item != NULL && tmp_item->matchChecksum(&ssh2_sftp_attrib)) {
+                tmp_item->setDeleteFlag(0);
                 if (fxp_ls_ret++ == 0) 
                     printf("Already in list, omited %d", fxp_ls_ret), fxp_ls_ret = fxp_ls_ret | 1<<16;
                 else 

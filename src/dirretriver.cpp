@@ -110,7 +110,7 @@ int  DirRetriver::retrive_dir()
 {
     int exec_ret = -1;
     
-    directory_tree_item *parent_item, *new_item;
+    directory_tree_item *parent_item, *new_item, *tmp_item;
     void *parent_model_internal_pointer;
 
     QString tmp;
@@ -127,7 +127,7 @@ int  DirRetriver::retrive_dir()
         parent_model_internal_pointer = mit->second;
        
         fileinfos.clear();
-        //状态初始化
+        // 状态初始化,假设所有的条目都是要删掉的
         for (int i = 0; i < parent_item->childCount(); i++) {
             parent_item->childAt(i)->delete_flag = 1;
         }
@@ -140,24 +140,28 @@ int  DirRetriver::retrive_dir()
         // ssh2_sftp_handle == 0 是怎么回事呢？ 返回值 应该是
         // 1 . 这个file_name 是一个链接，但这个链接指向的是一个普通文件而不是目录时libssh2_sftp_opendir返回0 , 而 libssh2_sftp_last_error 返回值为 2 == SSH2_FX_NO_SUCH_FILE
         if( ssh2_sftp_handle == 0 ) {
-            qDebug()<<" sftp last error: "<< libssh2_sftp_last_error(this->ssh2_sftp)
-                    <<(parent_item->strip_path+ ( "/" ))
+            qDebug()<<"sftp last error: "<< libssh2_sftp_last_error(this->ssh2_sftp)
+                    <<(parent_item->strip_path + ("/"))
                     <<GlobalOption::instance()->remote_codec
-                ->fromUnicode(parent_item->strip_path + ( "/" )).data();
+                ->fromUnicode(parent_item->strip_path + ("/")).data();
         }
         fxp_ls_ret = 0;
         while (ssh2_sftp_handle != 0 &&
-               libssh2_sftp_readdir(ssh2_sftp_handle, file_name, PATH_MAX, &ssh2_sftp_attrib ) > 0)
+               libssh2_sftp_readdir(ssh2_sftp_handle, file_name, PATH_MAX, &ssh2_sftp_attrib) > 0)
         {
             if (strlen(file_name) == 1 && file_name[0] == '.') continue;
             if (strlen(file_name) == 2 && file_name[0] == '.' && file_name[1] == '.') continue;
             //不处理隐藏文件? 处理隐藏文件,在这要提供隐藏文件，上层使用过滤代理模型提供显示隐藏文件的功能。
             tmp = QString(GlobalOption::instance()->remote_codec->toUnicode(file_name));
-            if (parent_item->setDeleteFlag(tmp, 0)) {
-                if (fxp_ls_ret++ == 0) 
-                    printf("Already in list, omited %d", fxp_ls_ret), fxp_ls_ret = fxp_ls_ret | 1<<16;
-                else 
+            tmp_item = parent_item->findChindByName(tmp);
+            if (tmp_item != NULL && tmp_item->matchChecksum(&ssh2_sftp_attrib)) {
+                tmp_item->setDeleteFlag(0);
+                if (fxp_ls_ret++ == 0) {
+                    printf("Already in list, omited %d", fxp_ls_ret), 
+                        fxp_ls_ret = fxp_ls_ret | 1<<16;
+                } else {
                     printf(" %d", fxp_ls_ret<<16>>16);
+                }
             } else {
                 new_item = new directory_tree_item();
                 new_item->parent_item = parent_item;
