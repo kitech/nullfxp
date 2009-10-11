@@ -12,17 +12,19 @@
 
 #include <QDialog>
 
+#include "ui_globaloptionsdialog.h"
 /**
-	@author liuguangzhao <gzl@localhost>
-*/
+ * 参数配置对话框类
+ */
 class GlobalOptionsDialog : public QDialog
 {
-Q_OBJECT
+    Q_OBJECT;
 public:
-    GlobalOptionsDialog(QWidget* parent, Qt::WindowFlags f=0);
+    GlobalOptionsDialog(QWidget *parent = 0, Qt::WindowFlags f = 0);
+    virtual ~GlobalOptionsDialog();
 
-    ~GlobalOptionsDialog();
-
+private:
+    Ui_GlobalOptionsDialog ui_win;
 };
 
 #endif

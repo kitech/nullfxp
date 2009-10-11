@@ -9,10 +9,13 @@
 
 #include "globaloptionsdialog.h"
 
-GlobalOptionsDialog::GlobalOptionsDialog(QWidget* parent, Qt::WindowFlags f): QDialog(parent, f)
+GlobalOptionsDialog::GlobalOptionsDialog(QWidget* parent, Qt::WindowFlags f)
+  : QDialog(parent, f)
 {
-}
+    this->ui_win.setupUi(this);
 
+    this->ui_win.listWidget->setIconSize(QSize(50,50));
+}
 
 GlobalOptionsDialog::~GlobalOptionsDialog()
 {

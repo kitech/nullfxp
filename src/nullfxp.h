@@ -82,6 +82,7 @@ private slots:
     void slot_synchronize_file();
 	void slot_show_session_dialog();
     void slot_check_for_updates();
+    void slot_show_option_dialog();
 
 private:
     MdiChild *activeMdiChild();        

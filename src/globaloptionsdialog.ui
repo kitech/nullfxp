@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>GlobalOptionDialog</class>
- <widget class="QDialog" name="GlobalOptionDialog">
+ <class>GlobalOptionsDialog</class>
+ <widget class="QDialog" name="GlobalOptionsDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -25,6 +25,18 @@
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QListWidget" name="listWidget">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>160</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
        </property>
@@ -59,7 +71,7 @@
         <enum>QListView::SinglePass</enum>
        </property>
        <property name="spacing">
-        <number>0</number>
+        <number>10</number>
        </property>
        <property name="viewMode">
         <enum>QListView::ListMode</enum>
@@ -135,7 +147,11 @@
      </item>
      <item>
       <widget class="QStackedWidget" name="stackedWidget">
-       <widget class="QWidget" name="page"/>
+       <widget class="QWidget" name="page">
+        <zorder>tableWidget</zorder>
+        <zorder>listWidget</zorder>
+        <zorder>label</zorder>
+       </widget>
        <widget class="QWidget" name="page_2"/>
       </widget>
      </item>

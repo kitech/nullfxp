@@ -24,6 +24,7 @@
 
 #include "utils.h"
 #include "nullfxp.h"
+#include "globaloptionsdialog.h"
 #include "localview.h"
 #include "remoteview.h"
 #include "progressdialog.h"
@@ -78,6 +79,8 @@ NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
                      this, SLOT(slot_disconnect_from_remote_host()));
     QObject::connect(this->mUIMain.actionSession, SIGNAL(triggered()),
                      this, SLOT(slot_show_session_dialog()));
+    QObject::connect(this->mUIMain.action_Global_Options, SIGNAL(triggered()),
+                     this, SLOT(slot_show_option_dialog()));
 
     localView = new LocalView();
 
@@ -276,6 +279,13 @@ void NullFXP::slot_show_session_dialog()
     }
     delete sess_dlg;
 }
+
+void NullFXP::slot_show_option_dialog()
+{
+    GlobalOptionsDialog *dlg = new GlobalOptionsDialog();
+    dlg->exec();
+}
+
 
 // void NullFXP::slot_connect_remote_host_finished(int status, void *ssh2_sess, int ssh2_sock)
 // {
