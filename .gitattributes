@@ -672,6 +672,7 @@ src/tmpmain.cpp -text
 src/ui/encryptiondetaildialog.ui -text
 src/ui/fileexistaskdialog.ui -text
 src/ui/hostlistdialog.ui -text
+src/ui/updatedialog.ui -text
 src/unitest/CMakeLists.txt -text
 src/unitest/testmain.cpp -text
 src/unitest/testnullfxp.cpp -text
@@ -679,6 +680,8 @@ src/unitest/testnullfxp.h -text
 src/unitest/unitest.ico -text
 src/unitest/unitest.pro -text
 src/unitest/unitest.rc -text
+src/updatedialog.cpp -text
+src/updatedialog.h -text
 src/utils.cpp -text
 src/utils.h -text
 tools/tiny_mime.sh -text
