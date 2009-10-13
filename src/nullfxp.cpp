@@ -501,14 +501,11 @@ RemoteView *NullFXP::get_top_most_remote_view()
 
 void NullFXP::slot_check_for_updates()
 {
-    q_debug()<<""<<"curr version:"<<NULLFXP_VERSION_STR;
+    // q_debug()<<""<<"curr version:"<<NULLFXP_VERSION_STR;
     UpdateDialog *dlg = new UpdateDialog();
     int ret = dlg->exec();
     if (ret == QDialog::Accepted) {
-
     } else {
-
     }
     delete dlg;
-    q_debug()<<"check_for_updates done.";
 }
