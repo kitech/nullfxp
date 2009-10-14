@@ -32,12 +32,12 @@ BaseStorage::~BaseStorage()
 bool BaseStorage::init()
 {
 #ifdef Q_OS_MAC
-		this->storagePath = QDir::homePath()+QString("/.nullfxp/sessions");
+    this->storagePath = QDir::homePath()+QString("/.nullfxp/sessions");
 #else
 # ifdef Q_OS_WIN32
     this->storagePath = QCoreApplication::applicationDirPath() + QString("/.nullfxp/sessions");
 #else
-		qDebug()<<"else????";
+    // qDebug()<<"else????";
     this->storagePath = QDir::homePath()+QString("/.nullfxp/sessions");
 #endif
 #endif

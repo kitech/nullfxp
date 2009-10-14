@@ -6,18 +6,22 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>446</width>
-    <height>482</height>
+    <width>513</width>
+    <height>401</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>TextLabel</string>
+      <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'ææ³é©¿ç¹éµæ­£é»'; font-size:10pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; text-decoration: underline;&quot;&gt;C&lt;/span&gt;ategory&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
    </item>
@@ -33,7 +37,7 @@
        </property>
        <property name="maximumSize">
         <size>
-         <width>160</width>
+         <width>150</width>
          <height>16777215</height>
         </size>
        </property>
@@ -71,7 +75,7 @@
         <enum>QListView::SinglePass</enum>
        </property>
        <property name="spacing">
-        <number>10</number>
+        <number>6</number>
        </property>
        <property name="viewMode">
         <enum>QListView::ListMode</enum>
@@ -90,7 +94,7 @@
        </property>
        <item>
         <property name="text">
-         <string>新建项目</string>
+         <string>General</string>
         </property>
         <property name="icon">
          <iconset>
@@ -99,7 +103,7 @@
        </item>
        <item>
         <property name="text">
-         <string>新建项目</string>
+         <string>File Transfer</string>
         </property>
         <property name="icon">
          <iconset>
@@ -109,7 +113,7 @@
        </item>
        <item>
         <property name="text">
-         <string>新建项目</string>
+         <string>Firewall</string>
         </property>
         <property name="icon">
          <iconset>
@@ -118,7 +122,7 @@
        </item>
        <item>
         <property name="text">
-         <string>新建项目</string>
+         <string>SSH2</string>
         </property>
         <property name="icon">
          <iconset>
@@ -127,7 +131,7 @@
        </item>
        <item>
         <property name="text">
-         <string>新建项目</string>
+         <string>SSH Host Keys</string>
         </property>
         <property name="icon">
          <iconset>
@@ -136,7 +140,7 @@
        </item>
        <item>
         <property name="text">
-         <string>新建项目</string>
+         <string>Connection</string>
         </property>
         <property name="icon">
          <iconset>
@@ -146,13 +150,155 @@
       </widget>
      </item>
      <item>
-      <widget class="QStackedWidget" name="stackedWidget">
-       <widget class="QWidget" name="page">
-        <zorder>tableWidget</zorder>
-        <zorder>listWidget</zorder>
-        <zorder>label</zorder>
-       </widget>
-       <widget class="QWidget" name="page_2"/>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QLabel" name="label_2">
+         <property name="autoFillBackground">
+          <bool>false</bool>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::Box</enum>
+         </property>
+         <property name="text">
+          <string>TextLabel</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QStackedWidget" name="stackedWidget">
+         <property name="currentIndex">
+          <number>0</number>
+         </property>
+         <widget class="QWidget" name="page">
+          <widget class="QLabel" name="label_3">
+           <property name="geometry">
+            <rect>
+             <x>70</x>
+             <y>150</y>
+             <width>59</width>
+             <height>19</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>page 1</string>
+           </property>
+          </widget>
+         </widget>
+         <widget class="QWidget" name="page_2">
+          <widget class="QLabel" name="label_4">
+           <property name="geometry">
+            <rect>
+             <x>80</x>
+             <y>190</y>
+             <width>59</width>
+             <height>19</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>page 2</string>
+           </property>
+          </widget>
+         </widget>
+         <widget class="QWidget" name="page_3">
+          <widget class="QLabel" name="label_5">
+           <property name="geometry">
+            <rect>
+             <x>90</x>
+             <y>150</y>
+             <width>59</width>
+             <height>19</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>page 3</string>
+           </property>
+          </widget>
+         </widget>
+         <widget class="QWidget" name="page_4">
+          <widget class="QLabel" name="label_6">
+           <property name="geometry">
+            <rect>
+             <x>110</x>
+             <y>200</y>
+             <width>59</width>
+             <height>19</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>page 4</string>
+           </property>
+          </widget>
+         </widget>
+         <widget class="QWidget" name="page_5">
+          <widget class="QLabel" name="label_7">
+           <property name="geometry">
+            <rect>
+             <x>70</x>
+             <y>160</y>
+             <width>59</width>
+             <height>19</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>page 5</string>
+           </property>
+          </widget>
+         </widget>
+         <widget class="QWidget" name="page_6">
+          <widget class="QLabel" name="label_8">
+           <property name="geometry">
+            <rect>
+             <x>70</x>
+             <y>200</y>
+             <width>59</width>
+             <height>19</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>page 6</string>
+           </property>
+          </widget>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QPushButton" name="pushButton_3">
+       <property name="text">
+        <string>&amp;Help</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton">
+       <property name="text">
+        <string>     &amp;OK     </string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_2">
+       <property name="text">
+        <string>  &amp;Cancel  </string>
+       </property>
       </widget>
      </item>
     </layout>

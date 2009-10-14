@@ -23,6 +23,10 @@ public:
     GlobalOptionsDialog(QWidget *parent = 0, Qt::WindowFlags f = 0);
     virtual ~GlobalOptionsDialog();
 
+private slots:
+    void slotCancelEdit();
+    void slotCatItemClicked(QListWidgetItem *item);
+
 private:
     Ui_GlobalOptionsDialog ui_win;
 };
