@@ -69,7 +69,10 @@ void UpdateDialog::slotStartCheck()
 
 void UpdateDialog::slotCancelCheck()
 {
-    
+    if (this->http != NULL) {
+        this->http->close();
+    }
+    this->reject();
 }
 
 void UpdateDialog::slotDataReadProgress(int done, int total)
