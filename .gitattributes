@@ -674,6 +674,8 @@ src/ui/fileexistaskdialog.ui -text
 src/ui/hostlistdialog.ui -text
 src/ui/updatedialog.ui -text
 src/unitest/CMakeLists.txt -text
+src/unitest/gccfeatures.cpp -text
+src/unitest/gccfeatures.h -text
 src/unitest/testmain.cpp -text
 src/unitest/testnullfxp.cpp -text
 src/unitest/testnullfxp.h -text
