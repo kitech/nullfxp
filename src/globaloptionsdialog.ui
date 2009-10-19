@@ -295,6 +295,13 @@ p, li { white-space: pre-wrap; }
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="pushButton_4">
+       <property name="text">
+        <string>&amp;Accept</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="pushButton_2">
        <property name="text">
         <string>  &amp;Cancel  </string>
