@@ -1,4 +1,4 @@
-// 2009年 08月 30日 星期日 12:59:09 CST
+// 2009年 10月 21日 星期三 13:46:00 CST
 #include <QHash>
 
 QHash<QString, QString> gMimeHash;
@@ -10,10 +10,12 @@ static int mimeHashInit() {
     if (!gMimeHash.contains("ai")) gMimeHash.insert("ai", "application-mac-binhex40");
     if (!gMimeHash.contains("nb")) gMimeHash.insert("nb", "application-mathematica");
     if (!gMimeHash.contains("mbox")) gMimeHash.insert("mbox", "application-mbox");
+    if (!gMimeHash.contains("metalink")) gMimeHash.insert("metalink", "application-metalink+xml");
     if (!gMimeHash.contains("bin")) gMimeHash.insert("bin", "application-octet-stream");
     if (!gMimeHash.contains("oda")) gMimeHash.insert("oda", "application-oda");
     if (!gMimeHash.contains("pdf")) gMimeHash.insert("pdf", "application-pdf");
     if (!gMimeHash.contains("xspf")) gMimeHash.insert("xspf", "application-xspf+xml");
+    if (!gMimeHash.contains("themepack")) gMimeHash.insert("themepack", "application-x-windows-themepack");
     if (!gMimeHash.contains("gsm")) gMimeHash.insert("gsm", "audio-x-gsm");
     if (!gMimeHash.contains("pla")) gMimeHash.insert("pla", "audio-x-iriver-pla");
     if (!gMimeHash.contains("asc")) gMimeHash.insert("asc", "application-pgp-encrypted");
@@ -87,6 +89,8 @@ static int mimeHashInit() {
     if (!gMimeHash.contains("sis")) gMimeHash.insert("sis", "application-vnd.symbian.install");
     if (!gMimeHash.contains("sisx")) gMimeHash.insert("sisx", "x-epoc-x-sisx-app");
     if (!gMimeHash.contains("wpp")) gMimeHash.insert("wpp", "application-vnd.wordperfect");
+    if (!gMimeHash.contains("por")) gMimeHash.insert("por", "application-x-spss-por");
+    if (!gMimeHash.contains("sav")) gMimeHash.insert("sav", "application-x-spss-sav");
     if (!gMimeHash.contains("xbel")) gMimeHash.insert("xbel", "application-x-xbel");
     if (!gMimeHash.contains("7z")) gMimeHash.insert("7z", "application-x-7z-compressed");
     if (!gMimeHash.contains("zabw")) gMimeHash.insert("zabw", "application-x-abiword");
@@ -110,6 +114,7 @@ static int mimeHashInit() {
     if (!gMimeHash.contains("ps")) gMimeHash.insert("ps", "application-x-bzpostscript");
     if (!gMimeHash.contains("cbr")) gMimeHash.insert("cbr", "application-x-cbr");
     if (!gMimeHash.contains("cb7")) gMimeHash.insert("cb7", "application-x-cb7");
+    if (!gMimeHash.contains("cbt")) gMimeHash.insert("cbt", "application-x-cbt");
     if (!gMimeHash.contains("cbz")) gMimeHash.insert("cbz", "application-x-cbz");
     if (!gMimeHash.contains("iso9660")) gMimeHash.insert("iso9660", "application-x-cd-image");
     if (!gMimeHash.contains("toc")) gMimeHash.insert("toc", "application-x-cdrdao-toc");
@@ -145,7 +150,7 @@ static int mimeHashInit() {
     if (!gMimeHash.contains("psf")) gMimeHash.insert("psf", "application-x-font-linux-psf");
     if (!gMimeHash.contains("psf")) gMimeHash.insert("psf", "application-x-gz-font-linux-psf");
     if (!gMimeHash.contains("pcf")) gMimeHash.insert("pcf", "application-x-font-pcf");
-    if (!gMimeHash.contains("pcf")) gMimeHash.insert("pcf", "application-x-font-otf");
+    if (!gMimeHash.contains("otf")) gMimeHash.insert("otf", "application-x-font-otf");
     if (!gMimeHash.contains("spd")) gMimeHash.insert("spd", "application-x-font-speedo");
     if (!gMimeHash.contains("spd")) gMimeHash.insert("spd", "application-x-font-sunos-news");
     if (!gMimeHash.contains("spd")) gMimeHash.insert("spd", "application-x-font-tex");
@@ -180,6 +185,10 @@ static int mimeHashInit() {
     if (!gMimeHash.contains("jpx")) gMimeHash.insert("jpx", "application-x-jbuilder-project");
     if (!gMimeHash.contains("karbon")) gMimeHash.insert("karbon", "application-x-karbon");
     if (!gMimeHash.contains("chrt")) gMimeHash.insert("chrt", "application-x-kchart");
+    if (!gMimeHash.contains("kexic")) gMimeHash.insert("kexic", "application-x-kexi-connectiondata");
+    if (!gMimeHash.contains("kexis")) gMimeHash.insert("kexis", "application-x-kexiproject-shortcut");
+    if (!gMimeHash.contains("kexi")) gMimeHash.insert("kexi", "application-x-kexiproject-sqlite2");
+    if (!gMimeHash.contains("kexi")) gMimeHash.insert("kexi", "application-x-kexiproject-sqlite3");
     if (!gMimeHash.contains("kfo")) gMimeHash.insert("kfo", "application-x-kformula");
     if (!gMimeHash.contains("kil")) gMimeHash.insert("kil", "application-x-killustrator");
     if (!gMimeHash.contains("flw")) gMimeHash.insert("flw", "application-x-kivio");
@@ -197,6 +206,7 @@ static int mimeHashInit() {
     if (!gMimeHash.contains("lhz")) gMimeHash.insert("lhz", "application-x-lhz");
     if (!gMimeHash.contains("ts")) gMimeHash.insert("ts", "application-x-linguist");
     if (!gMimeHash.contains("lyx")) gMimeHash.insert("lyx", "application-x-lyx");
+    if (!gMimeHash.contains("lz")) gMimeHash.insert("lz", "application-x-lzip");
     if (!gMimeHash.contains("lzma")) gMimeHash.insert("lzma", "application-x-lzma");
     if (!gMimeHash.contains("tlz")) gMimeHash.insert("tlz", "application-x-lzma-compressed-tar");
     if (!gMimeHash.contains("lzo")) gMimeHash.insert("lzo", "application-x-lzop");
@@ -205,6 +215,7 @@ static int mimeHashInit() {
     if (!gMimeHash.contains("mgp")) gMimeHash.insert("mgp", "application-x-matroska");
     if (!gMimeHash.contains("mkv")) gMimeHash.insert("mkv", "video-x-matroska");
     if (!gMimeHash.contains("mka")) gMimeHash.insert("mka", "audio-x-matroska");
+    if (!gMimeHash.contains("mxf")) gMimeHash.insert("mxf", "application-mxf");
     if (!gMimeHash.contains("ocl")) gMimeHash.insert("ocl", "text-x-ocl");
     if (!gMimeHash.contains("mif")) gMimeHash.insert("mif", "application-x-mif");
     if (!gMimeHash.contains("mif")) gMimeHash.insert("mif", "application-x-mozilla-bookmarks");
@@ -293,6 +304,8 @@ static int mimeHashInit() {
     if (!gMimeHash.contains("man")) gMimeHash.insert("man", "application-x-troff-man");
     if (!gMimeHash.contains("man")) gMimeHash.insert("man", "application-x-troff-man-compressed");
     if (!gMimeHash.contains("tzo")) gMimeHash.insert("tzo", "application-x-tzo");
+    if (!gMimeHash.contains("xz")) gMimeHash.insert("xz", "application-x-xz");
+    if (!gMimeHash.contains("txz")) gMimeHash.insert("txz", "application-x-xz-compressed-tar");
     if (!gMimeHash.contains("ustar")) gMimeHash.insert("ustar", "application-x-ustar");
     if (!gMimeHash.contains("src")) gMimeHash.insert("src", "application-x-wais-source");
     if (!gMimeHash.contains("wpg")) gMimeHash.insert("wpg", "application-x-wpg");
@@ -355,6 +368,7 @@ static int mimeHashInit() {
     if (!gMimeHash.contains("ief")) gMimeHash.insert("ief", "image-ief");
     if (!gMimeHash.contains("jpe")) gMimeHash.insert("jpe", "image-jpeg");
     if (!gMimeHash.contains("jpf")) gMimeHash.insert("jpf", "image-jp2");
+    if (!gMimeHash.contains("ora")) gMimeHash.insert("ora", "image-openraster");
     if (!gMimeHash.contains("dds")) gMimeHash.insert("dds", "image-x-dds");
     if (!gMimeHash.contains("dds")) gMimeHash.insert("dds", "image-x-xcursor");
     if (!gMimeHash.contains("exr")) gMimeHash.insert("exr", "image-x-exr");
@@ -563,6 +577,8 @@ static int mimeHashInit() {
     if (!gMimeHash.contains("sdp")) gMimeHash.insert("sdp", "application-sdp");
     if (!gMimeHash.contains("movie")) gMimeHash.insert("movie", "video-x-sgi-movie");
     if (!gMimeHash.contains("emp")) gMimeHash.insert("emp", "application-vnd.emusic-emusic_package");
+    if (!gMimeHash.contains("kml")) gMimeHash.insert("kml", "application-vnd.google-earth.kml+xml");
+    if (!gMimeHash.contains("kmz")) gMimeHash.insert("kmz", "application-vnd.google-earth.kmz");
     if (!gMimeHash.contains("ica")) gMimeHash.insert("ica", "application-x-ica");
     if (!gMimeHash.contains("xul")) gMimeHash.insert("xul", "application-vnd.mozilla.xul+xml");
     if (!gMimeHash.contains("docm")) gMimeHash.insert("docm", "application-vnd.openxmlformats-officedocument.wordprocessingml.document");
@@ -585,6 +601,8 @@ static int mimeHashInit() {
     if (!gMimeHash.contains("pcf")) gMimeHash.insert("pcf", "x-content-image-picturecd");
     if (!gMimeHash.contains("pcf")) gMimeHash.insert("pcf", "x-content-audio-player");
     if (!gMimeHash.contains("pcf")) gMimeHash.insert("pcf", "x-content-software");
+    if (!gMimeHash.contains("pcf")) gMimeHash.insert("pcf", "x-content-unix-software");
+    if (!gMimeHash.contains("pcf")) gMimeHash.insert("pcf", "x-content-win32-software");
     gMimeHash.insertMulti("c", "text-x-csrc");
     gMimeHash.insertMulti("cc", "text-x-c++src");
     gMimeHash.insertMulti("cpp", "text-x-c++src");
@@ -610,6 +628,7 @@ static int mimeHashInit() {
     gMimeHash.insertMulti("mp3", "video-x-generic");
     gMimeHash.insertMulti("iso", "application-x-cd-image");
     gMimeHash.insertMulti("ppt", "application-vnd.ms-powerpoint");
+    gMimeHash.insertMulti("dmg", "application-x-dmg");
     return 0;
 }
 static int mimeHashInited = mimeHashInit();

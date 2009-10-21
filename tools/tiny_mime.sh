@@ -11,6 +11,7 @@
 
 # 根据标准的freedesktop.org.xml生成一个简单的mimetypes对照表。
 # usage: tiny_mime.sh > xxx.cpp
+# freedesktop.org.xml 在linux系统的/usr/share/mime/packages/目录下,用这个即可.
 
 ##########
 function out_line()
@@ -59,6 +60,7 @@ function out_extra_pairs()
 
     echo "    gMimeHash.insertMulti(\"iso\", \"application-x-cd-image\");";
     echo "    gMimeHash.insertMulti(\"ppt\", \"application-vnd.ms-powerpoint\");";
+    echo "    gMimeHash.insertMulti(\"dmg\", \"application-x-dmg\");";
 }
 
 function out_footer()

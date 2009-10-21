@@ -125,6 +125,7 @@ src/icons/mimetypes/application-x-cue.png -text
 src/icons/mimetypes/application-x-deb.png -text
 src/icons/mimetypes/application-x-designer.png -text
 src/icons/mimetypes/application-x-desktop.png -text
+src/icons/mimetypes/application-x-dmg.png -text
 src/icons/mimetypes/application-x-egon.png -text
 src/icons/mimetypes/application-x-executable-script.png -text
 src/icons/mimetypes/application-x-executable.png -text
