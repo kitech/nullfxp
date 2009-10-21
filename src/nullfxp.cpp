@@ -42,6 +42,10 @@ NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
 {
     this->mUIMain.setupUi(this);
     this->setWindowIcon(QIcon(":/icons/nullget-1.png")); 
+
+    // 未完成的功能,临时去掉
+    delete this->mUIMain.menu_Options;
+
     //////////////////////////
     central_splitter_widget  = new QSplitter(Qt::Vertical);
     this->fcd = 0;
