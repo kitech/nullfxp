@@ -111,7 +111,8 @@ int SSHConnection::connect()
     }
 
     //getevn
-    this->get_server_env_vars("env");
+    QString envs = this->get_server_env_vars("env");
+    this->codec = this->codecForEnv(envs);
     this->get_server_env_vars("uname -a");
     //qDebug()<<"MD5 Hostkey hash:"<<libssh2_hostkey_hash(this->sess,LIBSSH2_HOSTKEY_HASH_MD5 )
     //<<"\nSHA1 Hostkey hash:"<<libssh2_hostkey_hash(this->sess, LIBSSH2_HOSTKEY_HASH_SHA1);
@@ -138,7 +139,30 @@ int SSHConnection::alivePing()
 {
     return 0;
 }
-
+QTextCodec *SSHConnection::codecForEnv(QString env)
+{
+    QTextCodec *ecodec = NULL;
+    QStringList sl = env.split("\n");
+    QString kvline;
+    for (int i = 0 ; i < sl.count(); i++) {
+        kvline = sl.at(i);
+        if (kvline.startsWith("LANG=")
+            || kvline.startsWith("LC_CTYPE=")
+            || kvline.startsWith("LC_ALL=")) {
+            if (kvline.split(".").count() == 2) {
+                ecodec = QTextCodec::codecForName(kvline.split(".").at(1).toAscii());
+                if (ecodec != NULL) {
+                    qDebug()<<"Got env encoding:"<<kvline;
+                    break;
+                }
+            }
+        }
+    }
+    if (ecodec == NULL) {
+        q_debug()<<"can not got encoding from env";
+    }
+    return ecodec;
+}
 /////////////// private
 int SSHConnection::initSocket()
 {
@@ -496,22 +520,31 @@ QString SSHConnection::get_server_env_vars(const char *cmd)
     LIBSSH2_CHANNEL *ssh2_channel = 0;
     int rv = -1;
     char buff[1024];
-    QString evn_output;
+    QString env_output;
     QString uname_output;
 
     ssh2_channel = libssh2_channel_open_session(this->sess);
     //libssh2_channel_set_blocking(ssh2_channel, 1);
-    rv = libssh2_channel_exec(ssh2_channel, cmd);
+    // rv = libssh2_channel_exec(ssh2_channel, cmd);
+    rv = libssh2_channel_shell(ssh2_channel);
     qDebug()<<"SSH2 exec: "<<rv;
+
+    rv = libssh2_channel_write(ssh2_channel, cmd, strlen(cmd));
+    qDebug()<<"SSH2 write: "<<rv;
+    rv = libssh2_channel_write(ssh2_channel, "\n", 1);
+    qDebug()<<"SSH2 write2: "<<rv;
+    rv = libssh2_channel_send_eof(ssh2_channel);
   
     memset(buff, 0, sizeof(buff));
     while ((rv = libssh2_channel_read(ssh2_channel, buff, 1000)) > 0) {
         qDebug()<<"Channel read: "<<rv<<" -->"<<buff;
+        env_output += QString(buff);
         memset(buff, 0, sizeof(buff));
     }
 
     libssh2_channel_close(ssh2_channel);
     libssh2_channel_free(ssh2_channel);
 
+    return env_output;
     return QString();
 }

@@ -7,6 +7,8 @@
 // Version: $Id$
 // 
 
+#include <assert.h>
+
 #include "utils.h"
 
 #include "libftp/libftp.h"
@@ -48,6 +50,8 @@ int FTPConnection::connect()
     }
     emit connect_state_changed(tr("Connect done."));
     
+    this->codec = this->codecForEnv(QString());
+
     return 0;
 }
 int FTPConnection::disconnect()
@@ -79,3 +83,21 @@ int FTPConnection::alivePing()
     return iret;
 }
 
+QTextCodec *FTPConnection::codecForEnv(QString env)
+{
+    assert(this->ftp != NULL);
+    QTextCodec *ecodec = NULL;
+    QString stype;
+    int iret = this->ftp->system(stype);
+    if (iret == 0) {
+        // Supported values are "UNIX", "VMS", "WINDOWS", "OS/2", "OS/400", "MVS".
+        if (stype == "UNIX") {
+            ecodec = QTextCodec::codecForName("UTF-8");
+        } else if (stype == "WINDOWS") {
+            ecodec = QTextCodec::codecForName("GBK");
+        } else {
+            qDebug()<<"Unknown systype:"<<stype;
+        }
+    }
+    return ecodec;
+}

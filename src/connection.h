@@ -46,6 +46,9 @@ public:
     int protocolType();
 
     virtual QString get_status_desc(int status);
+    /// 根据环境信息字符串,获取编码.
+    virtual QTextCodec *codecForEnv(QString env);
+    QTextCodec *codecForConnect();
 
 public slots:
     virtual int alivePing();
@@ -71,6 +74,8 @@ public:
     bool user_canceled;
 
     LibFtp *ftp;
+    QTextCodec *codec;
+
 signals:
     void alivePong(int alive);
     void connect_state_changed(QString state_desc);

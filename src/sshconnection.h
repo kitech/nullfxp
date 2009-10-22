@@ -25,6 +25,8 @@ public:
     virtual bool isConnected();
     virtual bool isRealConnected();
 
+    virtual QTextCodec *codecForEnv(QString env);
+
 public slots:
     virtual int alivePing();
 

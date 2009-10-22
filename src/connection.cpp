@@ -17,6 +17,7 @@ Connection::Connection(QObject *parent)
     this->qsock = NULL;
     this->qdsock = NULL;
     this->user_canceled = false;
+    this->codec = NULL;
 }
 Connection::~Connection()
 {
@@ -134,4 +135,13 @@ QString Connection::get_status_desc(int status)
     } else {
         return emsg;
     }
+}
+
+QTextCodec *Connection::codecForEnv(QString env)
+{
+    return NULL;
+}
+QTextCodec *Connection::codecForConnect()
+{
+    return this->codec;
 }
