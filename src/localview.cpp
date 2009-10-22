@@ -424,10 +424,11 @@ void LocalView::slot_rename()
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     QModelIndexList mil;
-    QItemSelectionModel * ism = this->curr_item_view->selectionModel();
+    QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     if (ism == 0 || ism->selectedIndexes().count() == 0) {
-        QMessageBox::critical(this, tr("Waring..."), tr("No item selected")+"                         ");
-        return ;
+        QMessageBox::critical(this, tr("Waring..."),
+                              tr("No item selected").leftJustified(60, ' '));
+        return;
     }
     mil = ism->selectedIndexes();
 
@@ -435,9 +436,10 @@ void LocalView::slot_rename()
         ? this->dir_file_model->filePath(mil.at(0)) : this->model->filePath(mil.at(0));
     QString file_name = this->curr_item_view==this->localView.treeView
         ? this->dir_file_model->fileName(mil.at(0)) : this->model->fileName(mil.at(0));
-    QString rename_to ;
-    rename_to = QInputDialog::getText(this, tr("Rename to:"), tr("Input new name:")
-                                      +"                                                        ",
+
+    QString rename_to;
+    rename_to = QInputDialog::getText(this, tr("Rename to:"), 
+                                      tr("Input new name:").leftJustified(100, ' '),
                                       QLineEdit::Normal, file_name );
      
     if (rename_to  == QString::null) {
@@ -447,12 +449,18 @@ void LocalView::slot_rename()
     }
     if (rename_to.length() == 0) {
         QMessageBox::critical(this, tr("Waring..."), tr("No new name supplyed "));
-        return ;
+        return;
     }
-    QTextCodec * codec = GlobalOption::instance()->locale_codec;
+    q_debug()<<rename_to<<local_file<<this->curr_item_view<<file_name;
+    // QTextCodec *codec = GlobalOption::instance()->locale_codec;
     QString file_path = local_file.left(local_file.length()-file_name.length());
     rename_to = file_path + rename_to;
-    ::rename(codec->fromUnicode(local_file).data(), codec->fromUnicode(rename_to).data());
+
+    // 为什么用这个函数,直接用qt的函数不好吗
+    if (!QFile::rename(local_file, rename_to)) {
+        q_debug()<<"file rename faild";
+    }
+    // ::rename(codec->fromUnicode(local_file).data(), codec->fromUnicode(rename_to).data());
     
     this->slot_refresh_directory_tree();
 }

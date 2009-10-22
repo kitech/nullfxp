@@ -60,13 +60,13 @@ protected:
     virtual void closeEvent ( QCloseEvent * event );
         
 private:
-    QStatusBar * status_bar ;
-    QDirModel * model ;
-    Ui::LocalView localView ;
-    LocalDirSortFilterModel * dir_file_model ;
-    int   table_row_height ;
-    QAbstractItemView * curr_item_view ;    //
-    QMenu * local_dir_tree_context_menu ;
+    QStatusBar *status_bar;
+    QDirModel *model;
+    Ui::LocalView localView;
+    LocalDirSortFilterModel *dir_file_model;
+    int   table_row_height;
+    QAbstractItemView *curr_item_view;    //
+    QMenu *local_dir_tree_context_menu;
         
     void expand_to_home_directory(QModelIndex parent_model, int level);
     void init_local_dir_tree_context_menu();

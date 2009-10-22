@@ -1,24 +1,11 @@
-/***************************************************************************
- *   Copyright (C) 2007 by liuguangzhao   *
- *   liuguangzhao@users.sf.net   *
- *
- *   http://www.qtchina.net                                                *
- *   http://nullget.sourceforge.net                                        *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+// localdirsortfiltermodel.cpp --- 
+// 
+// Author: liuguangzhao
+// Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+// URL: http://www.qtchina.net http://nullget.sourceforge.net
+// Created: 2007-11-14 22:54:04
+// Version: $Id$
+// 
 
 #include <QtCore>
 #include <QtGui>
@@ -61,7 +48,7 @@ LocalDirSortFilterModel::~LocalDirSortFilterModel()
 {
 }
 
-QModelIndex LocalDirSortFilterModel::index ( const QString & path, int column  ) const
+QModelIndex LocalDirSortFilterModel::index(const QString &path, int column) const
 {
     return this->mapFromSource(this->source_model->index( path , column ));
 }
@@ -70,37 +57,38 @@ QModelIndex LocalDirSortFilterModel::index(int& row, int column, QModelIndex& pa
     return this->mapFromSource(this->source_model->index(row, column, this->mapToSource(parent)));
 }
 
-void LocalDirSortFilterModel::setSourceModel ( QAbstractItemModel * sourceModel )
+void LocalDirSortFilterModel::setSourceModel(QAbstractItemModel *sourceModel)
 {
-    this->source_model = static_cast<QDirModel*>(sourceModel) ;
+    this->source_model = static_cast<QDirModel*>(sourceModel);
     QSortFilterProxyModel::setSourceModel(sourceModel);
 }
 
-QString LocalDirSortFilterModel::filePath ( const QModelIndex &index ) const
+QString LocalDirSortFilterModel::filePath(const QModelIndex &index) const
 {
-    return this->source_model->filePath( this->mapToSource(index) );
+    return this->source_model->filePath(this->mapToSource(index));
 }
-QString LocalDirSortFilterModel::fileName ( const QModelIndex &index ) const
+QString LocalDirSortFilterModel::fileName(const QModelIndex &index) const
 {
-    return this->source_model->filePath( this->mapToSource(index) );
+    return this->source_model->fileName(this->mapToSource(index));
 }
-bool LocalDirSortFilterModel::isDir ( const QModelIndex &index ) const
+bool LocalDirSortFilterModel::isDir(const QModelIndex &index) const
 {
-    return this->source_model->isDir( this->mapToSource(index) );
+    return this->source_model->isDir(this->mapToSource(index));
 }
 
-void LocalDirSortFilterModel::refresh ( const QModelIndex & parent  )
+void LocalDirSortFilterModel::refresh(const QModelIndex & parent)
 {
     this->source_model->refresh(parent);
 }
 
-bool LocalDirSortFilterModel::filterAcceptsRow ( int source_row, const QModelIndex & source_parent ) const
+bool LocalDirSortFilterModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    if( this->source_model->isDir( this->source_model->index(source_row, 0, source_parent)))
+    if (this->source_model->isDir(this->source_model->index(source_row, 0, source_parent))) {
         return true;
-    else 
+    } else {
         return false;
+    }
     return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
 }
 
