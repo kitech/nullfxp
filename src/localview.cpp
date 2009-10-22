@@ -337,11 +337,9 @@ void LocalView::slot_mkdir()
         return ;
     }
     
-    dir_name = QInputDialog::getText(this,tr("Create directory:"),
-                                     tr("Input directory name:")
-                                     +"                                                        ",
-                                     QLineEdit::Normal,
-                                     tr("new_direcotry") );
+    dir_name = QInputDialog::getText(this, tr("Create directory:"),
+                                     tr("Input directory name:").leftJustified(100, ' '),
+                                     QLineEdit::Normal, tr("new_direcotry"));
     if (dir_name == QString::null) {
         return ;
     } 
@@ -401,7 +399,7 @@ void LocalView::slot_remove()
     QModelIndexList mil;
     QItemSelectionModel * ism = this->curr_item_view->selectionModel();
     if (ism == 0 || ism->selectedIndexes().count() == 0) {
-        QMessageBox::critical(this, tr("Waring..."), tr("No item selected") + "                    ");
+        QMessageBox::critical(this, tr("Waring..."), tr("No item selected").leftJustified(50, ' '));
         return ;
     }
     mil = ism->selectedIndexes();

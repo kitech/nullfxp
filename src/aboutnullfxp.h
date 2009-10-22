@@ -15,14 +15,15 @@
 #include "ui_aboutnullfxp.h"
 
 /**
- *	@author liuguangzhao <gzl@localhost>
+ * nullfxp关于信息对话框类
+ * 
+ * @author liuguangzhao
  */
 class AboutNullFXP : public QDialog
 {
     Q_OBJECT;
 public:
     AboutNullFXP(QWidget *parent = 0, Qt::WindowFlags f = 0);
-
     ~AboutNullFXP();
 
 private:

@@ -545,8 +545,7 @@ void FTPView::slot_mkdir()
     }
     
     dir_name = QInputDialog::getText(this, tr("Create directory:"),
-                                     tr("Input directory name:")
-                                     +"                                                        ",
+                                     tr("Input directory name:").leftJustified(100, ' '),
                                      QLineEdit::Normal,
                                      tr("new_direcotry"));
     if (dir_name == QString::null) {
@@ -579,7 +578,7 @@ void FTPView::slot_rmdir()
     
     if (mil.count() == 0) {
         qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
-        QMessageBox::critical(this, tr("Waring..."), tr("No item selected")+"                         ");
+        QMessageBox::critical(this, tr("Waring..."), tr("No item selected").leftJustified(50, ' '));
         return ;
     }
     
@@ -669,8 +668,8 @@ void FTPView::slot_copy_path()
     
     if (mil.count() == 0) {
         qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
-        QMessageBox::critical(this, tr("Waring..."), tr("No item selected")+"                         ");
-        return ;
+        QMessageBox::critical(this, tr("Waring..."), tr("No item selected").leftJustified(50, ' '));
+        return;
     }
     
     QModelIndex midx = mil.at(0);
@@ -696,7 +695,7 @@ void FTPView::slot_copy_url()
     
     if (mil.count() == 0) {
         qDebug()<<"selectedIndexes count :"<<mil.count()<<" why no item selected????";
-        QMessageBox::critical(this, tr("Waring..."), tr("No item selected") +"                         ");
+        QMessageBox::critical(this, tr("Waring..."), tr("No item selected").leftJustified(50, ' '));
         return ;
     }
     

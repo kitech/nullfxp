@@ -7,6 +7,7 @@
 /INSTALL -text
 /README -text
 bin/touch.exe -text
+docs/Doxyfile -text
 docs/fxp.txt -text
 /install.pri -text
 /nullfxp.kdevelop -text
