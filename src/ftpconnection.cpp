@@ -50,7 +50,11 @@ int FTPConnection::connect()
     }
     emit connect_state_changed(tr("Connect done."));
     
+    // 自动取到编码后,把这个值传递给底层FTP库.
     this->codec = this->codecForEnv(QString());
+    if (this->codec != NULL) {
+        this->ftp->setEncoding(this->codec->name());
+    }
 
     return 0;
 }
