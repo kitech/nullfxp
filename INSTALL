@@ -10,9 +10,9 @@ INSTALL ---
 I) nullfxp 在 *nix平台安装步骤：
                                                 
 depens:
-1、 Qt 4 C++ Library 
+1、 Qt 4 C++ Library (>= 4.3.0)
 2、 OpenSSL Library
-3、 svn client
+3、 svn client  (可选,如果下载的源码包,而不是直接从svn中checkout,可以不需要)
 
 安装环境示例：
 1、Qt 4 装在 /usr/ 目录下，那么qmake 在/usr/bin/目录下
@@ -27,7 +27,7 @@ bash> /usr/bin/qmake -v             ##确定你的Qt库版本,如下我版本如
 QMake version 2.01a
 Using Qt version 4.3.1 in /usr/lib/qt4
 bash> /usr/bin/qmake                #生成Makefile 文件
-bash> make
+bash> make                         # 在FreeBSD系统上,需要使用gmake
 
 如果以上依赖的包都没有问题，make命令会在nullfxp-svn/bin/目录下生成 nullfxp 可执行程序
 
