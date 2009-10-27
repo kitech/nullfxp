@@ -61,7 +61,7 @@ void Connection::setHostInfo(QMap<QString, QString> host)
     this->userName = host["user_name"];
     this->password = host["password"];
     this->hostName = host["host_name"];
-    this->port = host["port"].toShort();
+    this->port = host["port"].toUShort();
     if (host.contains("pubkey")) {
         this->pubkey = host["pubkey"];
     }

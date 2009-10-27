@@ -21,7 +21,7 @@ LibFtp::LibFtp(QObject *parent)
 LibFtp::~LibFtp()
 {
 }
-int LibFtp::connect(const QString host, short port)
+int LibFtp::connect(const QString host, unsigned short port)
 {
     QByteArray ba;
     QString replyText;
@@ -964,7 +964,7 @@ int LibFtp::stat(QString path)
 	return -1;        
 }
 
-int LibFtp::port(const QString hostip, const short port) // fxp
+int LibFtp::port(const QString hostip, const unsigned short port) // fxp
 {
     QString hn = hostip;
     hn = hn.replace(".", ",");
@@ -998,7 +998,7 @@ int LibFtp::port(const QString hostip, const short port) // fxp
 
     return -1;
 }
-int LibFtp::portNoWaitResponse(const QString hostip, const short port)
+int LibFtp::portNoWaitResponse(const QString hostip, const unsigned short port)
 {
     QString hn = hostip;
     hn = hn.replace(".", ",");
@@ -1055,7 +1055,7 @@ QTcpSocket *LibFtp::getDataSocket()
     return this->qdsock;
 }
 
-short LibFtp::pasvPeer(QString &hostip) // get passive peer ip
+unsigned short LibFtp::pasvPeer(QString &hostip) // get passive peer ip
 {
     hostip = this->pasvHost;
     return this->pasvPort;

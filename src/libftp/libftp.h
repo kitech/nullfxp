@@ -22,7 +22,7 @@ public:
     enum {TYPE_MIN = 0, TYPE_ASCII, TYPE_EBCID, TYPE_BIN,
           TYPE_IMAGE, TYPE_LOCAL_BYTE,
           TYPE_MAX};
-    int connect(const QString host, short port = 21);
+    int connect(const QString host, unsigned short port = 21);
     int login(const QString &user = QString(), const QString &password = QString());
     int logout();
     int connectDataChannel();
@@ -46,11 +46,11 @@ public:
     int noop();
     int system(QString &type);
     int stat(QString path);
-    int port(const QString hostip, const short port); // fxp
-    int portNoWaitResponse(const QString hostip, const short port);
+    int port(const QString hostip, const unsigned short port); // fxp
+    int portNoWaitResponse(const QString hostip, const unsigned short port);
     int size(QString path, quint64 &siz);
     
-    short pasvPeer(QString &hostip); // get passive peer ip
+    unsigned short pasvPeer(QString &hostip); // get passive peer ip
     int swallowResponse();
     int waitForCtrlResponse();
     
@@ -61,7 +61,7 @@ public:
     int setEncoding(QString encoding);
     
 private:
-    int parsePasvPort(QString &host, short &port);
+    int parsePasvPort(QString &host, unsigned short &port);
     QByteArray readAll(QTcpSocket *sock);
     QByteArray readAllByEndSymbol(QTcpSocket *sock);
     bool parseDir(const QByteArray &buffer, const QString &userName, QUrlInfo *info);
@@ -71,7 +71,7 @@ private:
     QTcpSocket *qsock;
     QTcpSocket *qdsock;
     QString pasvHost;
-    short pasvPort;
+    unsigned short pasvPort;
     QVector<QUrlInfo> dirList;
     QString servBanner;
     int errnum;
