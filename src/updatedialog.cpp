@@ -16,6 +16,7 @@ UpdateDialog::UpdateDialog(QWidget *parent)
 {
     this->ui_win.setupUi(this);
 
+    this->ui_win.label_7->setPixmap(QIcon(":/icons/nullget-1.png").pixmap(QSize(90, 90)));
     this->ui_win.label_2->setText(NULLFXP_VERSION_STR);
     this->ui_win.label_5->setVisible(false);
     this->ui_win.progressBar->setVisible(false);
@@ -48,7 +49,7 @@ void UpdateDialog::slotStartCheck()
         this->ui_win.progressBar->setVisible(true);
         
         if (this->http == NULL) {
-            this->http = new QHttp(uu.host(), uu.port()<0?80:uu.port());
+            this->http = new QHttp(uu.host(), uu.port() < 0 ? 80 : uu.port());
 
             QObject::connect(this->http, SIGNAL(dataReadProgress(int, int)),
                              this, SLOT(slotDataReadProgress(int, int)));
