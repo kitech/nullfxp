@@ -138,8 +138,46 @@ void RemoteView::init_popup_context_menu()
     action = new QAction(tr("Remove recursively !!!"), 0);
     this->dir_tree_context_menu->addAction(action);
     QObject::connect(action, SIGNAL(triggered()), this, SLOT(rm_file_or_directory_recursively()));
-    
+
+    q_debug()<<"aaaaaaaaaaaaaaaaaaa";
+    // 编码设置菜单
+    QMenu *emenu = this->encodingMenu();
+    this->dir_tree_context_menu->addMenu(emenu);
+
 }
+QMenu *RemoteView::encodingMenu()
+{
+    QMenu *emenu = new QMenu("Charactor encoding", 0);
+    QAction *action = NULL;
+    QActionGroup *ag = new QActionGroup(this);
+
+    action = new QAction("UTF-8", 0);
+    action->setCheckable(true);
+    action->setActionGroup(ag);
+    emenu->addAction(action);
+    
+    action = new QAction("ISO-8859-1", 0);
+    action->setCheckable(true);
+    action->setActionGroup(ag);
+    emenu->addAction(action);
+
+    action = new QAction("", 0);
+    action->setSeparator(true);
+    emenu->addAction(action);
+    
+    action = new QAction("GBK", 0);
+    action->setCheckable(true);
+    action->setActionGroup(ag);
+    emenu->addAction(action);
+
+    action = new QAction("BIG5", 0);
+    action->setCheckable(true);
+    action->setActionGroup(ag);
+    emenu->addAction(action);
+
+    return emenu;
+}
+
 
 void RemoteView::slot_show_fxp_command_log(bool show)
 {

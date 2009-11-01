@@ -134,7 +134,7 @@ void FTPView::init_popup_context_menu()
     action = new QAction(tr("Remove recursively !!!"), 0);
     this->dir_tree_context_menu->addAction(action);
     QObject::connect(action, SIGNAL(triggered()), this, SLOT(rm_file_or_directory_recursively()));
-    
+
 }
 
 FTPView::~FTPView()
@@ -143,6 +143,7 @@ FTPView::~FTPView()
     // this->remoteview.treeView->setModel(0);
     // delete this->remote_dir_model;
 }
+
 
 void FTPView::slot_show_fxp_command_log(bool show)
 {

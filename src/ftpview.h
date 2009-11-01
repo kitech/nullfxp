@@ -145,6 +145,7 @@ private slots:
         
 protected:
     virtual void closeEvent(QCloseEvent *event);
+    
 };
 
 #endif
