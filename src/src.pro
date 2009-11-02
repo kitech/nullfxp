@@ -12,7 +12,7 @@ CONFIG += qt thread console warn_on ordered
 TARGET = nullfxp
 DESTDIR = ../bin
 
-VERSION=2.0.1.73  # using in nullfxp-version.h
+VERSION=2.0.1.74  # using in nullfxp-version.h
 
 include(../install.pri)
 
@@ -98,6 +98,7 @@ SOURCES += main.cpp \
  ftpconnection.cpp \
  connector.cpp \
  ftpview.cpp \
+ sftpview.cpp \
  dirretriver.cpp \
  ftpdirretriver.cpp \
  sshdirretriver.cpp \
@@ -143,6 +144,7 @@ HEADERS += nullfxp.h \
  ftpconnection.h \
  connector.h \
  ftpview.h \
+ sftpview.h \
  dirretriver.h \
  ftpdirretriver.h \
  sshdirretriver.h \

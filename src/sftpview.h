@@ -1,15 +1,15 @@
-/* remoteview.h --- 
+/* sftpview.h --- 
  * 
  * Author: liuguangzhao
  * Copyright (C) 2007-2010 liuguangzhao@users.sf.net
  * URL: http://www.qtchina.net http://nullget.sourceforge.net
  * Created: 2008-05-31 22:09:15 +0800
- * Version: $Id$
+ * Version: $Id: sftpview.h 567 2009-11-01 08:12:00Z liuguangzhao $
  */
 
 
-#ifndef REMOTEVIEW_H
-#define REMOTEVIEW_H
+#ifndef SFTPVIEW_H
+#define SFTPVIEW_H
 
 #include <QWidget>
 #include <QtCore>
@@ -21,6 +21,7 @@
 
 #include "taskpackage.h"
 #include "remotedirmodel.h"
+#include "remoteview.h"
 
 #include "ui_remoteview.h"
 
@@ -31,12 +32,12 @@ class LocalView;
 class EncryptionDetailFocusLabel;
 class Connection;
 
-class RemoteView : public QWidget
+class SFTPView : public RemoteView
 {
     Q_OBJECT;
 public:
-    RemoteView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *parent = 0);
-    virtual ~RemoteView();
+    SFTPView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *parent = 0);
+    virtual ~SFTPView();
 
     virtual QString get_selected_directory();
     //
