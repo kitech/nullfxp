@@ -35,48 +35,48 @@
 SFTPView::SFTPView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *parent)
     : RemoteView(main_mdi_area, local_view, parent)
 {
-    this->remoteview.setupUi(this);
-    this->local_view = local_view;
-    this->main_mdi_area = main_mdi_area;
-    this->setObjectName("rv");
-    ///////
-    this->status_bar = new QStatusBar();
-    this->layout()->addWidget(this->status_bar);
-    this->status_bar->addPermanentWidget(this->enc_label = new EncryptionDetailFocusLabel("ENC", this));
-    QObject::connect(this->enc_label, SIGNAL(mouseDoubleClick()),
-                     this, SLOT(encryption_focus_label_double_clicked()));
-    HostInfoDetailFocusLabel *hi_label = new HostInfoDetailFocusLabel("HI", this);
-    this->status_bar->addPermanentWidget(hi_label);
-    QObject::connect(hi_label, SIGNAL(mouseDoubleClick()), 
-                    this, SLOT(host_info_focus_label_double_clicked()));
+    // this->remoteview.setupUi(this);
+    // this->local_view = local_view;
+    // this->main_mdi_area = main_mdi_area;
+    // this->setObjectName("rv");
+    // ///////
+    // this->status_bar = new QStatusBar();
+    // this->layout()->addWidget(this->status_bar);
+    // this->status_bar->addPermanentWidget(this->enc_label = new EncryptionDetailFocusLabel("ENC", this));
+    // QObject::connect(this->enc_label, SIGNAL(mouseDoubleClick()),
+    //                  this, SLOT(encryption_focus_label_double_clicked()));
+    // HostInfoDetailFocusLabel *hi_label = new HostInfoDetailFocusLabel("HI", this);
+    // this->status_bar->addPermanentWidget(hi_label);
+    // QObject::connect(hi_label, SIGNAL(mouseDoubleClick()), 
+    //                 this, SLOT(host_info_focus_label_double_clicked()));
 
-    ////////////
-    //     this->remoteview.treeView->setAcceptDrops(false);
-    //     this->remoteview.treeView->setDragEnabled(false);
-    //     this->remoteview.treeView->setDropIndicatorShown(false);
-    //     this->remoteview.treeView->setDragDropMode(QAbstractItemView::NoDragDrop);
-    //this->remoteview.treeView->setSelectionMode(QAbstractItemView::ExtendedSelection);
+    // ////////////
+    // //     this->remoteview.treeView->setAcceptDrops(false);
+    // //     this->remoteview.treeView->setDragEnabled(false);
+    // //     this->remoteview.treeView->setDropIndicatorShown(false);
+    // //     this->remoteview.treeView->setDragDropMode(QAbstractItemView::NoDragDrop);
+    // //this->remoteview.treeView->setSelectionMode(QAbstractItemView::ExtendedSelection);
     
-    QObject::connect(this->remoteview.treeView, SIGNAL(customContextMenuRequested(const QPoint &)),
-                     this, SLOT(slot_dir_tree_customContextMenuRequested (const QPoint &)));
-    QObject::connect(this->remoteview.tableView,SIGNAL(customContextMenuRequested(const QPoint &)),
-                     this, SLOT(slot_dir_tree_customContextMenuRequested (const QPoint & )));
+    // QObject::connect(this->remoteview.treeView, SIGNAL(customContextMenuRequested(const QPoint &)),
+    //                  this, SLOT(slot_dir_tree_customContextMenuRequested (const QPoint &)));
+    // QObject::connect(this->remoteview.tableView,SIGNAL(customContextMenuRequested(const QPoint &)),
+    //                  this, SLOT(slot_dir_tree_customContextMenuRequested (const QPoint & )));
     
-    this->init_popup_context_menu();
+    // this->init_popup_context_menu();
     
-    this->in_remote_dir_retrive_loop = false;
-    this->remoteview.tableView->test_use_qt_designer_prompt = 0;
-    CompleteLineEditDelegate *delegate = new CompleteLineEditDelegate();
-    this->remoteview.tableView->setItemDelegate(delegate);
-    this->remoteview.tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    this->remoteview.treeView->setItemDelegate(delegate);
-    this->remoteview.treeView->setAnimated(true);
+    // this->in_remote_dir_retrive_loop = false;
+    // this->remoteview.tableView->test_use_qt_designer_prompt = 0;
+    // CompleteLineEditDelegate *delegate = new CompleteLineEditDelegate();
+    // this->remoteview.tableView->setItemDelegate(delegate);
+    // this->remoteview.tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    // this->remoteview.treeView->setItemDelegate(delegate);
+    // this->remoteview.treeView->setAnimated(true);
 }
 
 SFTPView::~SFTPView()
 {
-    this->remoteview.treeView->setModel(0);
-    delete this->remote_dir_model;
+    // this->remoteview.treeView->setModel(0);
+    // delete this->remote_dir_model;
 }
 
 void SFTPView::init_popup_context_menu()
@@ -407,7 +407,7 @@ void SFTPView::slot_custom_ui_area()
     
     QSizePolicy sp;
     sp.setVerticalPolicy(QSizePolicy::Ignored);
-    this->remoteview.listView->setSizePolicy( sp ) ;
+    this->remoteview.listView->setSizePolicy(sp) ;
     //这个设置必须在show之前设置才有效果
     this->remoteview.splitter->setStretchFactor(0,1);
     this->remoteview.splitter->setStretchFactor(1,2);

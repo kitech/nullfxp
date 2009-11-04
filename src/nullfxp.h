@@ -36,9 +36,9 @@ class MdiChild;
 class QSignalMapper;
 
 #include "taskpackage.h"
-#include "aboutnullfxp.h" 
 #include "ui_nullfxp.h"
 
+class AboutNullFXP;
 class LocalView;
 class RemoteView;
 class ConnectingStatusDialog;

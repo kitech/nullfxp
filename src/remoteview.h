@@ -73,7 +73,6 @@ protected:
     
     //
     int     ssh2_sock;
-    // LIBSSH2_SESSION *ssh2_sess;
     LIBSSH2_CHANNEL *ssh2_channel;
     LIBSSH2_SFTP *ssh2_sftp;
     Connection *conn;

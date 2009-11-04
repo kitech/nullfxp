@@ -24,9 +24,9 @@
 
 #include "utils.h"
 #include "nullfxp.h"
+#include "aboutnullfxp.h" 
 #include "globaloptionsdialog.h"
 #include "localview.h"
-#include "remoteview.h"
 #include "progressdialog.h"
 #include "connectingstatusdialog.h"
 #include "quickconnectinfodialog.h"
@@ -34,6 +34,7 @@
 #include "connection.h"
 #include "connector.h"
 #include "ftpview.h"
+#include "sftpview.h"
 #include "updatedialog.h"
 
 //////////////////////////
@@ -128,6 +129,7 @@ NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
     //qDebug()<<dw->screenGeometry();
     this->resize(dw->screenGeometry().width()*5/6, dw->screenGeometry().height()*5/6);
     delete dw;
+
     //调整本地目录树窗口的大小
     //QList<QMdiSubWindow *> mdiSubWindow = mdiArea->subWindowList();
     //qDebug()<<" mdi sub window count :"<< mdiSubWindow.count();
@@ -259,7 +261,7 @@ void NullFXP::slot_disconnect_from_remote_host()
     if (remote_view == 0) {
         //do nothing
     } else {
-        qDebug()<< " disconnect : "<< remote_view->windowTitle();
+        qDebug()<<"disconnect: "<<remote_view->windowTitle();
         QList<QMdiSubWindow *> sub_window_list = this->mdiArea->subWindowList(QMdiArea::StackingOrder);
         int sub_wnd_count = sub_window_list.count() ;
     
@@ -278,7 +280,7 @@ void NullFXP::slot_show_session_dialog()
     SessionDialog *sess_dlg = new SessionDialog(this);
     QObject::connect(sess_dlg, SIGNAL(quick_connect()), this, SLOT(connect_to_remote_host()));
     if (sess_dlg->exec() == QDialog::Accepted) {
-        QMap<QString,QString> host ;
+        QMap<QString,QString> host;
         host = sess_dlg->get_host_map();
         this->connect_to_remote_host(host);
     }
@@ -291,52 +293,6 @@ void NullFXP::slot_show_option_dialog()
     dlg->exec();
 }
 
-
-// void NullFXP::slot_connect_remote_host_finished(int status, void *ssh2_sess, int ssh2_sock)
-// {
-//     RemoteHostConnectThread *conn_thread = static_cast< RemoteHostConnectThread*>(sender());
-    
-//     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-//     if (status == RemoteHostConnectThread::CONN_OK ) {
-//         RemoteView *remote_view = new RemoteView(this->mdiArea, this->localView);
-        
-//         mdiArea->addSubWindow(remote_view);
-//         QMdiSubWindow *local_sub_win = mdiArea->subWindowList(QMdiArea::CreationOrder).at(mdiArea->subWindowList(QMdiArea::CreationOrder).count()-1);
-        
-//         remote_view->slot_custom_ui_area();
-//         //remote_view->show();
-//         local_sub_win->show();
-//         //调整本地目录树窗口的大小
-//         //QList<QMdiSubWindow *> mdiSubWindow = mdiArea->subWindowList();
-//         //qDebug()<<" mdi sub window count :"<< mdiSubWindow.count();        
-//         //local_sub_win->setGeometry( local_sub_win->x(),local_sub_win->y(), mdiArea->width()/2,  mdiArea->height()*18/19 );
-//         local_sub_win->resize(mdiArea->width()/2, mdiArea->height()*18/19);
-        
-//         // remote_view->set_ssh2_handler(ssh2_sess, ssh2_sock);
-//         remote_view->set_user_home_path(QString(this->remote_conn_thread->get_user_home_path().c_str()));
-//         // remote_view->set_host_info(conn_thread->get_host_name(),
-//         //                            conn_thread->get_user_name(),
-//         //                            conn_thread->get_password(),
-//         //                            conn_thread->get_port(),
-//         //                            conn_thread->get_pubkey());
-//         //初始化远程目录树        
-//         remote_view->i_init_dir_view();
-//     } else if (status == RemoteHostConnectThread::CONN_CANCEL) {   //use canceled connection
-//         qDebug()<<"user canceled connecting";
-//     } else {
-//         //assert ( 1==2 );
-//         //this->connect_status_dailog->setVisible(false);
-//         this->connect_status_dailog->stop_progress_bar();
-    
-//         QString emsg = conn_thread->get_status_desc(status);
-//         QMessageBox::critical(this, tr("Connect Error:"), emsg);
-//     }
-//     this->connect_status_dailog->accept();
-//     delete this->connect_status_dailog;
-//     this->connect_status_dailog = 0;
-//     delete this->remote_conn_thread;
-//     this->remote_conn_thread = 0;
-// }
 void NullFXP::slot_connect_remote_host_finished(int status, Connection *conn)
 {
     q_debug()<<status<<conn;
@@ -351,7 +307,8 @@ void NullFXP::slot_connect_remote_host_finished(int status, Connection *conn)
             q_debug()<<"here";
             break;
         case Connection::PROTO_SFTP:
-            view = new RemoteView(this->mdiArea, this->localView);
+            // view = new RemoteView(this->mdiArea, this->localView);
+            view = new SFTPView(this->mdiArea, this->localView);
             break;
         default:
             assert(1 == 2);

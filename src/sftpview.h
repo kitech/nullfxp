@@ -41,7 +41,6 @@ public:
 
     virtual QString get_selected_directory();
     //
-    // void set_host_info(QString host_name, QString user_name, QString password, short port, QString pubkey);
     virtual void set_user_home_path(QString user_home_path);
     virtual void setConnection(Connection *conn);
     
@@ -51,43 +50,42 @@ public:
     virtual void update_layout();
     
 protected:
-    LocalView  *local_view;
-    QMdiArea   *main_mdi_area;
-    QStatusBar *status_bar;
+    // LocalView  *local_view;
+    // QMdiArea   *main_mdi_area;
+    // QStatusBar *status_bar;
         
-    Ui::remoteview remoteview;
-    RemoteDirModel *remote_dir_model;
-    int   table_row_height;
-    RemoteDirSortFilterModel *remote_dir_sort_filter_model;
-    RemoteDirSortFilterModelEX *remote_dir_sort_filter_model_ex;
-    QAbstractItemView *curr_item_view;    //
+    // Ui::remoteview remoteview;
+    // RemoteDirModel *remote_dir_model;
+    // int   table_row_height;
+    // RemoteDirSortFilterModel *remote_dir_sort_filter_model;
+    // RemoteDirSortFilterModelEX *remote_dir_sort_filter_model_ex;
+    // QAbstractItemView *curr_item_view;    //
         
-    QMenu *dir_tree_context_menu;
+    // QMenu *dir_tree_context_menu;
         
     virtual void init_popup_context_menu();
         
-    QString user_home_path;
+    // QString user_home_path;
         
-    QCursor orginal_cursor;
-    bool    in_remote_dir_retrive_loop;
-    ProgressDialog *own_progress_dialog;
+    // QCursor orginal_cursor;
+    // bool    in_remote_dir_retrive_loop;
+    // ProgressDialog *own_progress_dialog;
     
     //
-    int     ssh2_sock;
-    // LIBSSH2_SESSION *ssh2_sess;
-    LIBSSH2_CHANNEL *ssh2_channel;
-    LIBSSH2_SFTP *ssh2_sftp;
-    Connection *conn;
+    // int     ssh2_sock;
+    // LIBSSH2_CHANNEL *ssh2_channel;
+    // LIBSSH2_SFTP *ssh2_sftp;
+    // Connection *conn;
 
-    QString host_name;
-    QString user_name;
-    QString password;
-    short  port;
-    QString pubkey;
+    // QString host_name;
+    // QString user_name;
+    // QString password;
+    // short  port;
+    // QString pubkey;
         
     //menu item
-    QAction *attr_action;
-    EncryptionDetailFocusLabel *enc_label;
+    // QAction *attr_action;
+    // EncryptionDetailFocusLabel *enc_label;
         
 public slots:
     virtual void i_init_dir_view();
