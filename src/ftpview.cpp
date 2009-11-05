@@ -64,7 +64,7 @@ FTPView::FTPView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *parent
     // QObject::connect(this->remoteview.tableView,SIGNAL(customContextMenuRequested(const QPoint &)),
     //                  this, SLOT(slot_dir_tree_customContextMenuRequested (const QPoint & )));
     
-    // this->init_popup_context_menu();
+    this->init_popup_context_menu();
     
     // this->in_remote_dir_retrive_loop = false;
     // this->remoteview.tableView->test_use_qt_designer_prompt = 0;
@@ -77,64 +77,69 @@ FTPView::FTPView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *parent
 
 void FTPView::init_popup_context_menu()
 {
-    this->dir_tree_context_menu = new QMenu();
-    QAction *action ;
-    action  = new QAction(tr("Download"), 0);
-    this->dir_tree_context_menu->addAction(action);
-    QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_new_transfer()));
+    // this->dir_tree_context_menu = new QMenu();
+    // QAction *action ;
+    // action  = new QAction(tr("Download"), 0);
+    // this->dir_tree_context_menu->addAction(action);
+    // QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_new_transfer()));
     
-    action = new QAction("", 0);
-    action->setSeparator(true);
-    this->dir_tree_context_menu->addAction(action);
+    // action = new QAction("", 0);
+    // action->setSeparator(true);
+    // this->dir_tree_context_menu->addAction(action);
     
-    action = new QAction(tr("Refresh"), 0);
-    this->dir_tree_context_menu->addAction(action);
-    QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_refresh_directory_tree()));
+    // action = new QAction(tr("Refresh"), 0);
+    // this->dir_tree_context_menu->addAction(action);
+    // QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_refresh_directory_tree()));
     
-    action = new QAction(tr("Properties..."), 0);
-    this->dir_tree_context_menu->addAction(action);
-    QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_show_properties()));
-    attr_action = action ;
+    // action = new QAction(tr("Properties..."), 0);
+    // this->dir_tree_context_menu->addAction(action);
+    // QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_show_properties()));
+    // attr_action = action ;
     
-    action = new QAction(tr("Show Hidden"), 0);
-    action->setCheckable(true);
-    this->dir_tree_context_menu->addAction(action);
-    QObject::connect(action, SIGNAL(toggled(bool)), this, SLOT(slot_show_hidden(bool)));
+    // action = new QAction(tr("Show Hidden"), 0);
+    // action->setCheckable(true);
+    // this->dir_tree_context_menu->addAction(action);
+    // QObject::connect(action, SIGNAL(toggled(bool)), this, SLOT(slot_show_hidden(bool)));
     
-    action = new QAction("", 0);
-    action->setSeparator(true);
-    this->dir_tree_context_menu->addAction(action);
+    // action = new QAction("", 0);
+    // action->setSeparator(true);
+    // this->dir_tree_context_menu->addAction(action);
 
-    //TODO  CUT, COPY, PASTE, ||set initial directory,||open,open with    
-    action = new QAction(tr("Copy &Path"), 0);
-    this->dir_tree_context_menu->addAction(action);
-    QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_copy_path()));
+    // //TODO  CUT, COPY, PASTE, ||set initial directory,||open,open with    
+    // action = new QAction(tr("Copy &Path"), 0);
+    // this->dir_tree_context_menu->addAction(action);
+    // QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_copy_path()));
 
-    action = new QAction(tr("Copy &URL"), 0);
-    this->dir_tree_context_menu->addAction(action);
-    QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_copy_url()));
+    // action = new QAction(tr("Copy &URL"), 0);
+    // this->dir_tree_context_menu->addAction(action);
+    // QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_copy_url()));
         
-    action = new QAction(tr("Create directory..."), 0);
-    this->dir_tree_context_menu->addAction(action);
-    QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_mkdir()));
+    // action = new QAction(tr("Create directory..."), 0);
+    // this->dir_tree_context_menu->addAction(action);
+    // QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_mkdir()));
     
-    action = new QAction(tr("Delete directory"), 0);
-    this->dir_tree_context_menu->addAction(action);
-    QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_rmdir()));
+    // action = new QAction(tr("Delete directory"), 0);
+    // this->dir_tree_context_menu->addAction(action);
+    // QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_rmdir()));
 
-    action = new QAction(tr("Rename..."),0);
-    this->dir_tree_context_menu->addAction(action);
-    QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_rename()));
+    // action = new QAction(tr("Rename..."),0);
+    // this->dir_tree_context_menu->addAction(action);
+    // QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_rename()));
     
-    action = new QAction("", 0);
-    action->setSeparator(true);
-    this->dir_tree_context_menu->addAction(action);
+    // action = new QAction("", 0);
+    // action->setSeparator(true);
+    // this->dir_tree_context_menu->addAction(action);
         
-    //递归删除目录功能，删除文件的用户按钮
-    action = new QAction(tr("Remove recursively !!!"), 0);
-    this->dir_tree_context_menu->addAction(action);
-    QObject::connect(action, SIGNAL(triggered()), this, SLOT(rm_file_or_directory_recursively()));
+    // //递归删除目录功能，删除文件的用户按钮
+    // action = new QAction(tr("Remove recursively !!!"), 0);
+    // this->dir_tree_context_menu->addAction(action);
+    // QObject::connect(action, SIGNAL(triggered()), this, SLOT(rm_file_or_directory_recursively()));
+    
+    RemoteView::init_popup_context_menu();
 
+    // 编码设置菜单
+    QMenu *emenu = this->encodingMenu();
+    this->dir_tree_context_menu->addMenu(emenu);
 }
 
 FTPView::~FTPView()
@@ -144,6 +149,38 @@ FTPView::~FTPView()
     // delete this->remote_dir_model;
 }
 
+QMenu *FTPView::encodingMenu()
+{
+    QMenu *emenu = new QMenu("Charactor encoding", 0);
+    QAction *action = NULL;
+    QActionGroup *ag = new QActionGroup(this);
+
+    action = new QAction("UTF-8", 0);
+    action->setCheckable(true);
+    action->setActionGroup(ag);
+    emenu->addAction(action);
+    
+    action = new QAction("ISO-8859-1", 0);
+    action->setCheckable(true);
+    action->setActionGroup(ag);
+    emenu->addAction(action);
+
+    action = new QAction("", 0);
+    action->setSeparator(true);
+    emenu->addAction(action);
+    
+    action = new QAction("GBK", 0);
+    action->setCheckable(true);
+    action->setActionGroup(ag);
+    emenu->addAction(action);
+
+    action = new QAction("BIG5", 0);
+    action->setCheckable(true);
+    action->setActionGroup(ag);
+    emenu->addAction(action);
+
+    return emenu;
+}
 
 void FTPView::slot_show_fxp_command_log(bool show)
 {
@@ -344,28 +381,6 @@ QPair<QString, QString> FTPView::get_selected_directory(bool pair)
     return file_path;
 }
 
-
-// void FTPView::set_ssh2_handler(void *ssh2_sess, int ssh2_sock)
-// {
-//     this->ssh2_sess = (LIBSSH2_SESSION*)ssh2_sess ;
-//     this->ssh2_sftp = libssh2_sftp_init(this->ssh2_sess);
-//     assert(this->ssh2_sftp != 0);
-    
-//     this->ssh2_sock = ssh2_sock;
-// }
-
-// void FTPView::set_host_info(QString host_name, QString user_name, QString password, short port, QString pubkey)
-// {
-
-//     this->host_name = host_name ;
-//     this->user_name = user_name ;
-//     this->password = password ;
-//     this->port = port;
-//     this->pubkey = pubkey ;
-
-//     this->setWindowTitle(this->windowTitle() + ": " + this->user_name + "@" + this->host_name);
-// }
-
 // void FTPView::set_user_home_path(std::string user_home_path)
 // {
 //     this->user_home_path = user_home_path ;
@@ -414,7 +429,7 @@ void FTPView::slot_custom_ui_area()
     this->remoteview.listView->setVisible(false);//暂时没有功能在里面先隐藏掉
     //this->remoteview.tableView->setVisible(false);
     qDebug()<<this->geometry();
-    this->setGeometry(this->x(),this->y(),this->width(),this->height()*2);
+    this->setGeometry(this->x(), this->y(), this->width(), this->height()*2);
     qDebug()<<this->geometry();
 }
 
@@ -449,16 +464,15 @@ void FTPView::update_layout()
     QItemSelectionModel *ism = this->remoteview.treeView->selectionModel();
     
     if (ism == 0) {
-        //QMessageBox::critical(this,tr("waring..."),tr("maybe you haven't connected"));                
-        //return file_path ;
+        //QMessageBox::critical(this,tr("waring..."),tr("maybe you haven't connected"));        //return file_path ;
         qDebug()<<" why???? no QItemSelectionModel??";        
-        return ;
+        return;
     }
     
     QModelIndexList mil = ism->selectedIndexes();
     
     if (mil.count() == 0) {
-        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+        qDebug()<<"selectedIndexes count :"<< mil.count()<<"why no item selected????";
     }
     
     for (int i = 0 ; i < mil.size(); i += 4) {
@@ -470,7 +484,7 @@ void FTPView::update_layout()
         qDebug()<<dti->file_name<<" "<< dti->strip_path;
         file_path = dti->strip_path;
         dti->retrived = 1;
-        dti->prev_retr_flag=9;
+        dti->prev_retr_flag = 9;
         this->remote_dir_model->slot_remote_dir_node_clicked(this->remote_dir_sort_filter_model_ex->mapToSource(midx));
     }
 }
@@ -501,7 +515,7 @@ void FTPView::slot_show_properties()
         }
     }
     if (aim_mil.count() == 0) {
-        qDebug()<<" why???? no QItemSelectionModel??";
+        qDebug()<<"why???? no QItemSelectionModel??";
         return;
     }
     //  文件类型，大小，几个时间，文件权限
@@ -511,7 +525,7 @@ void FTPView::slot_show_properties()
     fp->setConnection(this->conn);
     fp->set_file_info_model_list(aim_mil);
     fp->exec();
-    delete fp ;
+    delete fp;
 }
 
 void FTPView::slot_mkdir()

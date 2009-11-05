@@ -22,7 +22,7 @@
 #include "taskpackage.h"
 #include "remotedirmodel.h"
 
-#include "ui_remoteview.h"
+// #include "ui_remoteview.h"
 
 #include "remoteview.h"
 
@@ -145,7 +145,7 @@ private slots:
         
 protected:
     virtual void closeEvent(QCloseEvent *event);
-    
+    virtual QMenu *encodingMenu();
 };
 
 #endif

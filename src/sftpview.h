@@ -23,7 +23,7 @@
 #include "remotedirmodel.h"
 #include "remoteview.h"
 
-#include "ui_remoteview.h"
+// #include "ui_remoteview.h"
 
 class ProgressDialog;
 class RemoteDirSortFilterModel;
@@ -63,7 +63,7 @@ protected:
         
     // QMenu *dir_tree_context_menu;
         
-    virtual void init_popup_context_menu();
+    // virtual void init_popup_context_menu();
         
     // QString user_home_path;
         
@@ -137,7 +137,6 @@ private slots:
         
 protected:
     virtual void closeEvent(QCloseEvent *event);
-    virtual QMenu *encodingMenu();
 };
 
 #endif

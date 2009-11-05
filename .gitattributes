@@ -82,6 +82,7 @@ src/icons/mimetypes/application-pgp-keys.png -text
 src/icons/mimetypes/application-pgp-signature.png -text
 src/icons/mimetypes/application-pkcs7-mime.png -text
 src/icons/mimetypes/application-pkcs7-signature.png -text
+src/icons/mimetypes/application-postscript.png -text
 src/icons/mimetypes/application-relaxng.png -text
 src/icons/mimetypes/application-rss+xml.png -text
 src/icons/mimetypes/application-rtf.png -text
@@ -100,6 +101,7 @@ src/icons/mimetypes/application-vnd.oasis.opendocument.spreadsheet-template.png 
 src/icons/mimetypes/application-vnd.oasis.opendocument.spreadsheet.png -text
 src/icons/mimetypes/application-vnd.oasis.opendocument.text.png -text
 src/icons/mimetypes/application-vnd.rn-realmedia.png -text
+src/icons/mimetypes/application-vnd.scribus.png -text
 src/icons/mimetypes/application-vnd.stardivision.calc.png -text
 src/icons/mimetypes/application-vnd.stardivision.draw.png -text
 src/icons/mimetypes/application-vnd.sun.xml.calc.png -text
