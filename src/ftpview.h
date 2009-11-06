@@ -22,8 +22,6 @@
 #include "taskpackage.h"
 #include "remotedirmodel.h"
 
-// #include "ui_remoteview.h"
-
 #include "remoteview.h"
 
 class ProgressDialog;
@@ -32,6 +30,7 @@ class RemoteDirSortFilterModelEX;
 class LocalView;
 class EncryptionDetailFocusLabel;
 class Connection;
+class FTPConnection;
 class RemoteView;
 
 class FTPView : public RemoteView
@@ -93,7 +92,9 @@ protected:
     // //menu item
     // QAction *attr_action;
     // EncryptionDetailFocusLabel *enc_label;
-        
+                                  
+    FTPConnection *rconn; // real connection type;
+
 public slots:
     void i_init_dir_view();
     void slot_disconnect_from_remote_host();
@@ -142,7 +143,9 @@ private slots:
 
     void encryption_focus_label_double_clicked();
     void host_info_focus_label_double_clicked();
-        
+
+    void encodingChanged();
+
 protected:
     virtual void closeEvent(QCloseEvent *event);
     virtual QMenu *encodingMenu();

@@ -181,7 +181,7 @@ p, li { white-space: pre-wrap; }
              </property>
              <widget class="QWidget" name="tab">
               <attribute name="title">
-               <string>UI</string>
+               <string>&amp;UI</string>
               </attribute>
               <layout class="QVBoxLayout" name="verticalLayout_7">
                <item>
@@ -319,8 +319,122 @@ p, li { white-space: pre-wrap; }
              </widget>
              <widget class="QWidget" name="tab_2">
               <attribute name="title">
-               <string>Tab 2</string>
+               <string>&amp;Encoding</string>
               </attribute>
+              <layout class="QVBoxLayout" name="verticalLayout_8">
+               <item>
+                <widget class="QGroupBox" name="groupBox_5">
+                 <property name="title">
+                  <string>&amp;Local</string>
+                 </property>
+                 <layout class="QHBoxLayout" name="horizontalLayout_5">
+                  <item>
+                   <widget class="QComboBox" name="comboBox">
+                    <item>
+                     <property name="text">
+                      <string>UTF-8</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>ISO-8859-1</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>GBK</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>BIG5</string>
+                     </property>
+                    </item>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QGroupBox" name="groupBox_6">
+                 <property name="title">
+                  <string>&amp;FTP Server</string>
+                 </property>
+                 <layout class="QHBoxLayout" name="horizontalLayout_6">
+                  <item>
+                   <widget class="QComboBox" name="comboBox_2">
+                    <item>
+                     <property name="text">
+                      <string>UTF-8</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>ISO-8859-1</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>GBK</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>BIG5</string>
+                     </property>
+                    </item>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QGroupBox" name="groupBox_7">
+                 <property name="title">
+                  <string>&amp;SFTP Server</string>
+                 </property>
+                 <layout class="QHBoxLayout" name="horizontalLayout_7">
+                  <item>
+                   <widget class="QComboBox" name="comboBox_3">
+                    <item>
+                     <property name="text">
+                      <string>UTF-8</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>ISO-8859-1</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>GBK</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>BIG5</string>
+                     </property>
+                    </item>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <spacer name="verticalSpacer">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
              </widget>
             </widget>
            </item>

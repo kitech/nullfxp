@@ -17,7 +17,6 @@
 
 #include "progressdialog.h"
 #include "localview.h"
-// #include "remoteview.h"
 #include "ftpview.h"
 #include "remotedirsortfiltermodel.h"
 
@@ -32,7 +31,7 @@
 
 #include "completelineeditdelegate.h"
 
-#include "connection.h"
+#include "ftpconnection.h"
 
 FTPView::FTPView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *parent)
     : RemoteView(main_mdi_area, local_view, parent)
@@ -73,6 +72,8 @@ FTPView::FTPView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *parent
     // this->remoteview.tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     // this->remoteview.treeView->setItemDelegate(delegate);
     // this->remoteview.treeView->setAnimated(true);
+
+    this->rconn = NULL;
 }
 
 void FTPView::init_popup_context_menu()
@@ -149,6 +150,7 @@ FTPView::~FTPView()
     // delete this->remote_dir_model;
 }
 
+// TODO 根据服务器端的SYST值，设置初始化编码。WIN->GBK, OTHER->UTF-8
 QMenu *FTPView::encodingMenu()
 {
     QMenu *emenu = new QMenu("Charactor encoding", 0);
@@ -157,13 +159,16 @@ QMenu *FTPView::encodingMenu()
 
     action = new QAction("UTF-8", 0);
     action->setCheckable(true);
+    action->setChecked(true);
     action->setActionGroup(ag);
     emenu->addAction(action);
+    QObject::connect(action, SIGNAL(triggered()), this, SLOT(encodingChanged()));
     
     action = new QAction("ISO-8859-1", 0);
     action->setCheckable(true);
     action->setActionGroup(ag);
     emenu->addAction(action);
+    QObject::connect(action, SIGNAL(triggered()), this, SLOT(encodingChanged()));
 
     action = new QAction("", 0);
     action->setSeparator(true);
@@ -173,11 +178,13 @@ QMenu *FTPView::encodingMenu()
     action->setCheckable(true);
     action->setActionGroup(ag);
     emenu->addAction(action);
+    QObject::connect(action, SIGNAL(triggered()), this, SLOT(encodingChanged()));
 
     action = new QAction("BIG5", 0);
     action->setCheckable(true);
     action->setActionGroup(ag);
     emenu->addAction(action);
+    QObject::connect(action, SIGNAL(triggered()), this, SLOT(encodingChanged()));
 
     return emenu;
 }
@@ -192,7 +199,6 @@ void FTPView::i_init_dir_view()
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
     this->remote_dir_model = new RemoteDirModel();
-    // this->remote_dir_model->set_ssh2_handler(this->ssh2_sess);
     this->remote_dir_model->setConnection(this->conn);
     
     this->remote_dir_model->set_user_home_path(this->user_home_path);
@@ -282,14 +288,13 @@ void FTPView::slot_new_transfer()
     
     if (this->in_remote_dir_retrive_loop) {
         QMessageBox::warning(this, tr("Notes:"), tr("Retriving remote directory tree,wait a minute please."));
-        return ;
+        return;
     }
     
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
     if (ism == 0) {
-        QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));
-        return ;
+        QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));        return;
     }
     
     QModelIndexList mil = ism->selectedIndexes();
@@ -304,12 +309,6 @@ void FTPView::slot_new_transfer()
         file_path = dti->strip_path;
         remote_pkg.files<<file_path;
     }
-
-    // remote_pkg.host = this->host_name;
-    // remote_pkg.port = QString("%1").arg(this->port);
-    // remote_pkg.username = this->user_name;
-    // remote_pkg.password = this->password;
-    // remote_pkg.pubkey = this->pubkey;
 
     remote_pkg.host = this->conn->hostName;
     remote_pkg.port = QString("%1").arg(this->conn->port);
@@ -389,6 +388,7 @@ QPair<QString, QString> FTPView::get_selected_directory(bool pair)
 void FTPView::setConnection(Connection *conn)
 {
     this->conn = conn;
+    this->rconn = static_cast<FTPConnection*>(conn);
     this->setWindowTitle(this->conn->protocol + ": " + this->conn->userName + "@" + this->conn->hostName);
 }
 
@@ -403,14 +403,14 @@ void FTPView::closeEvent(QCloseEvent *event)
         //如果说是在上传或者下载,则强烈建议用户先关闭传输窗口，再关闭连接
         if (this->own_progress_dialog != 0) {
             QMessageBox::warning(this, tr("Attentions:"), tr("You can't close connection when transfering file."));
-            return ;
+            return;
         }
     }
     //this->setVisible(false);
     if (QMessageBox::question(this, tr("Attemp to close this window?"),tr("Are you sure disconnect from %1?").arg(this->windowTitle()), QMessageBox::Ok|QMessageBox::Cancel, QMessageBox::Cancel) == QMessageBox::Ok) {
         this->setVisible(false);
         qDebug()<<"delete remote view";
-        delete this ;
+        delete this;
     }
 }
 void FTPView::slot_custom_ui_area()
@@ -1060,5 +1060,11 @@ void FTPView::host_info_focus_label_double_clicked()
     // // dlg->layout()->addWidget(label);
     // dlg->exec();
     // delete dlg;
+}
+
+void FTPView::encodingChanged()
+{
+    QAction *action = static_cast<QAction*>(sender());
+    q_debug()<<action->text();
 }
 

@@ -71,6 +71,8 @@ SFTPView::SFTPView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *pare
     // this->remoteview.tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     // this->remoteview.treeView->setItemDelegate(delegate);
     // this->remoteview.treeView->setAnimated(true);
+
+    this->rconn = NULL;
 }
 
 SFTPView::~SFTPView()
@@ -151,7 +153,6 @@ void SFTPView::i_init_dir_view()
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
     this->remote_dir_model = new RemoteDirModel();
-    // this->remote_dir_model->set_ssh2_handler(this->ssh2_sess);
     this->remote_dir_model->setConnection(this->conn);
     
     this->remote_dir_model->set_user_home_path(this->user_home_path);
@@ -395,14 +396,14 @@ void SFTPView::update_layout()
     if (ism == 0) {
         //QMessageBox::critical(this,tr("waring..."),tr("maybe you haven't connected"));                
         //return file_path ;
-        qDebug()<<" why???? no QItemSelectionModel??";        
-        return ;
+        qDebug()<<"why???? no QItemSelectionModel??";   
+        return;
     }
     
     QModelIndexList mil = ism->selectedIndexes();
     
     if (mil.count() == 0) {
-        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+        qDebug()<<"selectedIndexes count :"<<mil.count()<<"why no item selected????";
     }
     
     for (int i = 0 ; i < mil.size(); i += 4) {
@@ -429,7 +430,7 @@ void SFTPView::slot_show_properties()
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
     if (ism == 0) {
-        qDebug()<<" why???? no QItemSelectionModel??";        
+        qDebug()<<"why???? no QItemSelectionModel??";        
         return;
     }
     
@@ -441,11 +442,11 @@ void SFTPView::slot_show_properties()
         }
     } else {
         for (int i = 0 ; i < mil.count() ; i ++) {
-            aim_mil << this->remote_dir_sort_filter_model->mapToSource(mil.at(i));
+            aim_mil<<this->remote_dir_sort_filter_model->mapToSource(mil.at(i));
         }
     }
     if (aim_mil.count() == 0) {
-        qDebug()<<" why???? no QItemSelectionModel??";
+        qDebug()<<"why???? no QItemSelectionModel??";
         return;
     }
     //  文件类型，大小，几个时间，文件权限
@@ -465,17 +466,17 @@ void SFTPView::slot_mkdir()
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
     if (ism == 0) {
-        qDebug()<<" why???? no QItemSelectionModel??";
+        qDebug()<<"why???? no QItemSelectionModel??";
         QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
-        return ;
+        return;
     }
     
     QModelIndexList mil = ism->selectedIndexes();
     
     if (mil.count() == 0) {
-        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+        qDebug()<<"selectedIndexes count :"<<mil.count()<<"why no item selected????";
         QMessageBox::critical(this, tr("Waring..."), tr("No item selected"));
-        return ;
+        return;
     }
     
     QModelIndex midx = mil.at(0);
@@ -493,10 +494,10 @@ void SFTPView::slot_mkdir()
                                      QLineEdit::Normal,
                                      tr("new_direcotry"));
     if (dir_name == QString::null) {
-        return ;
+        return;
     } 
     if (dir_name.length() == 0) {
-        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+        qDebug()<<"selectedIndexes count :"<<mil.count()<<"why no item selected????";
         QMessageBox::critical(this, tr("waring..."), tr("no directory name supplyed "));
         return;
     }
@@ -513,7 +514,7 @@ void SFTPView::slot_rmdir()
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
     if (ism == 0) {
-        qDebug()<<" why???? no QItemSelectionModel??";
+        qDebug()<<"why???? no QItemSelectionModel??";
         QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
         return;
     }
@@ -521,7 +522,7 @@ void SFTPView::slot_rmdir()
     QModelIndexList mil = ism->selectedIndexes();
     
     if (mil.count() == 0) {
-        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+        qDebug()<<"selectedIndexes count :"<<mil.count()<<"why no item selected????";
         QMessageBox::critical(this, tr("Waring..."), tr("No item selected").leftJustified(50, ' '));
         return;
     }
@@ -584,7 +585,7 @@ void SFTPView::slot_rename()
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
     if (ism == 0) {
-        qDebug()<<" why???? no QItemSelectionModel??";
+        qDebug()<<"why???? no QItemSelectionModel??";
         QMessageBox::critical(this, tr("waring..."), tr("maybe you haven't connected"));                
         return;
     }
@@ -592,7 +593,7 @@ void SFTPView::slot_rename()
     QModelIndexList mil = ism->selectedIndexes();
     
     if (mil.count() == 0 ) {
-        qDebug()<<"selectedIndexes count :"<< mil.count() << " why no item selected????";
+        qDebug()<<"selectedIndexes count :"<<mil.count()<<" why no item selected????";
         QMessageBox::critical(this, tr("waring..."), tr("no item selected"));
         return;
     }
@@ -992,7 +993,7 @@ void SFTPView::host_info_focus_label_double_clicked()
     QDialog *dlg = new QDialog(this);
     dlg->setFixedWidth(400);
     dlg->setFixedHeight(100);
-    QLabel * label = new QLabel("", dlg);
+    QLabel *label = new QLabel("", dlg);
     label->setWordWrap(true);
     label->setText(uname_output);
     // dlg->layout()->addWidget(label);

@@ -23,14 +23,13 @@
 #include "remotedirmodel.h"
 #include "remoteview.h"
 
-// #include "ui_remoteview.h"
-
 class ProgressDialog;
 class RemoteDirSortFilterModel;
 class RemoteDirSortFilterModelEX;
 class LocalView;
 class EncryptionDetailFocusLabel;
 class Connection;
+class SSHConnection;
 
 class SFTPView : public RemoteView
 {
@@ -86,6 +85,8 @@ protected:
     //menu item
     // QAction *attr_action;
     // EncryptionDetailFocusLabel *enc_label;
+    
+    SSHConnection *rconn;
         
 public slots:
     virtual void i_init_dir_view();
