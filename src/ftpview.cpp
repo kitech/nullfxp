@@ -32,6 +32,7 @@
 #include "completelineeditdelegate.h"
 
 #include "ftpconnection.h"
+#include "libftp/libftp.h"
 
 FTPView::FTPView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *parent)
     : RemoteView(main_mdi_area, local_view, parent)
@@ -619,9 +620,9 @@ void FTPView::rm_file_or_directory_recursively()
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
     if (ism == 0) {
-        qDebug()<<" why???? no QItemSelectionModel??";
+        qDebug()<<"why???? no QItemSelectionModel??";
         QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
-        return  ;
+        return;
     }
     
     QModelIndexList mil = ism->selectedIndexes();
@@ -655,17 +656,17 @@ void FTPView::slot_rename()
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
     if (ism == 0) {
-        qDebug()<<" why???? no QItemSelectionModel??";
+        qDebug()<<"why???? no QItemSelectionModel??";
         QMessageBox::critical(this, tr("waring..."), tr("maybe you haven't connected"));                
-        return  ;
+        return;
     }
     
     QModelIndexList mil = ism->selectedIndexes();
     
     if (mil.count() == 0 ) {
-        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+        qDebug()<<"selectedIndexes count :"<<mil.count()<<"why no item selected????";
         QMessageBox::critical(this, tr("waring..."), tr("no item selected"));
-        return ;
+        return;
     }
     this->curr_item_view->edit(mil.at(0));
 }
@@ -674,15 +675,15 @@ void FTPView::slot_copy_path()
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
     if (ism == 0) {
-        qDebug()<<" why???? no QItemSelectionModel??";
+        qDebug()<<"why???? no QItemSelectionModel??";
         QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));
-        return  ;
+        return;
     }
     
     QModelIndexList mil = ism->selectedIndexes();
     
     if (mil.count() == 0) {
-        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+        qDebug()<<"selectedIndexes count :"<<mil.count()<<"why no item selected????";
         QMessageBox::critical(this, tr("Waring..."), tr("No item selected").leftJustified(50, ' '));
         return;
     }
@@ -905,12 +906,6 @@ void FTPView::slot_drag_ready()
 
     TaskPackage tpkg(PROTO_FTP);
     
-    // tpkg.host = this->host_name;
-    // tpkg.username = this->user_name;
-    // tpkg.password = this->password;
-    // tpkg.port = QString("%1").arg(this->port);
-    // tpkg.pubkey = this->pubkey;    
-
     tpkg.host = this->conn->hostName;
     tpkg.username = this->conn->userName;
     tpkg.password = this->conn->password;
@@ -998,6 +993,7 @@ void FTPView::slot_show_hidden(bool show)
     }
 }
 
+// 这个图标可使用在FTPS上，显示安全性算法等。简单的FTP不需要显示。
 void FTPView::encryption_focus_label_double_clicked()
 {
     //qDebug()<<__FILE__<<":"<<__LINE__;
@@ -1021,6 +1017,7 @@ void FTPView::encryption_focus_label_double_clicked()
     // free(server_info);
 }
 
+// 可以输出FTP服务器的操作系统类型，使用编码，欢迎信息
 void FTPView::host_info_focus_label_double_clicked()
 {
     HostInfoDetailFocusLabel *hi_label = (HostInfoDetailFocusLabel*)sender();
@@ -1065,6 +1062,13 @@ void FTPView::host_info_focus_label_double_clicked()
 void FTPView::encodingChanged()
 {
     QAction *action = static_cast<QAction*>(sender());
-    q_debug()<<action->text();
+    q_debug()<<action->text()<<this->rconn;
+    LibFtp *ftp = this->rconn->ftp;
+    int r = ftp->setEncoding(action->text());
+    Q_ASSERT(r);
+
+    // refresh all, 
+    // 但现在可能非当前目录需要在下次刷新的时候编码才能改正过来。
+    this->slot_refresh_directory_tree();
 }
 
