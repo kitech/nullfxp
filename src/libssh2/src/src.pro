@@ -30,8 +30,8 @@ SOURCES += channel.c \
         transport.c \
         userauth.c \
         version.c \
-        info.c \
-        gettimeofday.c
+        info.c 
+#        gettimeofday.c
 
 HEADERS += libgcrypt.h \
         libssh2_config.h \
