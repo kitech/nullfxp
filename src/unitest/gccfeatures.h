@@ -11,5 +11,6 @@
 #define _GCCFEATURES_H_
 
 
+void gcc_feature_statements_and_declarations_in_expressions();
 
 #endif /* _GCCFEATURES_H_ */
