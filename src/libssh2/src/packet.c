@@ -146,6 +146,8 @@ packet_queue_listener(LIBSSH2_SESSION * session, unsigned char *data,
                         listen_state->state = libssh2_NB_state_sent;
                         break;
                     }
+                    listen_state->channel = channel;
+
                     memset(channel, 0, sizeof(LIBSSH2_CHANNEL));
 
                     channel->session = session;
@@ -510,7 +512,7 @@ _libssh2_packet_add(LIBSSH2_SESSION * session, unsigned char *data,
                 message[message_len] = '\0';
                 language = (char *) data + 9 + message_len + 3;
                 if (language_len) {
-                    memcpy(language, language + 1, language_len);
+                    memmove(language, language + 1, language_len);
                 }
                 language[language_len] = '\0';
 
@@ -531,11 +533,15 @@ _libssh2_packet_add(LIBSSH2_SESSION * session, unsigned char *data,
             break;
 
         case SSH_MSG_IGNORE:
-            /* As with disconnect, back it up one and add a trailing NULL */
-            memcpy(data + 4, data + 5, datalen - 5);
-            data[datalen] = '\0';
-            if (session->ssh_msg_ignore) {
-                LIBSSH2_IGNORE(session, (char *) data + 4, datalen - 5);
+            if (datalen >= 5) {
+                /* Back it up one and add a trailing NULL */
+                memmove(data, data + 1, datalen - 1);
+                data[datalen] = '\0';
+                if (session->ssh_msg_ignore) {
+                    LIBSSH2_IGNORE(session, (char *) data + 4, datalen - 1);
+                }
+            } else if (session->ssh_msg_ignore) {
+                LIBSSH2_IGNORE(session, "", 0);
             }
             LIBSSH2_FREE(session, data);
             session->packAdd_state = libssh2_NB_state_idle;
@@ -565,7 +571,7 @@ _libssh2_packet_add(LIBSSH2_SESSION * session, unsigned char *data,
                 message[message_len] = '\0';
                 language = (char *) data + 6 + message_len + 3;
                 if (language_len) {
-                    memcpy(language, language + 1, language_len);
+                    memmove(language, language + 1, language_len);
                 }
                 language[language_len] = '\0';
 

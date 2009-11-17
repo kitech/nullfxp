@@ -91,17 +91,17 @@ typedef unsigned long long libssh2_uint64_t;
 typedef long long libssh2_int64_t;
 #endif
 
-/* We use underscore instead of dash when appending CVS in dev versions just
+/* We use underscore instead of dash when appending DEV in dev versions just
    to make the BANNER define (used by src/session.c) be a valid SSH
    banner. Release versions have no appended strings and may of course not
    have dashes either. */
-#define LIBSSH2_VERSION "1.2.1"
+#define LIBSSH2_VERSION "1.2.2"
 
 /* The numeric version number is also available "in parts" by using these
    defines: */
 #define LIBSSH2_VERSION_MAJOR 1
 #define LIBSSH2_VERSION_MINOR 2
-#define LIBSSH2_VERSION_PATCH 1
+#define LIBSSH2_VERSION_PATCH 2
 
 /* This is the numeric version of the libssh2 version number, meant for easier
    parsing and comparions by programs. The LIBSSH2_VERSION_NUM define will
@@ -118,18 +118,18 @@ typedef long long libssh2_int64_t;
    and it is always a greater number in a more recent release. It makes
    comparisons with greater than and less than work.
 */
-#define LIBSSH2_VERSION_NUM 0x010201
+#define LIBSSH2_VERSION_NUM 0x010202
 
 /*
  * This is the date and time when the full source package was created. The
- * timestamp is not stored in CVS, as the timestamp is properly set in the
- * tarballs by the maketgz script.
+ * timestamp is not stored in the source code repo, as the timestamp is
+ * properly set in the tarballs by the maketgz script.
  *
  * The format of the date should follow this template:
  *
  * "Mon Feb 12 11:35:33 UTC 2007"
  */
-#define LIBSSH2_TIMESTAMP "Tue Sep 29 11:20:45 UTC 2009"
+#define LIBSSH2_TIMESTAMP "Mon Nov 16 21:44:28 UTC 2009"
 
 /* Part of every banner, user specified or not */
 #define LIBSSH2_SSH_BANNER                  "SSH-2.0-libssh2_" LIBSSH2_VERSION
