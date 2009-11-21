@@ -10,7 +10,7 @@
 #ifndef _GCCFEATURES_H_
 #define _GCCFEATURES_H_
 
-
+// 6.1 Statements and Declarations in Expressions
 void gcc_feature_statements_and_declarations_in_expressions();
 
 #endif /* _GCCFEATURES_H_ */

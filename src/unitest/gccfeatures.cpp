@@ -37,16 +37,16 @@ void gcc_feature_statements_and_declarations_in_expressions()
     ({ca;}).foo();
 
     int la,lb;
-#define maxint_sd_express   ({ \
-        int __return_value;   \
-        if (la > lb) __return_value = la;  \
-        else __return_value = lb;   \
-        __return_value;  \
-        });
+#define maxint_sd_express(a,b)   ({        \
+            __typeof__(a) __return_value;  \
+            if (a > b) __return_value = a; \
+            else __return_value = b;       \
+            __return_value;                \
+        })
 
     la = 6, lb = 3;
     int maxv = maxint_sd_express(la, lb);
-    printf("maxint of %d,%d is %d\n", la, lb, maxv);
+    printf("maxint of %d,%d is %d=?%d\n", la, lb, maxv, maxint_sd_express(lb, la));
     
     // 这代码就够复杂了，如果不知道这个扩展，看着也头晕。
 }

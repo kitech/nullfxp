@@ -351,6 +351,7 @@ src/libssh2/docs/libssh2_hostkey_hash.3 -text
 src/libssh2/docs/libssh2_knownhost_add.3 -text
 src/libssh2/docs/libssh2_knownhost_check.3 -text
 src/libssh2/docs/libssh2_knownhost_del.3 -text
+src/libssh2/docs/libssh2_knownhost_free.3 -text
 src/libssh2/docs/libssh2_knownhost_get.3 -text
 src/libssh2/docs/libssh2_knownhost_init.3 -text
 src/libssh2/docs/libssh2_knownhost_readfile.3 -text
