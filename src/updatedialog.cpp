@@ -41,7 +41,8 @@ UpdateDialog::~UpdateDialog()
 void UpdateDialog::slotStartCheck()
 {
     // QString cvUrl = "http://localhost/nullfxp_update/version.txt";
-    QString cvUrl = "http://www.qtchina.net/nullfxp_update/version.txt";
+    // QString cvUrl = "http://www.qtchina.net/nullfxp_update/version.txt";
+    QString cvUrl = "http://nullget.sourceforge.net/nullfxp_update/version.txt";
     QUrl uu(cvUrl);
     if (!this->inChecking) {
         this->inChecking = true;
