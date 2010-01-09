@@ -16,10 +16,7 @@ public:
     static BaseStorage *instance();
     ~BaseStorage();
 
-
-
-
-
+    // host session method
     bool addHost(QMap<QString, QString> host, QString catPath = QString::null);
     bool removeHost(QString show_name, QString catPath = QString::null);
     bool updateHost(QMap<QString,QString> host, QString newName = QString::null, QString catPath = QString::null);
@@ -35,6 +32,10 @@ public:
 
     QString getSessionPath();
     QString getConfigPath();
+
+    // global options method
+    bool saveOptions(QMap<QString, QMap<QString, QString> > options);
+    bool saveOptions(QString section, QMap<QString, QString> options);
   
 signals:
     void hostListChanged(QString catPath = QString::null);

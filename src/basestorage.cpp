@@ -54,6 +54,7 @@ QString BaseStorage::getSessionPath()
 {
     return this->storagePath;
 }
+
 QString BaseStorage::getConfigPath()
 {
     return QDir(this->storagePath+"/..").absolutePath();
@@ -123,12 +124,14 @@ bool BaseStorage::containsHost(QString show_name, QString catPath)
 
 QMap<QString, QMap<QString,QString> > BaseStorage::getAllHost(QString catPath)
 {
+    Q_UNUSED(catPath);
     QMap<QString, QMap<QString,QString> > hosts;
 
     return hosts;
 }
 QStringList BaseStorage::getNameList(QString catPath)
 {
+    Q_UNUSED(catPath);
     QStringList nlist;
 
     // nlist = this->hosts.keys();
@@ -163,6 +166,24 @@ int BaseStorage::hostCount(QString catPath)
 
 bool BaseStorage::clearHost(QString catPath)
 {
+    Q_UNUSED(catPath);
+
+    return true;
+}
+
+
+// global options method
+bool BaseStorage::saveOptions(QMap<QString, QMap<QString, QString> > options)
+{
+    Q_UNUSED(options);
+    return true;
+}
+
+bool BaseStorage::saveOptions(QString section, QMap<QString, QString> options)
+{
+    Q_UNUSED(section);
+    Q_UNUSED(options);
+
     return true;
 }
 
