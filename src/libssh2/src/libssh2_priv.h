@@ -1,5 +1,6 @@
 /* Copyright (c) 2004-2008, Sara Golemon <sarag@libssh2.org>
  * Copyright (c) 2009 by Daniel Stenberg
+ * Copyright (c) 2010 Simon Josefsson
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms,
@@ -153,6 +154,7 @@ static inline int writev(int sock, struct iovec *iov, int nvecs)
 typedef SOCKET libssh2_socket_t;
 #else /* !WIN32 */
 typedef int libssh2_socket_t;
+#define INVALID_SOCKET -1
 #endif /* WIN32 */
 
 /* RFC4253 section 6.1 Maximum Packet Length says:
@@ -209,7 +211,9 @@ typedef enum
     libssh2_NB_state_sent7,
     libssh2_NB_state_jump1,
     libssh2_NB_state_jump2,
-    libssh2_NB_state_jump3
+    libssh2_NB_state_jump3,
+    libssh2_NB_state_jump4,
+    libssh2_NB_state_jump5
 } libssh2_nonblocking_states;
 
 typedef struct packet_require_state_t
@@ -735,6 +739,8 @@ struct _LIBSSH2_SESSION
     struct transportpacket packet;
 #ifdef LIBSSH2DEBUG
     int showmask;               /* what debug/trace messages to display */
+    libssh2_trace_handler_func tracehandler; /* callback to display trace messages */
+    void* tracehandler_context; /* context for the trace handler */
 #endif
 
     /* State variables used in libssh2_banner_send() */
@@ -1014,14 +1020,6 @@ struct _LIBSSH2_MAC_METHOD
     int (*dtor) (LIBSSH2_SESSION * session, void **abstract);
 };
 
-#define LIBSSH2_DBG_TRANS   1
-#define LIBSSH2_DBG_KEX     2
-#define LIBSSH2_DBG_AUTH    3
-#define LIBSSH2_DBG_CONN    4
-#define LIBSSH2_DBG_SCP     5
-#define LIBSSH2_DBG_SFTP    6
-#define LIBSSH2_DBG_ERROR   7
-#define LIBSSH2_DBG_PUBLICKEY   8
 #ifdef LIBSSH2DEBUG
 void _libssh2_debug(LIBSSH2_SESSION * session, int context, const char *format,
                     ...);
@@ -1048,7 +1046,7 @@ _libssh2_debug(LIBSSH2_SESSION * session, int context, const char *format, ...)
     session->err_msglen = strlen(errmsg); \
     session->err_should_free = should_free; \
     session->err_code = errcode; \
-    _libssh2_debug(session, LIBSSH2_DBG_ERROR, "%d - %s", session->err_code, session->err_msg); \
+    _libssh2_debug(session, LIBSSH2_TRACE_ERROR, "%d - %s", session->err_code, session->err_msg); \
 }
 
 #else /* ! LIBSSH2DEBUG */
@@ -1269,6 +1267,9 @@ int _libssh2_pem_decode_integer(unsigned char **data, unsigned int *datalen,
        if(rc) \
            break; \
     } while(1)
+
+
+#define ARRAY_SIZE(a) (sizeof ((a)) / sizeof ((a)[0]))
 
 
 #endif /* LIBSSH2_H */

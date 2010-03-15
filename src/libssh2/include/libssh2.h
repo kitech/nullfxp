@@ -95,13 +95,13 @@ typedef long long libssh2_int64_t;
    to make the BANNER define (used by src/session.c) be a valid SSH
    banner. Release versions have no appended strings and may of course not
    have dashes either. */
-#define LIBSSH2_VERSION "1.2.2"
+#define LIBSSH2_VERSION "1.2.3"
 
 /* The numeric version number is also available "in parts" by using these
    defines: */
 #define LIBSSH2_VERSION_MAJOR 1
 #define LIBSSH2_VERSION_MINOR 2
-#define LIBSSH2_VERSION_PATCH 2
+#define LIBSSH2_VERSION_PATCH 3
 
 /* This is the numeric version of the libssh2 version number, meant for easier
    parsing and comparions by programs. The LIBSSH2_VERSION_NUM define will
@@ -118,7 +118,7 @@ typedef long long libssh2_int64_t;
    and it is always a greater number in a more recent release. It makes
    comparisons with greater than and less than work.
 */
-#define LIBSSH2_VERSION_NUM 0x010202
+#define LIBSSH2_VERSION_NUM 0x010203
 
 /*
  * This is the date and time when the full source package was created. The
@@ -129,7 +129,7 @@ typedef long long libssh2_int64_t;
  *
  * "Mon Feb 12 11:35:33 UTC 2007"
  */
-#define LIBSSH2_TIMESTAMP "Mon Nov 16 21:44:28 UTC 2009"
+#define LIBSSH2_TIMESTAMP "Wed Feb  3 18:25:24 UTC 2010"
 
 /* Part of every banner, user specified or not */
 #define LIBSSH2_SSH_BANNER                  "SSH-2.0-libssh2_" LIBSSH2_VERSION
@@ -184,6 +184,11 @@ typedef struct _LIBSSH2_USERAUTH_KBDINT_RESPONSE
     char* text;
     unsigned int length;
 } LIBSSH2_USERAUTH_KBDINT_RESPONSE;
+
+/* 'publickey' authentication callback */
+#define LIBSSH2_USERAUTH_PUBLICKEY_SIGN_FUNC(name) \
+  int name(LIBSSH2_SESSION *session, unsigned char **sig, size_t *sig_len, \
+           const unsigned char *data, size_t data_len, void **abstract)
 
 /* 'keyboard-interactive' authentication callback */
 #define LIBSSH2_USERAUTH_KBDINT_RESPONSE_FUNC(name_) \
@@ -249,6 +254,7 @@ typedef struct _LIBSSH2_SESSION                     LIBSSH2_SESSION;
 typedef struct _LIBSSH2_CHANNEL                     LIBSSH2_CHANNEL;
 typedef struct _LIBSSH2_LISTENER                    LIBSSH2_LISTENER;
 typedef struct _LIBSSH2_KNOWNHOSTS                  LIBSSH2_KNOWNHOSTS;
+typedef struct _LIBSSH2_AGENT                       LIBSSH2_AGENT;
 
 typedef struct _LIBSSH2_POLLFD {
     unsigned char type; /* LIBSSH2_POLLFD_* below */
@@ -342,7 +348,8 @@ typedef struct _LIBSSH2_POLLFD {
 #define LIBSSH2_ERROR_PASSWORD_EXPIRED          -15
 #define LIBSSH2_ERROR_FILE                      -16
 #define LIBSSH2_ERROR_METHOD_NONE               -17
-#define LIBSSH2_ERROR_PUBLICKEY_UNRECOGNIZED    -18
+#define LIBSSH2_ERROR_AUTHENTICATION_FAILED     -18
+#define LIBSSH2_ERROR_PUBLICKEY_UNRECOGNIZED    LIBSSH2_ERROR_AUTHENTICATION_FAILED
 #define LIBSSH2_ERROR_PUBLICKEY_UNVERIFIED      -19
 #define LIBSSH2_ERROR_CHANNEL_OUTOFORDER        -20
 #define LIBSSH2_ERROR_CHANNEL_FAILURE           -21
@@ -366,6 +373,7 @@ typedef struct _LIBSSH2_POLLFD {
 #define LIBSSH2_ERROR_BAD_USE                   -39
 #define LIBSSH2_ERROR_COMPRESS                  -40
 #define LIBSSH2_ERROR_OUT_OF_BOUNDARY           -41
+#define LIBSSH2_ERROR_AGENT_PROTOCOL            -42
 
 /* Session API */
 LIBSSH2_API LIBSSH2_SESSION *
@@ -442,6 +450,14 @@ libssh2_userauth_publickey_fromfile_ex(LIBSSH2_SESSION *session,
   libssh2_userauth_publickey_fromfile_ex((session), (username), \
                                          strlen(username), (publickey), \
                                          (privatekey), (passphrase))
+
+LIBSSH2_API int
+libssh2_userauth_publickey(LIBSSH2_SESSION *session,
+                           const char *username,
+                           const unsigned char *pubkeydata,
+                           size_t pubkeydata_len,
+                           LIBSSH2_USERAUTH_PUBLICKEY_SIGN_FUNC((*sign_callback)),
+                           void **abstract);
 
 LIBSSH2_API int
 libssh2_userauth_hostbased_fromfile_ex(LIBSSH2_SESSION *session,
@@ -877,6 +893,93 @@ libssh2_knownhost_get(LIBSSH2_KNOWNHOSTS *hosts,
                       struct libssh2_knownhost **store,
                       struct libssh2_knownhost *prev);
 
+#define HAVE_LIBSSH2_AGENT_API 0x010202 /* since 1.2.2 */
+
+struct libssh2_agent_publickey {
+    unsigned int magic;              /* magic stored by the library */
+    void *node;	    /* handle to the internal representation of key */
+    unsigned char *blob;           /* public key blob */
+    size_t blob_len;               /* length of the public key blob */
+    char *comment;                 /* comment in printable format */
+};
+
+/*
+ * libssh2_agent_init
+ *
+ * Init an ssh-agent handle. Returns the pointer to the handle.
+ *
+ */
+LIBSSH2_API LIBSSH2_AGENT *
+libssh2_agent_init(LIBSSH2_SESSION *session);
+
+/*
+ * libssh2_agent_connect()
+ *
+ * Connect to an ssh-agent.
+ *
+ * Returns 0 if succeeded, or a negative value for error.
+ */
+LIBSSH2_API int
+libssh2_agent_connect(LIBSSH2_AGENT *agent);
+
+/*
+ * libssh2_agent_list_identities()
+ *
+ * Request an ssh-agent to list identities.
+ *
+ * Returns 0 if succeeded, or a negative value for error.
+ */
+LIBSSH2_API int
+libssh2_agent_list_identities(LIBSSH2_AGENT *agent);
+
+/*
+ * libssh2_agent_get_identity()
+ *
+ * Traverse the internal list of public keys. Pass NULL to 'prev' to get
+ * the first one. Or pass a poiner to the previously returned one to get the
+ * next.
+ *
+ * Returns:
+ * 0 if a fine public key was stored in 'store'
+ * 1 if end of public keys
+ * [negative] on errors
+ */
+LIBSSH2_API int
+libssh2_agent_get_identity(LIBSSH2_AGENT *agent,
+			   struct libssh2_agent_publickey **store,
+			   struct libssh2_agent_publickey *prev);
+
+/*
+ * libssh2_agent_userauth()
+ *
+ * Do publickey user authentication with the help of ssh-agent.
+ *
+ * Returns 0 if succeeded, or a negative value for error.
+ */
+LIBSSH2_API int
+libssh2_agent_userauth(LIBSSH2_AGENT *agent,
+		       const char *username,
+		       struct libssh2_agent_publickey *identity);
+
+/*
+ * libssh2_agent_disconnect()
+ *
+ * Close a connection to an ssh-agent.
+ *
+ * Returns 0 if succeeded, or a negative value for error.
+ */
+LIBSSH2_API int
+libssh2_agent_disconnect(LIBSSH2_AGENT *agent);
+
+/*
+ * libssh2_agent_free()
+ *
+ * Free an ssh-agent handle.  This function also frees the internal
+ * collection of public keys.
+ */
+LIBSSH2_API void
+libssh2_agent_free(LIBSSH2_AGENT *agent);
+
 /* NOTE NOTE NOTE
    libssh2_trace() has no function in builds that aren't built with debug
    enabled
@@ -890,6 +993,15 @@ LIBSSH2_API int libssh2_trace(LIBSSH2_SESSION *session, int bitmask);
 #define LIBSSH2_TRACE_SFTP  (1<<6)
 #define LIBSSH2_TRACE_ERROR (1<<7)
 #define LIBSSH2_TRACE_PUBLICKEY (1<<8)
+#define LIBSSH2_TRACE_SOCKET (1<<9)
+
+typedef void (*libssh2_trace_handler_func)(LIBSSH2_SESSION*,
+                                           void*,
+                                           const char *,
+                                           size_t);
+LIBSSH2_API int libssh2_trace_sethandler(LIBSSH2_SESSION *session,
+                                         void* context,
+                                         libssh2_trace_handler_func callback);
 
 #ifdef __cplusplus
 } /* extern "C" */

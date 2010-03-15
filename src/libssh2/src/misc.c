@@ -312,6 +312,14 @@ libssh2_trace(LIBSSH2_SESSION * session, int bitmask)
     return 0;
 }
 
+LIBSSH2_API int
+libssh2_trace_sethandler(LIBSSH2_SESSION *session, void* handler_context, libssh2_trace_handler_func callback)
+{
+    session->tracehandler = callback;
+    session->tracehandler_context = handler_context;
+    return 0;
+}
+
 void
 _libssh2_debug(LIBSSH2_SESSION * session, int context, const char *format, ...)
 {
@@ -320,7 +328,7 @@ _libssh2_debug(LIBSSH2_SESSION * session, int context, const char *format, ...)
     va_list vargs;
     struct timeval now;
     static int firstsec;
-    static const char *const contexts[9] = {
+    static const char *const contexts[] = {
         "Unknown",
         "Transport",
         "Key Ex",
@@ -330,15 +338,24 @@ _libssh2_debug(LIBSSH2_SESSION * session, int context, const char *format, ...)
         "SFTP",
         "Failure Event",
         "Publickey",
+        "Socket",
     };
+    const char* contexttext = contexts[0];
+    unsigned int contextindex;
 
-    if (context < 1 || context > 8) {
-        context = 0;
-    }
-    if (!(session->showmask & (1 << context))) {
+    if (!(session->showmask & context)) {
         /* no such output asked for */
         return;
     }
+
+    /* Find the first matching context string for this message */
+    for (contextindex = 0; contextindex < ARRAY_SIZE(contexts); contextindex++) {
+        if ((context & (1 << contextindex)) != 0) {
+            contexttext = contexts[contextindex];
+            break;
+        }
+    }
+
     gettimeofday(&now, NULL);
     if(!firstsec) {
         firstsec = now.tv_sec;
@@ -346,14 +363,18 @@ _libssh2_debug(LIBSSH2_SESSION * session, int context, const char *format, ...)
     now.tv_sec -= firstsec;
 
     len = snprintf(buffer, sizeof(buffer), "[libssh2] %d.%06d %s: ",
-                   (int)now.tv_sec, (int)now.tv_usec, contexts[context]);
+                   (int)now.tv_sec, (int)now.tv_usec, contexttext);
 
     va_start(vargs, format);
     len += vsnprintf(buffer + len, 1535 - len, format, vargs);
     buffer[len] = '\n';
     va_end(vargs);
-    write(2, buffer, len + 1);
 
+    if (session->tracehandler) {
+        (session->tracehandler)(session, session->tracehandler_context, buffer, len + 1);
+    } else {
+        write(2, buffer, len + 1);
+    }
 }
 
 #else
@@ -362,6 +383,15 @@ libssh2_trace(LIBSSH2_SESSION * session, int bitmask)
 {
     (void) session;
     (void) bitmask;
+    return 0;
+}
+
+LIBSSH2_API int
+libssh2_trace_sethandler(LIBSSH2_SESSION *session, void* handler_context, libssh2_trace_handler_func callback)
+{
+    (void) session;
+    (void) handler_context;
+    (void) callback;
     return 0;
 }
 #endif
@@ -442,6 +472,10 @@ void _libssh2_list_insert(struct list_node *after, /* insert before this */
        and must be made to point to 'entry' correctly */
     if(entry->prev)
         entry->prev->next = entry;
+    else
+      /* there was no node before this, so we make sure we point the head
+         pointer to this node */
+      after->head->first = entry;
 
     /* after's prev entry points back to entry */
     after->prev = entry;

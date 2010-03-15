@@ -56,7 +56,8 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno configure.status.lineno
 mkinstalldirs = $(install_sh) -d
-CONFIG_HEADER = $(top_builddir)/src/libssh2_config.h
+CONFIG_HEADER = $(top_builddir)/src/libssh2_config.h \
+	$(top_builddir)/example/libssh2_config.h
 CONFIG_CLEAN_FILES = libssh2.pc
 SOURCES =
 DIST_SOURCES =
@@ -248,7 +249,7 @@ EXTRA_DIST = $(WIN32FILES) buildconf $(NETWAREFILES) get_ver.awk HACKING \
 ACLOCAL_AMFLAGS = -I m4
 CSOURCES = channel.c comp.c crypt.c hostkey.c kex.c mac.c misc.c \
  packet.c publickey.c scp.c session.c sftp.c userauth.c transport.c \
- version.c knownhost.c openssl.c libgcrypt.c pem.c
+ version.c knownhost.c agent.c openssl.c libgcrypt.c pem.c
 
 HHEADERS = libssh2_priv.h openssl.h libgcrypt.h transport.h channel.h comp.h mac.h misc.h
 

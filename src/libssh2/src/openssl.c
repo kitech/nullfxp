@@ -212,6 +212,8 @@ aes_ctr_init(EVP_CIPHER_CTX *ctx, const unsigned char *key,
 	     const unsigned char *iv, int enc) /* init key */
 {
     aes_ctr_ctx *c = malloc(sizeof(*c));
+    (void) enc;
+
     if (c == NULL)
 	return 0;
 
@@ -321,7 +323,7 @@ typedef void * (*pem_read_bio_func)(BIO *, void **, pem_password_cb *,
                                     void * u);
 
 static int
-read_private_key_from_file(void ** key_ctx, LIBSSH2_SESSION * session,
+read_private_key_from_file(void ** key_ctx,
                            pem_read_bio_func read_private_key,
                            const char * filename,
                            unsigned const char *passphrase)
@@ -335,7 +337,7 @@ read_private_key_from_file(void ** key_ctx, LIBSSH2_SESSION * session,
         return -1;
     }
 
-    *key_ctx = read_private_key(bp, NULL, (void *) passphrase_cb,
+    *key_ctx = read_private_key(bp, NULL, (pem_password_cb *) passphrase_cb,
                                 (void *) passphrase);
 
     BIO_free(bp);
@@ -359,7 +361,7 @@ _libssh2_rsa_new_private(libssh2_rsa_ctx ** rsa,
         OpenSSL_add_all_ciphers();
     }
 
-    return read_private_key_from_file((void **) rsa, session, read_rsa,
+    return read_private_key_from_file((void **) rsa, read_rsa,
                                       filename, passphrase);
 }
 
@@ -370,6 +372,7 @@ _libssh2_dsa_new_private(libssh2_dsa_ctx ** dsa,
 {
     pem_read_bio_func read_dsa =
         (pem_read_bio_func) &PEM_read_bio_DSAPrivateKey;
+    (void) session;
 
     if (!EVP_get_cipherbyname("des")) {
 /* If this cipher isn't loaded it's a pretty good indication that none are.
@@ -379,7 +382,7 @@ _libssh2_dsa_new_private(libssh2_dsa_ctx ** dsa,
         OpenSSL_add_all_ciphers();
     }
 
-    return read_private_key_from_file((void **) dsa, session, read_dsa,
+    return read_private_key_from_file((void **) dsa, read_dsa,
                                       filename, passphrase);
 }
 
@@ -420,7 +423,7 @@ _libssh2_dsa_sha1_sign(libssh2_dsa_ctx * dsactx,
                        unsigned long hash_len, unsigned char *signature)
 {
     DSA_SIG *sig;
-    int r_len, s_len, rs_pad;
+    int r_len, s_len;
     (void) hash_len;
 
     sig = DSA_do_sign(hash, SHA_DIGEST_LENGTH, dsactx);
@@ -429,15 +432,20 @@ _libssh2_dsa_sha1_sign(libssh2_dsa_ctx * dsactx,
     }
 
     r_len = BN_num_bytes(sig->r);
+    if (r_len < 1 || r_len > 20) {
+        DSA_SIG_free(sig);
+        return -1;
+    }
     s_len = BN_num_bytes(sig->s);
-    rs_pad = (2 * SHA_DIGEST_LENGTH) - (r_len + s_len);
-    if (rs_pad < 0) {
+    if (s_len < 1 || s_len > 20) {
         DSA_SIG_free(sig);
         return -1;
     }
 
-    BN_bn2bin(sig->r, signature + rs_pad);
-    BN_bn2bin(sig->s, signature + rs_pad + r_len);
+    memset(signature, 0, 40);
+
+    BN_bn2bin(sig->r, signature + (20 - r_len));
+    BN_bn2bin(sig->s, signature + 20 + (20 - s_len));
 
     DSA_SIG_free(sig);
 

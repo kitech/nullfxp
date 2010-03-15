@@ -41,6 +41,7 @@
 #include "libssh2_priv.h"
 #include <errno.h>
 #include <fcntl.h>
+#include <ctype.h>
 
 #include <assert.h>
 
@@ -57,36 +58,58 @@ debugdump(LIBSSH2_SESSION * session,
 {
     size_t i;
     size_t c;
-    FILE *stream = stderr;
     unsigned int width = 0x10;
+    char buffer[256];  /* Must be enough for width*4 + about 30 or so */
+    size_t used;
+    static const char* hex_chars = "0123456789ABCDEF";
 
-    if (!(session->showmask & (1 << LIBSSH2_DBG_TRANS))) {
+    if (!(session->showmask & LIBSSH2_TRACE_TRANS)) {
         /* not asked for, bail out */
         return;
     }
 
-    fprintf(stream, "=> %s (%d bytes)\n", desc, (int) size);
+    used = snprintf(buffer, sizeof(buffer), "=> %s (%d bytes)\n",
+                    desc, (int) size);
+    if (session->tracehandler)
+        (session->tracehandler)(session, session->tracehandler_context, buffer, used);
+    else
+        write(2 /* stderr */, buffer, used);
 
     for(i = 0; i < size; i += width) {
 
-        fprintf(stream, "%04lx: ", (long)i);
+        used = snprintf(buffer, sizeof(buffer), "%04lx: ", (long)i);
 
         /* hex not disabled, show it */
         for(c = 0; c < width; c++) {
-            if (i + c < size)
-                fprintf(stream, "%02x ", ptr[i + c]);
-            else
-                fputs("   ", stream);
+            if (i + c < size) {
+                buffer[used++] = hex_chars[(ptr[i+c] >> 4) & 0xF];
+                buffer[used++] = hex_chars[ptr[i+c] & 0xF];
+            }
+            else {
+                buffer[used++] = ' ';
+                buffer[used++] = ' ';
+            }
+
+            buffer[used++] = ' ';
+            if ((width/2) - 1 == c)
+                buffer[used++] = ' ';
         }
 
+        buffer[used++] = ':';
+        buffer[used++] = ' ';
+
         for(c = 0; (c < width) && (i + c < size); c++) {
-            fprintf(stream, "%c",
-                    (ptr[i + c] >= 0x20) &&
-                    (ptr[i + c] < 0x80) ? ptr[i + c] : UNPRINTABLE_CHAR);
+            buffer[used++] = isprint(ptr[i + c]) ?
+                ptr[i + c] : UNPRINTABLE_CHAR;
         }
-        fputc('\n', stream);    /* newline */
+        buffer[used++] = '\n';
+        buffer[used] = 0;
+
+        if (session->tracehandler)
+            (session->tracehandler)(session, session->tracehandler_context, buffer, used);
+        else
+            write(2, buffer, used);
     }
-    fflush(stream);
 }
 #else
 #define debugdump(a,x,y,z)
@@ -290,7 +313,7 @@ int _libssh2_transport_read(LIBSSH2_SESSION * session)
         /* Whoever wants a packet won't get anything until the key re-exchange
          * is done!
          */
-        _libssh2_debug(session, LIBSSH2_DBG_TRANS, "Redirecting into the"
+        _libssh2_debug(session, LIBSSH2_TRACE_TRANS, "Redirecting into the"
                        " key re-exchange");
         rc = libssh2_kex_exchange(session, 1, &session->startup_key_state);
         if (rc)
@@ -355,6 +378,15 @@ int _libssh2_transport_read(LIBSSH2_SESSION * session)
                 _libssh2_recv(session->socket_fd, &p->buf[remainbuf],
                               PACKETBUFSIZE - remainbuf,
                               LIBSSH2_SOCKET_RECV_FLAGS(session));
+            if (nread < 0)
+                _libssh2_debug(session, LIBSSH2_TRACE_SOCKET,
+                               "Error recving %d bytes to %p+%d: %d",
+                               PACKETBUFSIZE - remainbuf, p->buf, remainbuf,
+                               errno);
+            else
+                _libssh2_debug(session, LIBSSH2_TRACE_SOCKET,
+                               "Recved %d/%d bytes to %p+%d", nread,
+                               PACKETBUFSIZE - remainbuf, p->buf, remainbuf);
             if (nread <= 0) {
                 /* check if this is due to EAGAIN and return the special
                    return code if so, error out normally otherwise */
@@ -602,6 +634,13 @@ send_existing(LIBSSH2_SESSION * session, unsigned char *data,
 
     rc = _libssh2_send(session->socket_fd, &p->outbuf[p->osent], length,
                        LIBSSH2_SOCKET_SEND_FLAGS(session));
+    if (rc < 0)
+        _libssh2_debug(session, LIBSSH2_TRACE_SOCKET,
+                       "Error sending %d bytes: %d", length, errno);
+    else
+        _libssh2_debug(session, LIBSSH2_TRACE_SOCKET,
+                       "Sent %d/%d bytes at %p+%d", rc, length, p->outbuf,
+                       p->osent);
 
     if(rc > 0) {
         debugdump(session, "libssh2_transport_write send()",
@@ -626,7 +665,7 @@ send_existing(LIBSSH2_SESSION * session, unsigned char *data,
 
     p->osent += rc;         /* we sent away this much data */
 
-    return p->osent < data_len ? PACKET_EAGAIN : PACKET_NONE;
+    return rc < length ? PACKET_EAGAIN : PACKET_NONE;
 }
 
 /*
@@ -671,14 +710,14 @@ _libssh2_transport_write(LIBSSH2_SESSION * session, unsigned char *data,
 
     debugdump(session, "libssh2_transport_write plain", data, data_len);
 
-    /* default clear the bit */
-    session->socket_block_directions &= ~LIBSSH2_SESSION_BLOCK_OUTBOUND;
-
     /* FIRST, check if we have a pending write to complete */
     rc = send_existing(session, data, data_len, &ret);
     if (rc || ret) {
         return rc;
     }
+
+    /* default clear the bit */
+    session->socket_block_directions &= ~LIBSSH2_SESSION_BLOCK_OUTBOUND;
 
     encrypted = (session->state & LIBSSH2_STATE_NEWKEYS) ? 1 : 0;
 
@@ -776,6 +815,12 @@ _libssh2_transport_write(LIBSSH2_SESSION * session, unsigned char *data,
 
     ret = _libssh2_send(session->socket_fd, p->outbuf, total_length,
                         LIBSSH2_SOCKET_SEND_FLAGS(session));
+    if (ret < 0)
+        _libssh2_debug(session, LIBSSH2_TRACE_SOCKET,
+                       "Error sending %d bytes: %d", total_length, errno);
+    else
+        _libssh2_debug(session, LIBSSH2_TRACE_SOCKET, "Sent %d/%d bytes at %p",
+                       ret, total_length, p->outbuf);
 
     if (ret != -1) {
         debugdump(session, "libssh2_transport_write send()", p->outbuf, ret);

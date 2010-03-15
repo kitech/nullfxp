@@ -11,7 +11,8 @@ DESTDIR = .
 TEMPLATE = lib
 TARGET = ssh2
 
-SOURCES += channel.c \
+SOURCES += agent.c \
+        channel.c \
         comp.c \
         crypt.c \
         hostkey.c \

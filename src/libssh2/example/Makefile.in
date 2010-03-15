@@ -13,6 +13,7 @@
 # PARTICULAR PURPOSE.
 
 @SET_MAKE@
+
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
 VPATH = @srcdir@
@@ -35,8 +36,17 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
+noinst_PROGRAMS = direct_tcpip$(EXEEXT) ssh2$(EXEEXT) scp$(EXEEXT) \
+	scp_nonblock$(EXEEXT) scp_write$(EXEEXT) \
+	scp_write_nonblock$(EXEEXT) sftp$(EXEEXT) \
+	sftp_nonblock$(EXEEXT) sftp_write$(EXEEXT) \
+	sftp_write_nonblock$(EXEEXT) sftp_mkdir$(EXEEXT) \
+	sftp_mkdir_nonblock$(EXEEXT) sftp_RW_nonblock$(EXEEXT) \
+	sftpdir$(EXEEXT) sftpdir_nonblock$(EXEEXT) ssh2_exec$(EXEEXT) \
+	ssh2_agent$(EXEEXT)
 subdir = example
-DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
+DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
+	$(srcdir)/libssh2_config.h.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/autobuild.m4 \
 	$(top_srcdir)/m4/lib-ld.m4 $(top_srcdir)/m4/lib-link.m4 \
@@ -47,19 +57,100 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/autobuild.m4 \
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
-CONFIG_HEADER = $(top_builddir)/src/libssh2_config.h
+CONFIG_HEADER = $(top_builddir)/src/libssh2_config.h libssh2_config.h
 CONFIG_CLEAN_FILES =
-SOURCES =
-DIST_SOURCES =
-RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
-	html-recursive info-recursive install-data-recursive \
-	install-exec-recursive install-info-recursive \
-	install-recursive installcheck-recursive installdirs-recursive \
-	pdf-recursive ps-recursive uninstall-info-recursive \
-	uninstall-recursive
+PROGRAMS = $(noinst_PROGRAMS)
+direct_tcpip_SOURCES = direct_tcpip.c
+direct_tcpip_OBJECTS = direct_tcpip.$(OBJEXT)
+direct_tcpip_LDADD = $(LDADD)
+direct_tcpip_DEPENDENCIES = $(top_builddir)/src/libssh2.la
+scp_SOURCES = scp.c
+scp_OBJECTS = scp.$(OBJEXT)
+scp_LDADD = $(LDADD)
+scp_DEPENDENCIES = $(top_builddir)/src/libssh2.la
+scp_nonblock_SOURCES = scp_nonblock.c
+scp_nonblock_OBJECTS = scp_nonblock.$(OBJEXT)
+scp_nonblock_LDADD = $(LDADD)
+scp_nonblock_DEPENDENCIES = $(top_builddir)/src/libssh2.la
+scp_write_SOURCES = scp_write.c
+scp_write_OBJECTS = scp_write.$(OBJEXT)
+scp_write_LDADD = $(LDADD)
+scp_write_DEPENDENCIES = $(top_builddir)/src/libssh2.la
+scp_write_nonblock_SOURCES = scp_write_nonblock.c
+scp_write_nonblock_OBJECTS = scp_write_nonblock.$(OBJEXT)
+scp_write_nonblock_LDADD = $(LDADD)
+scp_write_nonblock_DEPENDENCIES = $(top_builddir)/src/libssh2.la
+sftp_SOURCES = sftp.c
+sftp_OBJECTS = sftp.$(OBJEXT)
+sftp_LDADD = $(LDADD)
+sftp_DEPENDENCIES = $(top_builddir)/src/libssh2.la
+sftp_RW_nonblock_SOURCES = sftp_RW_nonblock.c
+sftp_RW_nonblock_OBJECTS = sftp_RW_nonblock.$(OBJEXT)
+sftp_RW_nonblock_LDADD = $(LDADD)
+sftp_RW_nonblock_DEPENDENCIES = $(top_builddir)/src/libssh2.la
+sftp_mkdir_SOURCES = sftp_mkdir.c
+sftp_mkdir_OBJECTS = sftp_mkdir.$(OBJEXT)
+sftp_mkdir_LDADD = $(LDADD)
+sftp_mkdir_DEPENDENCIES = $(top_builddir)/src/libssh2.la
+sftp_mkdir_nonblock_SOURCES = sftp_mkdir_nonblock.c
+sftp_mkdir_nonblock_OBJECTS = sftp_mkdir_nonblock.$(OBJEXT)
+sftp_mkdir_nonblock_LDADD = $(LDADD)
+sftp_mkdir_nonblock_DEPENDENCIES = $(top_builddir)/src/libssh2.la
+sftp_nonblock_SOURCES = sftp_nonblock.c
+sftp_nonblock_OBJECTS = sftp_nonblock.$(OBJEXT)
+sftp_nonblock_LDADD = $(LDADD)
+sftp_nonblock_DEPENDENCIES = $(top_builddir)/src/libssh2.la
+sftp_write_SOURCES = sftp_write.c
+sftp_write_OBJECTS = sftp_write.$(OBJEXT)
+sftp_write_LDADD = $(LDADD)
+sftp_write_DEPENDENCIES = $(top_builddir)/src/libssh2.la
+sftp_write_nonblock_SOURCES = sftp_write_nonblock.c
+sftp_write_nonblock_OBJECTS = sftp_write_nonblock.$(OBJEXT)
+sftp_write_nonblock_LDADD = $(LDADD)
+sftp_write_nonblock_DEPENDENCIES = $(top_builddir)/src/libssh2.la
+sftpdir_SOURCES = sftpdir.c
+sftpdir_OBJECTS = sftpdir.$(OBJEXT)
+sftpdir_LDADD = $(LDADD)
+sftpdir_DEPENDENCIES = $(top_builddir)/src/libssh2.la
+sftpdir_nonblock_SOURCES = sftpdir_nonblock.c
+sftpdir_nonblock_OBJECTS = sftpdir_nonblock.$(OBJEXT)
+sftpdir_nonblock_LDADD = $(LDADD)
+sftpdir_nonblock_DEPENDENCIES = $(top_builddir)/src/libssh2.la
+ssh2_SOURCES = ssh2.c
+ssh2_OBJECTS = ssh2.$(OBJEXT)
+ssh2_LDADD = $(LDADD)
+ssh2_DEPENDENCIES = $(top_builddir)/src/libssh2.la
+ssh2_agent_SOURCES = ssh2_agent.c
+ssh2_agent_OBJECTS = ssh2_agent.$(OBJEXT)
+ssh2_agent_LDADD = $(LDADD)
+ssh2_agent_DEPENDENCIES = $(top_builddir)/src/libssh2.la
+ssh2_exec_SOURCES = ssh2_exec.c
+ssh2_exec_OBJECTS = ssh2_exec.$(OBJEXT)
+ssh2_exec_LDADD = $(LDADD)
+ssh2_exec_DEPENDENCIES = $(top_builddir)/src/libssh2.la
+DEFAULT_INCLUDES = 
+depcomp = $(SHELL) $(top_srcdir)/depcomp
+am__depfiles_maybe = depfiles
+COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) \
+	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	$(AM_CFLAGS) $(CFLAGS)
+CCLD = $(CC)
+LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+SOURCES = direct_tcpip.c scp.c scp_nonblock.c scp_write.c \
+	scp_write_nonblock.c sftp.c sftp_RW_nonblock.c sftp_mkdir.c \
+	sftp_mkdir_nonblock.c sftp_nonblock.c sftp_write.c \
+	sftp_write_nonblock.c sftpdir.c sftpdir_nonblock.c ssh2.c \
+	ssh2_agent.c ssh2_exec.c
+DIST_SOURCES = direct_tcpip.c scp.c scp_nonblock.c scp_write.c \
+	scp_write_nonblock.c sftp.c sftp_RW_nonblock.c sftp_mkdir.c \
+	sftp_mkdir_nonblock.c sftp_nonblock.c sftp_write.c \
+	sftp_write_nonblock.c sftpdir.c sftpdir_nonblock.c ssh2.c \
+	ssh2_agent.c ssh2_exec.c
 ETAGS = etags
 CTAGS = ctags
-DIST_SUBDIRS = $(SUBDIRS)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 ALLOCA = @ALLOCA@
@@ -189,10 +280,14 @@ sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 AUTOMAKE_OPTIONS = foreign nostdinc
-SUBDIRS = simple
-all: all-recursive
+EXTRA_DIST = libssh2_config.h.in
+AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_builddir)/example
+LDADD = $(top_builddir)/src/libssh2.la
+all: libssh2_config.h
+	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
+.SUFFIXES: .c .lo .o .obj
 $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -223,6 +318,126 @@ $(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 
+libssh2_config.h: stamp-h2
+	@if test ! -f $@; then \
+	  rm -f stamp-h2; \
+	  $(MAKE) stamp-h2; \
+	else :; fi
+
+stamp-h2: $(srcdir)/libssh2_config.h.in $(top_builddir)/config.status
+	@rm -f stamp-h2
+	cd $(top_builddir) && $(SHELL) ./config.status example/libssh2_config.h
+$(srcdir)/libssh2_config.h.in: @MAINTAINER_MODE_TRUE@ $(am__configure_deps) 
+	cd $(top_srcdir) && $(AUTOHEADER)
+	rm -f stamp-h2
+	touch $@
+
+distclean-hdr:
+	-rm -f libssh2_config.h stamp-h2
+
+clean-noinstPROGRAMS:
+	@list='$(noinst_PROGRAMS)'; for p in $$list; do \
+	  f=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
+	  echo " rm -f $$p $$f"; \
+	  rm -f $$p $$f ; \
+	done
+direct_tcpip$(EXEEXT): $(direct_tcpip_OBJECTS) $(direct_tcpip_DEPENDENCIES) 
+	@rm -f direct_tcpip$(EXEEXT)
+	$(LINK) $(direct_tcpip_LDFLAGS) $(direct_tcpip_OBJECTS) $(direct_tcpip_LDADD) $(LIBS)
+scp$(EXEEXT): $(scp_OBJECTS) $(scp_DEPENDENCIES) 
+	@rm -f scp$(EXEEXT)
+	$(LINK) $(scp_LDFLAGS) $(scp_OBJECTS) $(scp_LDADD) $(LIBS)
+scp_nonblock$(EXEEXT): $(scp_nonblock_OBJECTS) $(scp_nonblock_DEPENDENCIES) 
+	@rm -f scp_nonblock$(EXEEXT)
+	$(LINK) $(scp_nonblock_LDFLAGS) $(scp_nonblock_OBJECTS) $(scp_nonblock_LDADD) $(LIBS)
+scp_write$(EXEEXT): $(scp_write_OBJECTS) $(scp_write_DEPENDENCIES) 
+	@rm -f scp_write$(EXEEXT)
+	$(LINK) $(scp_write_LDFLAGS) $(scp_write_OBJECTS) $(scp_write_LDADD) $(LIBS)
+scp_write_nonblock$(EXEEXT): $(scp_write_nonblock_OBJECTS) $(scp_write_nonblock_DEPENDENCIES) 
+	@rm -f scp_write_nonblock$(EXEEXT)
+	$(LINK) $(scp_write_nonblock_LDFLAGS) $(scp_write_nonblock_OBJECTS) $(scp_write_nonblock_LDADD) $(LIBS)
+sftp$(EXEEXT): $(sftp_OBJECTS) $(sftp_DEPENDENCIES) 
+	@rm -f sftp$(EXEEXT)
+	$(LINK) $(sftp_LDFLAGS) $(sftp_OBJECTS) $(sftp_LDADD) $(LIBS)
+sftp_RW_nonblock$(EXEEXT): $(sftp_RW_nonblock_OBJECTS) $(sftp_RW_nonblock_DEPENDENCIES) 
+	@rm -f sftp_RW_nonblock$(EXEEXT)
+	$(LINK) $(sftp_RW_nonblock_LDFLAGS) $(sftp_RW_nonblock_OBJECTS) $(sftp_RW_nonblock_LDADD) $(LIBS)
+sftp_mkdir$(EXEEXT): $(sftp_mkdir_OBJECTS) $(sftp_mkdir_DEPENDENCIES) 
+	@rm -f sftp_mkdir$(EXEEXT)
+	$(LINK) $(sftp_mkdir_LDFLAGS) $(sftp_mkdir_OBJECTS) $(sftp_mkdir_LDADD) $(LIBS)
+sftp_mkdir_nonblock$(EXEEXT): $(sftp_mkdir_nonblock_OBJECTS) $(sftp_mkdir_nonblock_DEPENDENCIES) 
+	@rm -f sftp_mkdir_nonblock$(EXEEXT)
+	$(LINK) $(sftp_mkdir_nonblock_LDFLAGS) $(sftp_mkdir_nonblock_OBJECTS) $(sftp_mkdir_nonblock_LDADD) $(LIBS)
+sftp_nonblock$(EXEEXT): $(sftp_nonblock_OBJECTS) $(sftp_nonblock_DEPENDENCIES) 
+	@rm -f sftp_nonblock$(EXEEXT)
+	$(LINK) $(sftp_nonblock_LDFLAGS) $(sftp_nonblock_OBJECTS) $(sftp_nonblock_LDADD) $(LIBS)
+sftp_write$(EXEEXT): $(sftp_write_OBJECTS) $(sftp_write_DEPENDENCIES) 
+	@rm -f sftp_write$(EXEEXT)
+	$(LINK) $(sftp_write_LDFLAGS) $(sftp_write_OBJECTS) $(sftp_write_LDADD) $(LIBS)
+sftp_write_nonblock$(EXEEXT): $(sftp_write_nonblock_OBJECTS) $(sftp_write_nonblock_DEPENDENCIES) 
+	@rm -f sftp_write_nonblock$(EXEEXT)
+	$(LINK) $(sftp_write_nonblock_LDFLAGS) $(sftp_write_nonblock_OBJECTS) $(sftp_write_nonblock_LDADD) $(LIBS)
+sftpdir$(EXEEXT): $(sftpdir_OBJECTS) $(sftpdir_DEPENDENCIES) 
+	@rm -f sftpdir$(EXEEXT)
+	$(LINK) $(sftpdir_LDFLAGS) $(sftpdir_OBJECTS) $(sftpdir_LDADD) $(LIBS)
+sftpdir_nonblock$(EXEEXT): $(sftpdir_nonblock_OBJECTS) $(sftpdir_nonblock_DEPENDENCIES) 
+	@rm -f sftpdir_nonblock$(EXEEXT)
+	$(LINK) $(sftpdir_nonblock_LDFLAGS) $(sftpdir_nonblock_OBJECTS) $(sftpdir_nonblock_LDADD) $(LIBS)
+ssh2$(EXEEXT): $(ssh2_OBJECTS) $(ssh2_DEPENDENCIES) 
+	@rm -f ssh2$(EXEEXT)
+	$(LINK) $(ssh2_LDFLAGS) $(ssh2_OBJECTS) $(ssh2_LDADD) $(LIBS)
+ssh2_agent$(EXEEXT): $(ssh2_agent_OBJECTS) $(ssh2_agent_DEPENDENCIES) 
+	@rm -f ssh2_agent$(EXEEXT)
+	$(LINK) $(ssh2_agent_LDFLAGS) $(ssh2_agent_OBJECTS) $(ssh2_agent_LDADD) $(LIBS)
+ssh2_exec$(EXEEXT): $(ssh2_exec_OBJECTS) $(ssh2_exec_DEPENDENCIES) 
+	@rm -f ssh2_exec$(EXEEXT)
+	$(LINK) $(ssh2_exec_LDFLAGS) $(ssh2_exec_OBJECTS) $(ssh2_exec_LDADD) $(LIBS)
+
+mostlyclean-compile:
+	-rm -f *.$(OBJEXT)
+
+distclean-compile:
+	-rm -f *.tab.c
+
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/direct_tcpip.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/scp.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/scp_nonblock.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/scp_write.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/scp_write_nonblock.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sftp.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sftp_RW_nonblock.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sftp_mkdir.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sftp_mkdir_nonblock.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sftp_nonblock.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sftp_write.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sftp_write_nonblock.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sftpdir.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sftpdir_nonblock.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ssh2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ssh2_agent.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ssh2_exec.Po@am__quote@
+
+.c.o:
+@am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(COMPILE) -c $<
+
+.c.obj:
+@am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ `$(CYGPATH_W) '$<'`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(COMPILE) -c `$(CYGPATH_W) '$<'`
+
+.c.lo:
+@am__fastdepCC_TRUE@	if $(LTCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Plo"; else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
+
 mostlyclean-libtool:
 	-rm -f *.lo
 
@@ -232,77 +447,6 @@ clean-libtool:
 distclean-libtool:
 	-rm -f libtool
 uninstall-info-am:
-
-# This directory's subdirectories are mostly independent; you can cd
-# into them and run `make' without going through this Makefile.
-# To change the values of `make' variables: instead of editing Makefiles,
-# (1) if the variable is set in `config.status', edit `config.status'
-#     (which will cause the Makefiles to be regenerated when you run `make');
-# (2) otherwise, pass the desired values on the `make' command line.
-$(RECURSIVE_TARGETS):
-	@failcom='exit 1'; \
-	for f in x $$MAKEFLAGS; do \
-	  case $$f in \
-	    *=* | --[!k]*);; \
-	    *k*) failcom='fail=yes';; \
-	  esac; \
-	done; \
-	dot_seen=no; \
-	target=`echo $@ | sed s/-recursive//`; \
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  echo "Making $$target in $$subdir"; \
-	  if test "$$subdir" = "."; then \
-	    dot_seen=yes; \
-	    local_target="$$target-am"; \
-	  else \
-	    local_target="$$target"; \
-	  fi; \
-	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
-	  || eval $$failcom; \
-	done; \
-	if test "$$dot_seen" = "no"; then \
-	  $(MAKE) $(AM_MAKEFLAGS) "$$target-am" || exit 1; \
-	fi; test -z "$$fail"
-
-mostlyclean-recursive clean-recursive distclean-recursive \
-maintainer-clean-recursive:
-	@failcom='exit 1'; \
-	for f in x $$MAKEFLAGS; do \
-	  case $$f in \
-	    *=* | --[!k]*);; \
-	    *k*) failcom='fail=yes';; \
-	  esac; \
-	done; \
-	dot_seen=no; \
-	case "$@" in \
-	  distclean-* | maintainer-clean-*) list='$(DIST_SUBDIRS)' ;; \
-	  *) list='$(SUBDIRS)' ;; \
-	esac; \
-	rev=''; for subdir in $$list; do \
-	  if test "$$subdir" = "."; then :; else \
-	    rev="$$subdir $$rev"; \
-	  fi; \
-	done; \
-	rev="$$rev ."; \
-	target=`echo $@ | sed s/-recursive//`; \
-	for subdir in $$rev; do \
-	  echo "Making $$target in $$subdir"; \
-	  if test "$$subdir" = "."; then \
-	    local_target="$$target-am"; \
-	  else \
-	    local_target="$$target"; \
-	  fi; \
-	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
-	  || eval $$failcom; \
-	done && test -z "$$fail"
-tags-recursive:
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  test "$$subdir" = . || (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) tags); \
-	done
-ctags-recursive:
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  test "$$subdir" = . || (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) ctags); \
-	done
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
@@ -314,24 +458,11 @@ ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	mkid -fID $$unique
 tags: TAGS
 
-TAGS: tags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
+TAGS:  $(HEADERS) $(SOURCES) libssh2_config.h.in $(TAGS_DEPENDENCIES) \
 		$(TAGS_FILES) $(LISP)
 	tags=; \
 	here=`pwd`; \
-	if ($(ETAGS) --etags-include --version) >/dev/null 2>&1; then \
-	  include_option=--etags-include; \
-	  empty_fix=.; \
-	else \
-	  include_option=--include; \
-	  empty_fix=; \
-	fi; \
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  if test "$$subdir" = .; then :; else \
-	    test ! -f $$subdir/TAGS || \
-	      tags="$$tags $$include_option=$$here/$$subdir/TAGS"; \
-	  fi; \
-	done; \
-	list='$(SOURCES) $(HEADERS)  $(LISP) $(TAGS_FILES)'; \
+	list='$(SOURCES) $(HEADERS) libssh2_config.h.in $(LISP) $(TAGS_FILES)'; \
 	unique=`for i in $$list; do \
 	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
 	  done | \
@@ -343,11 +474,11 @@ TAGS: tags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
 	    $$tags $$unique; \
 	fi
 ctags: CTAGS
-CTAGS: ctags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
+CTAGS:  $(HEADERS) $(SOURCES) libssh2_config.h.in $(TAGS_DEPENDENCIES) \
 		$(TAGS_FILES) $(LISP)
 	tags=; \
 	here=`pwd`; \
-	list='$(SOURCES) $(HEADERS)  $(LISP) $(TAGS_FILES)'; \
+	list='$(SOURCES) $(HEADERS) libssh2_config.h.in $(LISP) $(TAGS_FILES)'; \
 	unique=`for i in $$list; do \
 	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
 	  done | \
@@ -392,35 +523,19 @@ distdir: $(DISTFILES)
 	    || exit 1; \
 	  fi; \
 	done
-	list='$(DIST_SUBDIRS)'; for subdir in $$list; do \
-	  if test "$$subdir" = .; then :; else \
-	    test -d "$(distdir)/$$subdir" \
-	    || $(mkdir_p) "$(distdir)/$$subdir" \
-	    || exit 1; \
-	    distdir=`$(am__cd) $(distdir) && pwd`; \
-	    top_distdir=`$(am__cd) $(top_distdir) && pwd`; \
-	    (cd $$subdir && \
-	      $(MAKE) $(AM_MAKEFLAGS) \
-	        top_distdir="$$top_distdir" \
-	        distdir="$$distdir/$$subdir" \
-	        distdir) \
-	      || exit 1; \
-	  fi; \
-	done
 check-am: all-am
-check: check-recursive
-all-am: Makefile
-installdirs: installdirs-recursive
-installdirs-am:
-install: install-recursive
-install-exec: install-exec-recursive
-install-data: install-data-recursive
-uninstall: uninstall-recursive
+check: check-am
+all-am: Makefile $(PROGRAMS) libssh2_config.h
+installdirs:
+install: install-am
+install-exec: install-exec-am
+install-data: install-data-am
+uninstall: uninstall-am
 
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
 
-installcheck: installcheck-recursive
+installcheck: installcheck-am
 install-strip:
 	$(MAKE) $(AM_MAKEFLAGS) INSTALL_PROGRAM="$(INSTALL_STRIP_PROGRAM)" \
 	  install_sh_PROGRAM="$(INSTALL_STRIP_PROGRAM)" INSTALL_STRIP_FLAG=-s \
@@ -436,22 +551,24 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-clean: clean-recursive
+clean: clean-am
 
-clean-am: clean-generic clean-libtool mostlyclean-am
+clean-am: clean-generic clean-libtool clean-noinstPROGRAMS \
+	mostlyclean-am
 
-distclean: distclean-recursive
+distclean: distclean-am
+	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
-distclean-am: clean-am distclean-generic distclean-libtool \
-	distclean-tags
+distclean-am: clean-am distclean-compile distclean-generic \
+	distclean-hdr distclean-libtool distclean-tags
 
-dvi: dvi-recursive
+dvi: dvi-am
 
 dvi-am:
 
-html: html-recursive
+html: html-am
 
-info: info-recursive
+info: info-am
 
 info-am:
 
@@ -459,44 +576,43 @@ install-data-am:
 
 install-exec-am:
 
-install-info: install-info-recursive
+install-info: install-info-am
 
 install-man:
 
 installcheck-am:
 
-maintainer-clean: maintainer-clean-recursive
+maintainer-clean: maintainer-clean-am
+	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
-mostlyclean: mostlyclean-recursive
+mostlyclean: mostlyclean-am
 
-mostlyclean-am: mostlyclean-generic mostlyclean-libtool
+mostlyclean-am: mostlyclean-compile mostlyclean-generic \
+	mostlyclean-libtool
 
-pdf: pdf-recursive
+pdf: pdf-am
 
 pdf-am:
 
-ps: ps-recursive
+ps: ps-am
 
 ps-am:
 
 uninstall-am: uninstall-info-am
 
-uninstall-info: uninstall-info-recursive
-
-.PHONY: $(RECURSIVE_TARGETS) CTAGS GTAGS all all-am check check-am \
-	clean clean-generic clean-libtool clean-recursive ctags \
-	ctags-recursive distclean distclean-generic distclean-libtool \
-	distclean-recursive distclean-tags distdir dvi dvi-am html \
+.PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
+	clean-libtool clean-noinstPROGRAMS ctags distclean \
+	distclean-compile distclean-generic distclean-hdr \
+	distclean-libtool distclean-tags distdir dvi dvi-am html \
 	html-am info info-am install install-am install-data \
 	install-data-am install-exec install-exec-am install-info \
 	install-info-am install-man install-strip installcheck \
-	installcheck-am installdirs installdirs-am maintainer-clean \
-	maintainer-clean-generic maintainer-clean-recursive \
-	mostlyclean mostlyclean-generic mostlyclean-libtool \
-	mostlyclean-recursive pdf pdf-am ps ps-am tags tags-recursive \
-	uninstall uninstall-am uninstall-info-am
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	tags uninstall uninstall-am uninstall-info-am
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

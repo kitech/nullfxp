@@ -50,7 +50,8 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/autobuild.m4 \
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
-CONFIG_HEADER = $(top_builddir)/src/libssh2_config.h
+CONFIG_HEADER = $(top_builddir)/src/libssh2_config.h \
+	$(top_builddir)/example/libssh2_config.h
 CONFIG_CLEAN_FILES =
 SOURCES =
 DIST_SOURCES =
@@ -188,6 +189,13 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 EXTRA_DIST = template.3
 dist_man_MANS = \
+	libssh2_agent_connect.3 \
+	libssh2_agent_disconnect.3 \
+	libssh2_agent_free.3 \
+	libssh2_agent_get_identity.3 \
+	libssh2_agent_init.3 \
+	libssh2_agent_list_identities.3 \
+	libssh2_agent_userauth.3 \
 	libssh2_banner_set.3 \
 	libssh2_base64_decode.3 \
 	libssh2_channel_close.3 \
@@ -275,6 +283,7 @@ dist_man_MANS = \
 	libssh2_sftp_unlink_ex.3 \
 	libssh2_sftp_write.3 \
 	libssh2_trace.3 \
+	libssh2_trace_sethandler.3 \
 	libssh2_userauth_authenticated.3 \
 	libssh2_userauth_hostbased_fromfile_ex.3 \
 	libssh2_userauth_keyboard_interactive_ex.3 \
@@ -295,9 +304,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__confi
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  docs/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  docs/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign  docs/Makefile
+	  $(AUTOMAKE) --gnu  docs/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \

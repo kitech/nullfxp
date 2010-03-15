@@ -51,7 +51,8 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/autobuild.m4 \
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
-CONFIG_HEADER = $(top_builddir)/src/libssh2_config.h
+CONFIG_HEADER = $(top_builddir)/src/libssh2_config.h \
+	$(top_builddir)/example/libssh2_config.h
 CONFIG_CLEAN_FILES =
 am__EXEEXT_1 = simple$(EXEEXT)
 PROGRAMS = $(noinst_PROGRAMS)
@@ -64,7 +65,7 @@ am__ssh2_SOURCES_DIST = ssh2.c
 ssh2_OBJECTS = $(am_ssh2_OBJECTS)
 ssh2_LDADD = $(LDADD)
 ssh2_DEPENDENCIES = ../src/libssh2.la
-DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/src
+DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/src -I$(top_builddir)/example
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
@@ -227,9 +228,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__confi
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  tests/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  tests/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign  tests/Makefile
+	  $(AUTOMAKE) --gnu  tests/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
