@@ -42,15 +42,13 @@
 Transportor::Transportor(QObject *parent)
     : QThread(parent), user_canceled(false)
 {
-    this->file_exist_over_write_method = OW_UNKNOWN;
+    this->file_conflict_resolve_method = OW_UNKNOWN;
     this->sconn = 0;
     this->dconn = 0;
     this->src_ssh2_sess = 0;
     this->src_ssh2_sftp = 0;
-    // this->src_ssh2_sock = 0;
     this->dest_ssh2_sess = 0;
     this->dest_ssh2_sftp = 0;
-    /// this->dest_ssh2_sock = 0;
 }
 
 Transportor::~Transportor()
@@ -227,11 +225,9 @@ int Transportor::run_FILE_to_SFTP()
     
     this->dest_ssh2_sess = 0;
     this->dest_ssh2_sftp = 0;
-    // this->dest_ssh2_sock = 0;
         
     this->src_ssh2_sess = 0;
     this->src_ssh2_sftp = 0;
-    // this->src_ssh2_sock = 0;
     
     do {
         src_atom_pkg = this->transfer_ready_queue.front().first;
@@ -265,28 +261,6 @@ int Transportor::run_FILE_to_SFTP()
         //连接到目录主机：
         qDebug()<<"connecting to dest ssh host:"<<dest_atom_pkg.username
                 <<":"<<dest_atom_pkg.password<<"@"<<dest_atom_pkg.host <<":"<<dest_atom_pkg.port;
-        // if (this->dest_ssh2_sess == 0 || this->dest_ssh2_sftp == 0) {
-        //     emit  transfer_log("Connecting to destination host ...");
-        //     QString tmp_passwd = dest_atom_pkg.password;
-        //     rhct = new RemoteHostConnectThread(dest_atom_pkg.username, tmp_passwd,
-        //                                        dest_atom_pkg.host, dest_atom_pkg.port.toInt(), dest_atom_pkg.pubkey);
-        //     rhct->run();
-        //     //TODO get status code and then ...
-        //     rv = rhct->get_connect_status();
-        //     if (rv != RemoteHostConnectThread::CONN_OK) {
-        //         qDebug()<<"Connect to Host Error: "<<rv<<":"<<rhct->get_status_desc(rv);
-        //         emit transfer_log("Connect Error: " + rhct->get_status_desc(rv));
-        //         this->error_code = transfer_ret = 6;
-        //         this->errorString = rhct->get_status_desc(rv);
-        //         break;
-        //     }
-        //     //get connect return code end
-        //     this->dest_ssh2_sess = (LIBSSH2_SESSION*)rhct->get_ssh2_sess();
-        //     this->dest_ssh2_sock = rhct->get_ssh2_sock();
-        //     this->dest_ssh2_sftp = libssh2_sftp_init(this->dest_ssh2_sess);
-        //     delete rhct ; rhct = 0 ;
-        //     emit  transfer_log("Connect done.");
-        // }
         // switch to SSHConnection
         if (this->dconn == 0) {
             emit  transfer_log("Connecting to destination ssh host ...");
@@ -311,7 +285,7 @@ int Transportor::run_FILE_to_SFTP()
         if (QFileInfo(this->current_src_file_name).isFile()
             && remote_is_dir(this->dest_ssh2_sftp , this->current_dest_file_name)) {
             QString remote_full_path = this->current_dest_file_name + "/"
-                + this->current_src_file_name.split ( "/" ).at ( this->current_src_file_name.split ( "/" ).count()-1 ) ;
+                + this->current_src_file_name.split("/").at(this->current_src_file_name.split("/").count() - 1);
             qDebug()<<"local file: "<<this->current_src_file_name
                     <<"remote file:"<<this->current_dest_file_name
                     <<"remote full file path: "<<remote_full_path;
@@ -374,14 +348,6 @@ int Transportor::run_FILE_to_SFTP()
         libssh2_session_free(this->src_ssh2_sess);
         this->src_ssh2_sess = 0 ;
     }
-//     if (this->src_ssh2_sock > 0) {
-// #ifdef WIN32
-//         ::closesocket(this->src_ssh2_sock);
-// #else  
-//         ::close(this->src_ssh2_sock);
-// #endif
-//         this->src_ssh2_sock = -1;
-//     }
     if (this->dest_ssh2_sftp != 0) {
         libssh2_sftp_shutdown(this->dest_ssh2_sftp);
         this->dest_ssh2_sftp = 0 ;
@@ -390,14 +356,6 @@ int Transportor::run_FILE_to_SFTP()
         libssh2_session_free(this->dest_ssh2_sess);
         this->dest_ssh2_sess = 0 ;
     }
-//     if (this->dest_ssh2_sock > 0) {
-// #ifdef WIN32
-//         ::closesocket(this->dest_ssh2_sock);
-// #else  
-//         ::close(this->dest_ssh2_sock);
-// #endif
-//         this->dest_ssh2_sock = -1;
-//     }
     if (this->user_canceled == true) {
         this->error_code = 3;
     }
@@ -423,10 +381,10 @@ int Transportor::run_FILE_to_SFTP(QString srcFile, QString destFile)
                             &ssh2_sftp_attrib);
     if (ret == 0) {
         if (this->user_canceled) return 1;
-        if (this->file_exist_over_write_method == OW_UNKNOWN 
-           || this->file_exist_over_write_method == OW_YES
-           || this->file_exist_over_write_method == OW_RESUME
-           || this->file_exist_over_write_method == OW_NO) {
+        if (this->file_conflict_resolve_method == OW_UNKNOWN 
+           || this->file_conflict_resolve_method == OW_YES
+           || this->file_conflict_resolve_method == OW_RESUME
+           || this->file_conflict_resolve_method == OW_NO) {
             //TODO 通知用户远程文件已经存在，再做处理。
             QString local_file_size, local_file_date;
             QString remote_file_size, remote_file_date;
@@ -441,16 +399,29 @@ int Transportor::run_FILE_to_SFTP(QString srcFile, QString destFile)
                                         destFile, remote_file_size, remote_file_date);
             this->wait_user_response();
         }
-        if (this->user_canceled || this->file_exist_over_write_method == OW_CANCEL) return 1;
-        if (this->file_exist_over_write_method == OW_YES) {}//go on
-        if (this->file_exist_over_write_method == OW_NO) return 1;
-        if (this->file_exist_over_write_method == OW_NO_ALL) {
+        if (this->user_canceled || this->file_conflict_resolve_method == OW_CANCEL) return 1;
+        // if (this->file_conflict_resolve_method == OW_YES) {}//go on
+        if (this->file_conflict_resolve_method == OW_NO) return 1;
+        if (this->file_conflict_resolve_method == OW_NO_ALL) {
             this->user_canceled = true;
             return 1;
         }
-        qDebug()<<"Remote file exists, cover it.";
+        // resume uploding
+        if (this->file_conflict_resolve_method == OW_RESUME) {
+            qDebug()<<"Remote file exists, prepare for resume it.";
+        } else if (this->file_conflict_resolve_method == OW_YES) {
+            qDebug()<<"Remote file exists, cover it.";
+        }
     } else {
         //文件不存在
+    }
+
+    // resume prepare
+    int openFlag = LIBSSH2_FXF_READ|LIBSSH2_FXF_WRITE|LIBSSH2_FXF_CREAT|LIBSSH2_FXF_TRUNC;
+    quint64 offset = 0;
+    if (this->file_conflict_resolve_method == OW_RESUME) {
+        openFlag = LIBSSH2_FXF_READ|LIBSSH2_FXF_WRITE;
+        offset = ssh2_sftp_attrib.filesize;
     }
 
     QFileInfo fi = QFileInfo(srcFile);
@@ -458,7 +429,8 @@ int Transportor::run_FILE_to_SFTP(QString srcFile, QString destFile)
     //TODO 检查文件可写属性
     sftp_handle = libssh2_sftp_open(this->dest_ssh2_sftp,
                                     gOpt->remote_codec->fromUnicode(destFile),
-                                    LIBSSH2_FXF_READ|LIBSSH2_FXF_WRITE|LIBSSH2_FXF_CREAT|LIBSSH2_FXF_TRUNC, 
+                                    // LIBSSH2_FXF_READ|LIBSSH2_FXF_WRITE|LIBSSH2_FXF_CREAT|LIBSSH2_FXF_TRUNC, 
+                                    openFlag,
                                     sfi.mode());
     if (sftp_handle == NULL) {
         //TODO 错误消息通知用户。
@@ -472,24 +444,34 @@ int Transportor::run_FILE_to_SFTP(QString srcFile, QString destFile)
         return -1;
     }
     
-    memset(&ssh2_sftp_attrib,0,sizeof(ssh2_sftp_attrib));
+    // memset(&ssh2_sftp_attrib, 0, sizeof(ssh2_sftp_attrib));
     QFileInfo local_fi(srcFile);
     file_size = local_fi.size();
     qDebug()<<"local file size:" << file_size ;
     emit this->transfer_got_file_size(file_size);
     
     QFile q_file(srcFile);
-    if (!q_file.open( QIODevice::ReadOnly)) {
+    if (!q_file.open(QIODevice::ReadOnly)) {
         //TODO 错误消息通知用户。
         qDebug()<<"open local file error:"<< q_file.errorString()  ;
         //printf("open local file error:%s\n", strerror( errno ) );        
     } else {
+        if (this->file_conflict_resolve_method == OW_RESUME) {
+            libssh2_sftp_seek64(sftp_handle, offset);
+            q_file.seek(offset);
+            qDebug()<<"Seeking to offset: "<<offset;
+            wlen = offset;
+            tran_len += wlen;
+            pcnt = 100.0 * ((double)tran_len) / (double)file_size;
+            emit this->transfer_percent_changed(pcnt, tran_len, wlen);
+        }
+
         //read local file and then write to remote file
         while (!q_file.atEnd()) {
             rlen = q_file.read(buff, sizeof(buff));
             if (rlen <= 0) {
-                //qDebug()<<"errno: "<<errno<<" err msg:"<< strerror( errno) << ftell( local_handle) ;
-                break ;
+                //qDebug()<<"errno: "<<errno<<" err msg:"<< strerror( errno) << ftell( local_handle);
+                break;
             }
             wlen = libssh2_sftp_write(sftp_handle, buff, rlen);
             Q_ASSERT(wlen == rlen);
@@ -736,10 +718,10 @@ int Transportor::run_SFTP_to_FILE(QString srcFile, QString destFile)
     if (QFile(destFile).exists()) {
         if (this->user_canceled) return 1;
         if (this->user_canceled) return 1;
-        if (this->file_exist_over_write_method == OW_UNKNOWN
-           || this->file_exist_over_write_method == OW_YES
-           || this->file_exist_over_write_method == OW_RESUME
-           || this->file_exist_over_write_method == OW_NO) {
+        if (this->file_conflict_resolve_method == OW_UNKNOWN
+           || this->file_conflict_resolve_method == OW_YES
+           || this->file_conflict_resolve_method == OW_RESUME
+           || this->file_conflict_resolve_method == OW_NO) {
             //TODO 通知用户远程文件已经存在，再做处理。                                                                          
             QString local_file_size, local_file_date;
             QString remote_file_size, remote_file_date;
@@ -755,10 +737,10 @@ int Transportor::run_SFTP_to_FILE(QString srcFile, QString destFile)
             this->wait_user_response();
         }
 
-        if (this->user_canceled || this->file_exist_over_write_method== OW_CANCEL) return 1;
-        if (this->file_exist_over_write_method == OW_YES){}   //go on 
-        if (this->file_exist_over_write_method == OW_NO) return 1;
-        if (this->file_exist_over_write_method == OW_NO_ALL) {
+        if (this->user_canceled || this->file_conflict_resolve_method== OW_CANCEL) return 1;
+        if (this->file_conflict_resolve_method == OW_YES){}   //go on 
+        if (this->file_conflict_resolve_method == OW_NO) return 1;
+        if (this->file_conflict_resolve_method == OW_NO_ALL) {
             this->user_canceled = true;
             return 1;
         }
@@ -2315,10 +2297,10 @@ int Transportor::do_download(QString remote_path, QString local_path, int pflag)
     if (QFile(local_path).exists()) {
         if (this->user_canceled) return 1;
         if (this->user_canceled) return 1;
-        if (this->file_exist_over_write_method == OW_UNKNOWN
-           || this->file_exist_over_write_method == OW_YES
-           || this->file_exist_over_write_method == OW_RESUME
-           || this->file_exist_over_write_method == OW_NO) {
+        if (this->file_conflict_resolve_method == OW_UNKNOWN
+           || this->file_conflict_resolve_method == OW_YES
+           || this->file_conflict_resolve_method == OW_RESUME
+           || this->file_conflict_resolve_method == OW_NO) {
             //TODO 通知用户远程文件已经存在，再做处理。                                                                          
             QString local_file_size, local_file_date;
             QString remote_file_size, remote_file_date;
@@ -2334,10 +2316,10 @@ int Transportor::do_download(QString remote_path, QString local_path, int pflag)
             this->wait_user_response();
         }
 
-        if (this->user_canceled || this->file_exist_over_write_method== OW_CANCEL) return 1;
-        if (this->file_exist_over_write_method == OW_YES){}   //go on 
-        if (this->file_exist_over_write_method == OW_NO) return 1;
-        if (this->file_exist_over_write_method == OW_NO_ALL) {
+        if (this->user_canceled || this->file_conflict_resolve_method== OW_CANCEL) return 1;
+        if (this->file_conflict_resolve_method == OW_YES){}   //go on 
+        if (this->file_conflict_resolve_method == OW_NO) return 1;
+        if (this->file_conflict_resolve_method == OW_NO_ALL) {
             this->user_canceled = true;
             return 1;
         }
@@ -2395,10 +2377,10 @@ int Transportor::do_upload(QString local_path, QString remote_path, int pflag)
                             &ssh2_sftp_attrib);
     if (ret == 0) {
         if (this->user_canceled) return 1;
-        if (this->file_exist_over_write_method == OW_UNKNOWN 
-           || this->file_exist_over_write_method == OW_YES
-           || this->file_exist_over_write_method == OW_RESUME
-           || this->file_exist_over_write_method == OW_NO) {
+        if (this->file_conflict_resolve_method == OW_UNKNOWN 
+           || this->file_conflict_resolve_method == OW_YES
+           || this->file_conflict_resolve_method == OW_RESUME
+           || this->file_conflict_resolve_method == OW_NO) {
             //TODO 通知用户远程文件已经存在，再做处理。
             QString local_file_size, local_file_date;
             QString remote_file_size, remote_file_date;
@@ -2413,10 +2395,10 @@ int Transportor::do_upload(QString local_path, QString remote_path, int pflag)
                                         remote_path, remote_file_size, remote_file_date);
             this->wait_user_response();
         }
-        if (this->user_canceled || this->file_exist_over_write_method == OW_CANCEL) return 1;
-        if (this->file_exist_over_write_method == OW_YES) {}//go on
-        if (this->file_exist_over_write_method == OW_NO) return 1;
-        if (this->file_exist_over_write_method == OW_NO_ALL) {
+        if (this->user_canceled || this->file_conflict_resolve_method == OW_CANCEL) return 1;
+        if (this->file_conflict_resolve_method == OW_YES) {}//go on
+        if (this->file_conflict_resolve_method == OW_NO) return 1;
+        if (this->file_conflict_resolve_method == OW_NO_ALL) {
             this->user_canceled = true;
             return 1;
         }
@@ -2592,7 +2574,7 @@ void Transportor::wait_user_response()
 void Transportor::user_response_result(int result)
 {
     if (result >= OW_CANCEL && result <= OW_NO_ALL) {
-        this->file_exist_over_write_method = result;
+        this->file_conflict_resolve_method = result;
     } else {
         //未知处理方式的情况下，不覆盖原有文件，所以就取消传输任务
         this->set_user_cancel(true);

@@ -124,14 +124,12 @@ signals:
 protected:
     LIBSSH2_SESSION *dest_ssh2_sess;
     LIBSSH2_SFTP *dest_ssh2_sftp;
-    // int dest_ssh2_sock;
         
     LIBSSH2_SESSION *src_ssh2_sess;
     LIBSSH2_SFTP *src_ssh2_sftp;
-    // int src_ssh2_sock;
         
     bool user_canceled;
-    int file_exist_over_write_method;
+    unsigned char file_conflict_resolve_method;
         
     TaskPackage src_pkg;
     TaskPackage dest_pkg;
