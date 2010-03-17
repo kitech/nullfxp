@@ -51,7 +51,8 @@ FORMS += nullfxp.ui \
  ui/hostlistdialog.ui \
  ui/encryptiondetaildialog.ui \
  ui/fileexistaskdialog.ui \
- ui/updatedialog.ui
+ ui/updatedialog.ui \
+ ui/systeminfodialog.ui
 
 SOURCES += main.cpp \
  nullfxp.cpp \
