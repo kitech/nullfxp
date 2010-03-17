@@ -23,6 +23,7 @@
 #include "fileproperties.h"
 #include "encryptiondetailfocuslabel.h"
 #include "encryptiondetaildialog.h"
+#include "systeminfodialog.h"
 
 #ifndef _MSC_VER
 #warning "wrapper lower class, drop this include"
@@ -989,15 +990,17 @@ void SFTPView::host_info_focus_label_double_clicked()
     
     qDebug()<<"Host Info: "<<uname_output;
     hi_label->setToolTip(uname_output);
-    
-    QDialog *dlg = new QDialog(this);
-    dlg->setFixedWidth(400);
-    dlg->setFixedHeight(100);
-    QLabel *label = new QLabel("", dlg);
-    label->setWordWrap(true);
-    label->setText(uname_output);
+
+    SystemInfoDialog *sysInfoDlg = new SystemInfoDialog(this);    
+    // QDialog *dlg = new QDialog(this);
+    // sysInfoDlg->setFixedWidth(400);
+    // sysInfoDlg->setFixedHeight(100);
+    // QLabel *label = new QLabel("", dlg);
+    // label->setWordWrap(true);
+    // label->setText(uname_output);
     // dlg->layout()->addWidget(label);
-    dlg->exec();
-    delete dlg;
+    sysInfoDlg->setSystemInfo(uname_output);
+    sysInfoDlg->exec();
+    delete sysInfoDlg;
 }
 

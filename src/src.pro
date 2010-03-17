@@ -12,7 +12,7 @@ CONFIG += qt thread console warn_on ordered
 TARGET = nullfxp
 DESTDIR = ../bin
 
-VERSION=2.0.1.77  # using in nullfxp-version.h
+VERSION=2.0.1.78  # using in nullfxp-version.h
 
 include(../install.pri)
 
@@ -104,7 +104,8 @@ SOURCES += main.cpp \
  ftpdirretriver.cpp \
  sshdirretriver.cpp \
  libftp/libftp.cpp \
- updatedialog.cpp
+ updatedialog.cpp \
+ systeminfodialog.cpp
 
 HEADERS += nullfxp.h \
  localview.h \
@@ -150,7 +151,8 @@ HEADERS += nullfxp.h \
  ftpdirretriver.h \
  sshdirretriver.h \
  libftp/libftp.h \
- updatedialog.h
+ updatedialog.h \
+ systeminfodialog.h
 
 DISTFILES += ../CMakeLists.txt \
           CMakeLists.txt \
