@@ -565,20 +565,6 @@ int Transportor::run_SFTP_to_FILE()
         //连接到目录主机：
         qDebug()<<"connecting to src ssh host:"<<src_atom_pkg.username<<":"<<src_atom_pkg.password
                 <<"@"<<src_atom_pkg.host <<":"<<src_atom_pkg.port ;
-        // if (this->src_ssh2_sess == 0 || this->src_ssh2_sftp == 0) {
-        //     emit  transfer_log("Connecting to source host ...");
-        //     QString tmp_passwd = src_atom_pkg.password;
-
-        //     rhct = new RemoteHostConnectThread(src_atom_pkg.username, tmp_passwd, src_atom_pkg.host, 
-        //                                        src_atom_pkg.port.toInt(), src_atom_pkg.pubkey);
-        //     rhct->run();
-        //     //TODO get status code and then ...
-        //     this->src_ssh2_sess = (LIBSSH2_SESSION*)rhct->get_ssh2_sess();
-        //     // this->src_ssh2_sock = rhct->get_ssh2_sock();
-        //     this->src_ssh2_sftp = libssh2_sftp_init(this->src_ssh2_sess);
-        //     delete rhct ; rhct = 0 ;
-        //     emit  transfer_log("Connect done.");
-        // }
         if (this->sconn == 0) {
             emit  transfer_log("Connecting to source ssh host ...");
             this->sconn = new SSHConnection();
@@ -660,15 +646,7 @@ int Transportor::run_SFTP_to_FILE()
         libssh2_session_free(this->src_ssh2_sess);
         this->src_ssh2_sess = 0 ;
     }
-//     if (this->src_ssh2_sock > 0) {
-// #ifdef WIN32
-//         ::closesocket(this->src_ssh2_sock);
-// #else  
-//         ::close(this->src_ssh2_sock);
-// #endif
-//         this->src_ssh2_sock = -1;
-//     }
-    if (this->dest_ssh2_sftp != 0) {
+   if (this->dest_ssh2_sftp != 0) {
         libssh2_sftp_shutdown(this->dest_ssh2_sftp);
         this->dest_ssh2_sftp = 0 ;
     }
@@ -676,14 +654,6 @@ int Transportor::run_SFTP_to_FILE()
         libssh2_session_free(this->dest_ssh2_sess);
         this->dest_ssh2_sess = 0 ;
     }
-//     if (this->dest_ssh2_sock > 0) {
-// #ifdef WIN32
-//         ::closesocket(this->dest_ssh2_sock);
-// #else  
-//         ::close(this->dest_ssh2_sock);
-// #endif
-//         this->dest_ssh2_sock = -1;
-//     }
     if (this->user_canceled == true) {
         this->error_code = 3;
     }
@@ -738,19 +708,46 @@ int Transportor::run_SFTP_to_FILE(QString srcFile, QString destFile)
         }
 
         if (this->user_canceled || this->file_conflict_resolve_method== OW_CANCEL) return 1;
-        if (this->file_conflict_resolve_method == OW_YES){}   //go on 
+        // if (this->file_conflict_resolve_method == OW_YES){}   //go on 
         if (this->file_conflict_resolve_method == OW_NO) return 1;
         if (this->file_conflict_resolve_method == OW_NO_ALL) {
             this->user_canceled = true;
             return 1;
         }
+
+        // resume uploding
+        if (this->file_conflict_resolve_method == OW_RESUME) {
+            qDebug()<<"Local file exists, prepare for resume it.";
+        } else if (this->file_conflict_resolve_method == OW_YES) {
+            qDebug()<<"Local file exists, cover it.";
+        }
+    }
+
+    // resume prepare
+    QFlags<QIODevice::OpenModeFlag> openFlag = QIODevice::ReadWrite | QIODevice::Truncate;
+    quint64 offset = 0;
+    if (this->file_conflict_resolve_method == OW_RESUME) {
+        openFlag = QIODevice::ReadWrite;
+        offset = QFile(destFile).size();
     }
 
     QFile q_file(destFile);
-    if (!q_file.open(QIODevice::ReadWrite | QIODevice::Truncate)) {
+    // if (!q_file.open(QIODevice::ReadWrite | QIODevice::Truncate)) {
+    if (!q_file.open(openFlag)) {
         //TODO 错误消息通知用户。
         qDebug()<<"open local file error:"<<q_file.errorString();        
     } else {
+
+        if (this->file_conflict_resolve_method == OW_RESUME) {
+            libssh2_sftp_seek64(sftp_handle, offset);
+            q_file.seek(offset);
+            qDebug()<<"Seeking to offset: "<<offset;
+            wlen = offset;
+            tran_len += wlen;
+            pcnt = 100.0 * ((double)tran_len) / (double)file_size;
+            emit this->transfer_percent_changed(pcnt, tran_len, wlen);
+        }
+
         //read remote file  and then write to local file
         while ((rlen = libssh2_sftp_read(sftp_handle, buff, sizeof(buff))) > 0) {
             wlen = q_file.write(buff, rlen);

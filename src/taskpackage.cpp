@@ -99,7 +99,7 @@ QString TaskPackage::getProtocolNameById(int protocol_id)
     default:
         Q_ASSERT(1 == 2);
     };
-    return name;
+    return name.toUpper(); // TODO if no problem, change above to upper plain text
 }
 // 成转换mimedata中可用的二进制流
 QByteArray TaskPackage::toRawData()

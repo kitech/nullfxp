@@ -3,6 +3,9 @@ NullFXP is a cross-platform sftp/ftp/secure ftp client with GUI, based on Qt tec
 Homepage:
         http://www.qtchina.net
 
+Requirement:
+1. >= Qt 4.4.0
+2. OpenSSL
 
 代码格式： emacs
 (setq c-default-style "bsd"  c-basic-offset 4)
