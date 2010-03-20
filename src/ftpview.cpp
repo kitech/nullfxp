@@ -632,21 +632,35 @@ void FTPView::rm_file_or_directory_recursively()
         QMessageBox::critical(this, tr("Waring..."), tr("No item selected"));
         return ;
     }
-    //TODO 处理多选的情况
-    QModelIndex midx = mil.at(0);
-    QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) 
-        ? this->remote_dir_sort_filter_model_ex->mapToSource(midx)
-        : this->remote_dir_sort_filter_model->mapToSource(midx);
-    QString hintMsg = this->remote_dir_sort_filter_model->isDir(midx) 
-        ? QString(tr("Are you sure remove this directory and it's subnodes?\n    %1/"))
-        .arg(this->remote_dir_sort_filter_model->filePath(midx))
-        : QString(tr("Are you sure remove this file?\n    %1"))
-        .arg(this->remote_dir_sort_filter_model->filePath(midx));
-    directory_tree_item *dti = (directory_tree_item*) aim_midx.internalPointer();
-    if (QMessageBox::warning(this, tr("Warning:"), 
-                            hintMsg,
-                            QMessageBox::Yes, QMessageBox::Cancel) == QMessageBox::Yes) {
-        QModelIndex parent_model =  aim_midx.parent() ;
+
+    // 支持多选情况
+    // TODO magic number
+    bool firstWarning = true;
+    for (int i = mil.count() - 1 - 3; i >= 0; i -= 4) {
+        QModelIndex midx = mil.at(i);
+        QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) 
+            ? this->remote_dir_sort_filter_model_ex->mapToSource(midx)
+            : this->remote_dir_sort_filter_model->mapToSource(midx);
+        directory_tree_item *dti = (directory_tree_item*) aim_midx.internalPointer();
+        if (firstWarning) { // 只有第一次提示用户操作，其他的不管
+            QString hintMsg;
+            if (mil.count()/4 > 1) {
+                hintMsg = QString(tr("Are you sure remove all of these files/directories?"));
+            } else {
+                hintMsg = this->remote_dir_sort_filter_model->isDir(midx) 
+                    ? QString(tr("Are you sure remove this directory and it's subnodes?\n    %1/"))
+                    .arg(this->remote_dir_sort_filter_model->filePath(midx))
+                    : QString(tr("Are you sure remove this file?\n    %1"))
+                    .arg(this->remote_dir_sort_filter_model->filePath(midx));
+            }
+            if (QMessageBox::warning(this, tr("Warning:"), hintMsg,
+                                     QMessageBox::Yes, QMessageBox::Cancel) == QMessageBox::Yes) {
+            } else {
+                break;
+            }
+            firstWarning = false;
+        }
+        QModelIndex parent_model =  aim_midx.parent();
         directory_tree_item *parent_item = (directory_tree_item*)parent_model.internalPointer();
         
         this->remote_dir_model->slot_execute_command(parent_item, parent_model.internalPointer(),
