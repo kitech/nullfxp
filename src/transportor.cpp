@@ -142,7 +142,7 @@ int Transportor::fxp_do_ls_dir(LIBSSH2_SFTP *ssh2_sftp, QString path,
         return fileinfos.size();
     }
     
-    return 0 ; 
+    return 0; 
 }
 int Transportor::isFTPDir(Connection *conn, QString path)
 {
@@ -338,7 +338,7 @@ int Transportor::run_FILE_to_SFTP()
         this->transfer_done_queue.push_back(QPair<TaskPackage, TaskPackage>(src_atom_pkg, dest_atom_pkg));
     } while (this->transfer_ready_queue.size() > 0 && this->user_canceled == false);
 
-    qDebug()<<"transfer_ret :"<< transfer_ret<<" ssh2 sftp shutdown:"<< this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
+    qDebug()<<"transfer_ret :"<<transfer_ret<<"ssh2 sftp shutdown:"<<this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
     //TODO 选择性关闭 ssh2 会话，有可能是 src  ,也有可能是dest 
     if (this->src_ssh2_sftp != 0) {
         libssh2_sftp_shutdown(this->src_ssh2_sftp);
@@ -364,7 +364,7 @@ int Transportor::run_FILE_to_SFTP()
 int Transportor::run_FILE_to_SFTP(QString srcFile, QString destFile)
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
-    qDebug()<<"remote_path = "<<destFile<<" , local_path = "<<srcFile;
+    qDebug()<<"remote_path ="<<destFile<<", local_path ="<<srcFile;
 
     int pcnt = 0;
     int rlen, wlen;
@@ -447,7 +447,7 @@ int Transportor::run_FILE_to_SFTP(QString srcFile, QString destFile)
     // memset(&ssh2_sftp_attrib, 0, sizeof(ssh2_sftp_attrib));
     QFileInfo local_fi(srcFile);
     file_size = local_fi.size();
-    qDebug()<<"local file size:" << file_size ;
+    qDebug()<<"local file size:"<<file_size;
     emit this->transfer_got_file_size(file_size);
     
     QFile q_file(srcFile);
@@ -474,9 +474,21 @@ int Transportor::run_FILE_to_SFTP(QString srcFile, QString destFile)
                 break;
             }
             wlen = libssh2_sftp_write(sftp_handle, buff, rlen);
+            if (wlen == LIBSSH2_ERROR_ALLOC) {
+                qDebug()<<"LIBSSH2_ERROR_ALLOC";
+            } else if (wlen == LIBSSH2_ERROR_SOCKET_SEND) {
+                qDebug()<<"LIBSSH2_ERROR_SOCKET_SEND";
+            } else if (wlen == LIBSSH2_ERROR_SOCKET_TIMEOUT) {
+                qDebug()<<"LIBSSH2_ERROR_SOCKET_TIMEOUT";
+            } else if (wlen == LIBSSH2_ERROR_SFTP_PROTOCOL) { // reach quota, trigger this error
+                qDebug()<<"LIBSSH2_ERROR_SFTP_PROTOCOL"<<"SFTP Protocol Error";
+                this->error_code = 4;
+                this->errorString = QString(tr("Reach server quota limitation."));
+                goto sftp_error;
+            }
             Q_ASSERT(wlen == rlen);
             if (wlen < rlen) {
-                q_debug()<<"write to server less then need write bytes";
+                q_debug()<<"Write to server less then need write bytes";
                 // TODO 这种情况应该尝试再次写入剩余的数据
             }
             tran_len += wlen ;
@@ -497,10 +509,15 @@ int Transportor::run_FILE_to_SFTP(QString srcFile, QString destFile)
         }
         q_file.close();
     }
-    qDebug()<<"out cycle, close sftp...";
+    qDebug()<<"Out transport cycle, closing sftp handler...";
     libssh2_sftp_close(sftp_handle);
     
     return 0;
+
+ sftp_error:
+    q_file.close();
+    libssh2_sftp_close(sftp_handle);
+    return 1;
 }
 
 // similar to current do_download method
@@ -532,7 +549,6 @@ int Transportor::run_SFTP_to_FILE()
         
     this->src_ssh2_sess = 0;
     this->src_ssh2_sftp = 0;
-    // this->src_ssh2_sock = 0;
     
     do {
         src_atom_pkg = this->transfer_ready_queue.front().first;
@@ -798,11 +814,9 @@ int Transportor::run_SFTP_to_SFTP()
     
     this->dest_ssh2_sess = 0 ;
     this->dest_ssh2_sftp = 0 ;
-    // this->dest_ssh2_sock = 0 ;
         
     this->src_ssh2_sess = 0 ;
     this->src_ssh2_sftp = 0 ;
-    // this->src_ssh2_sock = 0 ;
     
     do {
         src_atom_pkg = this->transfer_ready_queue.front().first;
@@ -832,34 +846,6 @@ int Transportor::run_SFTP_to_SFTP()
        
         emit this->transfer_new_file_started(this->current_src_file_name);
         //处理nrsftp协议
-        // if (this->src_ssh2_sess == 0 || this->src_ssh2_sftp == 0) {
-        //     emit  transfer_log("Connecting to destionation host ...");
-        //     QString tmp_passwd = src_atom_pkg.password;
-
-        //     rhct = new RemoteHostConnectThread(src_atom_pkg.username, tmp_passwd, src_atom_pkg.host, 
-        //                                        src_atom_pkg.port.toInt(), src_atom_pkg.pubkey);
-        //     rhct->run();
-        //     //TODO get status code and then ...
-        //     this->src_ssh2_sess = (LIBSSH2_SESSION*)rhct->get_ssh2_sess();
-        //     // this->src_ssh2_sock = rhct->get_ssh2_sock();
-        //     this->src_ssh2_sftp = libssh2_sftp_init(this->src_ssh2_sess);
-        //     delete rhct ; rhct = 0 ;
-        //     emit  transfer_log("Connect done.");
-        // }
-        // if (this->dest_ssh2_sess == 0 || this->dest_ssh2_sftp == 0 ) {
-        //     emit  transfer_log("Connecting to source host ...");
-        //     QString tmp_passwd = dest_atom_pkg.password;
-
-        //     rhct = new RemoteHostConnectThread(dest_atom_pkg.username, tmp_passwd, dest_atom_pkg.host,
-        //                                        dest_atom_pkg.port.toInt(), dest_atom_pkg.pubkey);
-        //     rhct->run();
-        //     //TODO get status code and then ...
-        //     this->dest_ssh2_sess = (LIBSSH2_SESSION*)rhct->get_ssh2_sess();
-        //     // this->dest_ssh2_sock = rhct->get_ssh2_sock();
-        //     this->dest_ssh2_sftp = libssh2_sftp_init(this->dest_ssh2_sess);
-        //     delete rhct ; rhct = 0 ;
-        //     emit  transfer_log("Connect done.");
-        // }
 
         if (this->sconn == 0) {
             emit  transfer_log("Connecting to source ssh host ...");
@@ -954,14 +940,6 @@ int Transportor::run_SFTP_to_SFTP()
         libssh2_session_free(this->src_ssh2_sess);
         this->src_ssh2_sess = 0 ;
     }
-//     if (this->src_ssh2_sock > 0) {
-// #ifdef WIN32
-//         ::closesocket(this->src_ssh2_sock);
-// #else  
-//         ::close(this->src_ssh2_sock);
-// #endif
-//         this->src_ssh2_sock = -1;
-//     }
     if (this->dest_ssh2_sftp != 0) {
         libssh2_sftp_shutdown(this->dest_ssh2_sftp);
         this->dest_ssh2_sftp = 0 ;
@@ -970,14 +948,6 @@ int Transportor::run_SFTP_to_SFTP()
         libssh2_session_free(this->dest_ssh2_sess);
         this->dest_ssh2_sess = 0 ;
     }
-//     if (this->dest_ssh2_sock > 0) {
-// #ifdef WIN32
-//         ::closesocket(this->dest_ssh2_sock);
-// #else  
-//         ::close(this->dest_ssh2_sock);
-// #endif
-//         this->dest_ssh2_sock = -1;
-//     }
     if (this->user_canceled == true) {
         this->error_code = 3;
     }
@@ -1032,6 +1002,20 @@ int Transportor::run_SFTP_to_SFTP(QString srcFile, QString destFile)
             break;
         }
         wlen = libssh2_sftp_write(dest_sftp_handle, buff, rlen);
+        if (wlen == LIBSSH2_ERROR_ALLOC) {
+            qDebug()<<"LIBSSH2_ERROR_ALLOC";
+        } else if (wlen == LIBSSH2_ERROR_SOCKET_SEND) {
+            qDebug()<<"LIBSSH2_ERROR_SOCKET_SEND";
+        } else if (wlen == LIBSSH2_ERROR_SOCKET_TIMEOUT) {
+            qDebug()<<"LIBSSH2_ERROR_SOCKET_TIMEOUT";
+        } else if (wlen == LIBSSH2_ERROR_SFTP_PROTOCOL) { // reach quota, trigger this error
+            qDebug()<<"LIBSSH2_ERROR_SFTP_PROTOCOL"<<"SFTP Protocol Error";
+            this->error_code = 4;
+            this->errorString = QString(tr("Reach server quota limitation."));
+            goto sftp_error;
+        }
+
+        Q_ASSERT(wlen == rlen);
         tran_len += wlen;
         //qDebug() <<" read len :"<< rlen <<" , write len: "<< wlen << " tran len: "<< tran_len ;
         
@@ -1046,7 +1030,11 @@ int Transportor::run_SFTP_to_SFTP(QString srcFile, QString destFile)
         }
     }
 
+    // Any clean job???
     return 0;
+
+ sftp_error:
+    return 1;
 }
 
 int Transportor::run_FILE_to_FTP()
@@ -1792,20 +1780,6 @@ int Transportor::run_SFTP_to_FTP()
 
         //处理nrftp协议
         // 连接到源SFTP主机
-        // if (this->src_ssh2_sess == 0 || this->src_ssh2_sftp == 0) {
-        //     emit  transfer_log("Connecting to destionation host ...");
-        //     QString tmp_passwd = src_atom_pkg.password;
-
-        //     rhct = new RemoteHostConnectThread(src_atom_pkg.username, tmp_passwd, src_atom_pkg.host, 
-        //                                        src_atom_pkg.port.toInt(), src_atom_pkg.pubkey);
-        //     rhct->run();
-        //     //TODO get status code and then ...
-        //     this->src_ssh2_sess = (LIBSSH2_SESSION*)rhct->get_ssh2_sess();
-        //     // this->src_ssh2_sock = rhct->get_ssh2_sock();
-        //     this->src_ssh2_sftp = libssh2_sftp_init(this->src_ssh2_sess);
-        //     delete rhct ; rhct = 0 ;
-        //     emit  transfer_log("Connect done.");
-        // }
         if (this->sconn == 0) {
             emit  transfer_log("Connecting to source ssh host ...");
             this->sconn = new SSHConnection();
@@ -2035,28 +2009,6 @@ int Transportor::run_FTP_to_SFTP()
         //连接到目录主机：
         qDebug()<<"connecting to dest ssh host:"<<dest_atom_pkg.username
                 <<":"<<dest_atom_pkg.password<<"@"<<dest_atom_pkg.host <<":"<<dest_atom_pkg.port ;
-        // if (this->dest_ssh2_sess == 0 || this->dest_ssh2_sftp == 0) {
-        //     emit  transfer_log("Connecting to destination host ...");
-        //     QString tmp_passwd = dest_atom_pkg.password;
-        //     rhct = new RemoteHostConnectThread(dest_atom_pkg.username, tmp_passwd,
-        //                                        dest_atom_pkg.host, dest_atom_pkg.port.toInt(), dest_atom_pkg.pubkey);
-        //     rhct->run();
-        //     //TODO get status code and then ...
-        //     rv = rhct->get_connect_status();
-        //     if (rv != RemoteHostConnectThread::CONN_OK) {
-        //         qDebug()<<"Connect to Host Error: "<<rv<<":"<<rhct->get_status_desc(rv);
-        //         emit transfer_log("Connect Error: " + rhct->get_status_desc(rv));
-        //         this->error_code = transfer_ret = 6;
-        //         this->errorString = rhct->get_status_desc(rv);
-        //         break;
-        //     }
-        //     //get connect return code end
-        //     this->dest_ssh2_sess = (LIBSSH2_SESSION*)rhct->get_ssh2_sess();
-        //     // this->dest_ssh2_sock = rhct->get_ssh2_sock();
-        //     this->dest_ssh2_sftp = libssh2_sftp_init(this->dest_ssh2_sess);
-        //     delete rhct ; rhct = 0 ;
-        //     emit  transfer_log("Connect done.");
-        // }
         if (this->dconn == 0) {
             emit  transfer_log("Connecting to destionation ssh host ...");
             this->dconn = new SSHConnection();
@@ -2207,6 +2159,19 @@ int Transportor::run_FTP_to_SFTP(QString srcFile, QString destFile)
     srcDataSock->waitForReadyRead();
     while ((rlen = srcDataSock->read(buff, sizeof(buff))) > 0) {
         wlen = libssh2_sftp_write(sftp_handle, buff, rlen);
+        if (wlen == LIBSSH2_ERROR_ALLOC) {
+            qDebug()<<"LIBSSH2_ERROR_ALLOC";
+        } else if (wlen == LIBSSH2_ERROR_SOCKET_SEND) {
+            qDebug()<<"LIBSSH2_ERROR_SOCKET_SEND";
+        } else if (wlen == LIBSSH2_ERROR_SOCKET_TIMEOUT) {
+            qDebug()<<"LIBSSH2_ERROR_SOCKET_TIMEOUT";
+        } else if (wlen == LIBSSH2_ERROR_SFTP_PROTOCOL) { // reach quota, trigger this error
+            qDebug()<<"LIBSSH2_ERROR_SFTP_PROTOCOL"<<"SFTP Protocol Error";
+            this->error_code = 4;
+            this->errorString = QString(tr("Reach server quota limitation."));
+            goto sftp_error;
+        }
+
         Q_ASSERT(wlen == rlen);
         if (wlen < rlen) {
             q_debug()<<"write to server less then need write bytes";
@@ -2229,7 +2194,7 @@ int Transportor::run_FTP_to_SFTP(QString srcFile, QString destFile)
             break;
         }
     }
-    qDebug()<<"out cycle, close sftp...";
+    qDebug()<<"Out cycle, close sftp...";
     libssh2_sftp_close(sftp_handle);
 
     iret = this->sconn->ftp->closeDataChannel();
@@ -2237,6 +2202,14 @@ int Transportor::run_FTP_to_SFTP(QString srcFile, QString destFile)
     iret = this->sconn->ftp->swallowResponse();
     
     return 0;
+
+ sftp_error:
+    libssh2_sftp_close(sftp_handle);
+    iret = this->sconn->ftp->closeDataChannel();
+    // 是不是现在应该去读取ftp的ctrl socket的剩余信息了呢
+    iret = this->sconn->ftp->swallowResponse();
+
+    return 1;
 }
 
 void Transportor::set_transport_info(TaskPackage src_pkg, TaskPackage dest_pkg)
