@@ -637,9 +637,14 @@ void FTPView::rm_file_or_directory_recursively()
     QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) 
         ? this->remote_dir_sort_filter_model_ex->mapToSource(midx)
         : this->remote_dir_sort_filter_model->mapToSource(midx);
+    QString hintMsg = this->remote_dir_sort_filter_model->isDir(midx) 
+        ? QString(tr("Are you sure remove this directory and it's subnodes?\n    %1/"))
+        .arg(this->remote_dir_sort_filter_model->filePath(midx))
+        : QString(tr("Are you sure remove this file?\n    %1"))
+        .arg(this->remote_dir_sort_filter_model->filePath(midx));
     directory_tree_item *dti = (directory_tree_item*) aim_midx.internalPointer();
     if (QMessageBox::warning(this, tr("Warning:"), 
-                            tr("Are you sure remove this directory and it's subnodes"),
+                            hintMsg,
                             QMessageBox::Yes, QMessageBox::Cancel) == QMessageBox::Yes) {
         QModelIndex parent_model =  aim_midx.parent() ;
         directory_tree_item *parent_item = (directory_tree_item*)parent_model.internalPointer();
