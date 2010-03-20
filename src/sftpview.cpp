@@ -267,12 +267,6 @@ void SFTPView::slot_new_transfer()
         remote_pkg.files<<file_path;
     }
 
-    // remote_pkg.host = this->host_name;
-    // remote_pkg.port = QString("%1").arg(this->port);
-    // remote_pkg.username = this->user_name;
-    // remote_pkg.password = this->password;
-    // remote_pkg.pubkey = this->pubkey;
-
     remote_pkg.host = this->conn->hostName;
     remote_pkg.port = QString("%1").arg(this->conn->port);
     remote_pkg.username = this->conn->userName;
@@ -558,18 +552,24 @@ void SFTPView::rm_file_or_directory_recursively()
     QModelIndexList mil = ism->selectedIndexes();
     
     if (mil.count() == 0) {
-        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+        qDebug()<<"selectedIndexes count :"<<mil.count()<<"why no item selected????";
         QMessageBox::critical(this, tr("Waring..."), tr("No item selected"));
         return;
     }
+
     //TODO 处理多选的情况
     QModelIndex midx = mil.at(0);
     QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) 
         ? this->remote_dir_sort_filter_model_ex->mapToSource(midx)
         : this->remote_dir_sort_filter_model->mapToSource(midx);
+    QString hintMsg = this->remote_dir_sort_filter_model->isDir(midx) 
+        ? QString(tr("Are you sure remove this directory and it's subnodes?\n    %1/"))
+        .arg(this->remote_dir_sort_filter_model->filePath(midx))
+        : QString(tr("Are you sure remove this file?\n    %1"))
+        .arg(this->remote_dir_sort_filter_model->filePath(midx));
     directory_tree_item *dti = (directory_tree_item*) aim_midx.internalPointer();
     if (QMessageBox::warning(this, tr("Warning:"), 
-                             tr("Are you sure remove this directory and it's subnodes"),
+                             hintMsg,
                              QMessageBox::Yes, QMessageBox::Cancel) == QMessageBox::Yes) {
         QModelIndex parent_model =  aim_midx.parent() ;
         directory_tree_item *parent_item = (directory_tree_item*)parent_model.internalPointer();
@@ -686,12 +686,6 @@ void SFTPView::slot_new_upload_requested(TaskPackage local_pkg)
         QMessageBox::critical(this, tr("Waring..."), tr("you should selecte a remote file directory."));
     } else {
         remote_pkg.files<<remote_file_name;
-
-        // remote_pkg.host = this->host_name;
-        // remote_pkg.username = this->user_name;
-        // remote_pkg.password = this->password;
-        // remote_pkg.port = QString("%1").arg(this->port);
-        // remote_pkg.pubkey = this->pubkey;
 
         remote_pkg.host = this->conn->hostName;
         remote_pkg.port = QString("%1").arg(this->conn->port);
@@ -838,12 +832,6 @@ void SFTPView::slot_drag_ready()
     }
 
     TaskPackage tpkg(PROTO_SFTP);
-    
-    // tpkg.host = this->host_name;
-    // tpkg.username = this->user_name;
-    // tpkg.password = this->password;
-    // tpkg.port = QString("%1").arg(this->port);
-    // tpkg.pubkey = this->pubkey;    
 
     tpkg.host = this->conn->hostName;
     tpkg.port = QString("%1").arg(this->conn->port);
@@ -883,12 +871,6 @@ bool SFTPView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction action,
     QString remote_file_name = aim_item->strip_path;
 
     remote_pkg.files<<remote_file_name;
-
-    // remote_pkg.host = this->host_name;
-    // remote_pkg.username = this->user_name;
-    // remote_pkg.password = this->password;
-    // remote_pkg.port = QString("%1").arg(this->port);
-    // remote_pkg.pubkey = this->pubkey;    
 
     remote_pkg.host = this->conn->hostName;
     remote_pkg.port = QString("%1").arg(this->conn->port);
@@ -992,13 +974,6 @@ void SFTPView::host_info_focus_label_double_clicked()
     hi_label->setToolTip(uname_output);
 
     SystemInfoDialog *sysInfoDlg = new SystemInfoDialog(this);    
-    // QDialog *dlg = new QDialog(this);
-    // sysInfoDlg->setFixedWidth(400);
-    // sysInfoDlg->setFixedHeight(100);
-    // QLabel *label = new QLabel("", dlg);
-    // label->setWordWrap(true);
-    // label->setText(uname_output);
-    // dlg->layout()->addWidget(label);
     sysInfoDlg->setSystemInfo(uname_output);
     sysInfoDlg->exec();
     delete sysInfoDlg;
