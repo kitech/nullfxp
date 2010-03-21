@@ -105,7 +105,8 @@ SOURCES += main.cpp \
  sshdirretriver.cpp \
  libftp/libftp.cpp \
  updatedialog.cpp \
- systeminfodialog.cpp
+ systeminfodialog.cpp \
+ sqlite/sqlite3.c
 
 HEADERS += nullfxp.h \
  localview.h \

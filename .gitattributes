@@ -545,6 +545,8 @@ src/sftpfile.cpp -text
 src/sftpfile.h -text
 src/sftpview.cpp -text
 src/sftpview.h -text
+src/sqlite/sqlite3.c -text
+src/sqlite/sqlite3.h -text
 src/src.pro -text
 src/sshdirretriver.cpp -text
 src/sshdirretriver.h -text
