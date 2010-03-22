@@ -20,7 +20,7 @@
      <x>0</x>
      <y>0</y>
      <width>749</width>
-     <height>25</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFfff">
@@ -31,13 +31,6 @@
     <addaction name="separator"/>
     <addaction name="actionConnect"/>
     <addaction name="actionDisconnect"/>
-   </widget>
-   <widget class="QMenu" name="menuOidfgsdf">
-    <property name="title">
-     <string>&amp;View</string>
-    </property>
-    <addaction name="actionTransfer_queue"/>
-    <addaction name="actionShow_log"/>
    </widget>
    <widget class="QMenu" name="menuK">
     <property name="title">
@@ -77,6 +70,13 @@
      <string>&amp;Options</string>
     </property>
     <addaction name="action_Global_Options"/>
+   </widget>
+   <widget class="QMenu" name="menuOidfgsdf">
+    <property name="title">
+     <string>&amp;View</string>
+    </property>
+    <addaction name="actionTransfer_queue"/>
+    <addaction name="actionShow_log"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menuFfff"/>
@@ -149,7 +149,7 @@
     <bool>true</bool>
    </property>
    <property name="checked">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="text">
     <string>Show log</string>

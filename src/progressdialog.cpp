@@ -107,7 +107,7 @@ void ProgressDialog::set_transfer_info(TaskPackage local_pkg, TaskPackage remote
     this->ui_progress_dialog.comboBox->clear();
     this->ui_progress_dialog.comboBox_2->clear();
 
-    for (int i = 0 ; i < remote_pkg.files.count() ; i ++) {
+    for (int i = 0; i < remote_pkg.files.count(); i ++) {
         remote_file_name = remote_pkg.files.at(i);
         local_full_path = local_file_name + "/"
             + remote_file_name.split("/").at(remote_file_name.split("/").count()-1);
@@ -175,14 +175,14 @@ void ProgressDialog::show ()
 
 void ProgressDialog::slot_new_file_transfer_started(QString new_file_name)
 {
-    QString u_new_file_name =  new_file_name  ;
+    QString u_new_file_name =  new_file_name;
 
-    bool found = 0 ;
-    for (int i = 0 ; i < this->ui_progress_dialog.comboBox->count() ; i ++) {
+    bool found = 0;
+    for (int i = 0; i < this->ui_progress_dialog.comboBox->count(); i ++) {
         if (this->ui_progress_dialog.comboBox->itemText(i) == u_new_file_name) {
             this->ui_progress_dialog.comboBox->setCurrentIndex(i);
-            found = 1 ;
-            break ;
+            found = 1;
+            break;
         }
     }
     if (found == 0) {
@@ -192,7 +192,7 @@ void ProgressDialog::slot_new_file_transfer_started(QString new_file_name)
     u_new_file_name = QString(tr("processing: %1")).arg(u_new_file_name);
     this->ui_progress_dialog.progressBar->setStatusTip(u_new_file_name);
     ////
-    this->total_files_count ++ ;
+    this->total_files_count ++;
     this->update_transfer_state();
     //this->setToolTip(u_new_file_name);
     this->ui_progress_dialog.lineEdit_4->setText(this->type(u_new_file_name));
@@ -238,9 +238,9 @@ void ProgressDialog::update_transfer_state()
 }
 void ProgressDialog::slot_transfer_got_file_size(int size)
 {
-    this->total_files_size += size ;
+    this->total_files_size += size;
     this->ui_progress_dialog.lineEdit_13->setText(QString("%1").arg(size));
-    this->update_transfer_state() ;
+    this->update_transfer_state();
 }
 void ProgressDialog::slot_transfer_log(QString log)
 {

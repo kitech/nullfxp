@@ -10,6 +10,7 @@
 /TODO -text
 bin/touch.exe -text
 docs/Doxyfile -text
+docs/arch.xmi -text
 docs/doxy_footer.html -text
 docs/fxp.txt -text
 /install.pri -text

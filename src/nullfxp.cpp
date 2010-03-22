@@ -48,7 +48,7 @@ NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
     // delete this->mUIMain.menu_Options;
 
     //////////////////////////
-    central_splitter_widget  = new QSplitter(Qt::Vertical);
+    central_splitter_widget = new QSplitter(Qt::Vertical);
     this->fcd = 0;
     this->connector = NULL;
 
@@ -65,16 +65,16 @@ NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
     QObject::connect(this->mUIMain.actionTile_window, SIGNAL(triggered(bool)),
                      this, SLOT(slot_tile_sub_windows(bool)));
   
-    transfer_queue_list_view = new QListView();
+    this->task_queue_view = new QTableView();
   
-    central_splitter_widget->addWidget(mdiArea);
-    central_splitter_widget->addWidget(transfer_queue_list_view);
+    this->central_splitter_widget->addWidget(mdiArea);
+    this->central_splitter_widget->addWidget(this->task_queue_view);
     QSizePolicy sp;
     sp.setVerticalPolicy(QSizePolicy::Ignored);
-    this->transfer_queue_list_view->setSizePolicy(sp);
-    this->transfer_queue_list_view->setVisible(false);
+    this->task_queue_view->setSizePolicy(sp);
+    // this->task_queue_view->setVisible(false);
   
-    setCentralWidget(central_splitter_widget);
+    this->setCentralWidget(this->central_splitter_widget);
 
     windowMapper = new QSignalMapper(this);
 
@@ -162,7 +162,7 @@ void NullFXP::slot_about_nullfxp()
 
 void NullFXP::connect_to_remote_host()
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
     QString protocol;
     QString username;
@@ -191,7 +191,7 @@ void NullFXP::connect_to_remote_host()
         host["user_name"] = username;
         host["password"] = password;
         host["port"] = QString("%1").arg(port);
-        (pubkey == QString::null) ? (pubkey=QString::null) : (host["pubkey"] = pubkey);
+        (pubkey == QString::null) ? (pubkey = QString::null) : (host["pubkey"] = pubkey);
         
         BaseStorage *storage = BaseStorage::instance();
         if (storage->containsHost(remoteaddr)) {
@@ -204,7 +204,7 @@ void NullFXP::connect_to_remote_host()
         //delete storage;
         this->connect_to_remote_host(host);
     } else {
-        qDebug() <<"user canceled ...";
+        qDebug()<<"user canceled ...";
     }
 
 }
@@ -254,7 +254,7 @@ void NullFXP::connect_to_remote_host2(QMap<QString, QString> host)
 
 void NullFXP::slot_disconnect_from_remote_host()
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
     RemoteView *remote_view = this->get_top_most_remote_view();
     
@@ -378,7 +378,7 @@ void NullFXP::slot_new_upload_requested(TaskPackage local_pkg)
 void NullFXP::slot_show_transfer_queue(bool show)
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    transfer_queue_list_view->setVisible(show);
+    task_queue_view->setVisible(show);
 }
 
 void NullFXP::slot_show_fxp_command_log(bool show)

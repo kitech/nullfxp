@@ -10,30 +10,11 @@
 #ifndef NULLFXP_H
 #define NULLFXP_H
 
-#include <QObject>
+
 #include <QtCore>
 #include <QtGui>
-#include <QMainWindow>
-#include <QMessageBox>
-#include <QTreeWidget>
-#include <QStandardItemModel>
-#include <QItemSelectionModel>
-#include <QItemSelection>
-#include <QTime>
-#include <QDate>
-#include <QDateTime>
-#include <QImage>
-#include <QPixmap>
-#include <QTimer>
-#include <QSystemTrayIcon>
-#include <QPalette>
 
-class QAction;
-class QMenu;
-class QMdiArea;
-class QMdiSubWindow;
 class MdiChild;
-class QSignalMapper;
 
 #include "taskpackage.h"
 #include "ui_nullfxp.h"
@@ -92,7 +73,7 @@ private:
         
 private:
     QSplitter *central_splitter_widget;
-    QListView *transfer_queue_list_view;
+    QTableView *task_queue_view;
                 
     LocalView *localView;
         
