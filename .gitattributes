@@ -566,6 +566,8 @@ src/systeminfodialog.cpp -text
 src/systeminfodialog.h -text
 src/taskpackage.cpp -text
 src/taskpackage.h -text
+src/taskqueue.cpp -text
+src/taskqueue.h -text
 src/tmpmain.cpp -text
 src/ui/encryptiondetaildialog.ui -text
 src/ui/fileexistaskdialog.ui -text

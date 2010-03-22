@@ -106,6 +106,7 @@ SOURCES += main.cpp \
  libftp/libftp.cpp \
  updatedialog.cpp \
  systeminfodialog.cpp \
+ taskqueue.cpp \
  sqlite/sqlite3.c
 
 HEADERS += nullfxp.h \
@@ -153,7 +154,8 @@ HEADERS += nullfxp.h \
  sshdirretriver.h \
  libftp/libftp.h \
  updatedialog.h \
- systeminfodialog.h
+ systeminfodialog.h \
+ taskqueue.h
 
 DISTFILES += ../CMakeLists.txt \
           CMakeLists.txt \
@@ -207,6 +209,7 @@ win32-g++ {
 DEFINES += NULLFXP_VERSION_STR=\"\\\"$$VERSION\\\"\" 
 DEFINES += NXDATADIR=\"\\\"$$DATADIR\\\"\"
 DEFINES += NXPKGDATADIR=\"\\\"$$PKGDATADIR\\\"\"
+DEFINES += THREADSAFE=1   # for sqlite thread-safe feature
 
 INCLUDEPATH += . ./libssh2/include
 
