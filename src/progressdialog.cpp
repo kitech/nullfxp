@@ -34,6 +34,7 @@
 // #include "sshtransportor.h"
 // #include "ftptransportor.h"
 #include "transportor.h"
+#include "taskqueue.h"
 
 ProgressDialog::ProgressDialog(QWidget *parent )
     : QWidget(parent )
@@ -163,9 +164,10 @@ void ProgressDialog::exec()
 }
 void ProgressDialog::show () 
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
     if (this->first_show) {
-        this->first_show = 0 ;
+        this->first_show = 0;
+        this->taskQueue = TaskQueue::instance();
         this->transportor->start(); 
     }
     QWidget::show(); 
@@ -194,17 +196,19 @@ void ProgressDialog::slot_new_file_transfer_started(QString new_file_name)
     this->update_transfer_state();
     //this->setToolTip(u_new_file_name);
     this->ui_progress_dialog.lineEdit_4->setText(this->type(u_new_file_name));
+
+    this->taskQueue->slot_new_file_transfer_started(new_file_name);
 }
 
 void ProgressDialog::closeEvent(QCloseEvent * event) 
 {
-    int u_r = 0 ;
+    int rv = 0;
     
     //this->setVisible(false);
-    u_r = QMessageBox::information(this, tr("Attemp to close this window?"),
+    rv = QMessageBox::information(this, tr("Attemp to close this window?"),
                                    tr("Are you sure to stop the transfomition ?"),
                                    QMessageBox::Ok | QMessageBox::Cancel );
-    if (u_r == QMessageBox::Ok) {
+    if (rv == QMessageBox::Ok) {
         this->transportor->set_user_cancel(true);
         //event->ignore();
         this->setVisible(false);
@@ -217,7 +221,7 @@ void ProgressDialog::closeEvent(QCloseEvent * event)
 
 void ProgressDialog::slot_cancel_button_clicked()
 {
-    this->close() ;
+    this->close();
 }
 void ProgressDialog::update_transfer_state()
 {

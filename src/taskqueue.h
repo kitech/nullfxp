@@ -12,7 +12,6 @@
 
 #include <QtCore>
 
-#include "taskpackage.h"
 #include "sqlite/sqlite3.h"
 
 // memery sqlite table for job queue, single instance model
@@ -20,8 +19,9 @@ class TaskQueue : public QObject
 {
     Q_OBJECT;
 public:
+    bool inited;
     ~TaskQueue();
-    const static TaskQueue *instance();
+    static TaskQueue *instance();
 
 public slots:
     void slot_set_transfer_percent(int percent, int total_transfered, int transfer_delta);
@@ -42,7 +42,20 @@ private:
 };
 
 /*
-  
+  CREATE TABLE task_queue (
+  id UNSIGNED BIG INT PRIMARY KEY,
+  file_name VARCHAR(128),
+  dest_path VARCHAR(256),
+  file_size UNSIGNED BIG INT,
+  got_size  UNSIGNED BIG INT,
+  got_percent INT2,
+  eclapsed_time VARCHAR(10),
+  left_time VARCHAR(10),
+  speed VARCHAR(10),
+  status VARCHAR(10),
+  start_time VARCHAR(16),
+  finish_time VARCHAR(16)
+);
 
  */
 #endif /* _TASKQUEUE_H_ */
