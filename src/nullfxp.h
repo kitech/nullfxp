@@ -27,6 +27,7 @@ class QuickConnectInfoDialog;
 class ForwardConnectDaemon;
 class Connection;
 class Connector;
+class TaskQueueView;
 
 /**
  * NullFXP 主窗口类
@@ -73,7 +74,8 @@ private:
         
 private:
     QSplitter *central_splitter_widget;
-    QTableView *task_queue_view;
+    // QTableView *task_queue_view;
+    TaskQueueView *task_queue_view;
                 
     LocalView *localView;
         

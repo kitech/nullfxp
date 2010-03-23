@@ -569,11 +569,14 @@ src/taskpackage.cpp -text
 src/taskpackage.h -text
 src/taskqueue.cpp -text
 src/taskqueue.h -text
+src/taskqueueview.cpp -text
+src/taskqueueview.h -text
 src/tmpmain.cpp -text
 src/ui/encryptiondetaildialog.ui -text
 src/ui/fileexistaskdialog.ui -text
 src/ui/hostlistdialog.ui -text
 src/ui/systeminfodialog.ui -text
+src/ui/taskqueueview.ui -text
 src/ui/updatedialog.ui -text
 src/unitest/CMakeLists.txt -text
 src/unitest/gccfeatures.cpp -text

@@ -28,7 +28,7 @@ win32 {
 #	QT += webkit
 	CONFIG += debug
 }
-QT += network
+QT += network sql 
 
 UI_DIR = obj
 MOC_DIR = obj
@@ -52,7 +52,8 @@ FORMS += nullfxp.ui \
  ui/encryptiondetaildialog.ui \
  ui/fileexistaskdialog.ui \
  ui/updatedialog.ui \
- ui/systeminfodialog.ui
+ ui/systeminfodialog.ui \
+ ui/taskqueueview.ui
 
 SOURCES += main.cpp \
  nullfxp.cpp \
@@ -107,6 +108,7 @@ SOURCES += main.cpp \
  updatedialog.cpp \
  systeminfodialog.cpp \
  taskqueue.cpp \
+ taskqueueview.cpp \
  sqlite/sqlite3.c
 
 HEADERS += nullfxp.h \
@@ -155,7 +157,8 @@ HEADERS += nullfxp.h \
  libftp/libftp.h \
  updatedialog.h \
  systeminfodialog.h \
- taskqueue.h
+ taskqueue.h \
+ taskqueueview.h
 
 DISTFILES += ../CMakeLists.txt \
           CMakeLists.txt \
