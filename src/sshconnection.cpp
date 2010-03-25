@@ -506,7 +506,7 @@ int SSHConnection::sshHomePath()
     // this->connect_status = 0 ;
     
     if (this->user_canceled == true) {
-        // this->connect_status = CONN_CANCEL ;
+        // this->connect_status = CONN_CANCEL;
         libssh2_session_disconnect(this->sess, "");
         libssh2_session_free(this->sess);
         this->piClose(this->sock);
@@ -537,7 +537,7 @@ QString SSHConnection::get_server_env_vars(const char *cmd)
   
     memset(buff, 0, sizeof(buff));
     while ((rv = libssh2_channel_read(ssh2_channel, buff, 1000)) > 0) {
-        qDebug()<<"Channel read: "<<rv<<" -->"<<buff;
+        // qDebug()<<"Channel read: "<<rv<<" -->"<<buff;
         env_output += QString(buff);
         memset(buff, 0, sizeof(buff));
     }

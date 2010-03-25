@@ -12,7 +12,7 @@ CONFIG += qt thread console warn_on ordered
 TARGET = nullfxp
 DESTDIR = ../bin
 
-VERSION=2.0.1.83  # using in nullfxp-version.h
+VERSION=2.0.1.84  # using in nullfxp-version.h
 
 include(../install.pri)
 
@@ -107,7 +107,8 @@ SOURCES += main.cpp \
  libftp/libftp.cpp \
  updatedialog.cpp \
  systeminfodialog.cpp \
- taskqueue.cpp \
+# taskqueue.cpp \
+ taskqueuemodel.cpp \
  taskqueueview.cpp \
  sqlite/sqlite3.c
 
@@ -157,7 +158,8 @@ HEADERS += nullfxp.h \
  libftp/libftp.h \
  updatedialog.h \
  systeminfodialog.h \
- taskqueue.h \
+# taskqueue.h \
+ taskqueuemodel.h \
  taskqueueview.h
 
 DISTFILES += ../CMakeLists.txt \

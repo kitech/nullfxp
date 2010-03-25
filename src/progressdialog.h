@@ -19,7 +19,7 @@
 #include "ui_progressdialog.h"
 
 class Transportor;
-class TaskQueue;
+class TaskQueueModel;
 
 class ProgressDialog : public QWidget
 {
@@ -59,7 +59,7 @@ private:
     // TransferThread *sftp_transfer_thread;
     Transportor *transportor;
     bool   first_show;
-    TaskQueue *taskQueue;
+    TaskQueueModel *taskQueueModel;
     
     quint64 total_files_size;
     quint64 abtained_files_size;

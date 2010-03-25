@@ -569,6 +569,8 @@ src/taskpackage.cpp -text
 src/taskpackage.h -text
 src/taskqueue.cpp -text
 src/taskqueue.h -text
+src/taskqueuemodel.cpp -text
+src/taskqueuemodel.h -text
 src/taskqueueview.cpp -text
 src/taskqueueview.h -text
 src/tmpmain.cpp -text

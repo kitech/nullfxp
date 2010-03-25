@@ -34,7 +34,7 @@
 // #include "sshtransportor.h"
 // #include "ftptransportor.h"
 #include "transportor.h"
-#include "taskqueue.h"
+#include "taskqueuemodel.h"
 
 ProgressDialog::ProgressDialog(QWidget *parent )
     : QWidget(parent )
@@ -167,7 +167,7 @@ void ProgressDialog::show ()
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
     if (this->first_show) {
         this->first_show = 0;
-        this->taskQueue = TaskQueue::instance();
+        this->taskQueueModel = TaskQueueModel::instance();
         this->transportor->start(); 
     }
     QWidget::show(); 
@@ -197,7 +197,7 @@ void ProgressDialog::slot_new_file_transfer_started(QString new_file_name)
     //this->setToolTip(u_new_file_name);
     this->ui_progress_dialog.lineEdit_4->setText(this->type(u_new_file_name));
 
-    this->taskQueue->slot_new_file_transfer_started(new_file_name);
+    this->taskQueueModel->slot_new_file_transfer_started(new_file_name);
 }
 
 void ProgressDialog::closeEvent(QCloseEvent * event) 

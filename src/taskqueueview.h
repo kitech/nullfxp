@@ -16,6 +16,7 @@
 
 #include "ui_taskqueueview.h"
 
+class TaskQueueModel;
 
 class TaskQueueView : public QWidget
 {
@@ -24,13 +25,9 @@ public:
     TaskQueueView(QWidget *parent = 0);
     ~TaskQueueView();
 
-public slots:
-    bool insertRow(int row);
-
 private:
     Ui::TaskQueueView ui_win;
-    QSqlTableModel *taskQueueModel;
-    QSqlDatabase   taskQueueDb;
+    TaskQueueModel *taskQueueModel;
 };
 
 #endif /* _TASKQUEUEVIEW_H_ */
