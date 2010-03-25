@@ -68,9 +68,9 @@ NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
   
     // this->task_queue_view = new QTableView();
     this->task_queue_view = new TaskQueueView();
-  
     this->central_splitter_widget->addWidget(mdiArea);
     this->central_splitter_widget->addWidget(this->task_queue_view);
+
     QSizePolicy sp;
     sp.setVerticalPolicy(QSizePolicy::Ignored);
     this->task_queue_view->setSizePolicy(sp);
@@ -127,10 +127,19 @@ NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
     //启动连接对话框
     this->show();
     //根据当前屏幕大小调整界面的大小。
-    QDesktopWidget *dw = new QDesktopWidget();
+    this->desktop = QApplication::desktop();
     //qDebug()<<dw->screenGeometry();
-    this->resize(dw->screenGeometry().width()*5/6, dw->screenGeometry().height()*5/6);
-    delete dw;
+    // this->resize(dw->screenGeometry().width()*5/6, dw->screenGeometry().height()*5/6);
+    // delete dw;
+    // #bug245
+    qDebug()<<"Desktop screen count:"<<this->desktop->screenCount();
+    if (this->desktop->screenCount() == 1) {
+        this->resize(this->desktop->screenGeometry().width()*5/6, 
+                     this->desktop->screenGeometry().height()*5/6);
+    } else {
+        // this->resize(this->desktop->screenGeometry(this->desktop->primaryScreen()).width()*5/6, 
+        //              this->desktop->screenGeometry(this->desktop->primaryScreen()).height()*5/6);
+    }
 
     //调整本地目录树窗口的大小
     //QList<QMdiSubWindow *> mdiSubWindow = mdiArea->subWindowList();

@@ -88,6 +88,8 @@ private:
     Connector *connector;
 
     ForwardConnectDaemon *fcd;
+
+    QDesktopWidget *desktop;
 };
 
 #endif

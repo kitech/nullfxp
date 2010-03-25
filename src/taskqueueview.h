@@ -24,6 +24,9 @@ public:
     TaskQueueView(QWidget *parent = 0);
     ~TaskQueueView();
 
+public slots:
+    bool insertRow(int row);
+
 private:
     Ui::TaskQueueView ui_win;
     QSqlTableModel *taskQueueModel;

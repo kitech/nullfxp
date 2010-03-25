@@ -30,6 +30,9 @@ public slots:
         
     void slot_transfer_got_file_size(int size);
  
+signals:
+    void insertRow(int row);
+
 protected:
     TaskQueue(QObject *parent = 0);
     void init();
@@ -43,7 +46,7 @@ private:
 
 /*
   CREATE TABLE task_queue (
-  id UNSIGNED BIG INT PRIMARY KEY,
+  id INTEGER PRIMARY KEY,
   file_name VARCHAR(128),
   dest_path VARCHAR(256),
   file_size UNSIGNED BIG INT,
