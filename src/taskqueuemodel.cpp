@@ -7,8 +7,28 @@
 // Version: $Id$
 // 
 
+#include <QtCore>
+#include <QtSql>
+#include <QSqlDriver>
+
 #include "taskqueuemodel.h"
 
+
+// this is the problem
+// Every :memory: database is distinct from every other. So, opening two database connections each with the filename ":memory:" will create two independent in-memory databases.
+// 这个是Qt中的使用已有连接的例子，
+/*
+  #include "qtdir/src/sql/drivers/psql/qsql_psql.cpp"
+
+  PGconn *con = PQconnectdb("host=server user=bart password=simpson dbname=springfield");
+  QPSQLDriver *drv =  new QPSQLDriver(con);
+  QSqlDatabase db = QSqlDatabase::addDatabase(drv); // becomes the new default connection
+  QSqlQuery query;
+  query.exec("SELECT NAME, ID FROM STAFF");
+ */
+
+// 将Qt的Sql模块的功能与原生的sqlite等数据函数一些调用很难整合起来了。
+// 只使用Qt的吧，方便一点。
 
 TaskQueueModel *TaskQueueModel::inst = 
     new TaskQueueModel(0, QSqlDatabase::addDatabase("QSQLITE", "idtq"));
@@ -17,14 +37,13 @@ TaskQueueModel::TaskQueueModel(QObject *parent, QSqlDatabase db)
     : QSqlTableModel(parent, db), inited(false)
 {
     QSqlDatabase taskQueueDb = QSqlDatabase::database("idtq", false);
-    taskQueueDb.setDatabaseName("tobememory");
-    // taskQueueDb.setDatabaseName(":memory:");
+    // taskQueueDb.setDatabaseName("tobememory");
+    taskQueueDb.setDatabaseName(":memory:");
     if (! taskQueueDb.open()) {
         qDebug()<<"open sqlite error";
     } else {
         qDebug()<<"open sqlite okkkkkkkkkkkkk";
     }
-
 }
 
 TaskQueueModel::~TaskQueueModel()
@@ -38,24 +57,26 @@ TaskQueueModel *TaskQueueModel::instance()
     if (!q->inited) {
         q->init();
         q->inited = true;
+        // QSqlDriver *drv = new QSQLiteDriver(this->pDB);
     }
     return q;
 }
 
 void TaskQueueModel::init()
 {
-    int rv = sqlite3_open_v2("tobememory", &this->pDB, 
-                             SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX | SQLITE_OPEN_SHAREDCACHE,
-                             NULL);
-    if (rv != SQLITE_OK) {
-        qDebug()<<"Sqlite error:"<<rv<<":"<<sqlite3_errmsg(this->pDB);
-        sqlite3_close(this->pDB);
-        this->pDB = NULL;
-    }
-    Q_ASSERT(rv == SQLITE_OK);
+    int rv = 0;
+    // rv = sqlite3_open_v2("tobememory", &this->pDB, 
+    //                      SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX | SQLITE_OPEN_SHAREDCACHE,
+    //                      NULL);
+    // if (rv != SQLITE_OK) {
+    //     qDebug()<<"Sqlite error:"<<rv<<":"<<sqlite3_errmsg(this->pDB);
+    //     sqlite3_close(this->pDB);
+    //     this->pDB = NULL;
+    // }
+    // Q_ASSERT(rv == SQLITE_OK);
 
     // 创建表，
-    char * createTable = 
+    char * createTableSql = 
         " CREATE TABLE IF NOT EXISTS task_queue ("
         "  id INTEGER PRIMARY KEY,"
         "  file_name VARCHAR(128),"
@@ -71,20 +92,21 @@ void TaskQueueModel::init()
         "  finish_time VARCHAR(16)"
         "); DELETE FROM task_queue WHERE 1;";
 
-    rv = sqlite3_exec(this->pDB, createTable, NULL, NULL, NULL);
-    if (rv != SQLITE_OK) {
-        qDebug()<<"Sqlite error:"<<rv<<":"<<sqlite3_errmsg(this->pDB);
-    }
-    Q_ASSERT(rv == SQLITE_OK);
+    // rv = sqlite3_exec(this->pDB, createTableSql, NULL, NULL, NULL);
+    // if (rv != SQLITE_OK) {
+    //     qDebug()<<"Sqlite error:"<<rv<<":"<<sqlite3_errmsg(this->pDB);
+    // }
+    // Q_ASSERT(rv == SQLITE_OK);
+    this->database().exec(createTableSql);
 }
 
 void TaskQueueModel::finalize()
 {
-    int rv = sqlite3_close(this->pDB);
-    if (rv != SQLITE_OK) {
-        qDebug()<<"Sqlite error:"<<rv<<":"<<sqlite3_errmsg(this->pDB);
-    }
-    Q_ASSERT(rv == SQLITE_OK);
+    // int rv = sqlite3_close(this->pDB);
+    // if (rv != SQLITE_OK) {
+    //     qDebug()<<"Sqlite error:"<<rv<<":"<<sqlite3_errmsg(this->pDB);
+    // }
+    // Q_ASSERT(rv == SQLITE_OK);
 }
 
 void TaskQueueModel::slot_set_transfer_percent(int percent, int total_transfered, int transfer_delta)

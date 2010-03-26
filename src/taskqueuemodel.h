@@ -14,7 +14,7 @@
 #include <QtCore>
 #include <QtSql>
 
-#include "sqlite/sqlite3.h"
+// #include "sqlite/sqlite3.h"
 
 // memery sqlite table for job queue, single instance model
 class TaskQueueModel : public QSqlTableModel
@@ -43,7 +43,7 @@ protected:
 private:
     static TaskQueueModel *inst;
 
-    sqlite3 *pDB;
+    // sqlite3 *pDB;
 };
 
 /*
