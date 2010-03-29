@@ -25,9 +25,16 @@ public:
     TaskQueueView(QWidget *parent = 0);
     ~TaskQueueView();
 
+private slots:
+    void slotCustomContextMenuRequested(const QPoint & pos);
+
+private:
+    void initContextMenu();
+
 private:
     Ui::TaskQueueView ui_win;
     TaskQueueModel *taskQueueModel;
+    QMenu *ctxMenu;
 };
 
 #endif /* _TASKQUEUEVIEW_H_ */
