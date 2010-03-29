@@ -141,9 +141,11 @@ void ProgressDialog::slot_set_transfer_percent(int percent, int total_transfered
         transfer_speed /= 1024;
     }
     this->update_transfer_state();
+
+    this->taskQueueModel->slot_set_transfer_percent(this->modelId, percent, this->abtained_files_size, this->transfer_speed);
 }
 
-void ProgressDialog::slot_transfer_thread_finished() 
+void ProgressDialog::slot_transfer_thread_finished()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
     
@@ -151,6 +153,8 @@ void ProgressDialog::slot_transfer_thread_finished()
     int error_code = this->transportor->get_error_code();
     QString errorString = this->transportor->get_error_message(error_code);
     emit this->transfer_finished(error_code, errorString);
+
+    this->taskQueueModel->slot_transfer_thread_finished(this->modelId);
 }
 
 void ProgressDialog::exec()
@@ -160,9 +164,9 @@ void ProgressDialog::exec()
         this->first_show = 0 ;
         this->transportor->start(); 
     }
-    //QDialog::exec();    
+    //QDialog::exec();
 }
-void ProgressDialog::show () 
+void ProgressDialog::show() 
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
     if (this->first_show) {
@@ -197,7 +201,7 @@ void ProgressDialog::slot_new_file_transfer_started(QString new_file_name)
     //this->setToolTip(u_new_file_name);
     this->ui_progress_dialog.lineEdit_4->setText(this->type(u_new_file_name));
 
-    this->taskQueueModel->slot_new_file_transfer_started(new_file_name);
+    this->modelId = this->taskQueueModel->slot_new_file_transfer_started(new_file_name);
 }
 
 void ProgressDialog::closeEvent(QCloseEvent * event) 
@@ -241,6 +245,8 @@ void ProgressDialog::slot_transfer_got_file_size(int size)
     this->total_files_size += size;
     this->ui_progress_dialog.lineEdit_13->setText(QString("%1").arg(size));
     this->update_transfer_state();
+
+    this->taskQueueModel->slot_transfer_got_file_size(this->modelId, size);
 }
 void ProgressDialog::slot_transfer_log(QString log)
 {
@@ -325,6 +331,7 @@ void ProgressDialog::slot_speed_timer_timeout()
     int left_size = 0;
     float speed_value = 0.0;
     QString time_str;
+    QString eclapsed_time_str, left_time_str;
 
     total_seconds = this->start_time.secsTo(now_time);
 
@@ -338,6 +345,7 @@ void ProgressDialog::slot_speed_timer_timeout()
         time_str = QString("%1:%2:%3").arg( hours).arg(minites).arg(seconds);
     }
     this->ui_progress_dialog.lineEdit_6->setText(time_str);
+    eclapsed_time_str = time_str;
 
     ////////////
     speed_value = this->transfer_speed * 1024;
@@ -356,4 +364,7 @@ void ProgressDialog::slot_speed_timer_timeout()
         time_str = QString("%1:%2:%3").arg( hours).arg(minites).arg(seconds);
     }
     this->ui_progress_dialog.lineEdit_7->setText(time_str);
+    left_time_str = time_str;
+    
+    this->taskQueueModel->slot_transfer_time_update(this->modelId, eclapsed_time_str, left_time_str);
 }

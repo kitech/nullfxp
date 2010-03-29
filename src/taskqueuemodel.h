@@ -25,13 +25,15 @@ public:
     ~TaskQueueModel();
     static TaskQueueModel *instance();
 
+    virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole ) const;
 public slots:
-    void slot_set_transfer_percent(int percent, int total_transfered, int transfer_delta);
-    void slot_transfer_thread_finished();
-    void slot_new_file_transfer_started(QString new_file_name);
+    void slot_set_transfer_percent(int modelId, int percent, int total_transfered, int speed);
+    void slot_transfer_thread_finished(int modelId);
+    int slot_new_file_transfer_started(QString new_file_name);
         
-    void slot_transfer_got_file_size(int size);
- 
+    void slot_transfer_got_file_size(int modelId, int size);
+    void slot_transfer_time_update(int modelId, QString eclapsed_time, QString left_time);
+
 signals:
     void insertRow(int row);
 

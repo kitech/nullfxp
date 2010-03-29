@@ -109,14 +109,90 @@ void TaskQueueModel::finalize()
     // Q_ASSERT(rv == SQLITE_OK);
 }
 
-void TaskQueueModel::slot_set_transfer_percent(int percent, int total_transfered, int transfer_delta)
+QVariant TaskQueueModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    
+    if (role != Qt::DisplayRole) {
+        return QVariant();
+    }
+    QVariant dv;    
+    if (orientation == Qt::Vertical) {
+        dv = section + 1;
+    } else {
+        switch (section) {
+        case 0:
+            dv = tr("Id");
+            break;
+        case 1:
+            dv = tr("Filename");
+            break;
+        case 2:
+            dv = tr("Destination");
+            break;
+        case 3:
+            dv = tr("Size of File");
+            break;
+        case 4:
+            dv = tr("Bytes Transferred");
+            break;
+        case 5:
+            dv = tr("% Progress");
+            break;
+        case 6:
+            dv = tr("Elapsed Time");
+            break;
+        case 7:
+            dv = tr("Time Left");
+            break;
+        case 8:
+            dv = tr("Speed");
+            break;
+        case 9:
+            dv = tr("Status");
+            break;
+        case 10:
+            dv = tr("Start Time");
+            break;
+        case 11:
+            dv = tr("Finish Time");
+            break;
+        default:
+            dv = tr("coming...");
+            break;
+        };
+    }
+
+    return dv;
 }
-void TaskQueueModel::slot_transfer_thread_finished()
+
+void TaskQueueModel::slot_set_transfer_percent(int modelId, int percent, int total_transfered, int speed)
 {
+    int rowCount;
+    rowCount = this->rowCount();
+    for (int row = rowCount - 1; row >= 0; row --) {
+        if (this->data(this->index(row, 0)).toInt() == modelId) {
+            this->setData(this->index(row, 5), percent);
+            this->setData(this->index(row, 4), total_transfered);
+            this->setData(this->index(row, 8), speed);
+            break;
+        }
+    }
+    this->submitAll();    
 }
-void TaskQueueModel::slot_new_file_transfer_started(QString new_file_name)
+void TaskQueueModel::slot_transfer_thread_finished(int modelId)
+{
+    int rowCount;
+    rowCount = this->rowCount();
+    for (int row = rowCount - 1; row >= 0; row --) {
+        if (this->data(this->index(row, 0)).toInt() == modelId) {
+            this->setData(this->index(row, 11), QDateTime::currentDateTime().toString());
+            this->setData(this->index(0, 9), tr("Finished"));
+            this->setData(this->index(0, 7), "00:00:00");
+            break;
+        }
+    }
+    this->submitAll();    
+}
+int TaskQueueModel::slot_new_file_transfer_started(QString new_file_name)
 {
     // char *preSql = "INSERT INTO task_queue (id, file_name, dest_path, start_time) VALUES (NULL, '%s', '%s', '%s');";
     // sqlite3_stmt *pStmt = NULL;
@@ -139,7 +215,12 @@ void TaskQueueModel::slot_new_file_transfer_started(QString new_file_name)
     this->setData(this->index(0, 1), QFileInfo(new_file_name).baseName());
     this->setData(this->index(0, 2), new_file_name);
     this->setData(this->index(0, 10), QDateTime::currentDateTime().toString());
+    this->setData(this->index(0, 9), tr("Running"));
     this->submit();
+
+    int rowCount = this->rowCount();
+    int lastId = this->data(this->index(rowCount-1, 0)).toInt();
+    return lastId;
 
     // int rv = sqlite3_exec(this->pDB, "BEGIN TRANSACTION;", 0, 0, 0);
     // rv = sqlite3_prepare_v2(this->pDB, preSql, -1, &pStmt, NULL);
@@ -198,6 +279,29 @@ void TaskQueueModel::slot_new_file_transfer_started(QString new_file_name)
     // rv = sqlite3_exec(this->pDB, "COMMIT TRANSACTION;", 0, 0, 0);
 }
 
-void TaskQueueModel::slot_transfer_got_file_size(int size)
+void TaskQueueModel::slot_transfer_got_file_size(int modelId, int size)
 {
+    int rowCount;
+    rowCount = this->rowCount();
+    for (int row = rowCount - 1; row >= 0; row --) {
+        if (this->data(this->index(row, 0)).toInt() == modelId) {
+            this->setData(this->index(row, 3), size);
+            break;
+        }
+    }
+    this->submitAll();
+}
+
+void TaskQueueModel::slot_transfer_time_update(int modelId, QString eclapsed_time, QString left_time)
+{
+    int rowCount;
+    rowCount = this->rowCount();
+    for (int row = rowCount - 1; row >= 0; row --) {
+        if (this->data(this->index(row, 0)).toInt() == modelId) {
+            this->setData(this->index(row, 6), eclapsed_time);
+            this->setData(this->index(row, 7), left_time);
+            break;
+        }
+    }
+    this->submitAll();
 }

@@ -71,9 +71,9 @@ private:
     QTimer  time_cacl_timer;
         
 private:    //UI element
-        
     Ui::ProgressDialog ui_progress_dialog; 
-        
+    int modelId;
+
 private:
     void update_transfer_state();
     QString type(QString file_name);
