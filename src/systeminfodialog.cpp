@@ -34,7 +34,7 @@ void SystemInfoDialog::setSystemInfo(QString info)
 #ifdef Q_OS_WIN
     this->uiwin.label_2->setPixmap(QPixmap(qApp->applicationDirPath() + "/icons/os/windows.png").scaled(90, 90));
 #else
-    this->uiwin.label_2->setPixmap(QPixmap(qApp->applicationDirPath() + "/icons/os/tux.jpg").scaled(90, 90));
+    this->uiwin.label_2->setPixmap(QPixmap(qApp->applicationDirPath() + "/icons/os/tux.png").scaled(90, 90));
 #endif
 #endif
 }

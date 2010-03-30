@@ -312,7 +312,7 @@ src/icons/os/Distro_suse_64.png -text
 src/icons/os/Kubuavy.png -text
 src/icons/os/NetBSD.png -text
 src/icons/os/osx.png -text
-src/icons/os/tux.jpg -text
+src/icons/os/tux.png -text
 src/icons/os/windows.png -text
 src/libssh2/AUTHORS -text
 src/libssh2/CMakeLists.txt -text
