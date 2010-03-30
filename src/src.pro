@@ -185,7 +185,7 @@ win32 {
     LIBS += -lssh2 -lws2_32  -lgdi32 
     #-lgcrypt -lgpg-error 
 } else {
-    LIBS += libssh2/src/libssh2.a -lssl -lcrypto
+    LIBS += libssh2/src/libssh2.a -lssl -lcrypto -lz
     TARGETDEPS += libssh2/src/libssh2.a
 }
 
