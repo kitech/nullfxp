@@ -180,7 +180,7 @@ win32 {
     } else {
 		LIBPATH += ./libssh2/src/release 
 		LIBPATH += Z:/librarys/vc-ssl/lib Z:/librarys/vc-zlib/lib
-		LIBS += -lqtmain -lzlib -llibeay32 -lssleay32 -ladvapi32 -luser32 -lwsock32
+		LIBS += -lqtmain -lzlib -llibeay32 -lssleay32 -ladvapi32 -luser32 -lws2_32
     }
     LIBS += -lssh2 -lws2_32  -lgdi32 
     #-lgcrypt -lgpg-error 
