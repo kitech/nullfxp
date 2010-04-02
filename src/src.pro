@@ -19,11 +19,6 @@ include(../install.pri)
 win32 {
     CONFIG += release
     !win32-g++ {
-        QMAKE_CFLAGS_RELEASE -= -MT
-        QMAKE_CXXFLAGS_RELEASE -= -MT
-        QMAKE_CFLAGS_RELEASE += -MTd
-        QMAKE_CXXFLAGS_RELEASE += -MTd
-
          CONFIG -= embed_manifest_exe
          CONFIG -= embed_manifest_dll
     }
@@ -191,9 +186,9 @@ win32 {
         } else {
              LIBPATH += Z:/librarys/vc-ssl-x64/lib Z:/librarys/vc-zlib/lib
         }
-	LIBPATH += ./libssh2/src/release 
+        	LIBPATH += ./libssh2/src/release 
 
-	LIBS += -lqtmain -lzlib -llibeay32 -lssleay32 -ladvapi32 -luser32 -lws2_32
+        LIBS += -lqtmain -lzlib -llibeay32 -lssleay32 -ladvapi32 -luser32 -lws2_32
     }
     LIBS += -lssh2 -lws2_32  -lgdi32 
     #-lgcrypt -lgpg-error 
