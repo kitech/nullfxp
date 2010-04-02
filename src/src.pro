@@ -17,8 +17,13 @@ VERSION=2.0.1.86  # using in nullfxp-version.h
 include(../install.pri)
 
 win32 {
-	CONFIG += release
+    CONFIG += release
     !win32-g++ {
+        QMAKE_CFLAGS_RELEASE -= -MT
+        QMAKE_CXXFLAGS_RELEASE -= -MT
+        QMAKE_CFLAGS_RELEASE += -MTd
+        QMAKE_CXXFLAGS_RELEASE += -MTd
+
          CONFIG -= embed_manifest_exe
          CONFIG -= embed_manifest_dll
     }
@@ -178,9 +183,17 @@ win32 {
 	    }
 	    LIBS += -lssl -lcrypto -lws2_32  -lgdi32 
     } else {
-		LIBPATH += ./libssh2/src/release 
-		LIBPATH += Z:/librarys/vc-ssl/lib Z:/librarys/vc-zlib/lib
-		LIBS += -lqtmain -lzlib -llibeay32 -lssleay32 -ladvapi32 -luser32 -lws2_32
+        ## check cl.exe, x64 or x86
+        CLARCH=$$system(path)
+        VAMD64=$$find(CLARCH,amd64)
+        isEmpty(VAMD64) {
+             LIBPATH += Z:/librarys/vc-ssl-x86/lib Z:/librarys/vc-zlib/lib
+        } else {
+             LIBPATH += Z:/librarys/vc-ssl-x64/lib Z:/librarys/vc-zlib/lib
+        }
+	LIBPATH += ./libssh2/src/release 
+
+	LIBS += -lqtmain -lzlib -llibeay32 -lssleay32 -ladvapi32 -luser32 -lws2_32
     }
     LIBS += -lssh2 -lws2_32  -lgdi32 
     #-lgcrypt -lgpg-error 
@@ -233,3 +246,4 @@ mimes.files = ./icons/mimetypes/*
 
 target.path += $$BINDIR
 INSTALLS += target document icons mimes
+

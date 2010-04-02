@@ -30,8 +30,10 @@
 // 将Qt的Sql模块的功能与原生的sqlite等数据函数一些调用很难整合起来了。
 // 只使用Qt的吧，方便一点。
 
-TaskQueueModel *TaskQueueModel::inst = 
-    new TaskQueueModel(0, QSqlDatabase::addDatabase("QSQLITE", "idtq"));
+// QSqlDatabase need a QCoreApplication on win7 x64, see #0000250
+// TaskQueueModel *TaskQueueModel::inst = 
+//     new TaskQueueModel(0, QSqlDatabase::addDatabase("QSQLITE", "idtq"));
+TaskQueueModel *TaskQueueModel::inst = NULL;
 
 TaskQueueModel::TaskQueueModel(QObject *parent, QSqlDatabase db)
     : QSqlTableModel(parent, db), inited(false)
@@ -53,6 +55,11 @@ TaskQueueModel::~TaskQueueModel()
 
 TaskQueueModel *TaskQueueModel::instance()
 {
+  if (TaskQueueModel::inst == NULL) {
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "idtq");
+    TaskQueueModel *m = new TaskQueueModel(0, db);
+    TaskQueueModel::inst = m;
+  }
     TaskQueueModel *q = TaskQueueModel::inst;
     if (!q->inited) {
         q->init();

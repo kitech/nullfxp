@@ -1,0 +1,2 @@
+openssl for windows: (x86 and x64)
+	http://code.google.com/p/openssl-for-windows/

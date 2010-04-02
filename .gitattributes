@@ -13,6 +13,7 @@ docs/Doxyfile -text
 docs/arch.xmi -text
 docs/doxy_footer.html -text
 docs/fxp.txt -text
+docs/links.txt -text
 /install.pri -text
 /nullfxp.kdevelop -text
 /nullfxp.pro -text

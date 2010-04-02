@@ -20,8 +20,11 @@ QT += testlib
 
 # Input
 HEADERS += testnullfxp.h
-SOURCES += testmain.cpp testnullfxp.cpp \
-        gccfeatures.cpp
+SOURCES += testmain.cpp testnullfxp.cpp
+
+!win32 {
+    SOURCES += gccfeatures.cpp
+}
 
 SOURCES += ../basestorage.cpp ../utils.cpp ../globaloption.cpp \
   ../sshfileinfo.cpp
