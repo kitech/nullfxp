@@ -17,7 +17,7 @@ VERSION=2.0.1.86  # using in nullfxp-version.h
 include(../install.pri)
 
 win32 {
-    CONFIG += release
+    CONFIG += debug
     !win32-g++ {
          CONFIG -= embed_manifest_exe
          CONFIG -= embed_manifest_dll
@@ -29,6 +29,7 @@ win32 {
 	CONFIG += debug
 }
 QT += network sql 
+
 
 UI_DIR = obj
 MOC_DIR = obj

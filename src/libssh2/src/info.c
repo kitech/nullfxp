@@ -25,17 +25,17 @@ LIBSSH2_API char * libssh2_session_get_remote_version(LIBSSH2_SESSION *session)
 	return session->banner_TxRx_banner;
 }
 
-LIBSSH2_API char ** libssh2_session_get_remote_info(LIBSSH2_SESSION *session)
+LIBSSH2_API char ** libssh2_session_get_remote_info(LIBSSH2_SESSION *session, char ** info_vec)
 {
 	char *info_buff;
 	const LIBSSH2_KEX_METHOD *kex;
 	const LIBSSH2_HOSTKEY_METHOD *hostkey;
 	libssh2_endpoint_data *remote, *local;
-	char **info_vec = calloc(10, sizeof(char*));
+	// char **info_vec = calloc(10, sizeof(char*));
     char fingerprint[50], *fprint = fingerprint;
     int i;
 
-	memset(info_vec, 0, 10 * sizeof(char*));
+	// memset(info_vec, 0, 10 * sizeof(char*));
 		
 	kex = session->kex;
 	hostkey = session->hostkey;
@@ -68,14 +68,16 @@ LIBSSH2_API char ** libssh2_session_get_remote_info(LIBSSH2_SESSION *session)
 	local->mac->name, local->mac->key_len,
 	remote->comp->name);
  
-	info_vec[0] = info_buff;
-	info_vec[1] = strdup(kex->name);
-	info_vec[2] = strdup(hostkey->name);
-	info_vec[3] = strdup(fingerprint);
-	info_vec[4] = strdup(local->crypt->name);
-	info_vec[5] = strdup(local->mac->name);
-	info_vec[6] = strdup(remote->crypt->name);
-	info_vec[7] = strdup(remote->mac->name);
+	strcpy(info_vec[0], info_buff);
+	strcpy(info_vec[1], kex->name);
+	strcpy(info_vec[2], hostkey->name);
+	strcpy(info_vec[3], fingerprint);
+	strcpy(info_vec[4], local->crypt->name);
+	strcpy(info_vec[5], local->mac->name);
+	strcpy(info_vec[6], remote->crypt->name);
+	strcpy(info_vec[7], remote->mac->name);
+
+	free(info_buff);
 	
 	return info_vec;
 }

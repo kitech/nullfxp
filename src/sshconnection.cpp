@@ -472,13 +472,17 @@ int SSHConnection::sshHomePath()
         return CONN_SFTP_ERROR;
     }
     Q_ASSERT(ssh2_sftp != NULL);
-    char **server_info, **pptr;
-    server_info = pptr = libssh2_session_get_remote_info(this->sess);
+    char **server_info, **pptr, *p;
+	server_info = (char**)malloc(10 * sizeof(char*));
+	for (int i = 0; i < 10; i++) {
+		server_info[i] = (char*)malloc(512);
+	}
+    server_info = pptr = libssh2_session_get_remote_info(this->sess, server_info);
     printf("Received SFTP Version: %d %s\n", libssh2_sftp_get_version((LIBSSH2_SFTP*)ssh2_sftp), server_info[0]);
-    while (*pptr != NULL) {
-        free(*pptr); 
-        pptr++;
-    }
+	for (int i = 0; i < 10; i++) {
+		p = server_info[i];
+		free(p);
+	}
     free(server_info);
     
     ret = libssh2_sftp_realpath((LIBSSH2_SFTP*)ssh2_sftp, ".", home_path, PATH_MAX);

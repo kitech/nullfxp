@@ -22,7 +22,7 @@ extern "C" {
 
 
 LIBSSH2_API char *libssh2_session_get_remote_version(LIBSSH2_SESSION *session);
-LIBSSH2_API char **libssh2_session_get_remote_info(LIBSSH2_SESSION *session);
+LIBSSH2_API char **libssh2_session_get_remote_info(LIBSSH2_SESSION *session, char **info_vec);
 
 LIBSSH2_API int libssh2_sftp_get_version(LIBSSH2_SFTP * sftp);
 
