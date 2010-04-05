@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
         app.setOrganizationDomain(NULLFXP_HOMEPAGE);
         app.setOrganizationName("kitsoft");
     }
-
+	app.addLibraryPath(app.applicationDirPath() + "/plugins");
     NullFXP nfxp;
     nfxp.showNormal();
     
