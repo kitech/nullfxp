@@ -135,8 +135,6 @@ decrypt(LIBSSH2_SESSION * session, unsigned char *source,
     while (len >= blocksize) {
         if (session->remote.crypt->crypt(session, source,
                                          &session->remote.crypt_abstract)) {
-            libssh2_error(session, LIBSSH2_ERROR_DECRYPT,
-                          (char *) "Error decrypting packet", 0);
             LIBSSH2_FREE(session, p->payload);
             return PACKET_FAIL;
         }
@@ -232,11 +230,9 @@ fullpacket(LIBSSH2_SESSION * session, int encrypted /* 1 or 0 */ )
                     /* We need a freeable struct otherwise the
                      * brigade won't know what to do with it */
                     p->payload = LIBSSH2_ALLOC(session, data_len);
-                    if (!p->payload) {
-                        libssh2_error(session, LIBSSH2_ERROR_ALLOC, (char *)
-                                      "Unable to allocate memory", 0);
+                    if (!p->payload)
                         return PACKET_ENOMEM;
-                    }
+
                     memcpy(p->payload, data, data_len);
                     session->fullpacket_payload_len = data_len;
                 }
@@ -712,12 +708,13 @@ _libssh2_transport_write(LIBSSH2_SESSION * session, unsigned char *data,
 
     /* FIRST, check if we have a pending write to complete */
     rc = send_existing(session, data, data_len, &ret);
-    if (rc || ret) {
+    if (rc)
         return rc;
-    }
 
-    /* default clear the bit */
     session->socket_block_directions &= ~LIBSSH2_SESSION_BLOCK_OUTBOUND;
+
+    if (ret)
+        return rc;
 
     encrypted = (session->state & LIBSSH2_STATE_NEWKEYS) ? 1 : 0;
 

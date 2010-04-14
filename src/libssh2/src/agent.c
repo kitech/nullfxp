@@ -337,7 +337,7 @@ static struct {
 #ifdef PF_UNIX
     {"Unix", &agent_ops_unix},
 #endif  /* PF_UNIX */
-    {NULL}
+    {NULL, NULL}
 };
 
 static int
@@ -619,7 +619,7 @@ libssh2_agent_init(LIBSSH2_SESSION *session)
     agent = LIBSSH2_ALLOC(session, sizeof *agent);
     if (!agent) {
         libssh2_error(session, LIBSSH2_ERROR_ALLOC,
-                      "Unable to allocate space for agent connection", 0);
+                      "Unable to allocate space for agent connection");
         return NULL;
     }
     memset(agent, 0, sizeof *agent);

@@ -1,4 +1,4 @@
-/* Copyright (c) 2004-2007, Sara Golemon <sarag@libssh2.org>
+/* Copyright (c) 2004-2007 Sara Golemon <sarag@libssh2.org>
  * Copyright (c) 2009 by Daniel Stenberg
  * All rights reserved.
  *
@@ -48,6 +48,18 @@
 #endif
 
 #include <errno.h>
+
+int libssh2_error(LIBSSH2_SESSION* session, int errcode, const char* errmsg)
+{
+    session->err_msg = errmsg;
+    session->err_code = errcode;
+#ifdef LIBSSH2DEBUG
+    _libssh2_debug(session, LIBSSH2_TRACE_ERROR, "%d - %s", session->err_code,
+                   session->err_msg);
+#endif
+
+    return errcode;
+}
 
 #ifdef WIN32
 static int wsa2errno(void)
@@ -189,7 +201,8 @@ libssh2_base64_decode(LIBSSH2_SESSION *session, char **data,
     *data = LIBSSH2_ALLOC(session, (3 * src_len / 4) + 1);
     d = (unsigned char *) *data;
     if (!d) {
-        return -1;
+        return libssh2_error(session, LIBSSH2_ERROR_ALLOC,
+                             "Unable to allocate memory for base64 decoding");
     }
 
     for(s = (unsigned char *) src; ((char *) s) < (src + src_len); s++) {
@@ -217,7 +230,8 @@ libssh2_base64_decode(LIBSSH2_SESSION *session, char **data,
         /* Invalid -- We have a byte which belongs exclusively to a partial
            octet */
         LIBSSH2_FREE(session, *data);
-        return -1;
+        return libssh2_error(session, LIBSSH2_ERROR_INVAL,
+                             "Invalid data (byte belonging to partial octet)");
     }
 
     *datalen = len;
@@ -514,22 +528,22 @@ void _libssh2_list_insert(struct list_node *after, /* insert before this */
  */
 
 /* Offset between 1/1/1601 and 1/1/1970 in 100 nanosec units */
-#define _W32_FT_OFFSET (116444736000000000ULL)
+#define _W32_FT_OFFSET (116444736000000000)
 
 
 int __cdecl gettimeofday(struct timeval *tp,
                          void *tzp)
  {
   union {
-    unsigned long long ns100; /*time since 1 Jan 1601 in 100ns units */
+    unsigned __int64 ns100; /*time since 1 Jan 1601 in 100ns units */
     FILETIME ft;
   }  _now;
 
   if(tp)
     {
       GetSystemTimeAsFileTime (&_now.ft);
-      tp->tv_usec=(long)((_now.ns100 / 10ULL) % 1000000ULL );
-      tp->tv_sec= (long)((_now.ns100 - _W32_FT_OFFSET) / 10000000ULL);
+      tp->tv_usec=(long)((_now.ns100 / 10) % 1000000 );
+      tp->tv_sec= (long)((_now.ns100 - _W32_FT_OFFSET) / 10000000);
     }
   /* Always return 0 as per Open Group Base Specifications Issue 6.
      Do not set errno on error.  */

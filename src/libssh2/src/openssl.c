@@ -1,4 +1,4 @@
-/* Copyright (C) 2009 Simon Josefsson
+/* Copyright (C) 2009, 2010 Simon Josefsson
  * Copyright (C) 2006, 2007 The Written Word, Inc.  All rights reserved.
  * Copyright (c) 2004-2006, Sara Golemon <sarag@libssh2.org>
  *
@@ -105,12 +105,13 @@ _libssh2_rsa_sha1_verify(libssh2_rsa_ctx * rsactx,
     unsigned char hash[SHA_DIGEST_LENGTH];
     int ret;
 
-    SHA1(m, m_len, hash);
+    libssh2_sha1(m, m_len, hash);
     ret = RSA_verify(NID_sha1, hash, SHA_DIGEST_LENGTH,
                      (unsigned char *) sig, sig_len, rsactx);
     return (ret == 1) ? 0 : -1;
 }
 
+#if LIBSSH2_DSA
 int
 _libssh2_dsa_new(libssh2_dsa_ctx ** dsactx,
                  const unsigned char *p,
@@ -166,6 +167,7 @@ _libssh2_dsa_sha1_verify(libssh2_dsa_ctx * dsactx,
 
     return (ret == 1) ? 0 : -1;
 }
+#endif /* LIBSSH_DSA */
 
 int
 _libssh2_cipher_init(_libssh2_cipher_ctx * h,
@@ -199,7 +201,8 @@ _libssh2_cipher_crypt(_libssh2_cipher_ctx * ctx,
     return ret == 1 ? 0 : 1;
 }
 
-#if LIBSSH2_AES_CTR
+#if LIBSSH2_AES_CTR && !defined(HAVE_EVP_AES128_CTR)
+
 #include <openssl/aes.h>
 
 typedef struct
@@ -355,18 +358,13 @@ _libssh2_rsa_new_private(libssh2_rsa_ctx ** rsa,
         (pem_read_bio_func) &PEM_read_bio_RSAPrivateKey;
     (void) session;
 
-    if (!EVP_get_cipherbyname("des")) {
-/* If this cipher isn't loaded it's a pretty good indication that none are.
- * I have *NO DOUBT* that there's a better way to deal with this ($#&%#$(%$#(
- * Someone buy me an OpenSSL manual and I'll read up on it.
- */
-        OpenSSL_add_all_ciphers();
-    }
+    _libssh2_init_if_needed ();
 
     return read_private_key_from_file((void **) rsa, read_rsa,
                                       filename, passphrase);
 }
 
+#if LIBSSH2_DSA
 int
 _libssh2_dsa_new_private(libssh2_dsa_ctx ** dsa,
                          LIBSSH2_SESSION * session,
@@ -376,17 +374,12 @@ _libssh2_dsa_new_private(libssh2_dsa_ctx ** dsa,
         (pem_read_bio_func) &PEM_read_bio_DSAPrivateKey;
     (void) session;
 
-    if (!EVP_get_cipherbyname("des")) {
-/* If this cipher isn't loaded it's a pretty good indication that none are.
- * I have *NO DOUBT* that there's a better way to deal with this ($#&%#$(%$#(
- * Someone buy me an OpenSSL manual and I'll read up on it.
- */
-        OpenSSL_add_all_ciphers();
-    }
+    _libssh2_init_if_needed ();
 
     return read_private_key_from_file((void **) dsa, read_dsa,
                                       filename, passphrase);
 }
+#endif /* LIBSSH_DSA */
 
 int
 _libssh2_rsa_sha1_sign(LIBSSH2_SESSION * session,
@@ -419,6 +412,7 @@ _libssh2_rsa_sha1_sign(LIBSSH2_SESSION * session,
     return 0;
 }
 
+#if LIBSSH2_DSA
 int
 _libssh2_dsa_sha1_sign(libssh2_dsa_ctx * dsactx,
                        const unsigned char *hash,
@@ -452,6 +446,29 @@ _libssh2_dsa_sha1_sign(libssh2_dsa_ctx * dsactx,
     DSA_SIG_free(sig);
 
     return 0;
+}
+#endif /* LIBSSH_DSA */
+
+void
+libssh2_sha1(const unsigned char *message, unsigned long len,
+             unsigned char *out)
+{
+    EVP_MD_CTX ctx;
+
+    EVP_DigestInit(&ctx, EVP_get_digestbyname("sha1"));
+    EVP_DigestUpdate(&ctx, message, len);
+    EVP_DigestFinal(&ctx, out, NULL);
+}
+
+void
+libssh2_md5(const unsigned char *message, unsigned long len,
+            unsigned char *out)
+{
+    EVP_MD_CTX ctx;
+
+    EVP_DigestInit(&ctx, EVP_get_digestbyname("md5"));
+    EVP_DigestUpdate(&ctx, message, len);
+    EVP_DigestFinal(&ctx, out, NULL);
 }
 
 #endif /* !LIBSSH2_LIBGCRYPT */

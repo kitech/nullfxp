@@ -1,4 +1,4 @@
-/* Copyright (C) 2009 Simon Josefsson
+/* Copyright (C) 2009, 2010 Simon Josefsson
  * Copyright (C) 2006, 2007 The Written Word, Inc.  All rights reserved.
  *
  * Author: Simon Josefsson
@@ -76,6 +76,7 @@
 # define LIBSSH2_AES_CTR 1
 # define LIBSSH2_AES 1
 #else
+# define LIBSSH2_AES_CTR 0
 # define LIBSSH2_AES 0
 #endif
 
@@ -105,17 +106,17 @@
 
 #define libssh2_random(buf, len) RAND_bytes ((buf), (len))
 
-#define libssh2_sha1_ctx SHA_CTX
-#define libssh2_sha1_init(ctx) SHA1_Init(ctx)
-#define libssh2_sha1_update(ctx, data, len) SHA1_Update(&(ctx), data, len)
-#define libssh2_sha1_final(ctx, out) SHA1_Final(out, &(ctx))
-#define libssh2_sha1(message, len, out) SHA1(message, len, out)
+#define libssh2_sha1_ctx EVP_MD_CTX
+#define libssh2_sha1_init(ctx) EVP_DigestInit(ctx, EVP_get_digestbyname("sha1"))
+#define libssh2_sha1_update(ctx, data, len) EVP_DigestUpdate(&(ctx), data, len)
+#define libssh2_sha1_final(ctx, out) EVP_DigestFinal(&(ctx), out, NULL)
+void libssh2_sha1(const unsigned char *message, unsigned long len, unsigned char *out);
 
-#define libssh2_md5_ctx MD5_CTX
-#define libssh2_md5_init(ctx) MD5_Init(ctx)
-#define libssh2_md5_update(ctx, data, len) MD5_Update(&(ctx), data, len)
-#define libssh2_md5_final(ctx, out) MD5_Final(out, &(ctx))
-#define libssh2_md5(message, len, out) MD5(message, len, out)
+#define libssh2_md5_ctx EVP_MD_CTX
+#define libssh2_md5_init(ctx) EVP_DigestInit(ctx, EVP_get_digestbyname("md5"))
+#define libssh2_md5_update(ctx, data, len) EVP_DigestUpdate(&(ctx), data, len)
+#define libssh2_md5_final(ctx, out) EVP_DigestFinal(&(ctx), out, NULL)
+void libssh2_md5(const unsigned char *message, unsigned long len, unsigned char *out);
 
 #define libssh2_hmac_ctx HMAC_CTX
 #define libssh2_hmac_sha1_init(ctx, key, keylen) \
@@ -129,7 +130,8 @@
 #define libssh2_hmac_final(ctx, data) HMAC_Final(&(ctx), data, NULL)
 #define libssh2_hmac_cleanup(ctx) HMAC_cleanup(ctx)
 
-#define libssh2_crypto_init()
+#define libssh2_crypto_init() OpenSSL_add_all_algorithms()
+#define libssh2_crypto_exit()
 
 #define libssh2_rsa_ctx RSA
 
@@ -197,9 +199,15 @@ int _libssh2_dsa_sha1_sign(libssh2_dsa_ctx * dsactx,
 #define _libssh2_cipher_aes256 EVP_aes_256_cbc
 #define _libssh2_cipher_aes192 EVP_aes_192_cbc
 #define _libssh2_cipher_aes128 EVP_aes_128_cbc
+#ifdef HAVE_EVP_AES128_CTR
+#define _libssh2_cipher_aes128ctr EVP_aes_128_ctr
+#define _libssh2_cipher_aes192ctr EVP_aes_192_ctr
+#define _libssh2_cipher_aes256ctr EVP_aes_256_ctr
+#else
 #define _libssh2_cipher_aes128ctr _libssh2_EVP_aes_128_ctr
 #define _libssh2_cipher_aes192ctr _libssh2_EVP_aes_192_ctr
 #define _libssh2_cipher_aes256ctr _libssh2_EVP_aes_256_ctr
+#endif
 #define _libssh2_cipher_blowfish EVP_bf_cbc
 #define _libssh2_cipher_arcfour EVP_rc4
 #define _libssh2_cipher_cast5 EVP_cast5_cbc

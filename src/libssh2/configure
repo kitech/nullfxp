@@ -13551,6 +13551,24 @@ else
 fi
 
 
+# Not all OpenSSL have AES-CTR functions.
+if test "$ac_cv_libssl" = "yes"; then
+  save_LDFLAGS="$LDFLAGS"
+  LDFLAGS="$LDFLAGS $LIBSSL"
+  for ac_func in EVP_aes128_ctr
+do :
+  ac_fn_c_check_func "$LINENO" "EVP_aes128_ctr" "ac_cv_func_EVP_aes128_ctr"
+if test "x$ac_cv_func_EVP_aes128_ctr" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_EVP_AES128_CTR 1
+_ACEOF
+
+fi
+done
+
+  LDFLAGS="$save_LDFLAGS"
+fi
+
 # Look for Libz
 if test "$use_libz" != "no"; then
 
@@ -14120,14 +14138,14 @@ fi
 $as_echo_n "checking whether to enable pedantic and debug compiler options... " >&6; }
 # Check whether --enable-debug was given.
 if test "${enable_debug+set}" = set; then :
-  enableval=$enable_debug;  case "$enableval" in
+  enableval=$enable_debug;  case "$enable_debug" in
   no)
        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
        ;;
   *)   { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-
+    enable_debug=yes
     CPPFLAGS="$CPPFLAGS -DLIBSSH2DEBUG"
     CFLAGS="$CFLAGS -g"
 
@@ -14248,7 +14266,8 @@ $as_echo "$as_me: Added no extra compiler options" >&6;}
   esac
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+  enable_debug=no
+       { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 fi
@@ -14380,7 +14399,27 @@ done
     ;;
 esac
 
-for ac_func in poll gettimeofday select strtoll
+case $host in
+  *darwin*|*interix*)
+                                        { $as_echo "$as_me:${as_lineno-$LINENO}: poll use is disabled on this platform" >&5
+$as_echo "$as_me: poll use is disabled on this platform" >&6;}
+    ;;
+  *)
+    for ac_func in poll
+do :
+  ac_fn_c_check_func "$LINENO" "poll" "ac_cv_func_poll"
+if test "x$ac_cv_func_poll" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_POLL 1
+_ACEOF
+
+fi
+done
+
+    ;;
+esac
+
+for ac_func in gettimeofday select strtoll
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
@@ -17287,3 +17326,30 @@ if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
 $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
 
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: summary of build options:
+
+  version:          ${VERSION}
+  Host type:        ${host}
+  Install prefix:   ${prefix}
+  Compiler:         ${CC}
+  Compiler flags:   ${CFLAGS}
+  Library types:    Shared=${enable_shared}, Static=${enable_static}
+  Crypto library:   openssl: ${ac_cv_libssl:-no} (AES-CTR: ${ac_cv_func_EVP_aes128_ctr:-N/A}) libgcrypt: ${ac_cv_libgcrypt:-no}
+  Debug build:      $enable_debug
+  Path to sshd:     $ac_cv_path_SSHD (only for self-tests)
+  libz compression: $ac_cv_libz
+" >&5
+$as_echo "$as_me: summary of build options:
+
+  version:          ${VERSION}
+  Host type:        ${host}
+  Install prefix:   ${prefix}
+  Compiler:         ${CC}
+  Compiler flags:   ${CFLAGS}
+  Library types:    Shared=${enable_shared}, Static=${enable_static}
+  Crypto library:   openssl: ${ac_cv_libssl:-no} (AES-CTR: ${ac_cv_func_EVP_aes128_ctr:-N/A}) libgcrypt: ${ac_cv_libgcrypt:-no}
+  Debug build:      $enable_debug
+  Path to sshd:     $ac_cv_path_SSHD (only for self-tests)
+  libz compression: $ac_cv_libz
+" >&6;}

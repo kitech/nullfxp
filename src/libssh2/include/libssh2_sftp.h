@@ -142,6 +142,22 @@ struct _LIBSSH2_SFTP_ATTRIBUTES {
 #define LIBSSH2_SFTP_S_IWOTH        0000002     /* W for other */
 #define LIBSSH2_SFTP_S_IXOTH        0000001     /* X for other */
 
+/* macros to check for specific file types, added in 1.2.5 */
+#define LIBSSH2_SFTP_S_ISLNK(m) \
+  (((m) & LIBSSH2_SFTP_S_IFMT) == LIBSSH2_SFTP_S_IFLNK)
+#define LIBSSH2_SFTP_S_ISREG(m) \
+  (((m) & LIBSSH2_SFTP_S_IFMT) == LIBSSH2_SFTP_S_IFREG)
+#define LIBSSH2_SFTP_S_ISDIR(m) \
+  (((m) & LIBSSH2_SFTP_S_IFMT) == LIBSSH2_SFTP_S_IFDIR)
+#define LIBSSH2_SFTP_S_ISCHR(m) \
+  (((m) & LIBSSH2_SFTP_S_IFMT) == LIBSSH2_SFTP_S_IFCHR)
+#define LIBSSH2_SFTP_S_ISBLK(m) \
+  (((m) & LIBSSH2_SFTP_S_IFMT) == LIBSSH2_SFTP_S_IFBLK)
+#define LIBSSH2_SFTP_S_ISFIFO(m) \
+  (((m) & LIBSSH2_SFTP_S_IFMT) == LIBSSH2_SFTP_S_IFIFO)
+#define LIBSSH2_SFTP_S_ISSOCK(m) \
+  (((m) & LIBSSH2_SFTP_S_IFMT) == LIBSSH2_SFTP_S_IFSOCK)
+
 /* SFTP File Transfer Flags -- (e.g. flags parameter to sftp_open())
  * Danger will robinson... APPEND doesn't have any effect on OpenSSH servers */
 #define LIBSSH2_FXF_READ                        0x00000001
@@ -198,7 +214,7 @@ LIBSSH2_API LIBSSH2_SFTP_HANDLE *libssh2_sftp_open_ex(LIBSSH2_SFTP *sftp,
     libssh2_sftp_open_ex((sftp), (path), strlen(path), 0, 0, \
                          LIBSSH2_SFTP_OPENDIR)
 
-LIBSSH2_API size_t libssh2_sftp_read(LIBSSH2_SFTP_HANDLE *handle,
+LIBSSH2_API ssize_t libssh2_sftp_read(LIBSSH2_SFTP_HANDLE *handle,
                                       char *buffer, size_t buffer_maxlen);
 
 LIBSSH2_API int libssh2_sftp_readdir_ex(LIBSSH2_SFTP_HANDLE *handle, \
@@ -210,7 +226,7 @@ LIBSSH2_API int libssh2_sftp_readdir_ex(LIBSSH2_SFTP_HANDLE *handle, \
     libssh2_sftp_readdir_ex((handle), (buffer), (buffer_maxlen), NULL, 0, \
                             (attrs))
 
-LIBSSH2_API size_t libssh2_sftp_write(LIBSSH2_SFTP_HANDLE *handle,
+LIBSSH2_API ssize_t libssh2_sftp_write(LIBSSH2_SFTP_HANDLE *handle,
                                        const char *buffer, size_t count);
 
 LIBSSH2_API int libssh2_sftp_close_handle(LIBSSH2_SFTP_HANDLE *handle);

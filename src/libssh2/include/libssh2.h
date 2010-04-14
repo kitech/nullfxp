@@ -1,5 +1,6 @@
 /* Copyright (c) 2004-2009, Sara Golemon <sarag@libssh2.org>
  * Copyright (c) 2009 by Daniel Stenberg
+ * Copyright (c) 2010 Simon Josefsson <simon@josefsson.org>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms,
@@ -95,13 +96,13 @@ typedef long long libssh2_int64_t;
    to make the BANNER define (used by src/session.c) be a valid SSH
    banner. Release versions have no appended strings and may of course not
    have dashes either. */
-#define LIBSSH2_VERSION "1.2.4"
+#define LIBSSH2_VERSION "1.2.5"
 
 /* The numeric version number is also available "in parts" by using these
    defines: */
 #define LIBSSH2_VERSION_MAJOR 1
 #define LIBSSH2_VERSION_MINOR 2
-#define LIBSSH2_VERSION_PATCH 4
+#define LIBSSH2_VERSION_PATCH 5
 
 /* This is the numeric version of the libssh2 version number, meant for easier
    parsing and comparions by programs. The LIBSSH2_VERSION_NUM define will
@@ -118,7 +119,7 @@ typedef long long libssh2_int64_t;
    and it is always a greater number in a more recent release. It makes
    comparisons with greater than and less than work.
 */
-#define LIBSSH2_VERSION_NUM 0x010204
+#define LIBSSH2_VERSION_NUM 0x010205
 
 /*
  * This is the date and time when the full source package was created. The
@@ -129,7 +130,7 @@ typedef long long libssh2_int64_t;
  *
  * "Mon Feb 12 11:35:33 UTC 2007"
  */
-#define LIBSSH2_TIMESTAMP "Sat Feb 13 16:11:42 UTC 2010"
+#define LIBSSH2_TIMESTAMP "Tue Apr 13 21:19:00 UTC 2010"
 
 /* Part of every banner, user specified or not */
 #define LIBSSH2_SSH_BANNER                  "SSH-2.0-libssh2_" LIBSSH2_VERSION
@@ -375,6 +376,32 @@ typedef struct _LIBSSH2_POLLFD {
 #define LIBSSH2_ERROR_OUT_OF_BOUNDARY           -41
 #define LIBSSH2_ERROR_AGENT_PROTOCOL            -42
 
+/* Global API */
+#define LIBSSH2_INIT_NO_CRYPTO        0x0001
+
+/*
+ * libssh2_init()
+ *
+ * Initialize the libssh2 functions.  This typically initialize the
+ * crypto library.  It uses a global state, and is not thread safe --
+ * you must make sure this function is not called concurrently.
+ *
+ * Flags can be:
+ * 0:                              Normal initialize
+ * LIBSSH2_INIT_NO_CRYPTO:         Do not initialize the crypto library (ie.
+ *                                 OPENSSL_add_cipher_algoritms() for OpenSSL
+ *
+ * Returns 0 if succeeded, or a negative value for error.
+ */
+LIBSSH2_API int libssh2_init(int flags);
+
+/*
+ * libssh2_exit()
+ *
+ * Exit the libssh2 functions and free's all memory used internal.
+ */
+LIBSSH2_API void libssh2_exit(void);
+
 /* Session API */
 LIBSSH2_API LIBSSH2_SESSION *
 libssh2_session_init_ex(LIBSSH2_ALLOC_FUNC((*my_alloc)),
@@ -595,7 +622,7 @@ LIBSSH2_API int libssh2_channel_process_startup(LIBSSH2_CHANNEL *channel,
                                   sizeof("subsystem") - 1, (subsystem), \
                                   strlen(subsystem))
 
-LIBSSH2_API size_t libssh2_channel_read_ex(LIBSSH2_CHANNEL *channel,
+LIBSSH2_API ssize_t libssh2_channel_read_ex(LIBSSH2_CHANNEL *channel,
                                             int stream_id, char *buf,
                                             size_t buflen);
 #define libssh2_channel_read(channel, buf, buflen) \
@@ -625,7 +652,7 @@ libssh2_channel_receive_window_adjust2(LIBSSH2_CHANNEL *channel,
                                        unsigned char force,
                                        unsigned int *storewindow);
 
-LIBSSH2_API size_t libssh2_channel_write_ex(LIBSSH2_CHANNEL *channel,
+LIBSSH2_API ssize_t libssh2_channel_write_ex(LIBSSH2_CHANNEL *channel,
                                              int stream_id, const char *buf,
                                              size_t buflen);
 
@@ -725,7 +752,7 @@ libssh2_knownhost_init(LIBSSH2_SESSION *session);
  *
  * Add a host and its associated key to the collection of known hosts.
  *
- * The 'type' argument specifies on what format the given host is:
+ * The 'type' argument specifies on what format the given host and keys are:
  *
  * plain  - ascii "hostname.domain.tld"
  * sha1   - SHA1(<salt> <host>) base64-encoded!
@@ -738,6 +765,8 @@ libssh2_knownhost_init(LIBSSH2_SESSION *session);
  * a custom type is used, salt is ignored and you must provide the host
  * pre-hashed when checking for it in the libssh2_knownhost_check() function.
  *
+ * The keylen parameter may be omitted (zero) if the key is provided as a
+ * NULL-terminated base64-encoded string.
  */
 
 /* host format (2 bits) */
@@ -764,6 +793,41 @@ libssh2_knownhost_add(LIBSSH2_KNOWNHOSTS *hosts,
                       const char *salt,
                       const char *key, size_t keylen, int typemask,
                       struct libssh2_knownhost **store);
+
+/*
+ * libssh2_knownhost_addc
+ *
+ * Add a host and its associated key to the collection of known hosts.
+ *
+ * Takes a comment argument that may be NULL.  A NULL comment indicates
+ * there is no comment and the entry will end directly after the key
+ * when written out to a file.  An empty string "" comment will indicate an
+ * empty comment which will cause a single space to be written after the key.
+ *
+ * The 'type' argument specifies on what format the given host and keys are:
+ *
+ * plain  - ascii "hostname.domain.tld"
+ * sha1   - SHA1(<salt> <host>) base64-encoded!
+ * custom - another hash
+ *
+ * If 'sha1' is selected as type, the salt must be provided to the salt
+ * argument. This too base64 encoded.
+ *
+ * The SHA-1 hash is what OpenSSH can be told to use in known_hosts files.  If
+ * a custom type is used, salt is ignored and you must provide the host
+ * pre-hashed when checking for it in the libssh2_knownhost_check() function.
+ *
+ * The keylen parameter may be omitted (zero) if the key is provided as a
+ * NULL-terminated base64-encoded string.
+ */
+
+LIBSSH2_API int
+libssh2_knownhost_addc(LIBSSH2_KNOWNHOSTS *hosts,
+                       const char *host,
+                       const char *salt,
+                       const char *key, size_t keylen,
+                       const char *comment, size_t commentlen, int typemask,
+                       struct libssh2_knownhost **store);
 
 /*
  * libssh2_knownhost_check
@@ -946,8 +1010,8 @@ libssh2_agent_list_identities(LIBSSH2_AGENT *agent);
  */
 LIBSSH2_API int
 libssh2_agent_get_identity(LIBSSH2_AGENT *agent,
-			   struct libssh2_agent_publickey **store,
-			   struct libssh2_agent_publickey *prev);
+               struct libssh2_agent_publickey **store,
+               struct libssh2_agent_publickey *prev);
 
 /*
  * libssh2_agent_userauth()
@@ -958,8 +1022,8 @@ libssh2_agent_get_identity(LIBSSH2_AGENT *agent,
  */
 LIBSSH2_API int
 libssh2_agent_userauth(LIBSSH2_AGENT *agent,
-		       const char *username,
-		       struct libssh2_agent_publickey *identity);
+               const char *username,
+               struct libssh2_agent_publickey *identity);
 
 /*
  * libssh2_agent_disconnect()
@@ -979,6 +1043,35 @@ libssh2_agent_disconnect(LIBSSH2_AGENT *agent);
  */
 LIBSSH2_API void
 libssh2_agent_free(LIBSSH2_AGENT *agent);
+
+
+/*
+ * libssh2_keepalive_config()
+ *
+ * Set how often keepalive messages should be sent.  WANT_REPLY
+ * indicates whether the keepalive messages should request a response
+ * from the server.  INTERVAL is number of seconds that can pass
+ * without any I/O, use 0 (the default) to disable keepalives.  To
+ * avoid some busy-loop corner-cases, if you specify an interval of 1
+ * it will be treated as 2.
+ *
+ * Note that non-blocking applications are responsible for sending the
+ * keepalive messages using libssh2_keepalive_send().
+ */
+LIBSSH2_API void libssh2_keepalive_config (LIBSSH2_SESSION *session,
+                                           int want_reply,
+                                           unsigned interval);
+
+/*
+ * libssh2_keepalive_send()
+ *
+ * Send a keepalive message if needed.  SECONDS_TO_NEXT indicates how
+ * many seconds you can sleep after this call before you need to call
+ * it again.  Returns 0 on success, or LIBSSH2_ERROR_SOCKET_SEND on
+ * I/O errors.
+ */
+LIBSSH2_API int libssh2_keepalive_send (LIBSSH2_SESSION *session,
+                                        int *seconds_to_next);
 
 /* NOTE NOTE NOTE
    libssh2_trace() has no function in builds that aren't built with debug

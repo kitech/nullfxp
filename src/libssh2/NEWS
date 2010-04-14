@@ -1,3 +1,20 @@
+ o Use poll instead of select when available.  By Paul Querna.
+
+ o Add APIs to have libssh2 automatically send keep-alive requests.
+   The APIs are libssh2_keepalive_config, and libssh2_keepalive_send.
+   By Simon Josefsson.
+
+ o Add global init/exit points, to do crypto initialization in one place.
+   The APIs are libssh2_init and libssh2_exit.  By Lars Nordin.
+
+* (February 15 2010) Daniel Stenberg:
+- Added 46 new man pages for public convenience macros. The man pages  are
+  just short redirects to the actual underlying function. The were all
+  initially created by a script.
+
+- Committed the patch by Yoichi Iwaki in bug #2929647, which fixed a memory
+  leak when an 'outbuf' was still allocated when a session was freed.
+
 Version 1.2.4 (February 13, 2010)
 
  o Resolve compile issues on Solaris x64 and UltraSPARC

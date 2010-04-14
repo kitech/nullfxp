@@ -65,7 +65,7 @@ libssh2_la_LIBADD =
 am__objects_1 = channel.lo comp.lo crypt.lo hostkey.lo kex.lo mac.lo \
 	misc.lo packet.lo publickey.lo scp.lo session.lo sftp.lo \
 	userauth.lo transport.lo version.lo knownhost.lo agent.lo \
-	openssl.lo libgcrypt.lo pem.lo
+	openssl.lo libgcrypt.lo pem.lo keepalive.lo global.lo
 am__objects_2 =
 am_libssh2_la_OBJECTS = $(am__objects_1) $(am__objects_2)
 libssh2_la_OBJECTS = $(am_libssh2_la_OBJECTS)
@@ -217,9 +217,12 @@ target_alias = @target_alias@
 AUTOMAKE_OPTIONS = foreign nostdinc
 CSOURCES = channel.c comp.c crypt.c hostkey.c kex.c mac.c misc.c \
  packet.c publickey.c scp.c session.c sftp.c userauth.c transport.c \
- version.c knownhost.c agent.c openssl.c libgcrypt.c pem.c
+ version.c knownhost.c agent.c openssl.c libgcrypt.c pem.c keepalive.c \
+ global.c
 
-HHEADERS = libssh2_priv.h openssl.h libgcrypt.h transport.h channel.h comp.h mac.h misc.h
+HHEADERS = libssh2_priv.h openssl.h libgcrypt.h transport.h channel.h \
+ comp.h mac.h misc.h
+
 
 # Makefile.inc provides the CSOURCES and HHEADERS defines
 libssh2_la_SOURCES = $(CSOURCES) $(HHEADERS)
@@ -353,7 +356,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/channel.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/comp.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/crypt.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/global.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hostkey.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/keepalive.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/kex.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/knownhost.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgcrypt.Plo@am__quote@

@@ -1,4 +1,4 @@
-/* Copyright (c) 2004-2008, Sara Golemon <sarag@libssh2.org>
+/* Copyright (c) 2004-2008, 2010, Sara Golemon <sarag@libssh2.org>
  * Copyright (c) 2009 by Daniel Stenberg
  * Copyright (c) 2010 Simon Josefsson
  * All rights reserved.
@@ -730,9 +730,7 @@ struct _LIBSSH2_SESSION
                                    when libssh2_session_startup() is called */
 
     /* Error tracking */
-    char *err_msg;
-    unsigned long err_msglen;
-    int err_should_free;
+    const char *err_msg;
     int err_code;
 
     /* struct members for packet-level reading */
@@ -879,6 +877,8 @@ struct _LIBSSH2_SESSION
     LIBSSH2_CHANNEL *sftpInit_channel;
     unsigned char sftpInit_buffer[9];   /* sftp_header(5){excludes request_id}
                                            + version_id(4) */
+    int sftpInit_sent; /* number of bytes from the buffer that have been
+                          sent */
 
     /* State variables used in libssh2_scp_recv() */
     libssh2_nonblocking_states scpRecv_state;
@@ -910,6 +910,11 @@ struct _LIBSSH2_SESSION
     char *scpSend_err_msg;
     long scpSend_err_len;
     LIBSSH2_CHANNEL *scpSend_channel;
+
+    /* Keepalive variables used by keepalive.c. */
+    int keepalive_interval;
+    int keepalive_want_reply;
+    time_t keepalive_last_sent;
 };
 
 /* session.state bits */
@@ -1036,34 +1041,7 @@ _libssh2_debug(LIBSSH2_SESSION * session, int context, const char *format, ...)
 #endif
 #endif
 
-#ifdef LIBSSH2DEBUG
-#define libssh2_error(session, errcode, errmsg, should_free)    \
-{ \
-    if (session->err_msg && session->err_should_free) { \
-        LIBSSH2_FREE(session, session->err_msg); \
-    } \
-    session->err_msg = (char *)errmsg; \
-    session->err_msglen = strlen(errmsg); \
-    session->err_should_free = should_free; \
-    session->err_code = errcode; \
-    _libssh2_debug(session, LIBSSH2_TRACE_ERROR, "%d - %s", session->err_code, session->err_msg); \
-}
-
-#else /* ! LIBSSH2DEBUG */
-
-#define libssh2_error(session, errcode, errmsg, should_free)    \
-{ \
-    if (session->err_msg && session->err_should_free) { \
-        LIBSSH2_FREE(session, session->err_msg); \
-    } \
-    session->err_msg = (char *)errmsg; \
-    session->err_msglen = strlen(errmsg); \
-    session->err_should_free = should_free; \
-    session->err_code = errcode; \
-}
-
-#endif /* ! LIBSSH2DEBUG */
-
+int libssh2_error(LIBSSH2_SESSION* session, int errcode, const char* errmsg);
 
 #define LIBSSH2_SOCKET_UNKNOWN                   1
 #define LIBSSH2_SOCKET_CONNECTED                 0
@@ -1224,6 +1202,8 @@ int _libssh2_pem_decode_sequence(unsigned char **data, unsigned int *datalen);
 int _libssh2_pem_decode_integer(unsigned char **data, unsigned int *datalen,
                                 unsigned char **i, unsigned int *ilen);
 
+/* global.c */
+void _libssh2_init_if_needed (void);
 
 /* Conveniance-macros to allow code like this;
 
@@ -1270,6 +1250,5 @@ int _libssh2_pem_decode_integer(unsigned char **data, unsigned int *datalen,
 
 
 #define ARRAY_SIZE(a) (sizeof ((a)) / sizeof ((a)[0]))
-
 
 #endif /* LIBSSH2_H */

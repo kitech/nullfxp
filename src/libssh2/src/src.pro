@@ -31,6 +31,8 @@ SOURCES += agent.c \
         transport.c \
         userauth.c \
         version.c \
+        global.c \
+        keepalive.c \
         info.c 
 
 HEADERS += libgcrypt.h \

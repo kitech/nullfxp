@@ -971,10 +971,15 @@ void RemoteView::encryption_focus_label_double_clicked()
 {
     //qDebug()<<__FILE__<<":"<<__LINE__;
     EncryptionDetailDialog *enc_dlg = 0;
-    char **server_info, **pptr;
+    char **server_info, **pptr, *p;
     int sftp_version;
+    
+	server_info = (char**)malloc(10 * sizeof(char*));
+	for (int i = 0; i < 10; i++) {
+		server_info[i] = (char*)malloc(512);
+	}
 
-    pptr = server_info = libssh2_session_get_remote_info(this->conn->sess);
+    pptr = server_info = libssh2_session_get_remote_info(this->conn->sess, server_info);
     sftp_version = libssh2_sftp_get_version(this->ssh2_sftp); 
 
     enc_dlg = new EncryptionDetailDialog(server_info, this);
@@ -983,10 +988,15 @@ void RemoteView::encryption_focus_label_double_clicked()
     //if(server_info != NULL) free(server_info);
     delete enc_dlg;
 
-    while (*pptr != NULL) {
-        free(*pptr);
-        pptr ++;
-    }
+    // while (*pptr != NULL) {
+    //     free(*pptr);
+    //     pptr ++;
+    // }
+	for (int i = 0; i < 10; i++) {
+		p = server_info[i];
+		free(p);
+	}
+
     free(server_info);
 }
 

@@ -353,8 +353,10 @@ src/libssh2/src/channel.h -text
 src/libssh2/src/comp.c -text
 src/libssh2/src/comp.h -text
 src/libssh2/src/crypt.c -text
+src/libssh2/src/global.c -text
 src/libssh2/src/hostkey.c -text
 src/libssh2/src/info.c -text
+src/libssh2/src/keepalive.c -text
 src/libssh2/src/kex.c -text
 src/libssh2/src/knownhost.c -text
 src/libssh2/src/libgcrypt.c -text
