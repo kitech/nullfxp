@@ -37,6 +37,10 @@
 
 #include "sshconnection.h"
 
+// global init on start up
+static int gLibssh2Inited = libssh2_init(0);
+
+/////
 static QMutex ssh2_kbd_cb_mutex ;
 
 static char ssh2_password[60] ;
@@ -63,10 +67,11 @@ static void kbd_callback(const char *name, int name_len,
 SSHConnection::SSHConnection(QObject *parent)
     : Connection(parent)
 {
+    // qDebug()<<"gLibssh2Inited:"<<gLibssh2Inited;
 }
 SSHConnection::~SSHConnection()
 {
-    q_debug()<<"";
+    q_debug()<<""<<"gLibssh2Inited:"<<(gLibssh2Inited == 0 ? "OK" : "Faild");
     if (this->qsock != NULL) {
         delete this->qsock;
         this->qsock = NULL;
@@ -159,7 +164,7 @@ QTextCodec *SSHConnection::codecForEnv(QString env)
         }
     }
     if (ecodec == NULL) {
-        q_debug()<<"can not got encoding from env";
+        q_debug()<<"Can not got encoding from env";
     }
     return ecodec;
 }
@@ -175,7 +180,7 @@ int SSHConnection::initSocket()
 #endif
 
     //create socket 
-    struct sockaddr_in serv_addr ;
+    struct sockaddr_in serv_addr;
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(this->port);
@@ -186,7 +191,6 @@ int SSHConnection::initSocket()
     if (dest_addr.isNull()) {
         QHostInfo hi = QHostInfo::fromName(this->hostName);
         if (hi.error() != QHostInfo::NoError) {
-            // this->connect_status = CONN_RESOLVE_ERROR;
             emit connect_state_changed(tr("Resoving host faild: (%1),%2").arg(hi.error())
                                        .arg(hi.errorString()));
             return CONN_RESOLVE_ERROR;;
@@ -202,7 +206,6 @@ int SSHConnection::initSocket()
 #endif
 
     if (this->user_canceled == true) {
-        // this->connect_status = CONN_CANCEL ;
         return CONN_CANCEL;
     }   
 
@@ -212,17 +215,18 @@ int SSHConnection::initSocket()
     assert(this->sock > 0);
 
     //设置连接超时
-    unsigned long sock_flag = 1;
+    unsigned long sock_flag = 1; // windows need unsigned long, but *nix only need long
 #ifdef WIN32
     ioctlsocket(this->sock, FIONBIO, &sock_flag);
 #else
-    sock_flag = fcntl(this->sock, F_GETFL);
-    fcntl(this->sock, F_SETFL, sock_flag | O_NONBLOCK);
+    sock_flag = fcntl(this->sock, F_GETFL, NULL);
+    sock_flag |= O_NONBLOCK;
+    fcntl(this->sock, F_SETFL, sock_flag);
 #endif
     ret = ::connect(this->sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
     QTextCodec *codec = gOpt->locale_codec;
 
-    struct timeval timeo = {10, 0}; //连接超时10秒
+    struct timeval timeo = {10, 0}; // setting connect timeout to 10 sec
     fd_set set, rdset, exset;
     FD_ZERO(&set);
     FD_SET(this->sock, &set);
@@ -237,9 +241,9 @@ int SSHConnection::initSocket()
     if (ret == -1) {
         assert(1 == 2);
     } else if (ret == 0) {
-        QString emsg = QString(tr("Connect faild : (%1),%2 ").arg(errno).arg(strerror(errno)));
+        QString emsg = QString(tr("Connect faild : (%1),%2 ").arg(errno)
+                               .arg(codec->toUnicode(QByteArray(strerror(errno)))));
         emit connect_state_changed(emsg) ;
-        // this->connect_status = CONN_REFUSE;
         qDebug()<<emsg;
         //assert( ret == 0 );
         return CONN_REFUSE;
@@ -275,6 +279,8 @@ int SSHConnection::initSocket()
     }
 #else
     sock_flag = 0;
+    sock_flag = fcntl(this->sock, F_GETFL, NULL);
+    sock_flag |= (~O_NONBLOCK);
     fcntl(this->sock, F_SETFL, sock_flag);
 #endif
 
@@ -291,7 +297,9 @@ int SSHConnection::initSSHSession()
     int ret = -1;
 
     this->sess = libssh2_session_init();
+    libssh2_session_set_blocking(this->sess, 1);
     libssh2_trace(this->sess, 64);
+
     ret = libssh2_session_startup(this->sess, this->sock);
     if (ret != 0) {
         {
@@ -321,13 +329,15 @@ int SSHConnection::initSSHSession()
 
     return 0;
 }
+
+// TODO view auth list, select corresponding auth method
 int SSHConnection::sshAuth()
 {
     int ret = -1;
     char *auth_list = libssh2_userauth_list(this->sess,
                                             this->userName.toAscii().data(), 
                                             strlen(this->userName.toAscii().data()));
-    printf("user auth list : %s \n" , auth_list);
+    qDebug()<<"User auth list: "<<auth_list;
 
     ret = libssh2_userauth_hostbased_fromfile(this->sess, 
                                               this->userName.toAscii().data(),
@@ -337,8 +347,10 @@ int SSHConnection::sshAuth()
                                               this->hostName.toAscii().data());
     //qDebug()<<this->user_name<<this->pubkey_path<<this->pubkey_path.left(this->pubkey_path.length()-4)
     //      <<this->decoded_password<<this->host_name;;
+    // qDebug()<<"hostbased_fromfile:"<<ret<<this->password
+    //         <<QUrl::fromPercentEncoding(this->password.toAscii());
 
-    if (ret == -1) {
+    if (ret < 0) {
         char *emsg = 0;
         int  emsg_len = 0;
         libssh2_session_last_error(this->sess, &emsg, &emsg_len, 1);
@@ -350,12 +362,11 @@ int SSHConnection::sshAuth()
         emit connect_state_changed(QString("%1").arg(tr("Host based public key auth successful")));
     }
 
-    if (ret == -1) {
+    if (ret < 0) {
         if (this->pubkey != QString::null && this->pubkey.length() != 0) {
             //publickey auth
             emit connect_state_changed(QString(tr("User authing(PublicKey: %1)...")).arg(this->pubkey));
             if (this->user_canceled == true) {
-                // this->connect_status = 2 ;
                 libssh2_session_disconnect(this->sess, "");
                 libssh2_session_free(this->sess);
                 this->piClose(this->sock);
@@ -375,7 +386,7 @@ int SSHConnection::sshAuth()
     if (ret == 0) {
         qDebug()<<"PublicKey auth successfully";
     }
-    if (ret == -1) {
+    if (ret < 0) {
         //password auth
         if (this->pubkey == QString::null || this->pubkey.length() == 0) {
             emit connect_state_changed(tr("User authing (Password)..."));
@@ -398,9 +409,10 @@ int SSHConnection::sshAuth()
 
         ret = libssh2_userauth_password(this->sess, this->userName.toAscii().data(),
                                         QUrl::fromPercentEncoding(this->password.toAscii()).toAscii().data());
-        qDebug()<<"Keyboard Interactive :"<<ret;
+        qDebug()<<"userauth_password :"<<ret;
 
-        if (ret == -1) {
+        if (ret < 0) {
+            qDebug()<<"userauth_password faild:";
             emit connect_state_changed(tr("User auth faild (Password). Trying (Keyboard Interactive) ..."));
             ssh2_kbd_cb_mutex.lock();
             strncpy(ssh2_password, 
@@ -410,7 +422,7 @@ int SSHConnection::sshAuth()
                                                         this->userName.toAscii().data(), &kbd_callback) ;
             memset(ssh2_password, 0, sizeof(ssh2_password));
             ssh2_kbd_cb_mutex.unlock();
-            qDebug()<<"Keyboard interactive :"<<ret;
+            qDebug()<<"Keyboard interactive :"<<ret<<this->password;
         }
         if (this->user_canceled == true) {
             // this->connect_status = 2 ;
@@ -486,31 +498,23 @@ int SSHConnection::sshHomePath()
     free(server_info);
     
     ret = libssh2_sftp_realpath((LIBSSH2_SFTP*)ssh2_sftp, ".", home_path, PATH_MAX);
-    if (ret != 0) {
+    if (ret == 0) {
+        // what's mean?
+        assert(ret != 0);
+    } else if (ret < 0) {
         QString msg;
-        char *emsg = 0;
-        int  emsg_len = 0;
-        libssh2_session_last_error(this->sess, &emsg, &emsg_len, 1);
-        qDebug()<<"Init sftp error: "<<emsg;
-        if (emsg != 0) {
-            msg = QString(emsg);
-            free(emsg);
-        } else {
-            msg = QString(tr("Unknown SFTP error."));
-        }
-
-        qDebug()<<"realpath : "<<ret
-                <<"error code: "<<libssh2_sftp_last_error((LIBSSH2_SFTP*)ssh2_sftp)
-                <<"error msg: "<<msg
+        msg = this->libssh2SessionLastErrorString();
+        qDebug()<<"Realpath : "<<ret
+                <<"Error code: "<<libssh2_sftp_last_error((LIBSSH2_SFTP*)ssh2_sftp)
+                <<"Error msg: "<<msg
                 <<home_path;
-        assert(ret >= 0);
     }
+    assert(ret >= 0);
+
     this->homePath = QString(home_path);
     libssh2_sftp_shutdown(ssh2_sftp);
-    // this->connect_status = 0 ;
     
     if (this->user_canceled == true) {
-        // this->connect_status = CONN_CANCEL;
         libssh2_session_disconnect(this->sess, "");
         libssh2_session_free(this->sess);
         this->piClose(this->sock);
@@ -551,4 +555,20 @@ QString SSHConnection::get_server_env_vars(const char *cmd)
 
     return env_output;
     return QString();
+}
+
+QString SSHConnection::libssh2SessionLastErrorString()
+{
+    QString errorString = "Inited with Unknown libssh2 error.";
+
+    char *emsg = 0;
+    int  emsg_len = 0;
+    int rv = libssh2_session_last_error(this->sess, &emsg, &emsg_len, 1);
+    qDebug()<<__FUNCTION__<<rv<<"Get realpath error: "<<emsg;
+    if (emsg != 0) {
+        errorString = QString(emsg);
+        free(emsg);
+    } 
+    
+    return errorString;
 }

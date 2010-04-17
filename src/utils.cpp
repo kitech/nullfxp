@@ -285,11 +285,26 @@ long fxp_getpid()
 
 int set_nonblock (int sock)
 {
+    unsigned long flags = 0;
 #ifdef WIN32
-    unsigned long flags = 1;
+    flags = 1;
     return (ioctlsocket(sock, FIONBIO, &flags) != SOCKET_ERROR);
 #else
-    return (fcntl(sock, F_SETFL, O_NONBLOCK) != -1);
+    flags = fcntl(sock, F_GETFL, NULL);
+    flags |= O_NONBLOCK;
+    return (fcntl(sock, F_SETFL, flags) >= 0);
 #endif
 }
 
+int set_sock_block(int sock)
+{
+    unsigned long flags = 0;
+#ifdef WIN32
+
+#else
+    flags = fcntl(sock, F_GETFL, NULL);
+    assert(flags >= 0);
+    flags |= (~O_NONBLOCK);
+    return (fcntl(sock, F_SETFL, flags) >=0);
+#endif
+}

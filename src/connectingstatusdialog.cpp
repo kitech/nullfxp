@@ -12,17 +12,18 @@
 
 #include "connectingstatusdialog.h"
 
-ConnectingStatusDialog::ConnectingStatusDialog(QString user_name, QString host_name, QString port, QWidget *parent, Qt::WindowFlags f)
+ConnectingStatusDialog::ConnectingStatusDialog(QString user_name, QString host_name, 
+                                               QString port, QWidget *parent, Qt::WindowFlags f)
     : QDialog(parent, f)
 {
 	this->user_name = user_name;
 	this->host_name = host_name;
     this->port = port;
     
-    connect_status_dialog.setupUi(this);
+    uiwin.setupUi(this);
     
-    this->connect_status_dialog.progressBar->setValue(0);
-    this->connect_status_dialog.lineEdit->setText(QString("%1@%2:%3")
+    this->uiwin.progressBar->setValue(0);
+    this->uiwin.lineEdit->setText(QString("%1@%2:%3")
                                                   .arg(user_name).arg(host_name).arg(port));
     QObject::connect(&this->timer,SIGNAL(timeout()),
                      this, SLOT(slot_time_out()));
@@ -34,24 +35,22 @@ ConnectingStatusDialog::ConnectingStatusDialog(QString user_name, QString host_n
 
 ConnectingStatusDialog::~ConnectingStatusDialog()
 {
-  this->stop_progress_bar();
+    this->stop_progress_bar();
 }
 
 void ConnectingStatusDialog::slot_time_out()
 {
-    if(this->connect_status_dialog.progressBar->value()==100)
-    {
-        this->connect_status_dialog.progressBar->setValue(0);
-    }
-    else
-    {
-        this->connect_status_dialog.progressBar->setValue(this->connect_status_dialog.progressBar->value()+1);
+    if (this->uiwin.progressBar->value()==100) {
+        this->uiwin.progressBar->setValue(0);
+    } else {
+        this->uiwin.progressBar->setValue(this->uiwin.progressBar->value()+1);
     }
 }
 
 void  ConnectingStatusDialog::slot_connect_state_changed(QString state_desc )
 {
-    this->connect_status_dialog.lineEdit_2->setText( state_desc ) ;
+    this->uiwin.lineEdit_2->setText(state_desc);
+    this->uiwin.textBrowser->append(state_desc);
     qDebug()<<state_desc;
 }
 
@@ -61,9 +60,10 @@ void ConnectingStatusDialog::closeEvent ( QCloseEvent * event )
     event->ignore();
     this->setVisible(false);
 }
+
 void ConnectingStatusDialog::stop_progress_bar()
 {
-  timer.stop();
-  this->connect_status_dialog.progressBar->setValue(100);
+    timer.stop();
+    this->uiwin.progressBar->setValue(100);
 }
 

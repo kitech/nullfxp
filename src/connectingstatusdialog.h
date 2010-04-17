@@ -41,7 +41,7 @@ private:
     QString port;
     QTimer  timer;
         
-    Ui::ConnectingStatusDialog connect_status_dialog;
+    Ui::ConnectingStatusDialog uiwin;
 
 protected:
     virtual void closeEvent(QCloseEvent *event);
