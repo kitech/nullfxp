@@ -9,14 +9,15 @@ INSTALL ---
 
 I) nullfxp 在 *nix平台安装步骤：
                                                 
-depens:
-1、 Qt 4 C++ Library (>= 4.3.0)
+Requirement:
+1、 Qt 4 C++ Library (>= 4.4.0)
 2、 OpenSSL Library
 3、 svn client  (可选,如果下载的源码包,而不是直接从svn中checkout,可以不需要)
 
 安装环境示例：
 1、Qt 4 装在 /usr/ 目录下，那么qmake 在/usr/bin/目录下
 2、OpenSSL 将在 /usr/ 目录下
+3、nullfxp-2.x.x.tar.bz2解压在 ~/nullfxp-2.x.x
 
 安装步骤：
 bash> cd
@@ -38,6 +39,30 @@ bash> ./bin/nullfxp
 另外，在安装的时候，可以直接下载源代码包，解压编译安装。
 
 II) Windows XP+ 平台安装
+
+a) Visual Studio 2005+
+
+Requirement:
+1、 Qt 4 Library compiled with Visual Studio 2005+ (>= 4.4.0) 
+2、 OpenSSL Library compiled with Visual Studio 2005+
+3、 zlib Library compiled with Visual Studio 2005+
+
+安装环境示例：
+OpenSSL 库 和 zlib 库 安装在Z:\librarys\
+Qt 库 安装在 Z:\Qt\Qt-4.5.3
+nullfxp-2.x.x.tar.bz2 解压在 Z:\cross\nullfxp-2.x.x
+PATH环境变量中有 Z:\Qt\Qt-4.5.3\bin 这一项
+
+打开Visual Studio 命令行窗口，
+
+> cd Z:\cross\nullfxp-2.x.x
+> qmake -r
+> nmake
+> 
+
+That's OK, enjoy it. 
+
+b) Mingw
 coming soon ...
 
 如果发现有什么问题，请发邮件到 liuguangzhao@users.sf.net 寻求帮助。
