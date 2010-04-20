@@ -17,8 +17,12 @@ docs/links.txt -text
 /install.pri -text
 /nullfxp.kdevelop -text
 /nullfxp.pro -text
+packages/debian/DEBIAN/control -text
+packages/debian/DEBIAN/debian-binary -text
+packages/debian/DEBIAN/preinst -text
 packages/gentoo/net-ftp/nullfxp/nullfxp-1.5.2.ebuild -text
 packages/gentoo/net-ftp/nullfxp/nullfxp-1.6.3.ebuild -text
+packages/mkdeb.sh -text
 packages/mkpkg.sh -text
 packages/nullfxp -text
 packages/opensuse_buildservice/nullfxp.spec -text

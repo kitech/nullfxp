@@ -1,0 +1,17 @@
+Package: nullfxp
+Version: 2.0.1-0
+Architecture: i386
+Maintainer: Guangzhao Liu (drswinghead) <liuguangzhao@users.sf.net>
+Installed-Size: 6676
+Depends: libc6 (>= 2.8), libgcc1 (>= 1:4.1.1), libqt4-xml (>= 4.5.1), libqt4-xmlpatterns (>= 4.5.1), libqtcore4 (>= 4.5.1), libqtgui4 (>= 4.5.1), libqtnetwork4 (>=4.5.1), libqtsql4(>= 4.5.1), libssl0.9.8 (>= 0.9.8f-5), libstdc++6 (>= 4.1.1)
+Conflicts: nullfxp
+Replaces: nullfxp
+Section: net
+Priority: optional
+Homepage: http://www.qtchina.net
+Description: nullfxp is a cross platform SFTP/FTP/FXP client based on QT.
+ .
+ * HomePage: http://www.qtchina.net
+ .
+ * Using nullfxp application, you can upload/download to/from SFTP/FTP servers. nullfxp support now support LINUX, MacOSX, Windows , *BSD Operating Systems.
+Original-Maintainer: drswinghead <liuguangzhao@users.sf.net>
