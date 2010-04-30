@@ -243,12 +243,16 @@ void LocalView::slot_refresh_directory_tree()
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
-    QItemSelectionModel * ism = this->localView.treeView->selectionModel();
+    QItemSelectionModel *ism = this->localView.treeView->selectionModel();
 
     if (ism !=0) {
-	QModelIndexList mil = ism->selectedIndexes();
-        if (mil.count() > 0)
-            model->refresh(mil.at(0));
+        QModelIndexList mil = ism->selectedIndexes();
+        if (mil.count() > 0) {
+            // model->refresh(mil.at(0));
+            QModelIndex origIndex = this->dir_file_model->mapToSource(mil.at(0));
+            q_debug()<<mil.at(0)<<origIndex;
+            model->refresh(origIndex);
+        }
     }
     this->dir_file_model->refresh(this->localView.tableView->rootIndex());
 }
