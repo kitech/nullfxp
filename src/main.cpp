@@ -25,6 +25,8 @@ int main(int argc, char *argv[])
         app.setOrganizationName("kitsoft");
     }
 	app.addLibraryPath(app.applicationDirPath() + "/plugins");
+    app.addLibraryPath(app.applicationDirPath() + "../lib64/plugins");
+    app.addLibraryPath(app.applicationDirPath() + "../lib/plugins");
     NullFXP nfxp;
     nfxp.showNormal();
     

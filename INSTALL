@@ -67,3 +67,16 @@ coming soon ...
 
 如果发现有什么问题，请发邮件到 liuguangzhao@users.sf.net 寻求帮助。
 或者也可以将您发现的本程序的 Bug 直接提交到此项目的 Bug 管理系统，地址是：http://www.qtchina.net/bug/
+
+III) Compile nullfxp on Mac OS X Snow Leopard 10.6.x
+   Requirement:
+   1. Qt 4 Library
+   2. macg++
+
+Open terminal:  
+     cd /path/to/nullfxp-x.x.x
+     qmake -spec macg++ -r
+     make
+
+that's all, then
+     open bin/nullfxp
