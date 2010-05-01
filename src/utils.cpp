@@ -307,4 +307,5 @@ int set_sock_block(int sock)
     flags |= (~O_NONBLOCK);
     return (fcntl(sock, F_SETFL, flags) >=0);
 #endif
+    return 1;
 }
