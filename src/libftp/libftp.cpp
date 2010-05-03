@@ -17,6 +17,8 @@ LibFtp::LibFtp(QObject *parent)
     this->qsock = NULL;
     this->qdsock = NULL;
     this->setEncoding("UTF-8");
+    this->useTLS = 0;
+
 }
 LibFtp::~LibFtp()
 {
@@ -26,7 +28,8 @@ int LibFtp::connect(const QString host, unsigned short port)
     QByteArray ba;
     QString replyText;
 
-    this->qsock = new QTcpSocket();
+    // this->qsock = new QTcpSocket();
+    this->qsock = new QSslSocket();
     this->qsock->connectToHost(host, port);
     if (this->qsock->waitForConnected()) {
         qDebug()<<"ftp ctrl connect ok";
@@ -58,6 +61,41 @@ int LibFtp::login(const QString &user, const QString &password)
     qDebug()<<__FUNCTION__<<user<<password;
     QString cmd;
     QString sigLog;
+
+    assert(this->qsock->bytesAvailable() == 0);
+
+    // AUTH SSL
+    cmd = QString("AUTH TLS\r\n");
+    this->qsock->write(cmd.toAscii());
+    if (this->qsock->waitForBytesWritten()) {
+        QByteArray ball;
+        ball = this->readAll(this->qsock);
+        qDebug()<<ball;
+
+        QStringList sl = QString(ball).split("\n");
+        if (sl.at(sl.count() - 2).split(" ").at(0) == "234") {
+            this->useTLS = 1;
+            qDebug()<<"Server support FTP/TLS, using encrypt connection"<<this->qsock->peerName();
+            // QList<QSslError> ignoreErrors;
+            // ignoreErrors.append( QSslError::HostNameMismatch);
+            // ignoreErrors.append( QSslError::SelfSignedCertificate);
+            // ignoreErrors.append( QSslError::SelfSignedCertificateInChain);
+            // ignoreErrors.append( QSslError::CertificateUntrusted);
+            // ignoreErrors.append( QSslError::CertificateRejected);
+
+            // this->qsock->ignoreSslErrors(ignoreErrors);
+            this->qsock->ignoreSslErrors();
+            this->qsock->setProtocol(QSsl::TlsV1);
+            this->qsock->startClientEncryption();
+            if (!this->qsock->waitForEncrypted()) {
+                qDebug()<<"waitForEncrypted failed"<<this->qsock->errorString()<<this->qsock->isEncrypted();
+                qDebug()<<this->qsock->sslErrors();
+            }
+        } else {
+            // == 500 server 
+            qDebug()<<"Server maybe can not support FTP/TLS";
+        }
+    }
 
     assert(this->qsock->bytesAvailable() == 0);
 
@@ -133,7 +171,8 @@ int LibFtp::logout()
 
 int LibFtp::connectDataChannel()
 {
-    this->qdsock = new QTcpSocket();
+    // this->qdsock = new QTcpSocket();
+    this->qdsock = new QSslSocket();
     this->qdsock->connectToHost(this->pasvHost, pasvPort);
     if (this->qdsock->waitForConnected()) {
         qDebug()<<"ftp data connect ok";
@@ -142,6 +181,34 @@ int LibFtp::connectDataChannel()
         return -1; // Connection::CONN_OTHER;
     }
 
+    QString cmd;
+
+    cmd = QString("PBSZ 0\r\n");
+    this->qsock->write(cmd.toAscii());
+    if (this->qsock->waitForBytesWritten()) {
+        if (this->qsock->waitForReadyRead()) {
+            QByteArray ball = this->qsock->readAll();
+            qDebug()<<"PBSZ: "<<ball;
+        }
+    }
+    
+    cmd = QString("PROT P\r\n");
+    this->qsock->write(cmd.toAscii());
+    if (this->qsock->waitForBytesWritten()) {
+        if (this->qsock->waitForReadyRead()) {
+            QByteArray ball = this->qsock->readAll();
+            qDebug()<<"PROT: "<<ball;
+        }
+    }
+
+   // if (this->qsock->isEncrypted()) {
+   //      this->qdsock->ignoreSslErrors();
+   //      this->qdsock->startClientEncryption();
+   //      if (!this->qdsock->waitForEncrypted()) {
+   //          qDebug()<<"data sock waitForEncrypted error:"<<this->qdsock->errorString();
+   //      }
+   //  }
+ 
     return 0;    
 }
 

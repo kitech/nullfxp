@@ -68,8 +68,10 @@ private:
     void setError(int okno, QString msg);
 
 private:
-    QTcpSocket *qsock;
-    QTcpSocket *qdsock;
+    QSslSocket *qsock;
+    QSslSocket *qdsock;
+    // QSslSocket *qSslSock;
+    // QSslSocket *qdSslSock;
     QString pasvHost;
     unsigned short pasvPort;
     QVector<QUrlInfo> dirList;
@@ -78,6 +80,7 @@ private:
     QString errmsg;
     QString encoding;
     QTextCodec *codec;
+    int useTLS;
 };
 
         
