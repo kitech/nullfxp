@@ -134,16 +134,30 @@ void FilePropertiesRetriveThread::run_ftp()
     rv = ftp->chdir(this->file_path);
     if (rv == 0) {
         // it is dir
-        rv = ftp->passive();
-        assert(rv == 0);
-        rv = ftp->connectDataChannel();
-        assert(rv == 0);
-        rv = ftp->lista(this->file_path);
-        assert(rv == 0);
-        rv = ftp->closeDataChannel();
+        // rv = ftp->passive();
+        // assert(rv == 0);
+        // rv = ftp->connectDataChannel();
+        // assert(rv == 0);
+        // rv = ftp->lista(this->file_path);
+        // assert(rv == 0);
+        // rv = ftp->closeDataChannel();
+        // fileList = ftp->getDirList();
+        // // lista的结果有时候是该目录下的文件和子目录，
+        // // 有时候是这个目录本身
+        // if (fileList.count() == 1) {
+        //     QUrlInfo ui = fileList.at(0);
+        //     rv = QUrlInfo2LIBSSH2_SFTP_ATTRIBUTES(ui, sftp_attrib);
+        // } else {
+        //     for (int i = 0; i < fileList.count(); ++i) {
+        //         if (fileList.at(i).name() == ".") {
+        //             QUrlInfo ui = fileList.at(i);
+        //             rv = QUrlInfo2LIBSSH2_SFTP_ATTRIBUTES(ui, sftp_attrib);
+        //             break;
+        //         }
+        //     }
+        // }
+        rv = ftp->mlst(this->file_path);
         fileList = ftp->getDirList();
-        // lista的结果有时候是该目录下的文件和子目录，
-        // 有时候是这个目录本身
         if (fileList.count() == 1) {
             QUrlInfo ui = fileList.at(0);
             rv = QUrlInfo2LIBSSH2_SFTP_ATTRIBUTES(ui, sftp_attrib);
@@ -157,13 +171,22 @@ void FilePropertiesRetriveThread::run_ftp()
             }
         }
     } else {
-        rv = ftp->passive();
+        // rv = ftp->passive();
+        // assert(rv == 0);
+        // rv = ftp->connectDataChannel();
+        // assert(rv == 0);
+        // rv = ftp->list(this->file_path);
+        // assert(rv == 0);
+        // rv = ftp->closeDataChannel();
+        // fileList = ftp->getDirList();
+        // if (fileList.count() == 1) {
+        //     QUrlInfo ui = fileList.at(0);
+        //     rv = QUrlInfo2LIBSSH2_SFTP_ATTRIBUTES(ui, sftp_attrib);
+        // } else {
+        //     assert(0);
+        // }
+        rv = ftp->mlst(this->file_path);
         assert(rv == 0);
-        rv = ftp->connectDataChannel();
-        assert(rv == 0);
-        rv = ftp->list(this->file_path);
-        assert(rv == 0);
-        rv = ftp->closeDataChannel();
         fileList = ftp->getDirList();
         if (fileList.count() == 1) {
             QUrlInfo ui = fileList.at(0);

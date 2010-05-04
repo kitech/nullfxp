@@ -30,6 +30,7 @@ public:
     int list(QString path);
     int lista(QString path);
     int nlist(QString path);
+    int mlst(QString path);
     int pwd(QString &path); // returned path
     int mkdir(QString path);
     int rmdir(QString path);
@@ -59,13 +60,20 @@ public:
     QTcpSocket *getDataSocket();
     QString errorString();
     int setEncoding(QString encoding);
-    
+
+private slots:
+    void onDataSockConnected();
+    void onDataSockDisconnected();
+    void onDataSockError(QAbstractSocket::SocketError socketError);
+    void onDataSockStateChanged(QAbstractSocket::SocketState socketState);
+
 private:
     int parsePasvPort(QString &host, unsigned short &port);
     QByteArray readAll(QTcpSocket *sock);
     QByteArray readAllByEndSymbol(QTcpSocket *sock);
     bool parseDir(const QByteArray &buffer, const QString &userName, QUrlInfo *info);
     void setError(int okno, QString msg);
+
 
 private:
     QSslSocket *qsock;

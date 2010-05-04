@@ -12,7 +12,7 @@ CONFIG += qt thread console warn_on ordered
 TARGET = nullfxp
 DESTDIR = ../bin
 
-VERSION=2.0.2.80  # using in nullfxp-version.h
+VERSION=2.0.2.81  # using in nullfxp-version.h
 
 include(../install.pri)
 

@@ -8,6 +8,7 @@
 // 
 
 #include <assert.h>
+#include <sys/stat.h>
 
 #include "libftp.h"
 
@@ -133,10 +134,41 @@ int LibFtp::login(const QString &user, const QString &password)
 				sigLog = QString(ball).split("\r\n").at(0);
 				if (!sigLog.startsWith("230"))	//login error for password or ip limit 
 					return -1 ;
-				return 0;	//suppose succ,must be changed for correct checking
+				// return 0;	//suppose succ,must be changed for correct checking
 			}
 		}
 	}
+
+    //    QString cmd;
+
+    cmd = QString("PBSZ 0\r\n");
+    this->qsock->write(cmd.toAscii());
+    if (this->qsock->waitForBytesWritten()) {
+        if (this->qsock->waitForReadyRead()) {
+            QByteArray ball = this->qsock->readAll();
+            qDebug()<<"PBSZ: "<<ball;
+        }
+    }
+    
+    cmd = QString("PROT P\r\n");
+    this->qsock->write(cmd.toAscii());
+    if (this->qsock->waitForBytesWritten()) {
+        if (this->qsock->waitForReadyRead()) {
+            QByteArray ball = this->qsock->readAll();
+            qDebug()<<"PROT: "<<ball;
+        }
+    }
+
+    // cmd = QString("ADAT\r\n");
+    // this->qsock->write(cmd.toAscii());
+    // if (this->qsock->waitForBytesWritten()) {
+    //     if (this->qsock->waitForReadyRead()) {
+    //         QByteArray ball = this->qsock->readAll();
+    //         qDebug()<<"ADAT: "<<ball;
+    //     }
+    // }
+
+    return 0;
 
 	return -1;
 }
@@ -173,6 +205,17 @@ int LibFtp::connectDataChannel()
 {
     // this->qdsock = new QTcpSocket();
     this->qdsock = new QSslSocket();
+    int qtype1 = qRegisterMetaType<QAbstractSocket::SocketError>("SocketError" );
+    int qtype2 = qRegisterMetaType<QAbstractSocket::SocketState>("SocketState" );
+    QObject::connect(this->qdsock, SIGNAL(connected()),
+                     this, SLOT(onDataSockConnected()));
+    QObject::connect(this->qdsock, SIGNAL(disconnected()),
+                     this, SLOT(onDataSockDisconnected()));
+    QObject::connect(this->qdsock, SIGNAL(error(QAbstractSocket::SocketError)),
+                     this, SLOT(onDataSockError(QAbstractSocket::SocketError)));
+    QObject::connect(this->qdsock, SIGNAL(stateChanged(QAbstractSocket::SocketState)),
+                     this, SLOT(onDataSockStateChanged(QAbstractSocket::SocketState)));
+
     this->qdsock->connectToHost(this->pasvHost, pasvPort);
     if (this->qdsock->waitForConnected()) {
         qDebug()<<"ftp data connect ok";
@@ -183,30 +226,31 @@ int LibFtp::connectDataChannel()
 
     QString cmd;
 
-    cmd = QString("PBSZ 0\r\n");
-    this->qsock->write(cmd.toAscii());
-    if (this->qsock->waitForBytesWritten()) {
-        if (this->qsock->waitForReadyRead()) {
-            QByteArray ball = this->qsock->readAll();
-            qDebug()<<"PBSZ: "<<ball;
-        }
-    }
+    // cmd = QString("PBSZ 0\r\n");
+    // this->qsock->write(cmd.toAscii());
+    // if (this->qsock->waitForBytesWritten()) {
+    //     if (this->qsock->waitForReadyRead()) {
+    //         QByteArray ball = this->qsock->readAll();
+    //         qDebug()<<"PBSZ: "<<ball;
+    //     }
+    // }
     
-    cmd = QString("PROT P\r\n");
-    this->qsock->write(cmd.toAscii());
-    if (this->qsock->waitForBytesWritten()) {
-        if (this->qsock->waitForReadyRead()) {
-            QByteArray ball = this->qsock->readAll();
-            qDebug()<<"PROT: "<<ball;
-        }
-    }
+    // cmd = QString("PROT S\r\n");
+    // this->qsock->write(cmd.toAscii());
+    // if (this->qsock->waitForBytesWritten()) {
+    //     if (this->qsock->waitForReadyRead()) {
+    //         QByteArray ball = this->qsock->readAll();
+    //         qDebug()<<"PROT: "<<ball;
+    //     }
+    // }
 
+    qDebug()<<__FUNCTION__<<this->qsock->isEncrypted()<<this->qdsock->isEncrypted();
    // if (this->qsock->isEncrypted()) {
-   //      this->qdsock->ignoreSslErrors();
-   //      this->qdsock->startClientEncryption();
-   //      if (!this->qdsock->waitForEncrypted()) {
-   //          qDebug()<<"data sock waitForEncrypted error:"<<this->qdsock->errorString();
-   //      }
+    // this->qdsock->ignoreSslErrors();
+    // this->qdsock->startClientEncryption();
+    // if (!this->qdsock->waitForEncrypted()) {
+    //     qDebug()<<"data sock waitForEncrypted error:"<<this->qdsock->errorString();
+    // }
    //  }
  
     return 0;    
@@ -399,6 +443,89 @@ bool LibFtp::parseDir(const QByteArray &buffer, const QString &userName, QUrlInf
 }
 
 
+bool parseMLSTLine(const QByteArray &buffer, QUrlInfo *info)
+{
+    QList<QByteArray> fields = buffer.split(';');
+
+    QHash<QByteArray, QByteArray> fieldHash;
+
+    for (int i = 0 ; i < fields.count(); ++i) {
+        QList<QByteArray> kv = fields.at(i).split('=');
+        if (kv.count() == 2) {
+            fieldHash[kv.at(0)] = kv.at(1);
+        } else {
+            fieldHash[QString::number(i).toAscii()] = kv.at(0);
+        }
+    }
+
+    Q_ASSERT(info != NULL);
+    if (fieldHash.value("type") == "file") {
+        info->setFile(true);
+        info->setDir(false);
+        info->setSize(fieldHash.value("size").toLongLong());
+    } else {
+        info->setFile(false);
+        info->setDir(true);
+    }
+
+// type=file;size=85701976;modify=20100411162529;UNIX.mode=0644;UNIX.uid=1001;UNIX.gid=100;unique=801g120871; //Desktop Pictures.tar.gz
+
+    info->setName(fields.at(fields.count() - 1));
+    info->setReadable(true);
+    info->setWritable(info->isFile());
+
+    QDateTime dateTime;
+    dateTime = QDateTime::fromString(fieldHash.value("modify"), "yyyyMMddHHmmss");
+    dateTime.addMSecs(fieldHash.value("modify").right(6).toLongLong());
+
+    if (dateTime.date().year() < 1971) {
+        dateTime.setDate(QDate(dateTime.date().year() + 100,
+                               dateTime.date().month(),
+                               dateTime.date().day()));
+    }
+    info->setLastModified(dateTime);
+
+    int perm = 0;
+    int umode = fieldHash.value("UNIX.mode").at(0) << 3
+        | fieldHash.value("UNIX.mode").at(1) << 2
+        | fieldHash.value("UNIX.mode").at(2) << 1
+        | fieldHash.value("UNIX.mode").at(3);
+
+    if (umode & S_IRUSR) {
+        perm |= QUrlInfo::ReadOwner;
+    }
+    if (umode & S_IWUSR) {
+        perm |= QUrlInfo::WriteOwner;
+    }
+    if (umode & S_IXUSR) {
+        perm |= QUrlInfo::ExeOwner;
+    }
+
+    if (umode & S_IRGRP) {
+        perm |= QUrlInfo::ReadGroup;
+    }
+    if (umode & S_IWGRP) {
+        perm |= QFile::WriteGroup;
+    }
+    if (umode & S_IXGRP) {
+        perm |= QUrlInfo::ExeGroup;
+    }
+
+    if (umode & S_IROTH) {
+        perm |= QUrlInfo::ReadOther;
+    }
+    if (umode & S_IWOTH) {
+        perm |= QUrlInfo::WriteOther;
+    }
+    if (umode & S_IXOTH) {
+        perm |= QUrlInfo::ExeOther;
+    }
+    info->setPermissions(perm);
+
+
+    return true;
+}
+
 int LibFtp::list(QString path)
 {
 	QString cmd;
@@ -409,8 +536,10 @@ int LibFtp::list(QString path)
     // sigLog = this->readAll(this->qsock);
     // q_debug()<<sigLog;
 
+    // TODO when path has space, list match 0
+    // there is a new cmd MLST and MLSD, try it.
     this->dirList.clear();
-	cmd = QString("LIST %1\r\n").arg(path);
+	cmd = QString("LIST -a -l %1\r\n").arg(path);
 
 	this->qsock->write(cmd.toAscii());
 	qDebug()<<cmd;
@@ -425,10 +554,18 @@ int LibFtp::list(QString path)
         sl = sl.at(sl.count() - 2).split(" ");
         assert(sl.at(0) == "150");
 
+        qDebug()<<"Before data socket startClientEncryption";
+        this->qdsock->ignoreSslErrors();
+        this->qdsock->startClientEncryption();
+        if (!this->qdsock->waitForEncrypted()) {
+            qDebug()<<this->qdsock->errorString();
+        }
+        qDebug()<<"end data socket startClientEncryption";
+
         // ball = this->readAll(this->qdsock);
         // qDebug()<<ball;
         this->qdsock->waitForReadyRead();
-        qDebug()<<this->qdsock->canReadLine();
+        qDebug()<<__FUNCTION__<<this->qdsock->canReadLine();
         while (this->qdsock->canReadLine()) {
             QUrlInfo i;
             QByteArray line = this->qdsock->readLine();
@@ -493,10 +630,19 @@ int LibFtp::lista(QString path)
         sl = sl.at(sl.count() - 2).split(" ");
         assert(sl.at(0) == "150");
 
+        // call this after any data retr, such as LIST*/RETR/STOR...
+        qDebug()<<"Before data socket startClientEncryption";
+        this->qdsock->ignoreSslErrors();
+        this->qdsock->startClientEncryption();
+        if (!this->qdsock->waitForEncrypted()) {
+            qDebug()<<this->qdsock->errorString();
+        }
+        qDebug()<<"end data socket startClientEncryption";
+
         // ball = this->readAll(this->qdsock);
         // qDebug()<<ball;
         this->qdsock->waitForReadyRead();
-        qDebug()<<this->qdsock->canReadLine();
+        qDebug()<<__FUNCTION__<<this->qdsock->canReadLine();
         while (this->qdsock->canReadLine()) {
             QUrlInfo i;
             QByteArray line = this->qdsock->readLine();
@@ -536,6 +682,101 @@ int LibFtp::lista(QString path)
 	}
 
 	return -1;
+}
+
+int LibFtp::mlst(QString path)
+{
+	QString cmd;
+    QString sigLog;
+    QString replyText;
+
+    assert(this->qsock->bytesAvailable() == 0);
+    // sigLog = this->readAll(this->qsock);
+    // q_debug()<<sigLog;
+
+    // TODO when path has space, list match 0
+    this->dirList.clear();
+    cmd = QString("MLST %1\r\n").arg(path);
+
+	this->qsock->write(cmd.toAscii());
+	qDebug()<<cmd;
+	
+	if (this->qsock->waitForBytesWritten()) {
+		QByteArray ball;
+		//read response
+		ball = this->readAll(this->qsock);
+		qDebug()<<ball;
+        replyText = ball;
+        QStringList sl = replyText.split("\n");
+        sl = sl.at(sl.count() - 2).split(" ");
+        assert(sl.at(0) == "250");
+        //  type=file;size=85701976;modify=20100411162529;UNIX.mode=0644;UNIX.uid=1001;UNIX.gid=100;unique=801g120871; //Desktop Pictures.tar.gz
+        QList<QByteArray> inforows = ball.split('\n');
+        qDebug()<<__FUNCTION__<<inforows.count();
+        for (int i = 0; i < inforows.count(); ++i) {
+            qDebug()<<"line: "<<i<<inforows.at(i).trimmed();
+        }
+        for (int i = 1 ; i < inforows.count() - 2; ++i) {
+            QUrlInfo info;
+            parseMLSTLine(inforows.at(i), &info);
+            this->dirList.append(info);
+            qDebug()<<"line: "<<inforows.at(i);
+        }
+        qDebug()<<__FUNCTION__<<__LINE__<<this->dirList.count();
+        if (sl.at(0) == "250") {
+            return 0;
+        } else {
+            qDebug()<<__FUNCTION__<<"response error:";
+        }
+
+        // qDebug()<<"Before data socket startClientEncryption";
+        // this->qdsock->ignoreSslErrors();
+        // this->qdsock->startClientEncryption();
+        // if (!this->qdsock->waitForEncrypted()) {
+        //     qDebug()<<this->qdsock->errorString();
+        // }
+        // qDebug()<<"end data socket startClientEncryption";
+
+        // // ball = this->readAll(this->qdsock);
+        // // qDebug()<<ball;
+        // this->qdsock->waitForReadyRead();
+        // qDebug()<<__FUNCTION__<<this->qdsock->canReadLine();
+        // while (this->qdsock->canReadLine()) {
+        //     QUrlInfo i;
+        //     QByteArray line = this->qdsock->readLine();
+        //     qDebug("QFtpDTP read (list): '%s'", line.constData());
+
+        //     if (this->parseDir(line, QLatin1String(""), &i)) {
+        //         // emit listInfo(i);
+        //         // 转换文件名编码
+        //         i.setName(this->codec->toUnicode(i.name().toAscii()));
+        //         this->dirList.append(i);
+        //     } else {
+        //         // some FTP servers don't return a 550 if the file or directory
+        //         // does not exist, but rather write a text to the data socket
+        //         // -- try to catch these cases
+        //         if (line.endsWith("No such file or directory\r\n"))
+        //             // err = QString::fromLatin1(line);
+        //             qDebug()<<line;
+        //     }
+        // }
+        // this->qdsock->close();
+        // delete this->qdsock;
+        // this->qdsock = NULL;
+
+		// ball = this->readAll(this->qsock);
+		// qDebug()<<ball;
+        // replyText = ball;
+        // sl = replyText.split("\n");
+        // sl = sl.at(sl.count() - 2).split(" ");
+        // if (sl.at(0) == "226") {
+        //     return 0;
+        // }
+        // assert(sl.at(0) == "226");
+	}
+
+	return -1;        
+    return 0;
 }
 
 int LibFtp::passive()
@@ -728,6 +969,16 @@ int LibFtp::put(const QString fileName)
         // 553 Disk full - please upload later
         // 550 Permission denied.
         if (sl.at(0) == "150") {
+
+        // call this after any data retr, such as LIST*/RETR/STOR...
+            qDebug()<<"Before data socket startClientEncryption";
+            this->qdsock->ignoreSslErrors();
+            this->qdsock->startClientEncryption();
+            if (!this->qdsock->waitForEncrypted()) {
+                qDebug()<<this->qdsock->errorString();
+            }
+            qDebug()<<"end data socket startClientEncryption";
+
             return 0;
         }
 	}
@@ -1269,4 +1520,23 @@ QByteArray LibFtp::readAllByEndSymbol(QTcpSocket *sock)
 	ball = sall.toAscii();
 
 	return ball;
+}
+
+void LibFtp::onDataSockConnected()
+{
+    qDebug()<<__FUNCTION__<<__LINE__;
+}
+
+void LibFtp::onDataSockDisconnected()
+{
+    qDebug()<<__FUNCTION__<<__LINE__;
+}
+void LibFtp::onDataSockError(QAbstractSocket::SocketError socketError)
+{
+    qDebug()<<__FUNCTION__<<__LINE__<<socketError;
+    
+}
+void LibFtp::onDataSockStateChanged(QAbstractSocket::SocketState socketState)
+{
+    qDebug()<<__FUNCTION__<<__LINE__<<socketState;
 }
