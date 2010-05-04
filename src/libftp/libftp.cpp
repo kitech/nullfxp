@@ -10,6 +10,7 @@
 #include <assert.h>
 #include <sys/stat.h>
 
+#include "utils.h"
 #include "libftp.h"
 
 LibFtp::LibFtp(QObject *parent)
