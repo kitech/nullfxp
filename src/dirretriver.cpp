@@ -179,7 +179,9 @@ int  DirRetriver::retrive_dir()
         //将多出的记录插入到树中
         for (int i = 0 ;i < deltaItems.count(); i ++) {
             deltaItems.at(i)->row_number = parent_item->childCount();
-            parent_item->child_items.insert(std::make_pair(parent_item->childCount(), deltaItems.at(i)));
+            // parent_item->child_items.insert(std::make_pair(parent_item->childCount(), deltaItems.at(i)));
+            // parent_item->child_items.insert(parent_item->childCount(), deltaItems.at(i));
+            parent_item->childItems.append(deltaItems.at(i));
         }
 
         deltaItems.clear();
@@ -262,9 +264,9 @@ int  DirRetriver::rm_file_or_directory_recursively()
         qDebug()<<" rm  system directory recusively , this is danger.";
     } else {
         //找到这个要删除的结点并删除
-        for (unsigned int  i = 0 ; i < parent_item->child_items.size() ; i ++) {
-            child_item = parent_item->child_items[i];
-            if (child_item->file_name.compare( cmd_item->params ) == 0) {
+        for (unsigned int  i = 0 ; i < parent_item->childItems.count(); i ++) {
+            child_item = parent_item->childItems.at(i);
+            if (child_item->file_name.compare(cmd_item->params ) == 0) {
                 qDebug()<<"found whill remove file:"<<child_item->strip_path;
                 this->rm_file_or_directory_recursively_ex(child_item->strip_path);
                 break ;

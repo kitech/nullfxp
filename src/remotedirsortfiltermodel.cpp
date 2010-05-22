@@ -19,11 +19,21 @@
 RemoteDirSortFilterModel::RemoteDirSortFilterModel(QObject *parent)
     : QSortFilterProxyModel(parent)
 {
+    this->source_model = 0;
 }
 
 RemoteDirSortFilterModel::~RemoteDirSortFilterModel()
 {
 }
+bool RemoteDirSortFilterModel::canFetchMore(const QModelIndex &parent) const
+{
+    qDebug()<<__FUNCTION__<<__LINE__<<parent;
+    if (this->source_model == 0) {
+        return false;
+    }
+    return QSortFilterProxyModel::canFetchMore(parent);
+}
+
 QModelIndex RemoteDirSortFilterModel::index(const QString &path, int column) const
 {
     return this->mapFromSource(this->source_model->index(path, column));
@@ -102,6 +112,18 @@ bool RemoteDirSortFilterModel::hasChildren(const QModelIndex &parent) const
 {
     // qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<""<<parent;
     return this->source_model->hasChildren(this->mapToSource(parent));
+}
+
+QModelIndex RemoteDirSortFilterModel::mapToSource(const QModelIndex & proxyIndex ) const
+{
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<""<<proxyIndex;
+    return QSortFilterProxyModel::mapToSource(proxyIndex);
+}
+
+int RemoteDirSortFilterModel::rowCount(const QModelIndex & parent) const
+{
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<""<<parent;
+    return QSortFilterProxyModel::rowCount(parent);
 }
 
 //////////////////////

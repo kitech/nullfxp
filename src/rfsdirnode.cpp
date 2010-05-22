@@ -19,10 +19,12 @@
 directory_tree_item::~directory_tree_item()
 {
     //qDebug()<<"tree delete now";
-    int line = this->child_items.size();
+    int line = this->childItems.count();
     for (int i = line -1 ; i >=0 ; i --) {
-        delete this->child_items[i];
+        // delete this->child_items[i];
+        delete this->childItems.at(i);
     }
+    this->childItems.clear();
 }
 
 bool directory_tree_item::isDir()
@@ -43,7 +45,7 @@ bool directory_tree_item::isSymLinkToDir()
 }
 int directory_tree_item::childCount()
 {
-    return this->child_items.size();
+    return this->childItems.count();
     return 0;
 }
 
@@ -54,8 +56,8 @@ directory_tree_item *directory_tree_item::parent()
 
 bool directory_tree_item::hasChild(QString name)
 {
-    for (unsigned int i = 0 ; i < this->child_items.size(); i++) {
-        if (child_items[i]->file_name == name) {
+    for (unsigned int i = 0 ; i < this->childItems.count(); i++) {
+        if (this->childItems.at(i)->file_name == name) {
             return true;
         }
     }
@@ -66,9 +68,9 @@ bool directory_tree_item::hasChild(QString name)
 directory_tree_item *directory_tree_item::findChindByName(QString name)
 {
     directory_tree_item *child = NULL;
-    for (unsigned int i = 0 ; i < this->child_items.size(); i++) {
-        if (child_items[i]->file_name == name) {
-            child = child_items[i];
+    for (unsigned int i = 0 ; i < this->childItems.count(); i++) {
+        if (this->childItems.at(i)->file_name == name) {
+            child = childItems.at(i);
             break;
         }
     } 
@@ -95,9 +97,9 @@ bool directory_tree_item::matchChecksum(LIBSSH2_SFTP_ATTRIBUTES *attr)
 
 bool directory_tree_item::setDeleteFlag(QString name, bool del)
 {
-    for (unsigned int i = 0 ; i < this->child_items.size(); i++) {
-        if (child_items[i]->file_name == name) {
-            this->child_items[i]->delete_flag = del;
+    for (unsigned int i = 0 ; i < this->childItems.count(); i++) {
+        if (this->childItems.at(i)->file_name == name) {
+            this->childItems.at(i)->delete_flag = del;
             return true;
         }
     } 
@@ -112,7 +114,8 @@ bool directory_tree_item::setDeleteFlag(bool del)
 
 directory_tree_item *directory_tree_item::childAt(int index)
 {
-    return this->child_items[index];
+    return this->childItems.at(index);
+    // return this->child_items[index];
 }
 QString directory_tree_item::filePath()
 {

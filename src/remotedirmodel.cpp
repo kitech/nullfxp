@@ -176,7 +176,9 @@ void RemoteDirModel::set_user_home_path(QString user_home_path)
 
         if (temp_parent_tree_item == NULL) {
         } else {
-            temp_parent_tree_item->child_items.insert(std::make_pair(0, temp_tree_item));
+            // temp_parent_tree_item->child_items.insert(std::make_pair(0, temp_tree_item));
+            // temp_parent_tree_item->child_items.insert(0, temp_tree_item);
+            temp_parent_tree_item->childItems.append(temp_tree_item);
         }
 
         //pre_sep_pos
@@ -214,7 +216,7 @@ QModelIndex RemoteDirModel::index(int row, int column, const QModelIndex &parent
         return idx;
     } else {
         parent_item = static_cast<directory_tree_item*>(parent.internalPointer());
-        child_item = parent_item->child_items[row];
+        child_item = parent_item->childItems.at(row);
         idx = createIndex(row, column, child_item);
         // qDebug()<<"row :"<<row<<" column:" <<column<<parent<<idx<<child_item->fileName()
         //     <<parent_item->fileName();
@@ -222,20 +224,6 @@ QModelIndex RemoteDirModel::index(int row, int column, const QModelIndex &parent
     }
 
     return QModelIndex();
-    // directory_tree_item *child_item = 0;
-    // if (parent_item->child_items.count ( row ) == 1) {
-    //     child_item = parent_item->child_items[row];
-    // }
-
-    // if (child_item) {
-    //     //qDebug()<< "createIndex ( row, column, child_item );"<< row << " " << column << " " << child_item ;
-    //     return createIndex ( row, column, child_item );
-    // } else {
-    //     //qDebug()<< "! child_item , QModelIndex();" ;
-    //     return QModelIndex();
-    // }
-
-    //return createIndex( row , column , 1 ) ;
 }
 
 QModelIndex RemoteDirModel::index(const QString &path, int column) const
@@ -286,18 +274,18 @@ QModelIndex RemoteDirModel::find_node_item_by_path_elements(directory_tree_item 
     QString aim_child_node_item_name = path_elements.at(level);
     Q_ASSERT(parent_node_item);
     //qDebug()<<__LINE__<< parent_node_item->file_name<<level<<path_elements;
-    for (int i = 0 ; i < parent_node_item->child_items.size() ; i ++ ) {
-        directory_tree_item * child_item = parent_node_item->child_items[i];
+    for (int i = 0 ; i < parent_node_item->childItems.count(); i ++ ) {
+        directory_tree_item *child_item = parent_node_item->childItems.at(i);
         //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<< child_item->file_name;
-        if (child_item->file_name.compare(aim_child_node_item_name) ==0) {
+        if (child_item->file_name.compare(aim_child_node_item_name) == 0) {
             if (level == path_elements.count()-1) {
                 //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-                QModelIndex mi = this->createIndex( i, 0, child_item );
+                QModelIndex mi = this->createIndex(i, 0, child_item);
                 //return child_item;
                 return mi ;
             } else {
                 //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-                QModelIndex mi =this->find_node_item_by_path_elements( child_item,path_elements,level+1 );
+                QModelIndex mi =this->find_node_item_by_path_elements(child_item, path_elements,level + 1);
                 return mi ; 
             }
         }
@@ -457,9 +445,9 @@ int RemoteDirModel::rowCount(const QModelIndex &parent) const
             // row_count =1 ;
             this->dir_retriver->add_node(parent_item, parent.internalPointer());
         } else {
-            row_count = parent_item->child_items.size();
+            row_count = parent_item->childItems.count();
         }
-        row_count = parent_item->child_items.size();
+        row_count = parent_item->childItems.count();
         // row_count =1 ;
     }
     //qDebug()<< "row_count="<<row_count;
@@ -523,28 +511,30 @@ bool RemoteDirModel::removeRows(int row, int count, const QModelIndex &parent)
         qDebug()<< parent.isValid();
     }
     directory_tree_item *parent_item = static_cast<directory_tree_item*>(parent.internalPointer());
-    qDebug()<<parent_item;
+    qDebug()<<__FUNCTION__<<__LINE__<<parent_item;
     directory_tree_item *delete_item = 0;
-    directory_tree_item *temp_item  = 0;
+    // directory_tree_item *temp_item  = 0;
     
     this->beginRemoveRows(parent, row, row+count);
     this->dump_tree_node_item(parent_item);
     
     for (int i = row + count -1 ; i >= row ; i --) {
-        delete_item = parent_item->child_items[i];
-        if (i !=parent_item->child_items.size()-1) {
-            for (int j = i+1 ; j < parent_item->child_items.size() ; j ++) {
-                temp_item = parent_item->child_items[j];
-                temp_item->row_number = j-1 ;
-                parent_item->child_items[j-1] = temp_item;
-            }
-            int c_size = parent_item->child_items.size();
-            parent_item->child_items.erase (c_size-1);
-        } else {
-            int c_size = parent_item->child_items.size();
-            parent_item->child_items.erase(c_size-1);
-        }
-        delete delete_item ; delete_item = 0;
+        delete_item = parent_item->childItems.at(i);
+        parent_item->childItems.remove(i);
+        // if (i != parent_item->childItems.count() - 1) {
+        //     for (int j = i+1 ; j < parent_item->childItems.count(); j ++) {
+        //         temp_item = parent_item->childItems.at(j);
+        //         temp_item->row_number = j - 1;
+        //         // parent_item->child_items[j-1] = temp_item;
+                
+        //     }
+        //     int c_size = parent_item->childItems.count();
+        //     parent_item->childItems.erase(c_size - 1);
+        // } else {
+        //     int c_size = parent_item->childItems.count();
+        //     parent_item->childItems.erase(c_size - 1);
+        // }
+        delete delete_item; delete_item = 0;
     }
     this->endRemoveRows();
     return true;
@@ -574,7 +564,7 @@ void RemoteDirModel::dump_tree_node_item(directory_tree_item *node_item) const
     qDebug()<<"Date="<<QString(node_item->fileMDate());
     qDebug()<<"Retrived="<<node_item->retrived;
     qDebug()<<"prev_retr_flag="<<node_item->prev_retr_flag;
-    qDebug()<<"ChildCount="<<node_item->child_items.size();
+    qDebug()<<"ChildCount="<<node_item->childItems.count();
     qDebug()<< "DeleteFlag="<<node_item->delete_flag;
     qDebug()<<"<<<<====================";
 }
@@ -585,19 +575,25 @@ void RemoteDirModel::slot_remote_dir_node_retrived(directory_tree_item *parent_i
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
     int row, col = 0;
-    for (int i = parent_item->child_items.size()-1 ; i >=0  ; i --) {
-        if (parent_item->child_items[i]->delete_flag == 1) {
-            row = parent_item->child_items[i]->row_number ;
+    int changeCount = 0;
+    for (int i = parent_item->childItems.count() - 1 ; i >= 0; i --) {
+        if (parent_item->childItems.at(i)->delete_flag == 1) {
+            // row = parent_item->childItems.at(i)->row_number;
+            row = i;
             qDebug()<<"find should delete item: "<<i
                     <<"row num:"<<row;
 
             this->removeRows(row, 1,
-                             this->createIndex(parent_item->row_number, 0,
+                             this->createIndex(i, 0,
+                             // this->createIndex(parent_item->row_number, 0,
                                                parent_model_internal_pointer));
+            changeCount ++;
         }
     }
 
-    emit layoutChanged();
+    // if (changeCount > 0) {
+        emit layoutChanged();
+    // }
 }
 
     /*

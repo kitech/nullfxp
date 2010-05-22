@@ -60,7 +60,10 @@ public:
 
     QVector<directory_tree_item *> children;
     
-    std::map<int, directory_tree_item *> child_items;
+    // std::map<int, directory_tree_item *> child_items; // <rowseq, p*> // why not use order stable vector?
+    // QMap<int, directory_tree_item*> child_items;  
+    QVector<directory_tree_item*> childItems;
+
     directory_tree_item *parent_item;
     int row_number;    //指的是所包含的子结点个数 //这个也没有用了吧
     //N , S , T , D

@@ -175,7 +175,7 @@ void LocalView::expand_to_home_directory(QModelIndex parent_model, int level)
     for (int i = 1; i < homePathParts.count(); i++) {
         stepPathParts << homePathParts.at(i);
         tmpPath = QString("/") + stepPathParts.join("/");
-        qDebug()<<tmpPath;
+        // qDebug()<<tmpPath;
         curr_model = this->dir_file_model->index(tmpPath);
         this->localView.treeView->expand(curr_model);
     }

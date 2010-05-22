@@ -21,7 +21,9 @@ class RemoteDirSortFilterModel : public QSortFilterProxyModel
 public:
     RemoteDirSortFilterModel(QObject *parent = 0);
     virtual ~RemoteDirSortFilterModel();
-    
+
+    virtual bool canFetchMore(const QModelIndex &parent) const;    
+
     virtual QModelIndex index(const QString &path, int column = 0) const;    
     virtual void setSourceModel(QAbstractItemModel *sourceModel);
             
@@ -31,6 +33,9 @@ public:
     virtual void setFilter(QDir::Filters filters);
 
     virtual bool hasChildren(const QModelIndex &parent) const;
+
+    virtual QModelIndex	mapToSource ( const QModelIndex & proxyIndex ) const;
+    virtual int rowCount ( const QModelIndex & parent = QModelIndex() ) const;
     
 protected:
     virtual bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const;
