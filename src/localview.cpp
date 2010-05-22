@@ -27,10 +27,20 @@ LocalView::LocalView(QWidget *parent )
     this->status_bar->showMessage(tr("Ready"));
     
     ////
-    model = new QDirModel();
+    // model = new QDirModel();
+    model = new QFileSystemModel();
+    QObject::connect(model, SIGNAL(directoryLoaded(const QString &)),
+                     this, SLOT(onDirectoryLoaded(const QString &)));
+    QObject::connect(model, SIGNAL(fileRenamed(const QString &, const QString &, const QString &)),
+                     this, SLOT(onFileRenamed(const QString &, const QString &, const QString &)));
+    QObject::connect(model, SIGNAL(rootPathChanged(const QString &)),
+                     this, SLOT(onRootPathChanged(const QString &)));
+    model->setRootPath("/");
+
     //     model->setFilter( QDir::AllEntries|QDir::Hidden|QDir::NoDotAndDotDot );
     this->dir_file_model = new LocalDirSortFilterModel();
     this->dir_file_model->setSourceModel(model);
+
     
     this->localView.treeView->setModel(this->dir_file_model);
     this->localView.treeView->setRootIndex(this->dir_file_model->index("/"));
@@ -40,12 +50,13 @@ LocalView::LocalView(QWidget *parent )
     this->localView.treeView->setColumnHidden(3, true);
     this->localView.treeView->setColumnWidth(0, this->localView.treeView->columnWidth(0) * 2);    
     this->expand_to_home_directory(this->localView.treeView->rootIndex(), 1);
+    // this->localView.treeView->expand(this->dir_file_model->index("/home/gzleo"));
   
     this->init_local_dir_tree_context_menu();
     this->localView.treeView->setAnimated(true);
   
     this->localView.tableView->setModel(this->model);
-    this->localView.tableView->setRootIndex( this->model->index(QDir::homePath()));
+    this->localView.tableView->setRootIndex(this->model->index(QDir::homePath()));
     this->localView.tableView->verticalHeader()->setVisible(false);
 
     //change row height of table 
@@ -149,28 +160,39 @@ void LocalView::init_local_dir_tree_context_menu()
     QObject::connect(this->localView.tableView,SIGNAL ( customContextMenuRequested(const QPoint &)),
                      this, SLOT(slot_local_dir_tree_context_menu_request (const QPoint &)));
 }
-//仅会被调用一次，在该实例的构造函数中
+
+// 可以写成一个通用的expand_to_directory(QString fullPath, int level);
+// 仅会被调用一次，在该实例的构造函数中
 void LocalView::expand_to_home_directory(QModelIndex parent_model, int level)
 {
-    int row_cnt = this->dir_file_model->rowCount(parent_model) ;
-    QString home_path = QDir::homePath();
-    QStringList home_path_grade = home_path.split('/');
-    //qDebug()<<home_path_grade << level << row_cnt;
-    QModelIndex curr_model ;
-    for (int i = 0 ; i < row_cnt ; i ++) {
-        curr_model = this->dir_file_model->index(i,0,parent_model) ;
-        QString file_name = this->dir_file_model->data(curr_model).toString();
-        //qDebug()<<file_name;
-        if (file_name == home_path_grade.at(level)) {
-            this->localView.treeView->expand(curr_model);
-            if (level == home_path_grade.count() - 1) {
-                break;
-            } else {
-                this->expand_to_home_directory(curr_model, level+1);
-                break;
-            }
-        }
+    Q_UNUSED(parent_model);
+    // int row_cnt = this->dir_file_model->rowCount(parent_model);
+    QStringList homePathParts = QDir::homePath().split('/');
+    // qDebug()<<home_path_grade<<level<<row_cnt;
+    QStringList stepPathParts;
+    QString tmpPath;
+    QModelIndex curr_model;
+    for (int i = 1; i < homePathParts.count(); i++) {
+        stepPathParts << homePathParts.at(i);
+        tmpPath = QString("/") + stepPathParts.join("/");
+        qDebug()<<tmpPath;
+        curr_model = this->dir_file_model->index(tmpPath);
+        this->localView.treeView->expand(curr_model);
     }
+    // for (int i = 0 ; i < row_cnt; i++) {
+    //     curr_model = this->dir_file_model->index(i, 0, parent_model);
+    //     QString file_name = this->dir_file_model->data(curr_model).toString();
+    //     qDebug()<<file_name;
+    //     if (file_name == home_path_grade.at(level)) {
+    //         this->localView.treeView->expand(curr_model);
+    //         if (level == home_path_grade.count() - 1) {
+    //             break;
+    //         } else {
+    //             this->expand_to_home_directory(curr_model, level+1);
+    //             break;
+    //         }
+    //     }
+    // }
     if (level == 1) {
         this->localView.treeView->scrollTo(curr_model);
     }
@@ -251,7 +273,7 @@ void LocalView::slot_refresh_directory_tree()
             // model->refresh(mil.at(0));
             QModelIndex origIndex = this->dir_file_model->mapToSource(mil.at(0));
             q_debug()<<mil.at(0)<<origIndex;
-            model->refresh(origIndex);
+            // model->refresh(origIndex);
         }
     }
     this->dir_file_model->refresh(this->localView.tableView->rootIndex());
@@ -515,4 +537,20 @@ void LocalView::rm_file_or_directory_recursively()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 }
+
+void LocalView::onDirectoryLoaded(const QString &path)
+{
+    q_debug()<<path;
+}
+
+void LocalView::onFileRenamed(const QString &path,  const QString &oldName, const QString & newName)
+{
+    q_debug()<<path<<oldName<<newName;
+}
+
+void LocalView::onRootPathChanged(const QString &newPath)
+{
+    q_debug()<<newPath;
+}
+
 

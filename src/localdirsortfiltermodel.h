@@ -10,7 +10,8 @@
 #ifndef LOCALDIRSORTFILTERMODEL_H
 #define LOCALDIRSORTFILTERMODEL_H
 
-#include <QDirModel>
+// #include <QDirModel>
+#include <QtGui>
 #include <QSortFilterProxyModel>
 
 /**
@@ -39,7 +40,8 @@ protected:
     virtual bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const;
 
 private:
-    QDirModel *source_model; 
+    // QDirModel *source_model; 
+    QFileSystemModel *source_model;
 };
 
 #endif

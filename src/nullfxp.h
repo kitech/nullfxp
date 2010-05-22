@@ -74,7 +74,6 @@ private:
         
 private:
     QSplitter *central_splitter_widget;
-    // QTableView *task_queue_view;
     TaskQueueView *task_queue_view;
                 
     LocalView *localView;

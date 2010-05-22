@@ -59,7 +59,8 @@ QModelIndex LocalDirSortFilterModel::index(int& row, int column, QModelIndex& pa
 
 void LocalDirSortFilterModel::setSourceModel(QAbstractItemModel *sourceModel)
 {
-    this->source_model = static_cast<QDirModel*>(sourceModel);
+    // this->source_model = static_cast<QDirModel*>(sourceModel);
+    this->source_model = static_cast<QFileSystemModel*>(sourceModel);
     QSortFilterProxyModel::setSourceModel(sourceModel);
 }
 
@@ -78,7 +79,7 @@ bool LocalDirSortFilterModel::isDir(const QModelIndex &index) const
 
 void LocalDirSortFilterModel::refresh(const QModelIndex & parent)
 {
-    this->source_model->refresh(parent);
+    // this->source_model->refresh(parent);
 }
 
 bool LocalDirSortFilterModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
