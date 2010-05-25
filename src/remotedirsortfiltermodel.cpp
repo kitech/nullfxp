@@ -116,8 +116,21 @@ bool RemoteDirSortFilterModel::hasChildren(const QModelIndex &parent) const
 
 QModelIndex RemoteDirSortFilterModel::mapToSource(const QModelIndex & proxyIndex ) const
 {
-    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<""<<proxyIndex;
-    return QSortFilterProxyModel::mapToSource(proxyIndex);
+    directory_tree_item *dti = 0;
+    directory_tree_item *sdti = 0;
+
+    dti = static_cast<directory_tree_item *>(proxyIndex.internalPointer());
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<""<<proxyIndex<<(void*)dti;
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<<(dti != NULL ? dti->strip_path : "NULL")
+            <<(dti != NULL ? dti->file_name : "NULL");
+
+    QModelIndex smidx = QSortFilterProxyModel::mapToSource(proxyIndex);
+    sdti = static_cast<directory_tree_item*>(smidx.internalPointer());
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<""<<smidx<<(void*)sdti;
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<<(sdti != NULL ? sdti->strip_path : "NULL")
+            <<(sdti != NULL ? sdti->file_name : "NULL");
+
+    return smidx;
 }
 
 int RemoteDirSortFilterModel::rowCount(const QModelIndex & parent) const

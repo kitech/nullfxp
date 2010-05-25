@@ -29,13 +29,14 @@ directory_tree_item::~directory_tree_item()
 
 bool directory_tree_item::isDir()
 {
-    return S_ISDIR(this->attrib.permissions);
-    return S_ISDIR(this->attrib.permissions) || S_ISLNK(this->attrib.permissions);
+    return LIBSSH2_SFTP_S_ISDIR(this->attrib.permissions);
+    return LIBSSH2_SFTP_S_ISDIR(this->attrib.permissions) 
+        || LIBSSH2_SFTP_S_ISLNK(this->attrib.permissions);
 }
 
 bool directory_tree_item::isSymLink()
 {
-    return S_ISLNK(this->attrib.permissions);
+    return LIBSSH2_SFTP_S_ISLNK(this->attrib.permissions);
     // return this->attrib.permissions & LIBSSH2_SFTP_S_IFLNK;
 }
 bool directory_tree_item::isSymLinkToDir()

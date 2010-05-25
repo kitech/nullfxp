@@ -58,8 +58,6 @@ public:
       2------> 8 -------> 9
     */
 
-    QVector<directory_tree_item *> children;
-    
     // std::map<int, directory_tree_item *> child_items; // <rowseq, p*> // why not use order stable vector?
     // QMap<int, directory_tree_item*> child_items;  
     QVector<directory_tree_item*> childItems;

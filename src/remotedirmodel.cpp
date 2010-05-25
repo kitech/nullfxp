@@ -107,14 +107,18 @@ void RemoteDirModel::set_user_home_path(QString user_home_path)
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     this->user_home_path = user_home_path;
 
-    qDebug()<<"i know remote home path: "<<this->user_home_path;
+    qDebug()<<"I know remote home path: "<<this->user_home_path;
 
-    //Todo: 使用这个初始化路径来初始化这个树，而不是用默认的根路径 .
-    //初始化目录案例：
+    //Todo: rewrite simple and clearly code
+    // test case :
     // 1.      /home/users/l/li/liuguangzhao
     // 2.      /root
     // 3.      /home/gzl
     // 4.      /
+    // 5.      /home/gzleo/     note the last /
+    // 6.      /home/users//l/li//liuguangzhao     note the double //
+    
+    Q_ASSERT(user_home_path.left(1) == "/"); // must begin with /
 
     //{创建初始化目录树
     directory_tree_item *first_item;
