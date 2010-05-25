@@ -86,7 +86,7 @@ int Transportor::remote_is_reg(LIBSSH2_SFTP *ssh2_sftp, QString path)
     QByteArray bpath = GlobalOption::instance()->remote_codec->fromUnicode(path);
     
     memset(&ssh2_sftp_attrib, 0, sizeof(ssh2_sftp_attrib));
-    flags = LIBSSH2_FXF_READ ;
+    flags = LIBSSH2_FXF_READ;
     mode = 022;
     
     sftp_handle = libssh2_sftp_open(ssh2_sftp, bpath.data(), flags, mode);
@@ -94,7 +94,7 @@ int Transportor::remote_is_reg(LIBSSH2_SFTP *ssh2_sftp, QString path)
     if (sftp_handle != NULL) {
         ret = libssh2_sftp_fstat(sftp_handle, &ssh2_sftp_attrib);
         libssh2_sftp_close(sftp_handle);
-        return (S_ISREG( ssh2_sftp_attrib.permissions));
+        return (LIBSSH2_SFTP_S_ISREG( ssh2_sftp_attrib.permissions));
     } else {    // == NULL 
         return 0;
     }

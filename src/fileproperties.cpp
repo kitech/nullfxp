@@ -40,43 +40,43 @@ static int QUrlInfo2LIBSSH2_SFTP_ATTRIBUTES(QUrlInfo &ui, LIBSSH2_SFTP_ATTRIBUTE
     attr->mtime = ui.lastModified().toTime_t();
 
     if (ui.isFile() && !ui.isSymLink()) {
-        attr->permissions |= S_IFREG;
+        attr->permissions |= LIBSSH2_SFTP_S_IFREG;
     } else if (ui.isSymLink()) {
-        attr->permissions |= S_IFLNK;
+        attr->permissions |= LIBSSH2_SFTP_S_IFLNK;
     } else if (ui.isDir()) {
-        attr->permissions |= S_IFDIR;
+        attr->permissions |= LIBSSH2_SFTP_S_IFDIR;
     } else {
         qDebug()<<"unknown file type:"<<ui.name();
     }
 
     if (perm & QUrlInfo::ReadOwner) {
-        attr->permissions |= S_IRUSR;
+        attr->permissions |= LIBSSH2_SFTP_S_IRUSR;
     }
     if (perm & QUrlInfo::WriteOwner) {
-        attr->permissions |= S_IWUSR;
+        attr->permissions |= LIBSSH2_SFTP_S_IWUSR;
     }
     if (perm & QUrlInfo::ExeOwner) {
-        attr->permissions |= S_IXUSR;
+        attr->permissions |= LIBSSH2_SFTP_S_IXUSR;
     }
 
     if (perm & QUrlInfo::ReadGroup) {
-        attr->permissions |= S_IRGRP;
+        attr->permissions |= LIBSSH2_SFTP_S_IRGRP;
     }
     if (perm & QUrlInfo::WriteGroup) {
-        attr->permissions |= S_IWGRP;
+        attr->permissions |= LIBSSH2_SFTP_S_IWGRP;
     }
     if (perm & QFile::ExeGroup) {
-        attr->permissions |= S_IXGRP;
+        attr->permissions |= LIBSSH2_SFTP_S_IXGRP;
     }
 
     if (perm & QUrlInfo::ReadOther) {
-        attr->permissions |= S_IROTH;
+        attr->permissions |= LIBSSH2_SFTP_S_IROTH;
     }
     if (perm & QUrlInfo::WriteOther) {
-        attr->permissions |= S_IWOTH;
+        attr->permissions |= LIBSSH2_SFTP_S_IWOTH;
     }
     if (perm & QUrlInfo::ExeOther) {
-        attr->permissions |= S_IXOTH;
+        attr->permissions |= LIBSSH2_SFTP_S_IXOTH;
     }
 
     // TODO how got uid and gid. ftp not given it?
@@ -461,8 +461,7 @@ QString LocalFileProperties::digit_mode(int mode)
         QFile::ExeGroup,
         QFile::ReadOther,
         QFile::WriteOther,
-        QFile::ExeOther,
-        NULL
+        QFile::ExeOther
     };
     char dmode[5] = {0};
     int i = 0, v = 0;;

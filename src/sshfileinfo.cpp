@@ -11,6 +11,8 @@
 
 #include "sshfileinfo.h"
 
+// #include "libssh2_sftp.h" is included in sshfileinfo.h
+
 SSHFileInfo::SSHFileInfo(LIBSSH2_SFTP_ATTRIBUTES attr)
 {
     new(this)SSHFileInfo(&attr); // hehe, trick
@@ -36,11 +38,12 @@ uint SSHFileInfo::groupId () const
 }
 bool SSHFileInfo::isDir () const
 {
-    return S_ISDIR(this->mAttr.permissions);
+    // return S_ISDIR(this->mAttr.permissions);
+    return LIBSSH2_SFTP_S_ISDIR(this->mAttr.permissions);
 }
 bool SSHFileInfo::isFile () const
 {
-    return S_ISREG(this->mAttr.permissions);
+    return LIBSSH2_SFTP_S_ISREG(this->mAttr.permissions);
 }
 bool SSHFileInfo::isHidden () const
 {
@@ -49,7 +52,7 @@ bool SSHFileInfo::isHidden () const
 
 bool SSHFileInfo::isSymLink () const
 {
-    return S_ISLNK(this->mAttr.permissions);
+    return LIBSSH2_SFTP_S_ISLNK(this->mAttr.permissions);
 }
 QDateTime SSHFileInfo::lastModified () const
 {
@@ -78,30 +81,30 @@ QString SSHFileInfo::stringMode() const
     char *p = buf;
 
     /* print type */
-    switch (mode & S_IFMT)
+    switch (mode & LIBSSH2_SFTP_S_IFMT)
     {
-    case S_IFDIR:			/* directory */
+    case LIBSSH2_SFTP_S_IFDIR:			/* directory */
         *p++ = 'd';
         break;
-    case S_IFCHR:			/* character special */
+    case LIBSSH2_SFTP_S_IFCHR:			/* character special */
         *p++ = 'c';
         break;
-    case S_IFBLK:			/* block special */
+    case LIBSSH2_SFTP_S_IFBLK:			/* block special */
         *p++ = 'b';
         break;
-    case S_IFREG:			/* regular */
+    case LIBSSH2_SFTP_S_IFREG:			/* regular */
         *p++ = '-';
         break;
-    case S_IFLNK:			/* symbolic link */
+    case LIBSSH2_SFTP_S_IFLNK:			/* symbolic link */
         *p++ = 'l';
         break;
         //#ifdef S_IFSOCK
-    case S_IFSOCK:			/* socket */
+    case LIBSSH2_SFTP_S_IFSOCK:			/* socket */
         *p++ = 's';
         break;
         //#endif
         //#ifdef S_IFIFO
-    case S_IFIFO:			/* fifo */
+    case LIBSSH2_SFTP_S_IFIFO:			/* fifo */
         *p++ = 'p';
         break;
         //#endif
@@ -110,74 +113,74 @@ QString SSHFileInfo::stringMode() const
         break;
     }
     /* usr */
-    if ( mode & S_IRUSR )
+    if ( mode & LIBSSH2_SFTP_S_IRUSR )
         *p++ = 'r';
     else
         *p++ = '-';
-    if ( mode & S_IWUSR )
+    if ( mode & LIBSSH2_SFTP_S_IWUSR )
         *p++ = 'w';
     else
         *p++ = '-';
-    switch (mode & (S_IXUSR | S_ISUID))
+    switch (mode & (LIBSSH2_SFTP_S_IXUSR | S_ISUID))
     {
     case 0:
         *p++ = '-';
         break;
-    case S_IXUSR:
+    case LIBSSH2_SFTP_S_IXUSR:
         *p++ = 'x';
         break;
     case S_ISUID:
         *p++ = 'S';
         break;
-    case S_IXUSR | S_ISUID:
+    case LIBSSH2_SFTP_S_IXUSR | S_ISUID:
         *p++ = 's';
         break;
     }
     /* group */
-    if ( mode & S_IRGRP )
+    if ( mode & LIBSSH2_SFTP_S_IRGRP )
         *p++ = 'r';
     else
         *p++ = '-';
-    if ( mode & S_IWGRP )
+    if ( mode & LIBSSH2_SFTP_S_IWGRP )
         *p++ = 'w';
     else
         *p++ = '-';
-    switch (mode & (S_IXGRP | S_ISGID))
+    switch (mode & (LIBSSH2_SFTP_S_IXGRP | S_ISGID))
     {
     case 0:
         *p++ = '-';
         break;
-    case S_IXGRP:
+    case LIBSSH2_SFTP_S_IXGRP:
         *p++ = 'x';
         break;
     case S_ISGID:
         *p++ = 'S';
         break;
-    case S_IXGRP | S_ISGID:
+    case LIBSSH2_SFTP_S_IXGRP | S_ISGID:
         *p++ = 's';
         break;
     }
     /* other */
-    if ( mode & S_IROTH )
+    if ( mode & LIBSSH2_SFTP_S_IROTH )
         *p++ = 'r';
     else
         *p++ = '-';
-    if ( mode & S_IWOTH )
+    if ( mode & LIBSSH2_SFTP_S_IWOTH )
         *p++ = 'w';
     else
         *p++ = '-';
-    switch (mode & (S_IXOTH | S_ISVTX))
+    switch (mode & (LIBSSH2_SFTP_S_IXOTH | S_ISVTX))
     {
     case 0:
         *p++ = '-';
         break;
-    case S_IXOTH:
+    case LIBSSH2_SFTP_S_IXOTH:
         *p++ = 'x';
         break;
     case S_ISVTX:
         *p++ = 'T';
         break;
-    case S_IXOTH | S_ISVTX:
+    case LIBSSH2_SFTP_S_IXOTH | S_ISVTX:
         *p++ = 't';
         break;
     }
@@ -192,34 +195,34 @@ uint SSHFileInfo::mode() const
 {
     uint mode = 0;
 
-    if (this->mAttr.permissions & S_IRUSR) {
-        mode |= S_IRUSR;
+    if (this->mAttr.permissions & LIBSSH2_SFTP_S_IRUSR) {
+        mode |= LIBSSH2_SFTP_S_IRUSR;
     }
-    if (this->mAttr.permissions & S_IWUSR) {
-        mode |= S_IWUSR;
+    if (this->mAttr.permissions & LIBSSH2_SFTP_S_IWUSR) {
+        mode |= LIBSSH2_SFTP_S_IWUSR;
     }
-    if (this->mAttr.permissions & S_IXUSR) {
-        mode |= S_IXUSR;
-    }
-
-    if (this->mAttr.permissions & S_IRGRP) {
-        mode |= S_IRGRP;
-    }
-    if (this->mAttr.permissions & S_IWGRP) {
-        mode |= S_IWGRP;
-    }
-    if (this->mAttr.permissions & S_IXGRP) {
-        mode |= S_IXGRP;
+    if (this->mAttr.permissions & LIBSSH2_SFTP_S_IXUSR) {
+        mode |= LIBSSH2_SFTP_S_IXUSR;
     }
 
-    if (this->mAttr.permissions & S_IROTH) {
-        mode |= S_IROTH;
+    if (this->mAttr.permissions & LIBSSH2_SFTP_S_IRGRP) {
+        mode |= LIBSSH2_SFTP_S_IRGRP;
     }
-    if (this->mAttr.permissions & S_IWOTH) {
-        mode |= S_IWOTH;
+    if (this->mAttr.permissions & LIBSSH2_SFTP_S_IWGRP) {
+        mode |= LIBSSH2_SFTP_S_IWGRP;
     }
-    if (this->mAttr.permissions & S_IXOTH) {
-        mode |= S_IXOTH;
+    if (this->mAttr.permissions & LIBSSH2_SFTP_S_IXGRP) {
+        mode |= LIBSSH2_SFTP_S_IXGRP;
+    }
+
+    if (this->mAttr.permissions & LIBSSH2_SFTP_S_IROTH) {
+        mode |= LIBSSH2_SFTP_S_IROTH;
+    }
+    if (this->mAttr.permissions & LIBSSH2_SFTP_S_IWOTH) {
+        mode |= LIBSSH2_SFTP_S_IWOTH;
+    }
+    if (this->mAttr.permissions & LIBSSH2_SFTP_S_IXOTH) {
+        mode |= LIBSSH2_SFTP_S_IXOTH;
     }
 
     return mode;
@@ -229,36 +232,36 @@ QFile::Permissions SSHFileInfo::qMode() const
 {
     QFile::Permissions perm;
 
-    if (this->mAttr.permissions & S_IRUSR) {
+    if (this->mAttr.permissions & LIBSSH2_SFTP_S_IRUSR) {
         perm |= QFile::ReadUser;
         perm |= QFile::ReadOwner;
     }
-    if (this->mAttr.permissions & S_IWUSR) {
+    if (this->mAttr.permissions & LIBSSH2_SFTP_S_IWUSR) {
         perm |= QFile::WriteUser;
         perm |= QFile::WriteOwner;
     }
-    if (this->mAttr.permissions & S_IXUSR) {
+    if (this->mAttr.permissions & LIBSSH2_SFTP_S_IXUSR) {
         perm |= QFile::ExeUser;
         perm |= QFile::ExeOwner;
     }
 
-    if (this->mAttr.permissions & S_IRGRP) {
+    if (this->mAttr.permissions & LIBSSH2_SFTP_S_IRGRP) {
         perm |= QFile::ReadGroup;
     }
-    if (this->mAttr.permissions & S_IWGRP) {
+    if (this->mAttr.permissions & LIBSSH2_SFTP_S_IWGRP) {
         perm |= QFile::WriteGroup;
     }
-    if (this->mAttr.permissions & S_IXGRP) {
+    if (this->mAttr.permissions & LIBSSH2_SFTP_S_IXGRP) {
         perm |= QFile::ExeGroup;
     }
 
-    if (this->mAttr.permissions & S_IROTH) {
+    if (this->mAttr.permissions & LIBSSH2_SFTP_S_IROTH) {
         perm |= QFile::ReadOther;
     }
-    if (this->mAttr.permissions & S_IWOTH) {
+    if (this->mAttr.permissions & LIBSSH2_SFTP_S_IWOTH) {
         perm |= QFile::WriteOther;
     }
-    if (this->mAttr.permissions & S_IXOTH) {
+    if (this->mAttr.permissions & LIBSSH2_SFTP_S_IXOTH) {
         perm |= QFile::ExeOther;
     }
 
@@ -279,43 +282,43 @@ SSHFileInfo SSHFileInfo::fromQFileInfo(QFileInfo &fi)
     attr.mtime = fi.lastModified().toTime_t();
 
     if (fi.isFile() && !fi.isSymLink()) {
-        attr.permissions |= S_IFREG;
+        attr.permissions |= LIBSSH2_SFTP_S_IFREG;
     } else if (fi.isSymLink()) {
-        attr.permissions |= S_IFLNK;
+        attr.permissions |= LIBSSH2_SFTP_S_IFLNK;
     } else if (fi.isDir()) {
-        attr.permissions |= S_IFDIR;
+        attr.permissions |= LIBSSH2_SFTP_S_IFDIR;
     } else {
         qDebug()<<"unknown file type:"<<fi.fileName();
     }
 
     if (perm & QFile::ReadUser) {
-        attr.permissions |= S_IRUSR;
+        attr.permissions |= LIBSSH2_SFTP_S_IRUSR;
     }
     if (perm & QFile::WriteUser) {
-        attr.permissions |= S_IWUSR;
+        attr.permissions |= LIBSSH2_SFTP_S_IWUSR;
     }
     if (perm & QFile::ExeUser) {
-        attr.permissions |= S_IXUSR;
+        attr.permissions |= LIBSSH2_SFTP_S_IXUSR;
     }
 
     if (perm & QFile::ReadGroup) {
-        attr.permissions |= S_IRGRP;
+        attr.permissions |= LIBSSH2_SFTP_S_IRGRP;
     }
     if (perm & QFile::WriteGroup) {
-        attr.permissions |= S_IWGRP;
+        attr.permissions |= LIBSSH2_SFTP_S_IWGRP;
     }
     if (perm & QFile::ExeGroup) {
-        attr.permissions |= S_IXGRP;
+        attr.permissions |= LIBSSH2_SFTP_S_IXGRP;
     }
 
     if (perm & QFile::ReadOther) {
-        attr.permissions |= S_IROTH;
+        attr.permissions |= LIBSSH2_SFTP_S_IROTH;
     }
     if (perm & QFile::WriteOther) {
-        attr.permissions |= S_IWOTH;
+        attr.permissions |= LIBSSH2_SFTP_S_IWOTH;
     }
     if (perm & QFile::ExeOther) {
-        attr.permissions |= S_IXOTH;
+        attr.permissions |= LIBSSH2_SFTP_S_IXOTH;
     }
 
     SSHFileInfo sshFi(attr);
