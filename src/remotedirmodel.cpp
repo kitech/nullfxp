@@ -125,45 +125,30 @@ void RemoteDirModel::set_user_home_path(QString user_home_path)
 
     directory_tree_item *temp_parent_tree_item = 0, *temp_tree_item = 0;
     QString temp_strip_path, temp_path_name;
-    char buff[PATH_MAX+1] = {0};
-    char buff2[PATH_MAX+1] = {0};
-    char buff3[PATH_MAX+1] = {0};
-    char *sep_pos = 0, *pre_sep_pos;
+    // char buff[PATH_MAX+1] = {0};
+    // char buff2[PATH_MAX+1] = {0};
+    // char buff3[PATH_MAX+1] = {0};
+    // char *sep_pos = 0, *pre_sep_pos;
 
-    strcpy(buff, this->user_home_path.toAscii().data());
-    strcpy(buff2, this->user_home_path.toAscii().data());
-    pre_sep_pos = buff;
-
-    assert(buff[0] == '/');
-    while (1) {
-        sep_pos = strchr(buff, '/');
-        if (sep_pos == NULL) {
-            temp_strip_path =  buff2;
-            memset(buff3, 0, PATH_MAX+1);
-            strcpy(buff3, buff2+(pre_sep_pos-buff) +1);
-            temp_path_name =  buff3;
-            temp_parent_tree_item = temp_tree_item ;
-            temp_tree_item = new directory_tree_item();
+    QStringList pathParts = user_home_path.split('/');
+    QString lastStripPath;
+    for (int i = 0 ; i < pathParts.count(); ++i) {
+        if (i == 0) {
+            temp_strip_path = "";
+            temp_path_name = "/";
+            first_item = new directory_tree_item();
+            temp_tree_item = first_item;
+            temp_parent_tree_item = 0;
+            lastStripPath = "/";
         } else {
-            *sep_pos = '&'; //将这个字符替换掉，防止重复查找这个位置
-            if ( sep_pos == buff ) {
-                strncpy(buff3, buff2, int(sep_pos - buff));
-                temp_strip_path = buff3;
-                temp_path_name =  "/";
-                first_item   = new directory_tree_item();
-                temp_tree_item = first_item ;
-                temp_parent_tree_item = 0 ; // this->tree_root;
-            } else {
-                strncpy ( buff3,buff2,int ( sep_pos-buff ) );
-                temp_strip_path =  buff3 ;
-                memset(buff3,0,PATH_MAX+1 );
-                strncpy(buff3, buff2 + (pre_sep_pos-buff) +1, (sep_pos-pre_sep_pos-1));
-                temp_path_name =  buff3 ;
-                temp_parent_tree_item = temp_tree_item ;
-                temp_tree_item = new directory_tree_item();
-            }
+            temp_strip_path = lastStripPath;
+            temp_path_name = pathParts.at(i);
+            temp_parent_tree_item = temp_tree_item;
+            temp_tree_item = new directory_tree_item();
+            lastStripPath += temp_path_name;
         }
-        qDebug()<<"distance to begin: strip path:"<<temp_strip_path<<"dir name:"<<temp_path_name;
+
+        qDebug()<<"Distance to begin: strip path:"<<temp_strip_path<<"dir name:"<<temp_path_name;
         //assign
         temp_tree_item->parent_item = temp_parent_tree_item;
         temp_tree_item->row_number = 0;    //指的是此结点在父结点中的第几个结点，在这里预置的只能为0
@@ -171,28 +156,83 @@ void RemoteDirModel::set_user_home_path(QString user_home_path)
         if (user_home_path.length() == 1 && user_home_path == "/") {
             temp_tree_item->retrived = 0;
         } else {
-            temp_tree_item->retrived = (sep_pos == NULL) ? 0:1;   // 半满结点
+            temp_tree_item->retrived = (i == pathParts.count() - 1) ? 0:1;   // 半满结点
         }
         temp_tree_item->strip_path = temp_strip_path;
         temp_tree_item->file_name = temp_path_name;
         temp_tree_item->prev_retr_flag = -1;
         temp_tree_item->attrib.permissions = 16877;    //默认目录属性: drwxr-xr-x
 
+        dump_tree_node_item(temp_tree_item);
         if (temp_parent_tree_item == NULL) {
         } else {
-            // temp_parent_tree_item->child_items.insert(std::make_pair(0, temp_tree_item));
-            // temp_parent_tree_item->child_items.insert(0, temp_tree_item);
             temp_parent_tree_item->childItems.append(temp_tree_item);
         }
-
-        //pre_sep_pos
-        pre_sep_pos = sep_pos;
-        if (sep_pos == NULL 
-            || (user_home_path.length() == 1 && user_home_path == "/")) {
-            break;
-        }
     }
-    qDebug()<<"seach end :"<<buff;
+
+    // strcpy(buff, this->user_home_path.toAscii().data());
+    // strcpy(buff2, this->user_home_path.toAscii().data());
+    // pre_sep_pos = buff;
+
+    // assert(buff[0] == '/');
+    // while (1) {
+    //     sep_pos = strchr(buff, '/');
+    //     if (sep_pos == NULL) {
+    //         temp_strip_path =  buff2;
+    //         memset(buff3, 0, PATH_MAX+1);
+    //         strcpy(buff3, buff2+(pre_sep_pos-buff) +1);
+    //         temp_path_name =  buff3;
+    //         temp_parent_tree_item = temp_tree_item ;
+    //         temp_tree_item = new directory_tree_item();
+    //     } else {
+    //         *sep_pos = '&'; //将这个字符替换掉，防止重复查找这个位置
+    //         if ( sep_pos == buff ) {
+    //             strncpy(buff3, buff2, int(sep_pos - buff));
+    //             temp_strip_path = buff3;
+    //             temp_path_name =  "/";
+    //             first_item   = new directory_tree_item();
+    //             temp_tree_item = first_item ;
+    //             temp_parent_tree_item = 0 ; // this->tree_root;
+    //         } else {
+    //             strncpy ( buff3,buff2,int ( sep_pos-buff ) );
+    //             temp_strip_path =  buff3 ;
+    //             memset(buff3,0,PATH_MAX+1 );
+    //             strncpy(buff3, buff2 + (pre_sep_pos-buff) +1, (sep_pos-pre_sep_pos-1));
+    //             temp_path_name =  buff3 ;
+    //             temp_parent_tree_item = temp_tree_item ;
+    //             temp_tree_item = new directory_tree_item();
+    //         }
+    //     }
+    //     qDebug()<<"distance to begin: strip path:"<<temp_strip_path<<"dir name:"<<temp_path_name;
+    //     //assign
+    //     temp_tree_item->parent_item = temp_parent_tree_item;
+    //     temp_tree_item->row_number = 0;    //指的是此结点在父结点中的第几个结点，在这里预置的只能为0
+    //     // fixed only / can not list dir automatically when init
+    //     if (user_home_path.length() == 1 && user_home_path == "/") {
+    //         temp_tree_item->retrived = 0;
+    //     } else {
+    //         temp_tree_item->retrived = (sep_pos == NULL) ? 0:1;   // 半满结点
+    //     }
+    //     temp_tree_item->strip_path = temp_strip_path;
+    //     temp_tree_item->file_name = temp_path_name;
+    //     temp_tree_item->prev_retr_flag = -1;
+    //     temp_tree_item->attrib.permissions = 16877;    //默认目录属性: drwxr-xr-x
+
+    //     if (temp_parent_tree_item == NULL) {
+    //     } else {
+    //         // temp_parent_tree_item->child_items.insert(std::make_pair(0, temp_tree_item));
+    //         // temp_parent_tree_item->child_items.insert(0, temp_tree_item);
+    //         temp_parent_tree_item->childItems.append(temp_tree_item);
+    //     }
+
+    //     //pre_sep_pos
+    //     pre_sep_pos = sep_pos;
+    //     if (sep_pos == NULL 
+    //         || (user_home_path.length() == 1 && user_home_path == "/")) {
+    //         break;
+    //     }
+    // }
+    // qDebug()<<"seach end :"<<buff;
 
     this->tree_root = first_item;
     // this->tree_root->row_number = 0;
