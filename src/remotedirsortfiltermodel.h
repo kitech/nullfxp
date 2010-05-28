@@ -15,6 +15,7 @@
 
 class RemoteDirModel ;
 
+
 class RemoteDirSortFilterModel : public QSortFilterProxyModel
 {
     Q_OBJECT;
@@ -34,9 +35,11 @@ public:
 
     virtual bool hasChildren(const QModelIndex &parent) const;
 
+    virtual QModelIndex	mapFromSource ( const QModelIndex & sourceIndex ) const;
     virtual QModelIndex	mapToSource ( const QModelIndex & proxyIndex ) const;
     virtual int rowCount ( const QModelIndex & parent = QModelIndex() ) const;
     
+    virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole ) const;
 protected:
     virtual bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const;
 protected:
