@@ -17,7 +17,7 @@
 #include "dirretriver.h"
 
 // class RFSDirNode;
-class directory_tree_item;
+class NetDirNode;
 class Connection;
 
 /**
@@ -37,9 +37,9 @@ public:
     
     virtual void run();
         
-    virtual void add_node(directory_tree_item *parent_item, void *parent_model_internal_pointer);
+    virtual void add_node(NetDirNode *parent_item, void *parent_model_internal_pointer);
     
-    virtual void slot_execute_command(directory_tree_item *parent_item, void *parent_model_internal_pointer,
+    virtual void slot_execute_command(NetDirNode *parent_item, void *parent_model_internal_pointer,
                               int cmd, QString params);
 
 protected:
@@ -54,7 +54,7 @@ protected:
     //         this->retry_times = 0;
     //     }
                
-    //     directory_tree_item *parent_item;
+    //     NetDirNode *parent_item;
     //     void *parent_model_internal_pointer;
     //     int  cmd;
     //     QString  params;
@@ -79,18 +79,11 @@ signals:
     void enter_remote_dir_retrive_loop();
     void leave_remote_dir_retrive_loop();
         
-    void remote_dir_node_retrived(directory_tree_item *parent_item, void *parent_model_internal_pointer);
+    void remote_dir_node_retrived(NetDirNode *parent_item, void *parent_model_internal_pointer);
         
-    void execute_command_finished(directory_tree_item *parent_item, void *parent_model_internal_pointer,
+    void execute_command_finished(NetDirNode *parent_item, void *parent_model_internal_pointer,
                                   int cmd, int status);
 
-protected:
-    // std::map<directory_tree_item *, void *> dir_node_process_queue;
-    // std::vector<command_queue_elem*>  command_queue;
-       
-    // LIBSSH2_SESSION *ssh2_sess;
-    // LIBSSH2_SFTP *ssh2_sftp;
-    // Connection *conn;
 };
 
 #endif /* _FTPDIRRETRIVER_H_ */

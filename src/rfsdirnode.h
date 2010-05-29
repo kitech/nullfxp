@@ -17,38 +17,38 @@
 #include "libssh2_sftp.h"
 
 enum {
-    POP_NO_NEED_NO_DATA = 0,
-    POP_NO_NEED_WITH_DATA = 1,
-    POP_WITH_NEED_WANT_UPDATE = 2,
-    POP_UPDATING = 8,
-    POP_NEWEST = 9  
+    POP_NO_NEED_NO_DATA = 0x01,
+    POP_NO_NEED_WITH_DATA = 0x02,
+    POP_WITH_NEED_WANT_UPDATE = 0x04,
+    POP_UPDATING = 0x08,
+    POP_NEWEST = 0x10,
+    FLAG_DELETED = 0x20
 };
 
 //这个类中存储的字符串改为Qt内部使用的Unicode编码。
-class directory_tree_item : public QObject
+class NetDirNode
 {
-    Q_OBJECT;
 public:
-    directory_tree_item(QObject *parent = 0)
-        : QObject(parent)
+    NetDirNode()
     {
-        this->prev_retr_flag = 0;
-        this->retrived = 0;
-        this->parent_item = 0;
-        this->row_number = -1;
-        this->delete_flag = 0 ;
+        this->prevFlag = 0xFF;
+        this->retrFlag = 0;
+        this->deleted = false;
+        this->pNode = 0;
+        this->onRow = -1;
         this->linkToDir = false;
         memset(&this->attrib, 0, sizeof(this->attrib));
     }
-    ~directory_tree_item();
+    ~NetDirNode();
 
-    unsigned char prev_retr_flag;    // 前一步的retrived 状态值。在改变retrived的状态的时候使用。
-    unsigned char retrived;  // 1 , 0
-    unsigned char delete_flag;   // 1 , 0 ;
+    unsigned char prevFlag;    // 前一步的retrived 状态值。在改变retrived的状态的时候使用。
+    unsigned char retrFlag;  // 1 , 0
+    bool deleted;   // 1 , 0 ;
+
     /*
       0 表示UI没有要求过的，所以我们也没有取过数据的            
       1 表示UI没有请求过，我们自己填入了部分数据（如用户指定他的初始化目录的时候），即这表示需要更新的结点
-      2 表示UI已经请求过，我们只取回来了一部分数据，即这表示需要更新的结点
+      2 表示UI已经请求过，我们只取回来了一部分数据，即这表示需要立即更新的结点
       8 表示UI已经请求过，我们已经放到处理队列的，但还没有获取来数据的
       9 表示UI已经请求过，并且更新到了最新目录结构状态。
       
@@ -59,18 +59,18 @@ public:
     */
 
     // std::map<int, directory_tree_item *> child_items; // <rowseq, p*> // why not use order stable vector?
-    // QMap<int, directory_tree_item*> child_items;  
-    QVector<directory_tree_item*> childItems;
+    QHash<int, NetDirNode*> childNodes;
+    // QVector<directory_tree_item*> childItems;
 
-    directory_tree_item *parent_item;
-    int row_number;    //指的是所包含的子结点个数 //这个也没有用了吧
+    NetDirNode *pNode;
+    short onRow;
     //N , S , T , D
     //T = D , F , L
 
     // TODO 去掉一些变量，减小内存用量
-    QString strip_path;
-    QString file_name;
-    bool   linkToDir; // 是否是链接到目录的链接
+    QString fullPath;   // no last / is is dir, but the root / ...
+    QString _fileName;
+    bool linkToDir; // 是否是链接到目录的链接
      
     LIBSSH2_SFTP_ATTRIBUTES attrib; // 改用QUrlInfo ??? 这个好象不错啊,不过这个占用内存小
 
@@ -80,16 +80,16 @@ public:
     bool isSymLinkToDir();
     int childCount();
     bool hasChild(QString name);
-    directory_tree_item *findChindByName(QString name);
+    NetDirNode *findChindByName(QString name);
     bool matchChecksum(QDateTime mdate, quint64 fsize);
     bool matchChecksum(LIBSSH2_SFTP_ATTRIBUTES *attr);
     // 设置本结点中的子结点名字为name的结点的删除标记
     bool setDeleteFlag(QString name, bool del);
     // 设置本结点的删除标记
-    bool setDeleteFlag(bool del);
+    bool setDeleteFlag(bool deleted);
 
-    directory_tree_item *parent();
-    directory_tree_item *childAt(int index);
+    NetDirNode *parent();
+    NetDirNode *childAt(int index);
     QString filePath();
     QString fileName();
     QString fileMode();
@@ -98,6 +98,9 @@ public:
     quint64 fileSize();
     QString strFileSize();
     QString fileType();
+
+    bool copyFrom(NetDirNode *node); // the node must has no child, becuase we omit it
+    void dumpTreeRecursive();
 };
 
 #endif

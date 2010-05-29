@@ -21,7 +21,7 @@
 #include "sshdirretriver.h"
 
 class RFSDirNode;
-class directory_tree_item;
+class NetDirNode;
 class Connection;
 class DirRetriver;
 
@@ -41,7 +41,6 @@ public:
     //仅需要调用一次的函数,并且是在紧接着该类的初始化之后调用。
     void set_user_home_path(QString user_home_path);
     //这个调用应该在set_user_home_path之前
-    // void set_ssh2_handler(void *ssh2_sess);
     void setConnection(Connection *conn);
                 
     ////model 函数
@@ -51,7 +50,7 @@ public:
                         int role = Qt::DisplayRole) const;
     QModelIndex index(int row, int column,
                       const QModelIndex &parent = QModelIndex()) const;
-    QModelIndex index(const QString & path, int column = 0) const;
+    // QModelIndex index(const QString & path, int column = 0) const;
         
     QModelIndex parent(const QModelIndex &child) const;
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
@@ -66,73 +65,27 @@ public:
         
     bool setItemData(const QModelIndex &index, const QMap<int, QVariant> &roles);
 		
-// 		int rowCount(const QModelIndex &parent = QModelIndex()) const;
-// 		int columnCount(const QModelIndex &parent = QModelIndex()) const;
-// 
-// 		QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
-// 		bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
-// 
-// 		QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
-// 
     virtual bool hasChildren(const QModelIndex &parent = QModelIndex()) const;
-// 
-// 		void sort(int column, Qt::SortOrder order = Qt::AscendingOrder);
-// 
+
     QStringList mimeTypes() const;
     QMimeData *mimeData(const QModelIndexList &indexes) const;
     bool dropMimeData(const QMimeData *data, Qt::DropAction action,
                       int row, int column, const QModelIndex &parent);
     Qt::DropActions supportedDropActions() const;
-// 
-// 		
-// 		//QDirModel specific API
-// 		
-// 		void setNameFilters(const QStringList &filters);
-// 		QStringList nameFilters() const;
-// 
-// 		void setFilter(QDir::Filters filters);
-// 		QDir::Filters filter() const;
-// 
-// 		void setSorting(QDir::SortFlags sort);
-// 		QDir::SortFlags sorting() const;
-// 
-// 		void setResolveSymlinks(bool enable);
-// 		bool resolveSymlinks() const;
-// 
-// 		void setReadOnly(bool enable);
-// 		bool isReadOnly() const;
-// 
-// 		void setLazyChildCount(bool enable);
-// 		bool lazyChildCount() const;
-// 
-// 		QModelIndex index(const QString &path, int column = 0) const;
-// 
-// 		bool isDir(const QModelIndex &index) const;
-// 		QModelIndex mkdir(const QModelIndex &parent, const QString &name);
-// 		bool rmdir(const QModelIndex &index);
-// 		bool remove(const QModelIndex &index);
-// 
-// 		QString filePath(const QModelIndex &index) const;
-// 		QString fileName(const QModelIndex &index) const;
-// 		QIcon fileIcon(const QModelIndex &index) const;
-// 		QFileInfo fileInfo(const QModelIndex &index) const;    
-// 
-// 		public slots:
-// 		    void refresh(const QModelIndex &parent = QModelIndex());
-// 		
 
     QString filePath(const QModelIndex &index) const;
     bool isDir(const QModelIndex &index) const;
     bool isSymLink(const QModelIndex &index) const;
     bool isSymLinkToDir(const QModelIndex &index) const;
 
+    void dump_tree_node_item(NetDirNode *node_item) const;
 public slots:
-    void slot_remote_dir_node_retrived(directory_tree_item *parent_item, void *parent_model_internal_pointer);
+    void slot_remote_dir_node_retrived(NetDirNode *parent_item, void *parent_model_internal_pointer);
     void slot_remote_dir_node_clicked(const QModelIndex &index);
         
-    void slot_execute_command(directory_tree_item *parent_item, void *parent_model_internal_pointer, int cmd, QString params );
+    void slot_execute_command(NetDirNode *parent_item, void *parent_model_internal_pointer, int cmd, QString params );
 
-    void execute_command_finished(directory_tree_item *parent_item, void *parent_model_internal_pointer,
+    void execute_command_finished(NetDirNode *parent_item, void *parent_model_internal_pointer,
                                   int cmd, int status);
     //keep_alive
     void set_keep_alive(bool keep_alive, int time_out = DEFAULT_KEEP_ALIVE_TIMEOUT);
@@ -150,18 +103,17 @@ signals:
     void leave_remote_dir_retrive_loop();
     
 private:
-    enum { DEFAULT_KEEP_ALIVE_TIMEOUT=30*1000 };
-    directory_tree_item *tree_root;
+    enum { DEFAULT_KEEP_ALIVE_TIMEOUT = 30*1000 };
+    NetDirNode *rootNode;
     LIBSSH2_SESSION *ssh2_sess;
     Connection *conn;
 
-    // RemoteDirRetriveThread *remote_dir_retrive_thread;
     DirRetriver *dir_retriver;
 
-    //递归查找树
-    QModelIndex find_node_item_by_path_elements(directory_tree_item *parent_node_item,
-                                                QStringList &path_elements, int level) const;
-    void dump_tree_node_item(directory_tree_item *node_item) const;
+    // 递归查找树
+    // QModelIndex find_node_item_by_path_elements(NetDirNode *parent_node_item,
+    //                                             QStringList &path_elements, int level) const;
+
 
     QString user_home_path;
         

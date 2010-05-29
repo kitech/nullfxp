@@ -15,69 +15,70 @@
 
 #include "rfsdirnode.h"
 
-////////////////////////directory_tree_item
-directory_tree_item::~directory_tree_item()
+////////////////////////NetDirNode
+NetDirNode::~NetDirNode()
 {
     //qDebug()<<"tree delete now";
-    int line = this->childItems.count();
+    NetDirNode *node = NULL;
+    int line = this->childNodes.count();
     for (int i = line -1 ; i >=0 ; i --) {
-        // delete this->child_items[i];
-        delete this->childItems.at(i);
+        Q_ASSERT(this->childNodes.contains(i));
+        node = this->childNodes.value(i);
+        delete node;
     }
-    this->childItems.clear();
+    this->childNodes.clear();
 }
 
-bool directory_tree_item::isDir()
+bool NetDirNode::isDir()
 {
     return LIBSSH2_SFTP_S_ISDIR(this->attrib.permissions);
     return LIBSSH2_SFTP_S_ISDIR(this->attrib.permissions) 
         || LIBSSH2_SFTP_S_ISLNK(this->attrib.permissions);
 }
 
-bool directory_tree_item::isSymLink()
+bool NetDirNode::isSymLink()
 {
     return LIBSSH2_SFTP_S_ISLNK(this->attrib.permissions);
-    // return this->attrib.permissions & LIBSSH2_SFTP_S_IFLNK;
 }
-bool directory_tree_item::isSymLinkToDir()
+bool NetDirNode::isSymLinkToDir()
 {
     return this->linkToDir;
     return false;
 }
-int directory_tree_item::childCount()
+int NetDirNode::childCount()
 {
-    return this->childItems.count();
+    return this->childNodes.count();
     return 0;
 }
 
-directory_tree_item *directory_tree_item::parent()
+NetDirNode *NetDirNode::parent()
 {
-    return this->parent_item;
+    return this->pNode;
 }
 
-bool directory_tree_item::hasChild(QString name)
+bool NetDirNode::hasChild(QString name)
 {
-    for (unsigned int i = 0 ; i < this->childItems.count(); i++) {
-        if (this->childItems.at(i)->file_name == name) {
-            return true;
-        }
-    }
+    // for (unsigned int i = 0 ; i < this->childItems.count(); i++) {
+    //     if (this->childItems.at(i)->file_name == name) {
+    //         return true;
+    //     }
+    // }
     
     return false;
 }
 
-directory_tree_item *directory_tree_item::findChindByName(QString name)
+NetDirNode *NetDirNode::findChindByName(QString name)
 {
-    directory_tree_item *child = NULL;
-    for (unsigned int i = 0 ; i < this->childItems.count(); i++) {
-        if (this->childItems.at(i)->file_name == name) {
-            child = childItems.at(i);
-            break;
-        }
-    } 
+    NetDirNode *child = NULL;
+    // for (unsigned int i = 0 ; i < this->childItems.count(); i++) {
+    //     if (this->childItems.at(i)->file_name == name) {
+    //         child = childItems.at(i);
+    //         break;
+    //     }
+    // } 
     return child;
 }
-bool directory_tree_item::matchChecksum(QDateTime mdate, quint64 fsize)
+bool NetDirNode::matchChecksum(QDateTime mdate, quint64 fsize)
 {
     if (this->attrib.mtime == mdate.toTime_t()
         && fsize == this->attrib.filesize) {
@@ -86,9 +87,9 @@ bool directory_tree_item::matchChecksum(QDateTime mdate, quint64 fsize)
     return false;
 }
 
-bool directory_tree_item::matchChecksum(LIBSSH2_SFTP_ATTRIBUTES *attr)
+bool NetDirNode::matchChecksum(LIBSSH2_SFTP_ATTRIBUTES *attr)
 {
-    assert(attr != NULL);
+    Q_ASSERT(attr != NULL);
     if (this->attrib.mtime == attr->mtime
         && this->attrib.filesize == attr->filesize) {
         return true;
@@ -96,43 +97,50 @@ bool directory_tree_item::matchChecksum(LIBSSH2_SFTP_ATTRIBUTES *attr)
     return false;
 }
 
-bool directory_tree_item::setDeleteFlag(QString name, bool del)
+bool NetDirNode::setDeleteFlag(QString name, bool del)
 {
-    for (unsigned int i = 0 ; i < this->childItems.count(); i++) {
-        if (this->childItems.at(i)->file_name == name) {
-            this->childItems.at(i)->delete_flag = del;
-            return true;
-        }
-    } 
+    // for (unsigned int i = 0 ; i < this->childItems.count(); i++) {
+    //     if (this->childItems.at(i)->file_name == name) {
+    //         this->childItems.at(i)->delete_flag = del;
+    //         return true;
+    //     }
+    // } 
     
     return false;
 }
-bool directory_tree_item::setDeleteFlag(bool del)
+bool NetDirNode::setDeleteFlag(bool deleted)
 {
-    this->delete_flag = del;
+    if (this->deleted) {
+        q_debug()<<"flag is already deleted state";
+    }
+    this->deleted = deleted;
     return true;
 }
 
-directory_tree_item *directory_tree_item::childAt(int index)
+NetDirNode *NetDirNode::childAt(int index)
 {
-    return this->childItems.at(index);
-    // return this->child_items[index];
+    if (this->childNodes.contains(index)) {
+        return this->childNodes.value(index);
+    } else {
+        q_debug()<<"can find child at:"<<index;
+    }
+    return NULL;
 }
-QString directory_tree_item::filePath()
+QString NetDirNode::filePath()
 {
-    return this->strip_path;
+    return this->fullPath;
 }
-QString directory_tree_item::fileName()
+QString NetDirNode::fileName()
 {
-    return this->file_name;
+    return this->_fileName;
 }
-QString directory_tree_item::fileMode()
+QString NetDirNode::fileMode()
 {
     char mem[32] = {0};
     strmode(this->attrib.permissions, mem);
     return QString(mem);
 }
-QString directory_tree_item::fileMDate()
+QString NetDirNode::fileMDate()
 {
     char file_date[PATH_MAX+1];
 #ifndef _MSC_VER
@@ -148,7 +156,7 @@ QString directory_tree_item::fileMDate()
 #endif    
     return QString(file_date);
 }
-QString directory_tree_item::fileADate()
+QString NetDirNode::fileADate()
 {
     return QString();
     char file_date[PATH_MAX+1];
@@ -166,18 +174,47 @@ QString directory_tree_item::fileADate()
     return QString(file_date);
 }
 
-quint64 directory_tree_item::fileSize()
+quint64 NetDirNode::fileSize()
 {
     return this->attrib.filesize;
 }
 
-QString directory_tree_item::strFileSize()
+QString NetDirNode::strFileSize()
 {
     return QString("%1").arg(this->attrib.filesize);
 }
 
-QString directory_tree_item::fileType()
+QString NetDirNode::fileType()
 {
     SSHFileInfo fi(this->attrib);
     return fi.stringMode();
 }
+
+bool NetDirNode::copyFrom(NetDirNode *node)
+{
+    this->fullPath = node->fullPath;
+    this->_fileName = node->_fileName;
+    this->linkToDir = node->linkToDir;
+    
+    // this->onRow = node->onRow;
+    // this->pNode = node->pNode;
+    
+    memcpy(&this->attrib, &node->attrib, sizeof(this->attrib));
+
+    return true;
+}
+
+void NetDirNode::dumpTreeRecursive()
+{
+    NetDirNode *pnode = this->pNode;
+    if (pnode != NULL) {
+        pnode->dumpTreeRecursive();
+    }
+    int depth = this->fullPath.split('/').count();
+    QString prepad;
+    prepad.fill(' ', depth);
+    qDebug()<<prepad<<this->_fileName;
+}
+
+
+

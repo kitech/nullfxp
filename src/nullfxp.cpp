@@ -45,9 +45,6 @@ NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
     this->mUIMain.setupUi(this);
     this->setWindowIcon(QIcon(":/icons/nullget-1.png")); 
 
-    // 未完成的功能,临时去掉
-    // delete this->mUIMain.menu_Options;
-
     //////////////////////////
     central_splitter_widget = new QSplitter(Qt::Vertical);
     this->fcd = 0;
@@ -139,6 +136,8 @@ NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
     } else {
         // this->resize(this->desktop->screenGeometry(this->desktop->primaryScreen()).width()*5/6, 
         //              this->desktop->screenGeometry(this->desktop->primaryScreen()).height()*5/6);
+        this->resize(this->desktop->screenGeometry().width()*3/6, 
+                     this->desktop->screenGeometry().height()*3/6);
     }
 
     //调整本地目录树窗口的大小

@@ -226,7 +226,7 @@ void FileProperties::set_file_info_model_list(QModelIndexList &mil)
 {
 	if (mil.count() == 0) return;
 
-	directory_tree_item * item_node = static_cast<directory_tree_item*>(mil.at(0).internalPointer());
+	NetDirNode * item_node = static_cast<NetDirNode*>(mil.at(0).internalPointer());
 	QString file_name = mil.at(0).data().toString();
 	QString file_size = mil.at(1).data().toString();
 	QString file_modify_time = mil.at(3).data().toString();

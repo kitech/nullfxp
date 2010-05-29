@@ -59,6 +59,8 @@ protected:
     int   table_row_height;
     RemoteDirSortFilterModel *remote_dir_sort_filter_model;
     RemoteDirSortFilterModelEX *remote_dir_sort_filter_model_ex;
+    QSortFilterProxyModel *m_proxyModel;
+
     QAbstractItemView *curr_item_view;    //
         
     QMenu *dir_tree_context_menu;

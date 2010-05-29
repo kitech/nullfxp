@@ -16,21 +16,73 @@
 
 #include "rfsdirnode.h"
 
-void dump_tree_node_item(directory_tree_item *node_item)
+void dump_tree_node_item(NetDirNode *node_item)
 {
-    directory_tree_item *item = (directory_tree_item *)node_item ;
+    NetDirNode *item = (NetDirNode *)node_item ;
     assert(node_item != 0);
     qDebug()<<"====================>>>>";
-    qDebug()<<"Retrived="<<node_item->retrived;
-    qDebug()<<"prev_retr_flag="<<node_item->prev_retr_flag;
-    qDebug()<<"name="<<QString(node_item->file_name );
+    qDebug()<<"Retrived="<<node_item->retrFlag;
+    qDebug()<<"prev_retr_flag="<<node_item->prevFlag;
+    qDebug()<<"name="<<QString(node_item->_fileName );
     qDebug()<<"Type="<<QString(node_item->fileType() );
     qDebug()<<"Size="<<QString(node_item->strFileSize());
     qDebug()<<"Date="<<QString(node_item->fileMDate());
-    qDebug()<<"ChildCount="<<node_item->childItems.count();
-    qDebug()<< "DeleteFlag="<<node_item->delete_flag;
+    qDebug()<<"ChildCount="<<node_item->childNodes.count();
+    qDebug()<< "DeleteFlag="<<node_item->deleted;
     qDebug()<<"<<<<====================";
 }
+
+DirTreeSortFilterModel::DirTreeSortFilterModel(QObject *parent)
+    : QSortFilterProxyModel(parent)
+{
+}
+
+DirTreeSortFilterModel::~DirTreeSortFilterModel()
+{
+}
+
+QModelIndex DirTreeSortFilterModel::parent ( const QModelIndex & child ) const
+{
+    // qDebug()<<__FUNCTION__<<__LINE__<<child<<child.isValid();
+    NetDirNode *dti = 0;
+    NetDirNode *sdti = 0;
+
+    QModelIndex sourceIndex = this->mapToSource(child);
+    // qDebug()<<sourceIndex.isValid();
+    
+    dti = static_cast<NetDirNode *>(sourceIndex.internalPointer());
+    if (dti != NULL) {
+        // qDebug()<<__FUNCTION__<<": "<<__LINE__<<":";
+        // dump_tree_node_item(dti);
+    }
+
+    QModelIndex parent = QSortFilterProxyModel::parent(child);
+    return parent;
+}
+
+bool DirTreeSortFilterModel::hasChildren(const QModelIndex &parent) const
+{
+    // qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<""<<parent<<parent.isValid();
+
+    NetDirNode *dti = 0;
+    NetDirNode *sdti = 0;
+
+    QModelIndex sourceIndex = this->mapToSource(parent);
+    // qDebug()<<sourceIndex.isValid()<<parent.isValid();
+    
+    dti = static_cast<NetDirNode *>(sourceIndex.internalPointer());
+    if (dti != NULL) {
+        // qDebug()<<__FUNCTION__<<": "<<__LINE__<<":";
+        // dump_tree_node_item(dti);
+    }
+
+    bool has = QSortFilterProxyModel::hasChildren(parent);
+    // qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<""<<parent<<has;
+
+    return has;
+    // return this->source_model->hasChildren(this->mapToSource(parent));
+}
+
 
 //////////////////////////
 ///
@@ -56,8 +108,10 @@ bool RemoteDirSortFilterModel::canFetchMore(const QModelIndex &parent) const
 
 QModelIndex RemoteDirSortFilterModel::index(const QString &path, int column) const
 {
-    return this->mapFromSource(this->source_model->index(path, column));
+    // return this->mapFromSource(this->source_model->index(path, column));
+    return QModelIndex();
 }
+
 void RemoteDirSortFilterModel::setSourceModel(QAbstractItemModel *sourceModel)
 {
     this->source_model = static_cast<RemoteDirModel*>(sourceModel);
@@ -103,7 +157,7 @@ bool RemoteDirSortFilterModel::filterAcceptsRow(int source_row, const QModelInde
 void RemoteDirSortFilterModel::setFilter(QDir::Filters filters)
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<this;
-    directory_tree_item *dti = 0;
+    NetDirNode *dti = 0;
 
     // 这个函数写的挺奇怪了，这个persistentIndexList到底是什么东西。在什么时候有用呢。
     //
@@ -112,7 +166,7 @@ void RemoteDirSortFilterModel::setFilter(QDir::Filters filters)
     //     //qDebug()<<this->persistentIndexList();
     //     for (int i=0; i<this->persistentIndexList().count(); i++) {
     //         //qDebug()<<i;
-    //         dti = static_cast<directory_tree_item*>(this->mapToSource(this->persistentIndexList().at(i)).internalPointer());
+    //         dti = static_cast<NetDirNode*>(this->mapToSource(this->persistentIndexList().at(i)).internalPointer());
     //         //qDebug()<<dti;
     //         qDebug()<<dti->strip_path<<this;
     //         if (dti->strip_path.length() > 0) {
@@ -145,10 +199,10 @@ QModelIndex	RemoteDirSortFilterModel::mapFromSource ( const QModelIndex & source
 
 QModelIndex RemoteDirSortFilterModel::mapToSource(const QModelIndex & proxyIndex ) const
 {
-    directory_tree_item *dti = 0;
-    directory_tree_item *sdti = 0;
+    NetDirNode *dti = 0;
+    NetDirNode *sdti = 0;
 
-    dti = static_cast<directory_tree_item *>(proxyIndex.internalPointer());
+    dti = static_cast<NetDirNode *>(proxyIndex.internalPointer());
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<""<<proxyIndex<<(void*)dti; // proxyIndex's internalPointer is not the same as sourceIndex's internalPointer, so can not read it as sourceIndex's internalPointer do.
     // if (dti != NULL) {
     //     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":";
@@ -156,7 +210,7 @@ QModelIndex RemoteDirSortFilterModel::mapToSource(const QModelIndex & proxyIndex
     // }
 
     QModelIndex smidx = QSortFilterProxyModel::mapToSource(proxyIndex);
-    sdti = static_cast<directory_tree_item*>(smidx.internalPointer());
+    sdti = static_cast<NetDirNode*>(smidx.internalPointer());
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<""<<smidx<<(void*)sdti;
     if (sdti != NULL) {
         qDebug()<<__FUNCTION__<<": "<<__LINE__<<":";

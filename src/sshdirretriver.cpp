@@ -102,17 +102,17 @@ int  SSHDirRetriver::retrive_dir()
 {
     int exec_ret = -1;
     
-    directory_tree_item *parent_item, *new_item, *tmp_item;
+    NetDirNode *parent_item, *new_item, *tmp_item;
     void *parent_model_internal_pointer;
 
     QString tmp;
-    QVector<directory_tree_item*> deltaItems;
+    QVector<NetDirNode*> deltaItems;
     QVector<QMap<char, QString> > fileinfos;
     char file_name[PATH_MAX+1];
     int fxp_ls_ret = 0;
  
     while (this->dir_node_process_queue.size() >0) {
-        std::map<directory_tree_item*,void * >::iterator mit;
+        std::map<NetDirNode*,void * >::iterator mit;
         mit = this->dir_node_process_queue.begin();
 
         parent_item = mit->first;
@@ -121,21 +121,21 @@ int  SSHDirRetriver::retrive_dir()
         fileinfos.clear();
         //状态初始化
         for (int i = 0; i < parent_item->childCount(); i++) {
-            parent_item->childAt(i)->delete_flag = 1;
+            parent_item->childAt(i)->deleted = 1;
         }
 
         LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
         LIBSSH2_SFTP_HANDLE *ssh2_sftp_handle = 0;
         ssh2_sftp_handle = libssh2_sftp_opendir(this->ssh2_sftp,
-                                                GlobalOption::instance()->remote_codec->fromUnicode(parent_item->strip_path+ ( "/" )).data());
+                                                GlobalOption::instance()->remote_codec->fromUnicode(parent_item->fullPath+ ( "/" )).data());
 
         // ssh2_sftp_handle == 0 是怎么回事呢？ 返回值 应该是
         // 1 . 这个file_name 是一个链接，但这个链接指向的是一个普通文件而不是目录时libssh2_sftp_opendir返回0 , 而 libssh2_sftp_last_error 返回值为 2 == SSH2_FX_NO_SUCH_FILE
         if( ssh2_sftp_handle == 0 ) {
             qDebug()<<" sftp last error: "<< libssh2_sftp_last_error(this->ssh2_sftp)
-                    <<(parent_item->strip_path+ ( "/" ))
+                    <<(parent_item->fullPath+ ( "/" ))
                     <<GlobalOption::instance()->remote_codec
-                ->fromUnicode(parent_item->strip_path + ( "/" )).data();
+                ->fromUnicode(parent_item->fullPath + ( "/" )).data();
         }
         fxp_ls_ret = 0;
         while (ssh2_sftp_handle != 0 &&
@@ -154,13 +154,13 @@ int  SSHDirRetriver::retrive_dir()
                 else 
                     printf(" %d", fxp_ls_ret<<16>>16);
             } else {
-                new_item = new directory_tree_item();
-                new_item->parent_item = parent_item;
-                // new_item->strip_path = parent_item->strip_path + QString("/") + file_name ;
-                new_item->strip_path = parent_item->strip_path + QString("/") + tmp ; // this is unicode
-                new_item->file_name = tmp;
+                new_item = new NetDirNode();
+                new_item->pNode = parent_item;
+                // new_item->fullPath = parent_item->fullPath + QString("/") + file_name ;
+                new_item->fullPath = parent_item->fullPath + QString("/") + tmp ; // this is unicode
+                new_item->_fileName = tmp;
                 new_item->attrib = ssh2_sftp_attrib;
-                new_item->retrived = (new_item->isDir()) ? POP_NO_NEED_NO_DATA : POP_NEWEST;
+                new_item->retrFlag = (new_item->isDir()) ? POP_NO_NEED_NO_DATA : POP_NEWEST;
                 deltaItems.append(new_item);
             }
         }  
@@ -169,15 +169,15 @@ int  SSHDirRetriver::retrive_dir()
 	
         //将多出的记录插入到树中
         for (int i = 0 ;i < deltaItems.count(); i ++) {
-            deltaItems.at(i)->row_number = parent_item->childCount();
+            deltaItems.at(i)->onRow = parent_item->childCount();
             // parent_item->child_items.insert(std::make_pair(parent_item->childCount(), deltaItems.at(i)));
             // parent_item->child_items.insert(parent_item->childCount(), deltaItems.at(i));
-            parent_item->childItems.append(deltaItems.at(i));
+            parent_item->childNodes.insert(deltaItems.at(i)->onRow, deltaItems.at(i));
         }
 
         deltaItems.clear();
-        parent_item->prev_retr_flag = parent_item->retrived;
-        parent_item->retrived = POP_NEWEST;
+        parent_item->prevFlag = parent_item->retrFlag;
+        parent_item->retrFlag = POP_NEWEST;
 
         //         //////
         this->dir_node_process_queue.erase(parent_item);
@@ -197,7 +197,7 @@ int  SSHDirRetriver::mkdir()
     int exec_ret = -1;
     command_queue_elem *cmd_item = this->command_queue.at(0);
     
-    QString abs_path = cmd_item->parent_item->strip_path + QString("/") + cmd_item->params;
+    QString abs_path = cmd_item->parent_item->fullPath + QString("/") + cmd_item->params;
     
     qDebug()<<"abs  path :"<< abs_path;
     
@@ -219,7 +219,7 @@ int  SSHDirRetriver::rmdir()
     
     command_queue_elem *cmd_item = this->command_queue.at(0);
     
-    QString abs_path = cmd_item->parent_item->strip_path + "/" + cmd_item->params;
+    QString abs_path = cmd_item->parent_item->fullPath + "/" + cmd_item->params;
 
     qDebug()<<"abs path: "<<abs_path;
     
@@ -243,23 +243,23 @@ int  SSHDirRetriver::rm_file_or_directory_recursively()
     sys_dirs<<"/usr"<<"/bin"<<"/sbin"<<"/lib"<<"/etc"<<"/dev"<<"/proc"
             <<"/mnt"<<"/sys"<<"/var";
     
-    directory_tree_item *child_item = 0;
-    directory_tree_item *parent_item = 0;
+    NetDirNode *child_item = 0;
+    NetDirNode *parent_item = 0;
     command_queue_elem *cmd_item = this->command_queue.at(0);
     parent_item = cmd_item->parent_item;
     
-    QString abs_path = cmd_item->parent_item->strip_path + "/" +  cmd_item->params;
+    QString abs_path = cmd_item->parent_item->fullPath + "/" +  cmd_item->params;
     qDebug()<<"abs path: "<<abs_path;
     
     if (sys_dirs.contains(abs_path)) {
         qDebug()<<"rm  system directory recusively , this is danger.";
     } else {
         //找到这个要删除的结点并删除
-        for (unsigned int  i = 0 ; i < parent_item->childItems.count(); i ++) {
-            child_item = parent_item->childItems.at(i);
-            if (child_item->file_name.compare( cmd_item->params ) == 0) {
-                qDebug()<<"found will remove file:"<<child_item->strip_path;
-                this->rm_file_or_directory_recursively_ex(child_item->strip_path);
+        for (unsigned int  i = 0 ; i < parent_item->childNodes.count(); i ++) {
+            child_item = parent_item->childNodes.value(i);
+            if (child_item->_fileName.compare( cmd_item->params ) == 0) {
+                qDebug()<<"found will remove file:"<<child_item->fullPath;
+                this->rm_file_or_directory_recursively_ex(child_item->fullPath);
                 break;
             }
         }
@@ -340,8 +340,8 @@ int  SSHDirRetriver::rename()
     
     size_t sep_pos = cmd_item->params.indexOf('!');
     
-    QString abs_path = cmd_item->parent_item->strip_path + "/" +  cmd_item->params.mid(0,sep_pos);
-    QString abs_path_rename_to = cmd_item->parent_item->strip_path + "/" + cmd_item->params.mid(sep_pos+1,-1);
+    QString abs_path = cmd_item->parent_item->fullPath + "/" +  cmd_item->params.mid(0,sep_pos);
+    QString abs_path_rename_to = cmd_item->parent_item->fullPath + "/" + cmd_item->params.mid(sep_pos+1,-1);
     
     qDebug()<<"abs  path :"<<abs_path
             <<"abs path rename to ;"<<abs_path_rename_to;
@@ -363,12 +363,12 @@ int SSHDirRetriver::keep_alive()
 {
     int exec_ret;
     char full_path[PATH_MAX + 1] = {0};
-    char strip_path[PATH_MAX + 1] = {0};
+    char fullPath[PATH_MAX + 1] = {0};
 
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
     
     strcpy(full_path, "/nullfxp_keep_alive_dummy_directory");
-    strcpy(strip_path, "/");
+    strcpy(fullPath, "/");
 
     exec_ret = libssh2_sftp_stat(ssh2_sftp,full_path,&ssh2_sftp_attrib);
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<< " stat : "<< exec_ret
@@ -470,12 +470,12 @@ int SSHDirRetriver::fxp_realpath()
 {
     command_queue_elem *cmd_elem = this->command_queue.at(0);
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
-    directory_tree_item *node_item = cmd_elem->parent_item;
+    NetDirNode *node_item = cmd_elem->parent_item;
     int ret = 0;
 
-    q_debug()<<GlobalOption::instance()->remote_codec->fromUnicode(node_item->strip_path).data();
+    q_debug()<<GlobalOption::instance()->remote_codec->fromUnicode(node_item->fullPath).data();
     // stat will follow the link if it is.
-    ret = libssh2_sftp_stat(this->ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(node_item->strip_path).data(), &ssh2_sftp_attrib);
+    ret = libssh2_sftp_stat(this->ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(node_item->fullPath).data(), &ssh2_sftp_attrib);
     if (ret != 0) {
         q_debug()<<"stat error.";
     } else {
@@ -490,12 +490,12 @@ int SSHDirRetriver::fxp_realpath()
     return ret;
 }
 
-void SSHDirRetriver::add_node(directory_tree_item *parent_item, void *parent_model_internal_pointer)
+void SSHDirRetriver::add_node(NetDirNode *parent_item, void *parent_model_internal_pointer)
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 	
-    parent_item->prev_retr_flag = parent_item->retrived;
-    parent_item->retrived = 8;
+    parent_item->prevFlag = parent_item->retrFlag;
+    parent_item->retrFlag = POP_UPDATING;
     command_queue_elem *cmd_elem = new command_queue_elem();
     cmd_elem->parent_item = parent_item;
     cmd_elem->parent_model_internal_pointer = parent_model_internal_pointer;
@@ -506,27 +506,9 @@ void SSHDirRetriver::add_node(directory_tree_item *parent_item, void *parent_mod
         this->start();
     }
 
-    //TODO 检测重复命令
-    //     if ( this->dir_node_process_queue.count ( parent_item ) == 0 )
-    // 	{
-    //         parent_item->prev_retr_flag = parent_item->retrived ;
-    //         parent_item->retrived = 8 ;
-    //                 
-    //         this->dir_node_process_queue.insert ( std::make_pair ( parent_item,parent_model_internal_pointer ) );
-    // 		if ( !this->isRunning() )
-    // 		{
-    // 			this->start();
-    // 		}
-    // 	}
-    // 	else
-    // 	{
-    // 		qDebug() <<" this node has already in process queue , omitted";
-    // 	}
-    //assert ( this->dir_node_process_queue.count ( parent_item ) == 1 );
-
 }
 
-void SSHDirRetriver::slot_execute_command(directory_tree_item *parent_item,
+void SSHDirRetriver::slot_execute_command(NetDirNode *parent_item,
                                                   void *parent_model_internal_pointer, int cmd, QString params)
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;

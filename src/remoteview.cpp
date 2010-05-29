@@ -266,12 +266,12 @@ void RemoteView::slot_new_transfer()
     
     for(int i = 0 ; i < mil.size(); i +=4 ) {
         QModelIndex midx = mil.at(i);
-        directory_tree_item *dti = (directory_tree_item*)
+        NetDirNode *dti = (NetDirNode*)
             (this->curr_item_view!=this->remoteview.treeView 
              ? this->remote_dir_sort_filter_model->mapToSource(midx).internalPointer() 
              : (this->remote_dir_sort_filter_model_ex->mapToSource(midx ).internalPointer()));
-        qDebug()<<dti->file_name<<" "<<" "<<dti->strip_path;
-        file_path = dti->strip_path;
+        qDebug()<<dti->fileName()<<" "<<" "<<dti->fullPath;
+        file_path = dti->fullPath;
         remote_pkg.files<<file_path;
     }
 
@@ -306,10 +306,10 @@ QString RemoteView::get_selected_directory()
     for (int i = 0 ; i < mil.size(); i +=4) {
         QModelIndex midx = mil.at(i);
         QModelIndex aim_midx =  this->remote_dir_sort_filter_model_ex->mapToSource(midx);
-        directory_tree_item *dti = (directory_tree_item*) aim_midx.internalPointer();
-        qDebug()<<dti->file_name <<" "<< dti->strip_path;
+        NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
+        qDebug()<<dti->fileName()<<" "<< dti->fullPath;
         if (this->remote_dir_sort_filter_model_ex->isDir(midx)) {
-        	  file_path = dti->strip_path;
+        	  file_path = dti->fullPath;
         } else {
         	  file_path = "";
         }
@@ -440,12 +440,12 @@ void RemoteView::update_layout()
         QModelIndex midx = mil.at(i);
         qDebug()<<midx ;
         //这个地方为什么不使用mapToSource会崩溃呢？
-        directory_tree_item *dti = static_cast<directory_tree_item*>
+        NetDirNode *dti = static_cast<NetDirNode*>
             (this->remote_dir_sort_filter_model_ex->mapToSource(midx).internalPointer());
-        qDebug()<<dti->file_name<<" "<< dti->strip_path;
-        file_path = dti->strip_path;
-        dti->retrived = 1;
-        dti->prev_retr_flag=9;
+        qDebug()<<dti->fileName()<<" "<< dti->fullPath;
+        file_path = dti->fullPath;
+        dti->retrFlag = 1;
+        dti->prevFlag=9;
         this->remote_dir_model->slot_remote_dir_node_clicked(this->remote_dir_sort_filter_model_ex->mapToSource(midx));
     }
 }
@@ -511,7 +511,7 @@ void RemoteView::slot_mkdir()
     
     QModelIndex midx = mil.at(0);
     QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) ? this->remote_dir_sort_filter_model_ex->mapToSource(midx): this->remote_dir_sort_filter_model->mapToSource(midx) ;
-    directory_tree_item *dti = (directory_tree_item*)(aim_midx.internalPointer());
+    NetDirNode *dti = (NetDirNode*)(aim_midx.internalPointer());
     
     //检查所选择的项是不是目录
     if (!this->remote_dir_model->isDir(aim_midx)) {
@@ -561,14 +561,14 @@ void RemoteView::slot_rmdir()
     QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) 
         ? this->remote_dir_sort_filter_model_ex->mapToSource(midx)
         : this->remote_dir_sort_filter_model->mapToSource(midx);    
-    directory_tree_item *dti = (directory_tree_item*) aim_midx.internalPointer();
+    NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
     QModelIndex parent_model =  aim_midx.parent();
-    directory_tree_item *parent_item = (directory_tree_item*)parent_model.internalPointer();
+    NetDirNode *parent_item = (NetDirNode*)parent_model.internalPointer();
     
     //TODO 检查所选择的项是不是目录
     
     this->remote_dir_model->slot_execute_command(parent_item, parent_model.internalPointer(),
-                                                 SSH2_FXP_RMDIR, dti->file_name);
+                                                 SSH2_FXP_RMDIR, dti->_fileName);
     
 }
 
@@ -596,15 +596,15 @@ void RemoteView::rm_file_or_directory_recursively()
     QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) 
         ? this->remote_dir_sort_filter_model_ex->mapToSource(midx)
         : this->remote_dir_sort_filter_model->mapToSource(midx);
-    directory_tree_item *dti = (directory_tree_item*) aim_midx.internalPointer();
+    NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
     if (QMessageBox::warning(this, tr("Warning:"), 
                              tr("Are you sure remove this directory and it's subnodes"),
                              QMessageBox::Yes, QMessageBox::Cancel) == QMessageBox::Yes) {
         QModelIndex parent_model =  aim_midx.parent() ;
-        directory_tree_item *parent_item = (directory_tree_item*)parent_model.internalPointer();
+        NetDirNode *parent_item = (NetDirNode*)parent_model.internalPointer();
         
         this->remote_dir_model->slot_execute_command(parent_item, parent_model.internalPointer(),
-                                                     SSH2_FXP_REMOVE, dti->file_name);
+                                                     SSH2_FXP_REMOVE, dti->_fileName);
     }
 }
 
@@ -651,9 +651,9 @@ void RemoteView::slot_copy_path()
     QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) 
         ? this->remote_dir_sort_filter_model_ex->mapToSource(midx)
         : this->remote_dir_sort_filter_model->mapToSource(midx);    
-    directory_tree_item *dti = (directory_tree_item*)aim_midx.internalPointer();
+    NetDirNode *dti = (NetDirNode*)aim_midx.internalPointer();
 
-    QApplication::clipboard()->setText(dti->strip_path);
+    QApplication::clipboard()->setText(dti->fullPath);
 }
 
 void RemoteView::slot_copy_url()
@@ -678,10 +678,10 @@ void RemoteView::slot_copy_url()
     QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) 
         ? this->remote_dir_sort_filter_model_ex->mapToSource(midx)
         : this->remote_dir_sort_filter_model->mapToSource(midx);    
-    directory_tree_item *dti = (directory_tree_item*) aim_midx.internalPointer();
+    NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
 
     QString url = QString("sftp://%1@%2:%3%4").arg(this->user_name)
-        .arg(this->host_name).arg(this->port).arg(dti->strip_path);
+        .arg(this->host_name).arg(this->port).arg(dti->fullPath);
     QApplication::clipboard()->setText(url);
 }
 
@@ -840,8 +840,8 @@ void RemoteView::slot_dir_file_view_double_clicked(const QModelIndex & index)
         this->remoteview.treeView->selectionModel()->select(this->remote_dir_sort_filter_model_ex->index(this->remote_dir_sort_filter_model->filePath(index)) , QItemSelectionModel::Select);
     } else if (this->remote_dir_sort_filter_model->isSymLink(index)) {
         QModelIndex idx = this->remote_dir_sort_filter_model->mapToSource(index);
-        directory_tree_item *node_item = (directory_tree_item*)idx.internalPointer();
-        q_debug()<<node_item->strip_path;
+        NetDirNode *node_item = (NetDirNode*)idx.internalPointer();
+        q_debug()<<node_item->fullPath;
         this->remote_dir_model->slot_execute_command(node_item, idx.internalPointer(),
                                                      SSH2_FXP_REALPATH, QString(""));
     } else {
@@ -908,8 +908,8 @@ bool RemoteView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction actio
     TaskPackage local_pkg(PROTO_FILE);
     TaskPackage remote_pkg(PROTO_SFTP);
    
-    directory_tree_item *aim_item = static_cast<directory_tree_item*>(parent.internalPointer());        
-    QString remote_file_name = aim_item->strip_path;
+    NetDirNode *aim_item = static_cast<NetDirNode*>(parent.internalPointer());        
+    QString remote_file_name = aim_item->fullPath;
 
     remote_pkg.files<<remote_file_name;
 

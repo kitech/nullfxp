@@ -302,12 +302,12 @@ void FTPView::slot_new_transfer()
     
     for(int i = 0 ; i < mil.size(); i +=4 ) {
         QModelIndex midx = mil.at(i);
-        directory_tree_item *dti = (directory_tree_item*)
+        NetDirNode *dti = (NetDirNode*)
             (this->curr_item_view!=this->remoteview.treeView 
              ? this->remote_dir_sort_filter_model->mapToSource(midx).internalPointer() 
              : (this->remote_dir_sort_filter_model_ex->mapToSource(midx ).internalPointer()));
-        qDebug()<<dti->file_name<<" "<<" "<<dti->strip_path;
-        file_path = dti->strip_path;
+        qDebug()<<dti->_fileName<<" "<<" "<<dti->fullPath;
+        file_path = dti->fullPath;
         remote_pkg.files<<file_path;
     }
 
@@ -337,10 +337,10 @@ QString FTPView::get_selected_directory()
     for (int i = 0 ; i < mil.size(); i +=4) {
         QModelIndex midx = mil.at(i);
         QModelIndex aim_midx = this->remote_dir_sort_filter_model_ex->mapToSource(midx);
-        directory_tree_item *dti = (directory_tree_item*)aim_midx.internalPointer();
-        q_debug()<<dti->file_name<<" "<<dti->strip_path;
+        NetDirNode *dti = (NetDirNode*)aim_midx.internalPointer();
+        q_debug()<<dti->_fileName<<" "<<dti->fullPath;
         if (this->remote_dir_sort_filter_model_ex->isDir(midx)) {
-            file_path = dti->strip_path;
+            file_path = dti->fullPath;
         } else {
             file_path = "";
         }
@@ -367,11 +367,11 @@ QPair<QString, QString> FTPView::get_selected_directory(bool pair)
     for (int i = 0 ; i < mil.size(); i +=4) {
         QModelIndex midx = mil.at(i);
         QModelIndex aim_midx = this->remote_dir_sort_filter_model_ex->mapToSource(midx);
-        directory_tree_item *dti = (directory_tree_item*)aim_midx.internalPointer();
-        qDebug()<<dti->file_name<<" "<<dti->strip_path;
+        NetDirNode *dti = (NetDirNode*)aim_midx.internalPointer();
+        qDebug()<<dti->_fileName<<" "<<dti->fullPath;
         if (this->remote_dir_sort_filter_model_ex->isDir(midx)) {
-            file_path.first = dti->strip_path;
-            file_path.second = dti->file_name;
+            file_path.first = dti->fullPath;
+            file_path.second = dti->_fileName;
         } else {
             file_path.first = "";
             file_path.second = "";
@@ -480,12 +480,12 @@ void FTPView::update_layout()
         QModelIndex midx = mil.at(i);
         qDebug()<<midx ;
         //这个地方为什么不使用mapToSource会崩溃呢？
-        directory_tree_item *dti = static_cast<directory_tree_item*>
+        NetDirNode *dti = static_cast<NetDirNode*>
             (this->remote_dir_sort_filter_model_ex->mapToSource(midx).internalPointer());
-        qDebug()<<dti->file_name<<" "<< dti->strip_path;
-        file_path = dti->strip_path;
-        dti->retrived = 1;
-        dti->prev_retr_flag = 9;
+        qDebug()<<dti->_fileName<<" "<< dti->fullPath;
+        file_path = dti->fullPath;
+        dti->retrFlag = 1;
+        dti->prevFlag = 9;
         this->remote_dir_model->slot_remote_dir_node_clicked(this->remote_dir_sort_filter_model_ex->mapToSource(midx));
     }
 }
@@ -551,7 +551,7 @@ void FTPView::slot_mkdir()
     
     QModelIndex midx = mil.at(0);
     QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) ? this->remote_dir_sort_filter_model_ex->mapToSource(midx): this->remote_dir_sort_filter_model->mapToSource(midx);
-    directory_tree_item *dti = (directory_tree_item*)(aim_midx.internalPointer());
+    NetDirNode *dti = (NetDirNode*)(aim_midx.internalPointer());
     
     //检查所选择的项是不是目录
     if (!this->remote_dir_model->isDir(aim_midx)) {
@@ -602,14 +602,14 @@ void FTPView::slot_rmdir()
     QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) 
         ? this->remote_dir_sort_filter_model_ex->mapToSource(midx)
         : this->remote_dir_sort_filter_model->mapToSource(midx);    
-    directory_tree_item *dti = (directory_tree_item*) aim_midx.internalPointer();
+    NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
     QModelIndex parent_model =  aim_midx.parent() ;
-    directory_tree_item *parent_item = (directory_tree_item*)parent_model.internalPointer();
+    NetDirNode *parent_item = (NetDirNode*)parent_model.internalPointer();
     
     //TODO 检查所选择的项是不是目录
     
     this->remote_dir_model->slot_execute_command(parent_item, parent_model.internalPointer(),
-                                                 SSH2_FXP_RMDIR, dti->file_name   );
+                                                 SSH2_FXP_RMDIR, dti->_fileName   );
     
 }
 
@@ -641,7 +641,7 @@ void FTPView::rm_file_or_directory_recursively()
         QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) 
             ? this->remote_dir_sort_filter_model_ex->mapToSource(midx)
             : this->remote_dir_sort_filter_model->mapToSource(midx);
-        directory_tree_item *dti = (directory_tree_item*) aim_midx.internalPointer();
+        NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
         if (firstWarning) { // 只有第一次提示用户操作，其他的不管
             QString hintMsg;
             if (mil.count()/4 > 1) {
@@ -661,10 +661,10 @@ void FTPView::rm_file_or_directory_recursively()
             firstWarning = false;
         }
         QModelIndex parent_model =  aim_midx.parent();
-        directory_tree_item *parent_item = (directory_tree_item*)parent_model.internalPointer();
+        NetDirNode *parent_item = (NetDirNode*)parent_model.internalPointer();
         
         this->remote_dir_model->slot_execute_command(parent_item, parent_model.internalPointer(),
-                                                     SSH2_FXP_REMOVE, dti->file_name);
+                                                     SSH2_FXP_REMOVE, dti->_fileName);
     }
 }
 
@@ -711,9 +711,9 @@ void FTPView::slot_copy_path()
     QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) 
         ? this->remote_dir_sort_filter_model_ex->mapToSource(midx)
         : this->remote_dir_sort_filter_model->mapToSource(midx);    
-    directory_tree_item *dti = (directory_tree_item*)aim_midx.internalPointer();
+    NetDirNode *dti = (NetDirNode*)aim_midx.internalPointer();
 
-    QApplication::clipboard()->setText(dti->strip_path);
+    QApplication::clipboard()->setText(dti->fullPath);
 }
 
 void FTPView::slot_copy_url()
@@ -738,10 +738,10 @@ void FTPView::slot_copy_url()
     QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) 
         ? this->remote_dir_sort_filter_model_ex->mapToSource(midx)
         : this->remote_dir_sort_filter_model->mapToSource(midx);    
-    directory_tree_item *dti = (directory_tree_item*) aim_midx.internalPointer();
+    NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
 
     QString url = QString("ftp://%1@%2:%3%4").arg(this->conn->userName)
-        .arg(this->conn->hostName).arg(this->conn->port).arg(dti->strip_path);
+        .arg(this->conn->hostName).arg(this->conn->port).arg(dti->fullPath);
     QApplication::clipboard()->setText(url);
 }
 
@@ -763,22 +763,22 @@ void FTPView::slot_new_upload_requested(TaskPackage local_pkg, TaskPackage remot
 }
 void FTPView::slot_new_upload_requested(TaskPackage local_pkg)
 {
-    // QString remote_file_name;
-    QPair<QString, QString> remote_file_name;
+    // QString remote__fileName;
+    QPair<QString, QString> remote__fileName;
     FTPView *remote_view = this;
     TaskPackage remote_pkg(PROTO_FTP);
 
     qDebug()<<"window title :"<<remote_view->windowTitle();
 
-    remote_file_name = remote_view->get_selected_directory(true);    
+    remote__fileName = remote_view->get_selected_directory(true);    
 
-    // 在向根目录传文件时，这个检测是有问题的。 strip_path="/"  path=""
-    if (remote_file_name.first.length() == 0
-        && remote_file_name.second.length() == 0) {
+    // 在向根目录传文件时，这个检测是有问题的。 fullPath="/"  path=""
+    if (remote__fileName.first.length() == 0
+        && remote__fileName.second.length() == 0) {
         QMessageBox::critical(this, tr("Waring..."),
                               tr("you should selecte a remote file directory."));
     } else {
-        remote_pkg.files<<remote_file_name.first;
+        remote_pkg.files<<remote__fileName.first;
         remote_pkg.host = this->conn->hostName;
         remote_pkg.username = this->conn->userName;
         remote_pkg.password = this->conn->password;
@@ -897,8 +897,8 @@ void FTPView::slot_dir_file_view_double_clicked(const QModelIndex & index)
         this->remoteview.treeView->selectionModel()->select(this->remote_dir_sort_filter_model_ex->index(this->remote_dir_sort_filter_model->filePath(index)) , QItemSelectionModel::Select);
     } else if (this->remote_dir_sort_filter_model->isSymLink(index)) {
         QModelIndex idx = this->remote_dir_sort_filter_model->mapToSource(index);
-        directory_tree_item *node_item = (directory_tree_item*)idx.internalPointer();
-        q_debug()<<node_item->strip_path;
+        NetDirNode *node_item = (NetDirNode*)idx.internalPointer();
+        q_debug()<<node_item->fullPath;
         this->remote_dir_model->slot_execute_command(node_item, idx.internalPointer(),
                                                      SSH2_FXP_REALPATH, QString(""));
     } else {
@@ -911,7 +911,7 @@ void FTPView::slot_drag_ready()
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     //TODO 处理从树目录及文件列表视图中的情况
     //QAbstractItemView * sender_view = qobject_cast<QAbstractItemView*>(sender());
-    QString  temp_file_path, remote_file_name;
+    QString  temp_file_path, remote__fileName;
     QDrag *drag = new QDrag(this);
     QMimeData *mimeData = new QMimeData;
     
@@ -958,10 +958,10 @@ bool FTPView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction action,
     TaskPackage local_pkg(PROTO_FILE);
     TaskPackage remote_pkg(PROTO_FTP);
    
-    directory_tree_item *aim_item = static_cast<directory_tree_item*>(parent.internalPointer());        
-    QString remote_file_name = aim_item->strip_path ;
+    NetDirNode *aim_item = static_cast<NetDirNode*>(parent.internalPointer());        
+    QString remote__fileName = aim_item->fullPath ;
 
-    remote_pkg.files<<remote_file_name;
+    remote_pkg.files<<remote__fileName;
 
     // remote_pkg.host = this->host_name;
     // remote_pkg.username = this->user_name;

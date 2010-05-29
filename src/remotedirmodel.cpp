@@ -25,31 +25,16 @@ extern QHash<QString, QString> gMimeHash;
 RemoteDirModel::RemoteDirModel(QObject *parent)
     : QAbstractItemModel(parent)
 {
-    // this->remote_dir_retrive_thread = new RemoteDirRetriveThread();
-    // QObject::connect(this->remote_dir_retrive_thread, SIGNAL(remote_dir_node_retrived(directory_tree_item *, void *)),
-    //                  this, SLOT(slot_remote_dir_node_retrived(directory_tree_item*, void *)));
-    // QObject::connect(this->remote_dir_retrive_thread, SIGNAL(enter_remote_dir_retrive_loop()),
-    //                  this, SIGNAL(enter_remote_dir_retrive_loop()));
-    // QObject::connect(this->remote_dir_retrive_thread, SIGNAL(leave_remote_dir_retrive_loop()),
-    //                  this, SIGNAL(leave_remote_dir_retrive_loop()));
-    
-    // QObject::connect(this->remote_dir_retrive_thread, SIGNAL(execute_command_finished(directory_tree_item *, void *, int, int)),
-    //                  this, SLOT(execute_command_finished(directory_tree_item *, void *, int, int)));
+    this->rootNode = NULL;
 
     //keep alive 相关设置
     this->keep_alive = true;
     this->keep_alive_timer = new QTimer();
-    this->keep_alive_interval = DEFAULT_KEEP_ALIVE_TIMEOUT;
+     this->keep_alive_interval = DEFAULT_KEEP_ALIVE_TIMEOUT;
     this->keep_alive_timer->setInterval(this->keep_alive_interval);
     QObject::connect(this->keep_alive_timer, SIGNAL(timeout()),
                      this, SLOT(slot_keep_alive_time_out()));
 }
-
-// void RemoteDirModel::set_ssh2_handler(void *ssh2_sess)
-// {
-//     this->remote_dir_retrive_thread->set_ssh2_handler(ssh2_sess);
-//     this->ssh2_sess = (LIBSSH2_SESSION*)ssh2_sess;
-// }
 
 RemoteDirModel::~RemoteDirModel()
 {
@@ -60,14 +45,14 @@ RemoteDirModel::~RemoteDirModel()
     
     if (this->dir_retriver->isRunning()) {
         //TODO 怎么能友好的结束,  现在这么做只能让程序不崩溃掉。
-        qDebug() <<" remote_dir_retrive_thread is run , how stop ?";
+        qDebug()<<"remote_dir_retrive_thread is run , how stop ?";
         this->dir_retriver->terminate();
         //this->remote_dir_retrive_thread->wait();  //这个不好用
         delete this->dir_retriver;        
     } else {
         delete this->dir_retriver;
     }
-    if (tree_root != 0) delete tree_root;
+    // if (tree_root != 0) delete tree_root;
     //TODO: 删除model中的现有数据, 已经实现，上一行
 }
 
@@ -88,18 +73,30 @@ void RemoteDirModel::setConnection(Connection *conn)
         break;
     }
     
-    QObject::connect(this->dir_retriver, SIGNAL(remote_dir_node_retrived(directory_tree_item *, void *)),
-                     this, SLOT(slot_remote_dir_node_retrived(directory_tree_item*, void *)));
+    QObject::connect(this->dir_retriver, SIGNAL(remote_dir_node_retrived(NetDirNode *, void *)),
+                     this, SLOT(slot_remote_dir_node_retrived(NetDirNode*, void *)));
     QObject::connect(this->dir_retriver, SIGNAL(enter_remote_dir_retrive_loop()),
                      this, SIGNAL(enter_remote_dir_retrive_loop()));
     QObject::connect(this->dir_retriver, SIGNAL(leave_remote_dir_retrive_loop()),
                      this, SIGNAL(leave_remote_dir_retrive_loop()));
     
-    QObject::connect(this->dir_retriver, SIGNAL(execute_command_finished(directory_tree_item *, void *, int, int)),
-                     this, SLOT(execute_command_finished(directory_tree_item *, void *, int, int)));
+    QObject::connect(this->dir_retriver, SIGNAL(execute_command_finished(NetDirNode *, void *, int, int)),
+                     this, SLOT(execute_command_finished(NetDirNode *, void *, int, int)));
 
     // 设置连接对象
     this->dir_retriver->setConnection(this->conn);
+}
+
+void vdump_node(NetDirNode *node, int depth)
+{
+    // verbose dumping
+    
+    QString prepad; prepad.fill(' ', depth);
+    qDebug()<<prepad<<node->fullPath<<node->childNodes.count()<<node->onRow;
+
+    for (int i = 0 ; i < node->childNodes.count(); i++) {
+        vdump_node(node->childNodes.value(i), depth + 2);
+    }
 }
 
 void RemoteDirModel::set_user_home_path(QString user_home_path)
@@ -121,125 +118,62 @@ void RemoteDirModel::set_user_home_path(QString user_home_path)
     Q_ASSERT(user_home_path.left(1) == "/"); // must begin with /
 
     //{创建初始化目录树
-    directory_tree_item *first_item;
-
-    directory_tree_item *temp_parent_tree_item = 0, *temp_tree_item = 0;
-    QString temp_strip_path, temp_path_name;
-    // char buff[PATH_MAX+1] = {0};
-    // char buff2[PATH_MAX+1] = {0};
-    // char buff3[PATH_MAX+1] = {0};
-    // char *sep_pos = 0, *pre_sep_pos;
-
+    QModelIndex pIndex;
+    QVariant nv;
+    NetDirNode *currNode;
+    NetDirNode *tempNode = new NetDirNode();
+    QString fullPath, fileName;
+    
     QStringList pathParts = user_home_path.split('/');
     QString lastStripPath;
     for (int i = 0 ; i < pathParts.count(); ++i) {
         if (i == 0) {
-            temp_strip_path = "";
-            temp_path_name = "/";
-            first_item = new directory_tree_item();
-            temp_tree_item = first_item;
-            temp_parent_tree_item = 0;
+            pIndex = QModelIndex();
+            fullPath = "";
+            fileName = "/";
             lastStripPath = "";
         } else {
-            temp_strip_path = lastStripPath + "/" + pathParts.at(i);
-            temp_path_name = pathParts.at(i);
-            temp_parent_tree_item = temp_tree_item;
-            temp_tree_item = new directory_tree_item();
-            lastStripPath += "/" + temp_path_name;
+            fullPath = lastStripPath + "/" + pathParts.at(i);
+            fileName = pathParts.at(i);
+            lastStripPath += "/" + fileName;
         }
 
-        qDebug()<<"Distance to begin: strip path:"<<temp_strip_path<<"dir name:"<<temp_path_name<<temp_tree_item;
+        qDebug()<<"Distance to begin: strip path:"<<fullPath<<"dir name:"
+                <<fileName<<tempNode<<tempNode->childNodes.count()<<pIndex;
+
         //assign
-        temp_tree_item->parent_item = temp_parent_tree_item;
-        temp_tree_item->row_number = 0;    //指的是此结点在父结点中的第几个结点，在这里预置的只能为0
+        tempNode->fullPath = fullPath;
+        tempNode->_fileName = fileName;
+        tempNode->onRow = 0;    //指的是此结点在父结点中的第几个结点，在这里预置的只能为0
         // fixed only / can not list dir automatically when init
         if (user_home_path.length() == 1 && user_home_path == "/") {
-            temp_tree_item->retrived = 0;
+            tempNode->retrFlag = POP_NEWEST;
         } else {
-            temp_tree_item->retrived = (i == pathParts.count() - 1) ? 0:1;   // 半满结点
+            // temp_tree_item->retrFlag = (i == pathParts.count() - 1) ? 0:1;   // 半满结点
+            tempNode->retrFlag = POP_NEWEST;
         }
-        temp_tree_item->strip_path = temp_strip_path;
-        temp_tree_item->file_name = temp_path_name;
-        temp_tree_item->prev_retr_flag = 255;
-        temp_tree_item->attrib.permissions = 16877;    //默认目录属性: drwxr-xr-x
+        tempNode->prevFlag = 0xFF;
+        tempNode->attrib.permissions = 16877;    //默认目录属性: drwxr-xr-x
 
-        dump_tree_node_item(temp_tree_item);
-        if (temp_parent_tree_item == NULL) {
-        } else {
-            temp_parent_tree_item->childItems.append(temp_tree_item);
-        }
+        // dump_tree_node_item(tempNode);
+
+        this->insertRows(0, 1, pIndex);
+        QModelIndex currIndex = this->index(0, 0, pIndex);
+        nv = qVariantFromValue((void*)tempNode);
+        this->setData(currIndex, nv);
+        pIndex = currIndex;
+
+        currNode = static_cast<NetDirNode*>(pIndex.internalPointer());
+        // dump_tree_node_item(currNode);
     }
 
-    // strcpy(buff, this->user_home_path.toAscii().data());
-    // strcpy(buff2, this->user_home_path.toAscii().data());
-    // pre_sep_pos = buff;
+    vdump_node(this->rootNode, 1);
 
-    // assert(buff[0] == '/');
-    // while (1) {
-    //     sep_pos = strchr(buff, '/');
-    //     if (sep_pos == NULL) {
-    //         temp_strip_path =  buff2;
-    //         memset(buff3, 0, PATH_MAX+1);
-    //         strcpy(buff3, buff2+(pre_sep_pos-buff) +1);
-    //         temp_path_name =  buff3;
-    //         temp_parent_tree_item = temp_tree_item ;
-    //         temp_tree_item = new directory_tree_item();
-    //     } else {
-    //         *sep_pos = '&'; //将这个字符替换掉，防止重复查找这个位置
-    //         if ( sep_pos == buff ) {
-    //             strncpy(buff3, buff2, int(sep_pos - buff));
-    //             temp_strip_path = buff3;
-    //             temp_path_name =  "/";
-    //             first_item   = new directory_tree_item();
-    //             temp_tree_item = first_item ;
-    //             temp_parent_tree_item = 0 ; // this->tree_root;
-    //         } else {
-    //             strncpy ( buff3,buff2,int ( sep_pos-buff ) );
-    //             temp_strip_path =  buff3 ;
-    //             memset(buff3,0,PATH_MAX+1 );
-    //             strncpy(buff3, buff2 + (pre_sep_pos-buff) +1, (sep_pos-pre_sep_pos-1));
-    //             temp_path_name =  buff3 ;
-    //             temp_parent_tree_item = temp_tree_item ;
-    //             temp_tree_item = new directory_tree_item();
-    //         }
-    //     }
-    //     qDebug()<<"distance to begin: strip path:"<<temp_strip_path<<"dir name:"<<temp_path_name;
-    //     //assign
-    //     temp_tree_item->parent_item = temp_parent_tree_item;
-    //     temp_tree_item->row_number = 0;    //指的是此结点在父结点中的第几个结点，在这里预置的只能为0
-    //     // fixed only / can not list dir automatically when init
-    //     if (user_home_path.length() == 1 && user_home_path == "/") {
-    //         temp_tree_item->retrived = 0;
-    //     } else {
-    //         temp_tree_item->retrived = (sep_pos == NULL) ? 0:1;   // 半满结点
-    //     }
-    //     temp_tree_item->strip_path = temp_strip_path;
-    //     temp_tree_item->file_name = temp_path_name;
-    //     temp_tree_item->prev_retr_flag = -1;
-    //     temp_tree_item->attrib.permissions = 16877;    //默认目录属性: drwxr-xr-x
-
-    //     if (temp_parent_tree_item == NULL) {
-    //     } else {
-    //         // temp_parent_tree_item->child_items.insert(std::make_pair(0, temp_tree_item));
-    //         // temp_parent_tree_item->child_items.insert(0, temp_tree_item);
-    //         temp_parent_tree_item->childItems.append(temp_tree_item);
-    //     }
-
-    //     //pre_sep_pos
-    //     pre_sep_pos = sep_pos;
-    //     if (sep_pos == NULL 
-    //         || (user_home_path.length() == 1 && user_home_path == "/")) {
-    //         break;
-    //     }
-    // }
-    // qDebug()<<"seach end :"<<buff;
-
-    this->tree_root = first_item;
-    // this->tree_root->row_number = 0;
-    
-    //启动keep alive 功能。
+    // currNode->dumpTreeRecursive();
+    // delete tempNode; tempNode = NULL;    
+    // 启动keep alive 功能。
     if (this->keep_alive ) {
-        this->keep_alive_timer->start();
+        // this->keep_alive_timer->start();
     }
 }
 
@@ -247,26 +181,38 @@ QModelIndex RemoteDirModel::index(int row, int column, const QModelIndex &parent
 {
     // qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<row<<column<<parent;
 
-    directory_tree_item *parent_item;
-    directory_tree_item *child_item = 0;
+    NetDirNode *parent_item;
+    NetDirNode *child_item = 0;
     QModelIndex idx;
 
+    if (parent.row() == -1 && parent.column() == 0) {
+        q_debug()<<parent.isValid();
+        // Q_ASSERT(1 == 2);        
+    }
+    Q_ASSERT(row == 0);
+    Q_ASSERT(column < 4);
+
     if (!parent.isValid()) {
+        Q_ASSERT(row == 0);
         parent_item = 0;
-        child_item = this->tree_root;
-        idx = createIndex(row, column, child_item);
+        child_item = this->rootNode;
+        idx = this->createIndex(row, column, this->rootNode);
         // qDebug()<<__FUNCTION__<<__LINE__<<"row :"<<row<<" column:" <<column<<parent<<idx
         //         <<child_item->fileName()<<child_item
         //         <<"0";
+        Q_ASSERT(!(idx.row() == -1 && idx.column() == 0));
         return idx;
     } else {
-        parent_item = static_cast<directory_tree_item*>(parent.internalPointer());
-        child_item = parent_item->childItems.at(row);
+        parent_item = static_cast<NetDirNode*>(parent.internalPointer());
+        // dump_tree_node_item(parent_item);
+        Q_ASSERT(row < parent_item->childNodes.count());
+        child_item = parent_item->childNodes.value(row);
         idx = createIndex(row, column, child_item);
         // qDebug()<<__FUNCTION__<<__LINE__<<"row :"<<row<<" column:" <<column<<parent<<idx
         //         <<child_item->fileName()
         //         <<parent_item->fileName()
         //         <<child_item;
+        Q_ASSERT(!(idx.row() == -1 && idx.column() == 0));
         return idx;
     }
 
@@ -274,74 +220,74 @@ QModelIndex RemoteDirModel::index(int row, int column, const QModelIndex &parent
     return QModelIndex();
 }
 
-QModelIndex RemoteDirModel::index(const QString &path, int column) const
-{
-    if (path.isEmpty()) {
-        qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-        return this->createIndex(0, 0, this->tree_root);
-        // return QModelIndex();
-    } 
+// QModelIndex RemoteDirModel::index(const QString &path, int column) const
+// {
+//     if (path.isEmpty()) {
+//         qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+//         return this->createIndex(0, 0, this->tree_root);
+//         // return QModelIndex();
+//     } 
 
-    QString absolutePath = QDir(path).absolutePath();
-#ifdef Q_OS_WIN
-    //absolutePath = absolutePath.toLower();
-    // On Windows, "filename......." and "filename" are equivalent
-    if (absolutePath.endsWith(QLatin1Char('.'))) {
-        int i;
-        for (i = absolutePath.count() - 1; i >= 0; --i) {
-            if (absolutePath.at(i) != QLatin1Char('.'))
-                break;
-        }
-        absolutePath = absolutePath.left(i+1);
-    }
-#endif
-
-    QStringList pathElements = absolutePath.split(QLatin1Char('/'), QString::SkipEmptyParts);
-//     if ((pathElements.isEmpty() /*|| !QFileInfo(path).exists()*/)   // the path is "/"
-// #ifndef Q_OS_WIN
-//         && path != QLatin1String("/")
-// #endif
-//         )
-//     {
-//         return QModelIndex();
+//     QString absolutePath = QDir(path).absolutePath();
+// #ifdef Q_OS_WIN
+//     //absolutePath = absolutePath.toLower();
+//     // On Windows, "filename......." and "filename" are equivalent
+//     if (absolutePath.endsWith(QLatin1Char('.'))) {
+//         int i;
+//         for (i = absolutePath.count() - 1; i >= 0; --i) {
+//             if (absolutePath.at(i) != QLatin1Char('.'))
+//                 break;
+//         }
+//         absolutePath = absolutePath.left(i+1);
 //     }
+// #endif
+
+//     QStringList pathElements = absolutePath.split(QLatin1Char('/'), QString::SkipEmptyParts);
+// //     if ((pathElements.isEmpty() /*|| !QFileInfo(path).exists()*/)   // the path is "/"
+// // #ifndef Q_OS_WIN
+// //         && path != QLatin1String("/")
+// // #endif
+// //         )
+// //     {
+// //         return QModelIndex();
+// //     }
    
     
-    pathElements.prepend("/");
+//     pathElements.prepend("/");
 
-    // if pathElements.count() == 1, then the path is only /
-    return this->find_node_item_by_path_elements(this->tree_root, pathElements, pathElements.count() == 1 ? 0 : 1);
-    // return this->find_node_item_by_path_elements(this->tree_root->child_items[0], pathElements, 1);
+//     // if pathElements.count() == 1, then the path is only /
+//     return this->find_node_item_by_path_elements(this->tree_root, pathElements, pathElements.count() == 1 ? 0 : 1);
+//     // return this->find_node_item_by_path_elements(this->tree_root->child_items[0], pathElements, 1);
     
-    return QModelIndex();
-}
-QModelIndex RemoteDirModel::find_node_item_by_path_elements(directory_tree_item *parent_node_item,
-                                                            QStringList &path_elements, int level) const
-{
-    if (level < 0 ) return this->createIndex(0, 0, this->tree_root);
-    QString aim_child_node_item_name = path_elements.at(level);
-    Q_ASSERT(parent_node_item);
-    //qDebug()<<__LINE__<< parent_node_item->file_name<<level<<path_elements;
-    for (int i = 0 ; i < parent_node_item->childItems.count(); i ++ ) {
-        directory_tree_item *child_item = parent_node_item->childItems.at(i);
-        //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<< child_item->file_name;
-        if (child_item->file_name.compare(aim_child_node_item_name) == 0) {
-            if (level == path_elements.count()-1) {
-                //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-                QModelIndex mi = this->createIndex(i, 0, child_item);
-                //return child_item;
-                return mi ;
-            } else {
-                //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-                QModelIndex mi =this->find_node_item_by_path_elements(child_item, path_elements,level + 1);
-                return mi ; 
-            }
-        }
-    }
-    //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    return this->createIndex(0, 0, parent_node_item);
-    //return parent_node_item ;
-}
+//     return QModelIndex();
+// }
+// QModelIndex RemoteDirModel::find_node_item_by_path_elements(NetDirNode *parent_node_item,
+//                                                             QStringList &path_elements, int level) const
+// {
+//     if (level < 0 ) return this->createIndex(0, 0, this->tree_root);
+//     QString aim_child_node_item_name = path_elements.at(level);
+//     Q_ASSERT(parent_node_item);
+//     //qDebug()<<__LINE__<< parent_node_item->_fileName<<level<<path_elements;
+//     for (int i = 0 ; i < parent_node_item->childNodes.count(); i ++ ) {
+//         NetDirNode *child_item = parent_node_item->childNodes.at(i);
+//         //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<< child_item->_fileName;
+//         if (child_item->_fileName.compare(aim_child_node_item_name) == 0) {
+//             if (level == path_elements.count()-1) {
+//                 //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+//                 QModelIndex mi = this->createIndex(i, 0, child_item);
+//                 //return child_item;
+//                 return mi ;
+//             } else {
+//                 //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+//                 QModelIndex mi =this->find_node_item_by_path_elements(child_item, path_elements,level + 1);
+//                 return mi ; 
+//             }
+//         }
+//     }
+//     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+//     return this->createIndex(0, 0, parent_node_item);
+//     //return parent_node_item ;
+// }
 QModelIndex RemoteDirModel::parent(const QModelIndex &child) const
 {
     // qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
@@ -351,19 +297,18 @@ QModelIndex RemoteDirModel::parent(const QModelIndex &child) const
         return QModelIndex();
     }
 
-    directory_tree_item *child_item = static_cast<directory_tree_item *>(child.internalPointer());
-    directory_tree_item *parent_item = child_item->parent_item;
+    NetDirNode *child_item = static_cast<NetDirNode *>(child.internalPointer());
+    NetDirNode *parent_item = child_item->pNode;
 
-    // if (!parent_item || parent_item == this->tree_root) {
-    //     //qDebug()<<"  !parent_item || parent_item == this->tree_root ";
-    //     return QModelIndex();
-    // }
-
-    //qDebug()<< " parent_item->row_number ";
     if (parent_item == 0) {
-        
+        // currIndex is the rootNode index
     } else {
-        return createIndex(parent_item->row_number, 0, parent_item);
+        QModelIndex idx = createIndex(parent_item->onRow, 0, child_item->pNode);
+        if (idx.row() == -1 && idx.column() == 0) {
+            dump_tree_node_item(child_item->pNode);
+        }
+        Q_ASSERT(!(idx.row() == -1 && idx.column() == 0));
+        return idx;
     }
 
     return QModelIndex();
@@ -373,7 +318,9 @@ QVariant RemoteDirModel::data(const QModelIndex &index, int role) const
 {
     QVariant ret_var ;
     QString unicode_name;
-    directory_tree_item *item = static_cast<directory_tree_item*>(index.internalPointer());
+
+    Q_ASSERT(index.isValid());
+    NetDirNode *item = static_cast<NetDirNode*>(index.internalPointer());
 
     if (role == Qt::DecorationRole && index.column()==0) {
         if (this->isDir(index)) {
@@ -382,12 +329,12 @@ QVariant RemoteDirModel::data(const QModelIndex &index, int role) const
             return QIcon(":/icons/emblem-symbolic-link.png");
             // return qApp->style()->standardIcon(QStyle::SP_DirLinkIcon);
         } else {
-            // qDebug()<<this->mime->fromFileName("test.png")<<this->mime->fromFileName(item->strip_path);
-            int lastSplashPos = item->strip_path.lastIndexOf(QChar('/'));
-            int lastDotPos = item->strip_path.lastIndexOf(QChar('.'));
+            // qDebug()<<this->mime->fromFileName("test.png")<<this->mime->fromFileName(item->fullPath);
+            int lastSplashPos = item->fullPath.lastIndexOf(QChar('/'));
+            int lastDotPos = item->fullPath.lastIndexOf(QChar('.'));
             QString suffix;
             if (lastDotPos > lastSplashPos) {
-                suffix = item->strip_path.right(item->strip_path.length() - lastDotPos - 1);
+                suffix = item->fullPath.right(item->fullPath.length() - lastDotPos - 1);
             }
             if (suffix.isEmpty()) {
                 return qApp->style()->standardIcon(QStyle::SP_FileIcon);
@@ -405,13 +352,16 @@ QVariant RemoteDirModel::data(const QModelIndex &index, int role) const
             }
         }
     }
-    
+
     if (role != Qt::DisplayRole)
         return QVariant();
+
+    // this->dump_tree_node_item(item);
 
     switch (index.column()) {
     case 0:
         ret_var = item->fileName();
+        // this->dump_tree_node_item(item);
         break;
     case 2:
         ret_var = item->fileMode();
@@ -480,28 +430,29 @@ int RemoteDirModel::rowCount(const QModelIndex &parent) const
     if (!parent.isValid()) {
         row_count = 1;
     } else {
-        directory_tree_item *parent_item = static_cast<directory_tree_item*>(parent.internalPointer());
-        assert(parent_item != NULL);
+        NetDirNode *parent_item = static_cast<NetDirNode*>(parent.internalPointer());
+        Q_ASSERT(parent_item != NULL);
 
-        // q_debug()<<parent<<"opening "<<parent_item->strip_path<<parent_item->file_name;
+        // q_debug()<<parent<<"opening "<<parent_item->fullPath<<parent_item->_fileName;
 
-        if (parent_item->retrived == 0
-            // || parent_item->retrived == 1
-            || parent_item->retrived == 2 ) //为了lazy模式的需要，才做一个假数据。
-        {
-            //或者是不是要在这里取子结点的行数，即去远程找数据呢。
-            // row_count =1 ;
-            qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__
-                    <<parent_item->strip_path<<parent_item->file_name;
+        // if (parent_item->retrFlag == 0
+        //     // || parent_item->retrFlag == 1
+        //     || parent_item->retrFlag == 2 ) //为了lazy模式的需要，才做一个假数据。
+        // {
+        //     //或者是不是要在这里取子结点的行数，即去远程找数据呢。
+        //     // row_count =1 ;
+        //     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__
+        //             <<parent_item->fullPath<<parent_item->_fileName;
 
-            this->dir_retriver->add_node(parent_item, parent.internalPointer());
-        } else {
-            row_count = parent_item->childItems.count();
-        }
-        row_count = parent_item->childItems.count();
+        //     this->dir_retriver->add_node(parent_item, parent.internalPointer());
+        // } else {
+        //     row_count = parent_item->childNodes.count();
+        // }
+        // dump_tree_node_item(parent_item);
+        row_count = parent_item->childNodes.count();
         // row_count =1 ;
     }
-    //qDebug()<< "row_count="<<row_count;
+    // q_debug()<<parent<< "row_count="<<row_count;
     return row_count ;
 }
 
@@ -509,10 +460,11 @@ bool RemoteDirModel::hasChildren(const QModelIndex &parent) const
 {
     // q_debug()<<""<<parent;
     if (parent.isValid()) {
-        directory_tree_item *curr_item = static_cast<directory_tree_item*>(parent.internalPointer());
+        NetDirNode *curr_item = static_cast<NetDirNode*>(parent.internalPointer());
         if (curr_item != NULL) {
-            // q_debug()<<parent<<this->isDir(parent)<<"opening "<<curr_item->strip_path<<curr_item->file_name;
-            bool hc = this->isDir(parent) || this->isSymLinkToDir(parent);
+            // q_debug()<<parent<<this->isDir(parent)<<"opening "<<curr_item->fullPath<<curr_item->_fileName;
+            // bool hc = this->isDir(parent) || this->isSymLinkToDir(parent);
+            bool hc = curr_item->isDir() || curr_item->isSymLinkToDir();
             return hc;
         } else {
             q_debug()<<parent<<"parent pointer null";
@@ -530,26 +482,76 @@ bool RemoteDirModel::setData(const QModelIndex &index, const QVariant &value, in
         return false;
     }
     if (role != Qt::EditRole) return false;
-    if (value.toString().length() <= 0) return false;
-    assert(index.column() == 0);
+    // q_debug()<<value.type();
 
-    directory_tree_item *parent_item = static_cast<directory_tree_item*>(index.parent().internalPointer());
-    directory_tree_item *dti =  static_cast<directory_tree_item*>(index.internalPointer());
-    int cmd = SSH2_FXP_RENAME;
-    QString data = dti->file_name + "!" + value.toString();
+    if (value.type() == QVariant::String) {
+        if (value.toString().length() <= 0) return false;
+        Q_ASSERT(index.column() == 0);
 
-    if (dti->file_name == value.toString()) return false;
+        NetDirNode *parent_item = static_cast<NetDirNode*>(index.parent().internalPointer());
+        NetDirNode *dti =  static_cast<NetDirNode*>(index.internalPointer());
+        int cmd = SSH2_FXP_RENAME;
+        QString data = dti->_fileName + "!" + value.toString();
 
-    dti->strip_path = parent_item->filePath() + "/" + value.toString();
-    dti->file_name = value.toString();//这时是不能修改这个值,否则上句命令执行的时候找不到原文件名
-    this->dir_retriver->slot_execute_command(parent_item, parent_item, cmd, data);
+        if (dti->_fileName == value.toString()) return false;
+
+        dti->fullPath = parent_item->filePath() + "/" + value.toString();
+        dti->_fileName = value.toString();//这时是不能修改这个值,否则上句命令执行的时候找不到原文件名
+        this->dir_retriver->slot_execute_command(parent_item, parent_item, cmd, data);
+    } else {
+        NetDirNode *oldNode = static_cast<NetDirNode*>(index.internalPointer());
+        NetDirNode *newNode = (NetDirNode*)qVariantValue<void*>(value);
+
+        Q_ASSERT(oldNode != NULL);
+        Q_ASSERT(newNode != NULL);
+        oldNode->copyFrom(newNode);
+        
+        QModelIndex endIndex = this->createIndex(index.row(), 3, oldNode->pNode);
+        emit this->dataChanged(index, endIndex);
+    }
 
     return true;
 }
 
 bool RemoteDirModel::insertRows(int row, int count, const QModelIndex &parent)
 {
-    q_debug()<<"";
+    q_debug()<<""<<row<<count<<parent;
+    NetDirNode *pnode = NULL;
+    NetDirNode *node = NULL;
+
+    Q_ASSERT(count >= 1);
+
+    emit this->beginInsertRows(parent, row, row + count - 1);
+    if (!parent.isValid()) {
+        Q_ASSERT(row == 0);
+        Q_ASSERT(count == 1);
+        node = new NetDirNode();
+        node->onRow = 0;
+        this->rootNode = node;
+    } else {
+        pnode = static_cast<NetDirNode*>(parent.internalPointer());
+        // dump_tree_node_item(pnode);
+        Q_ASSERT(row >= 0 && row <= pnode->childNodes.count());
+        Q_ASSERT(pnode->childNodes.count() == 0);
+        if (row < pnode->childNodes.count()) {
+            for (int i = count - 1; i >= 0; --i) {
+                node = pnode->childNodes.value(i + row);
+                node->onRow = i + row + count - 1;
+                Q_ASSERT(node->onRow >= 0);
+                pnode->childNodes[i + row] = 0;
+                pnode->childNodes.insert(i + row + count - 1, node);
+            }
+        }
+        for (int i = row; i < row + count; ++i) {
+            node = new NetDirNode();
+            node->pNode = pnode;
+            node->onRow = i;
+            Q_ASSERT(node->onRow >= 0);
+            pnode->childNodes.insert(i, node);
+        }
+        // dump_tree_node_item(pnode);
+    }
+    emit this->endInsertRows();
     return true;
 }
 bool RemoteDirModel::removeRows(int row, int count, const QModelIndex &parent)
@@ -561,29 +563,29 @@ bool RemoteDirModel::removeRows(int row, int count, const QModelIndex &parent)
     } else {
         qDebug()<< parent.isValid();
     }
-    directory_tree_item *parent_item = static_cast<directory_tree_item*>(parent.internalPointer());
+    NetDirNode *parent_item = static_cast<NetDirNode*>(parent.internalPointer());
     qDebug()<<__FUNCTION__<<__LINE__<<parent_item;
-    directory_tree_item *delete_item = 0;
-    // directory_tree_item *temp_item  = 0;
+    NetDirNode *delete_item = 0;
+    // NetDirNode *temp_item  = 0;
     
     this->beginRemoveRows(parent, row, row+count);
     this->dump_tree_node_item(parent_item);
     
     for (int i = row + count -1 ; i >= row ; i --) {
-        delete_item = parent_item->childItems.at(i);
-        parent_item->childItems.remove(i);
-        // if (i != parent_item->childItems.count() - 1) {
-        //     for (int j = i+1 ; j < parent_item->childItems.count(); j ++) {
-        //         temp_item = parent_item->childItems.at(j);
+        delete_item = parent_item->childNodes.value(i);
+        parent_item->childNodes.remove(i);
+        // if (i != parent_item->childNodes.count() - 1) {
+        //     for (int j = i+1 ; j < parent_item->childNodes.count(); j ++) {
+        //         temp_item = parent_item->childNodes.at(j);
         //         temp_item->row_number = j - 1;
         //         // parent_item->child_items[j-1] = temp_item;
                 
         //     }
-        //     int c_size = parent_item->childItems.count();
-        //     parent_item->childItems.erase(c_size - 1);
+        //     int c_size = parent_item->childNodes.count();
+        //     parent_item->childNodes.erase(c_size - 1);
         // } else {
-        //     int c_size = parent_item->childItems.count();
-        //     parent_item->childItems.erase(c_size - 1);
+        //     int c_size = parent_item->childNodes.count();
+        //     parent_item->childNodes.erase(c_size - 1);
         // }
         delete delete_item; delete_item = 0;
     }
@@ -604,34 +606,36 @@ bool RemoteDirModel::setItemData(const QModelIndex &index, const QMap<int, QVari
     return true;
 }
 
-void RemoteDirModel::dump_tree_node_item(directory_tree_item *node_item) const
+void RemoteDirModel::dump_tree_node_item(NetDirNode *node_item) const
 {
-    // directory_tree_item *item = (directory_tree_item *)item ;
+    // NetDirNode *item = (NetDirNode *)item ;
     assert(node_item != 0);
-    qDebug()<<"====================>>>>";
-    qDebug()<<"dir="<<QString(node_item->strip_path);
-    qDebug()<<"name="<<QString(node_item->file_name );
+    qDebug()<<"====================>>>>"<<node_item;
+    qDebug()<<"dir="<<QString(node_item->fullPath);
+    qDebug()<<"name="<<QString(node_item->_fileName);
     qDebug()<<"Type="<<QString(node_item->fileType() );
     qDebug()<<"Size="<<QString(node_item->strFileSize());
     qDebug()<<"Date="<<QString(node_item->fileMDate());
-    qDebug()<<"Retrived="<<node_item->retrived;
-    qDebug()<<"prev_retr_flag="<<node_item->prev_retr_flag;
-    qDebug()<<"ChildCount="<<node_item->childItems.count();
-    qDebug()<< "DeleteFlag="<<node_item->delete_flag;
+    qDebug()<<"RetrFlag="<<node_item->retrFlag;
+    qDebug()<<"prev_retr_flag="<<node_item->prevFlag;
+    qDebug()<<"ChildCount="<<node_item->childNodes.count()<<node_item->childNodes.keys().count()
+            <<node_item->childNodes.keys();
+    qDebug()<< "DeleteFlag="<<node_item->deleted;
+    qDebug()<<"onRow="<<node_item->onRow;
+    qDebug()<<"parent="<<node_item->pNode;
     qDebug()<<"<<<<====================";
 }
 
-void RemoteDirModel::slot_remote_dir_node_retrived(directory_tree_item *parent_item,
+void RemoteDirModel::slot_remote_dir_node_retrived(NetDirNode *parent_item,
                                                    void *parent_model_internal_pointer)
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__
-            <<parent_item->strip_path<<parent_item->file_name;
+            <<parent_item->fullPath<<parent_item->_fileName;
 
     int row, col = 0;
     int changeCount = 0;
-    for (int i = parent_item->childItems.count() - 1 ; i >= 0; i --) {
-        if (parent_item->childItems.at(i)->delete_flag == 1) {
-            // row = parent_item->childItems.at(i)->row_number;
+    for (int i = parent_item->childNodes.count() - 1 ; i >= 0; i --) {
+        if (parent_item->childNodes.value(i)->deleted == 1) {
             row = i;
             qDebug()<<"find should delete item: "<<i
                     <<"row num:"<<row;
@@ -648,23 +652,6 @@ void RemoteDirModel::slot_remote_dir_node_retrived(directory_tree_item *parent_i
         emit layoutChanged();
     // }
 }
-
-    /*
-      void columnsAboutToBeInserted ( const QModelIndex & parent, int start, int end )
-      void columnsAboutToBeRemoved ( const QModelIndex & parent, int start, int end )
-      void columnsInserted ( const QModelIndex & parent, int start, int end )
-      void columnsRemoved ( const QModelIndex & parent, int start, int end )
-      void dataChanged ( const QModelIndex & topLeft, const QModelIndex & bottomRight )
-      void headerDataChanged ( Qt::Orientation orientation, int first, int last )
-      void layoutAboutToBeChanged ()
-      void layoutChanged ()
-      void modelAboutToBeReset ()
-      void modelReset ()
-      void rowsAboutToBeInserted ( const QModelIndex & parent, int start, int end )
-      void rowsAboutToBeRemoved ( const QModelIndex & parent, int start, int end )
-      void rowsInserted ( const QModelIndex & parent, int start, int end )
-      void rowsRemoved ( const QModelIndex & parent, int start, int end ) 
-    */
 
 Qt::DropActions RemoteDirModel::supportedDropActions() const
 {
@@ -690,24 +677,24 @@ QMimeData *RemoteDirModel::mimeData(const QModelIndexList &indexes) const
     QByteArray encodedData;
 
     //读取出来indexes中的目录路径信息，封装成特定mine 类型的数据即可以了。
-    QString file_name = "file:///hahahha";
+    QString _fileName = "file:///hahahha";
     QString file_type ;
 
     //现在还没有支持多选择，那么我们就只处理一个即可,不用考虑那么多
-    directory_tree_item *selected_item = static_cast<directory_tree_item*>(indexes.at(0).internalPointer());
+    NetDirNode *selected_item = static_cast<NetDirNode*>(indexes.at(0).internalPointer());
 
     assert(selected_item != NULL);
 
-    file_name = selected_item->strip_path;
+    _fileName = selected_item->fullPath;
     file_type = selected_item->fileType();
 
-    //格式说明：sftp://file_name||file_type
-    file_name = QString("sftp://" + file_name+"||"+file_type ).toAscii();
-    encodedData = file_name.toAscii();
+    //格式说明：sftp://_fileName||file_type
+    _fileName = QString("sftp://" + _fileName+"||"+file_type ).toAscii();
+    encodedData = _fileName.toAscii();
     //QList<QUrl> urls ;
     //application/x-qabstractitemmodeldatalist
     md->setData("text/uri-list", encodedData);
-    //urls.append(QUrl(file_name));
+    //urls.append(QUrl(_fileName));
 
     //md->setUrls(urls);
 
@@ -728,26 +715,26 @@ bool RemoteDirModel::dropMimeData(const QMimeData *data, Qt::DropAction action,
 void RemoteDirModel::slot_remote_dir_node_clicked(const QModelIndex &index)
 {
     //qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    directory_tree_item *clicked_item = 0;
-    clicked_item = static_cast<directory_tree_item*>(index.internalPointer());
+    NetDirNode *clicked_item = 0;
+    clicked_item = static_cast<NetDirNode*>(index.internalPointer());
 
     if (index.isValid() == false) return;
     //this->dump_tree_node_item(clicked_item);
 
-    if (clicked_item->retrived == 1) { // 半满状态结点
+    if (clicked_item->retrFlag == 1) { // 半满状态结点
         this->dir_retriver->add_node(clicked_item, index.internalPointer());
     } else {
         //no op needed
     }
 }
 
-void RemoteDirModel::slot_execute_command(directory_tree_item *parent_item, 
+void RemoteDirModel::slot_execute_command(NetDirNode *parent_item, 
                                            void *parent_model_internal_pointer, int cmd, QString params)
 {
     this->dir_retriver->slot_execute_command(parent_item, parent_model_internal_pointer, cmd, params);
 }
 
-void RemoteDirModel::execute_command_finished(directory_tree_item *parent_item, void *parent_model_internal_pointer,
+void RemoteDirModel::execute_command_finished(NetDirNode *parent_item, void *parent_model_internal_pointer,
                                               int cmd, int status)
 {
     switch (cmd) {
@@ -757,7 +744,7 @@ void RemoteDirModel::execute_command_finished(directory_tree_item *parent_item, 
             emit this->layoutChanged(); // 这种效率不高啊，还有其他办法吗
 
             // TODO how goto the task?
-            // if (parent_item->retrived == 1) { // 半满状态结点
+            // if (parent_item->retrFlag == 1) { // 半满状态结点
             this->dir_retriver->add_node(parent_item, parent_model_internal_pointer);
             // }
         }
@@ -800,15 +787,15 @@ void RemoteDirModel::slot_keep_alive_time_out()
 }
 QString RemoteDirModel::filePath(const QModelIndex &index) const
 {
-    directory_tree_item *node_item = 0;
-    node_item =  static_cast<directory_tree_item*>(index.internalPointer());
+    NetDirNode *node_item = 0;
+    node_item =  static_cast<NetDirNode*>(index.internalPointer());
     assert(node_item != 0);
 
     return node_item->filePath();
 }
 bool RemoteDirModel::isDir(const QModelIndex &index) const
 {
-    directory_tree_item *node_item = static_cast<directory_tree_item*>(index.internalPointer());
+    NetDirNode *node_item = static_cast<NetDirNode*>(index.internalPointer());
     // assert(node_item != 0);
     if (node_item == 0) {
         return true;
@@ -819,7 +806,7 @@ bool RemoteDirModel::isDir(const QModelIndex &index) const
 
 bool RemoteDirModel::isSymLink(const QModelIndex &index) const
 {
-    directory_tree_item *node_item = static_cast<directory_tree_item*>(index.internalPointer());
+    NetDirNode *node_item = static_cast<NetDirNode*>(index.internalPointer());
     // assert(node_item != 0);
     if (node_item == 0) {
         return true; // is this right?
@@ -830,7 +817,7 @@ bool RemoteDirModel::isSymLink(const QModelIndex &index) const
 
 bool RemoteDirModel::isSymLinkToDir(const QModelIndex &index) const
 {
-    directory_tree_item *node_item = static_cast<directory_tree_item*>(index.internalPointer());
+    NetDirNode *node_item = static_cast<NetDirNode*>(index.internalPointer());
     // assert(node_item != 0);
     if (node_item == 0) {
         return false;
