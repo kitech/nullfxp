@@ -183,13 +183,13 @@ win32 {
         CLARCH=$$system(path)
         VAMD64=$$find(CLARCH,amd64)
         isEmpty(VAMD64) {
-             LIBPATH += Z:/librarys/vc-ssl-x86/lib Z:/librarys/vc-zlib/lib
+             LIBPATH += Z:/librarys/vc-ssl-x86/lib Z:/librarys/vc-zlib/static32
         } else {
-             LIBPATH += Z:/librarys/vc-ssl-x64/lib Z:/librarys/vc-zlib/lib
+             LIBPATH += Z:/librarys/vc-ssl-x64/lib Z:/librarys/vc-zlib/staticx64
         }
         	LIBPATH += ./libssh2/src/release 
 
-        LIBS += -lqtmain -lzlib -llibeay32 -lssleay32 -ladvapi32 -luser32 -lws2_32
+        LIBS += -lqtmain -lzlibstat -llibeay32 -lssleay32 -ladvapi32 -luser32 -lws2_32
     }
     LIBS += -lssh2 -lws2_32  -lgdi32 
     #-lgcrypt -lgpg-error 
