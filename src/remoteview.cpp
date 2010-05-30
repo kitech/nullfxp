@@ -18,7 +18,7 @@
 #include "progressdialog.h"
 #include "localview.h"
 #include "remoteview.h"
-#include "remotedirsortfiltermodel.h"
+#include "netdirsortfiltermodel.h"
 
 #include "fileproperties.h"
 #include "encryptiondetailfocuslabel.h"
@@ -165,12 +165,12 @@ void RemoteView::i_init_dir_view()
     this->remote_dir_model->setConnection(this->conn);
     
     this->remote_dir_model->set_user_home_path(this->user_home_path);
-    this->remote_dir_sort_filter_model = new RemoteDirSortFilterModel();
-    this->remote_dir_sort_filter_model->setSourceModel(this->remote_dir_model);
-    this->remote_dir_sort_filter_model_ex = new RemoteDirSortFilterModelEX();
-    this->remote_dir_sort_filter_model_ex->setSourceModel(this->remote_dir_model);
+    this->m_tableProxyModel = new RemoteDirSortFilterModel();
+    this->m_tableProxyModel->setSourceModel(this->remote_dir_model);
+    this->m_treeProxyModel = new RemoteDirSortFilterModelEX();
+    this->m_treeProxyModel->setSourceModel(this->remote_dir_model);
     
-    this->remoteview.treeView->setModel(remote_dir_sort_filter_model_ex);
+    this->remoteview.treeView->setModel(m_treeProxyModel);
     // this->remoteview.treeView->setModel(this->remote_dir_model);
     this->remoteview.treeView->setAcceptDrops(true);
     this->remoteview.treeView->setDragEnabled(false);
@@ -196,18 +196,18 @@ void RemoteView::i_init_dir_view()
     this->remoteview.treeView->setColumnHidden(3, true);
     
     /////tableView
-    this->remoteview.tableView->setModel(this->remote_dir_sort_filter_model);
-    this->remoteview.tableView->setRootIndex(this->remote_dir_sort_filter_model->index(this->user_home_path));
+    this->remoteview.tableView->setModel(this->m_tableProxyModel);
+    // this->remoteview.tableView->setRootIndex(this->m_tableProxyModel->index(this->user_home_path));
 
     //change row height of table 
-    if (this->remote_dir_sort_filter_model->rowCount(this->remote_dir_sort_filter_model->index(this->user_home_path)) > 0) {
-        this->table_row_height = this->remoteview.tableView->rowHeight(0)*2/3;
-    } else {
-        this->table_row_height = 20 ;
-    }
-    for (int i = 0; i < this->remote_dir_sort_filter_model->rowCount(this->remote_dir_sort_filter_model->index(this->user_home_path)); i ++) {
-        this->remoteview.tableView->setRowHeight(i, this->table_row_height);
-    }
+    // if (this->m_tableProxyModel->rowCount(this->m_tableProxyModel->index(this->user_home_path)) > 0) {
+    //     this->table_row_height = this->remoteview.tableView->rowHeight(0)*2/3;
+    // } else {
+    //     this->table_row_height = 20 ;
+    // }
+    // for (int i = 0; i < this->m_tableProxyModel->rowCount(this->m_tableProxyModel->index(this->user_home_path)); i ++) {
+    //     this->remoteview.tableView->setRowHeight(i, this->table_row_height);
+    // }
     this->remoteview.tableView->resizeColumnToContents(0);
     
     /////
@@ -268,8 +268,8 @@ void RemoteView::slot_new_transfer()
         QModelIndex midx = mil.at(i);
         NetDirNode *dti = (NetDirNode*)
             (this->curr_item_view!=this->remoteview.treeView 
-             ? this->remote_dir_sort_filter_model->mapToSource(midx).internalPointer() 
-             : (this->remote_dir_sort_filter_model_ex->mapToSource(midx ).internalPointer()));
+             ? this->m_tableProxyModel->mapToSource(midx).internalPointer() 
+             : (this->m_treeProxyModel->mapToSource(midx ).internalPointer()));
         qDebug()<<dti->fileName()<<" "<<" "<<dti->fullPath;
         file_path = dti->fullPath;
         remote_pkg.files<<file_path;
@@ -305,39 +305,18 @@ QString RemoteView::get_selected_directory()
 
     for (int i = 0 ; i < mil.size(); i +=4) {
         QModelIndex midx = mil.at(i);
-        QModelIndex aim_midx =  this->remote_dir_sort_filter_model_ex->mapToSource(midx);
+        QModelIndex aim_midx =  this->m_treeProxyModel->mapToSource(midx);
         NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
         qDebug()<<dti->fileName()<<" "<< dti->fullPath;
-        if (this->remote_dir_sort_filter_model_ex->isDir(midx)) {
-        	  file_path = dti->fullPath;
-        } else {
-        	  file_path = "";
-        }
+        // if (this->m_treeProxyModel->isDir(midx)) {
+        // 	  file_path = dti->fullPath;
+        // } else {
+        // 	  file_path = "";
+        // }
     }
     
     return file_path;
 }
-
-// void RemoteView::set_ssh2_handler(void *ssh2_sess, int ssh2_sock)
-// {
-//     this->ssh2_sess = (LIBSSH2_SESSION*)ssh2_sess ;
-//     this->ssh2_sftp = libssh2_sftp_init(this->ssh2_sess);
-//     assert(this->ssh2_sftp != 0);
-    
-//     this->ssh2_sock = ssh2_sock;
-// }
-
-// void RemoteView::set_host_info(QString host_name, QString user_name, QString password, short port, QString pubkey)
-// {
-
-//     this->host_name = host_name ;
-//     this->user_name = user_name ;
-//     this->password = password ;
-//     this->port = port;
-//     this->pubkey = pubkey ;
-
-//     this->setWindowTitle(this->windowTitle() + ": " + this->user_name + "@" + this->host_name);
-// }
 
 void RemoteView::set_user_home_path(QString user_home_path)
 {
@@ -409,7 +388,7 @@ void RemoteView::slot_leave_remote_dir_retrive_loop()
     this->remoteview.splitter->setCursor(this->orginal_cursor);
     this->remote_dir_model->set_keep_alive(true);
     this->in_remote_dir_retrive_loop = false ;
-    for (int i = 0 ; i < this->remote_dir_sort_filter_model->rowCount(this->remoteview.tableView->rootIndex()); i ++) {
+    for (int i = 0 ; i < this->m_tableProxyModel->rowCount(this->remoteview.tableView->rootIndex()); i ++) {
         this->remoteview.tableView->setRowHeight(i, this->table_row_height);
     }
     this->remoteview.tableView->resizeColumnToContents ( 0 );
@@ -441,12 +420,12 @@ void RemoteView::update_layout()
         qDebug()<<midx ;
         //这个地方为什么不使用mapToSource会崩溃呢？
         NetDirNode *dti = static_cast<NetDirNode*>
-            (this->remote_dir_sort_filter_model_ex->mapToSource(midx).internalPointer());
+            (this->m_treeProxyModel->mapToSource(midx).internalPointer());
         qDebug()<<dti->fileName()<<" "<< dti->fullPath;
         file_path = dti->fullPath;
         dti->retrFlag = 1;
         dti->prevFlag=9;
-        this->remote_dir_model->slot_remote_dir_node_clicked(this->remote_dir_sort_filter_model_ex->mapToSource(midx));
+        this->remote_dir_model->slot_remote_dir_node_clicked(this->m_treeProxyModel->mapToSource(midx));
     }
 }
 
@@ -468,11 +447,11 @@ void RemoteView::slot_show_properties()
     QModelIndexList aim_mil;
     if (this->curr_item_view == this->remoteview.treeView) {
         for (int i = 0 ; i < mil.count() ; i ++) {
-            aim_mil << this->remote_dir_sort_filter_model_ex->mapToSource(mil.at(i));
+            aim_mil << this->m_treeProxyModel->mapToSource(mil.at(i));
         }
     } else {
         for (int i = 0 ; i < mil.count() ; i ++) {
-            aim_mil << this->remote_dir_sort_filter_model->mapToSource(mil.at(i));
+            aim_mil << this->m_tableProxyModel->mapToSource(mil.at(i));
         }
     }
     if (aim_mil.count() == 0) {
@@ -510,7 +489,7 @@ void RemoteView::slot_mkdir()
     }
     
     QModelIndex midx = mil.at(0);
-    QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) ? this->remote_dir_sort_filter_model_ex->mapToSource(midx): this->remote_dir_sort_filter_model->mapToSource(midx) ;
+    QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) ? this->m_treeProxyModel->mapToSource(midx): this->m_tableProxyModel->mapToSource(midx) ;
     NetDirNode *dti = (NetDirNode*)(aim_midx.internalPointer());
     
     //检查所选择的项是不是目录
@@ -559,8 +538,8 @@ void RemoteView::slot_rmdir()
     
     QModelIndex midx = mil.at(0);
     QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) 
-        ? this->remote_dir_sort_filter_model_ex->mapToSource(midx)
-        : this->remote_dir_sort_filter_model->mapToSource(midx);    
+        ? this->m_treeProxyModel->mapToSource(midx)
+        : this->m_tableProxyModel->mapToSource(midx);    
     NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
     QModelIndex parent_model =  aim_midx.parent();
     NetDirNode *parent_item = (NetDirNode*)parent_model.internalPointer();
@@ -594,8 +573,8 @@ void RemoteView::rm_file_or_directory_recursively()
     //TODO 处理多选的情况
     QModelIndex midx = mil.at(0);
     QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) 
-        ? this->remote_dir_sort_filter_model_ex->mapToSource(midx)
-        : this->remote_dir_sort_filter_model->mapToSource(midx);
+        ? this->m_treeProxyModel->mapToSource(midx)
+        : this->m_tableProxyModel->mapToSource(midx);
     NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
     if (QMessageBox::warning(this, tr("Warning:"), 
                              tr("Are you sure remove this directory and it's subnodes"),
@@ -649,8 +628,8 @@ void RemoteView::slot_copy_path()
     
     QModelIndex midx = mil.at(0);
     QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) 
-        ? this->remote_dir_sort_filter_model_ex->mapToSource(midx)
-        : this->remote_dir_sort_filter_model->mapToSource(midx);    
+        ? this->m_treeProxyModel->mapToSource(midx)
+        : this->m_tableProxyModel->mapToSource(midx);    
     NetDirNode *dti = (NetDirNode*)aim_midx.internalPointer();
 
     QApplication::clipboard()->setText(dti->fullPath);
@@ -676,8 +655,8 @@ void RemoteView::slot_copy_url()
     
     QModelIndex midx = mil.at(0);
     QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) 
-        ? this->remote_dir_sort_filter_model_ex->mapToSource(midx)
-        : this->remote_dir_sort_filter_model->mapToSource(midx);    
+        ? this->m_treeProxyModel->mapToSource(midx)
+        : this->m_tableProxyModel->mapToSource(midx);    
     NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
 
     QString url = QString("sftp://%1@%2:%3%4").arg(this->user_name)
@@ -812,13 +791,13 @@ void RemoteView::slot_dir_tree_item_clicked(const QModelIndex & index)
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     QString file_path;
 
-    remote_dir_model->slot_remote_dir_node_clicked(this->remote_dir_sort_filter_model_ex->mapToSource(index));
+    remote_dir_model->slot_remote_dir_node_clicked(this->m_treeProxyModel->mapToSource(index));
     
-    file_path = this->remote_dir_sort_filter_model_ex->filePath(index);
-    this->remoteview.tableView->setRootIndex(this->remote_dir_sort_filter_model->index(file_path));
-    for (int i = 0 ; i < this->remote_dir_sort_filter_model->rowCount(this->remote_dir_sort_filter_model->index(file_path)); i ++ ) {
-        this->remoteview.tableView->setRowHeight(i, this->table_row_height);
-    }
+    // file_path = this->m_treeProxyModel->filePath(index);
+    // this->remoteview.tableView->setRootIndex(this->m_tableProxyModel->index(file_path));
+    // for (int i = 0 ; i < this->m_tableProxyModel->rowCount(this->m_tableProxyModel->index(file_path)); i ++ ) {
+    //     this->remoteview.tableView->setRowHeight(i, this->table_row_height);
+    // }
     this->remoteview.tableView->resizeColumnToContents(0);
 }
 
@@ -832,21 +811,21 @@ void RemoteView::slot_dir_file_view_double_clicked(const QModelIndex & index)
     //1。　本地主机，如果是目录，则打开这个目录，如果是文件，则使用本机的程序打开这个文件
     //2。对于远程主机，　如果是目录，则打开这个目录，如果是文件，则提示是否要下载它(或者也可以直接打开这个文件）。
     QString file_path;
-    if (this->remote_dir_sort_filter_model->isDir(index)) {
-        this->remoteview.treeView->expand(this->remote_dir_sort_filter_model_ex->index(this->remote_dir_sort_filter_model->filePath(index)).parent());
-        this->remoteview.treeView->expand(this->remote_dir_sort_filter_model_ex->index(this->remote_dir_sort_filter_model->filePath(index)));
-        this->slot_dir_tree_item_clicked(this->remote_dir_sort_filter_model_ex->index(this->remote_dir_sort_filter_model->filePath(index)));
-        this->remoteview.treeView->selectionModel()->clearSelection();
-        this->remoteview.treeView->selectionModel()->select(this->remote_dir_sort_filter_model_ex->index(this->remote_dir_sort_filter_model->filePath(index)) , QItemSelectionModel::Select);
-    } else if (this->remote_dir_sort_filter_model->isSymLink(index)) {
-        QModelIndex idx = this->remote_dir_sort_filter_model->mapToSource(index);
-        NetDirNode *node_item = (NetDirNode*)idx.internalPointer();
-        q_debug()<<node_item->fullPath;
-        this->remote_dir_model->slot_execute_command(node_item, idx.internalPointer(),
-                                                     SSH2_FXP_REALPATH, QString(""));
-    } else {
-        q_debug()<<"double clicked a regular file, no op now, only now";
-    }
+    // if (this->m_tableProxyModel->isDir(index)) {
+    //     this->remoteview.treeView->expand(this->m_treeProxyModel->index(this->m_tableProxyModel->filePath(index)).parent());
+    //     this->remoteview.treeView->expand(this->m_treeProxyModel->index(this->m_tableProxyModel->filePath(index)));
+    //     this->slot_dir_tree_item_clicked(this->m_treeProxyModel->index(this->m_tableProxyModel->filePath(index)));
+    //     this->remoteview.treeView->selectionModel()->clearSelection();
+    //     this->remoteview.treeView->selectionModel()->select(this->m_treeProxyModel->index(this->m_tableProxyModel->filePath(index)) , QItemSelectionModel::Select);
+    // } else if (this->m_tableProxyModel->isSymLink(index)) {
+    //     QModelIndex idx = this->m_tableProxyModel->mapToSource(index);
+    //     NetDirNode *node_item = (NetDirNode*)idx.internalPointer();
+    //     q_debug()<<node_item->fullPath;
+    //     this->remote_dir_model->slot_execute_command(node_item, idx.internalPointer(),
+    //                                                  SSH2_FXP_REALPATH, QString(""));
+    // } else {
+    //     q_debug()<<"double clicked a regular file, no op now, only now";
+    // }
 }
 
 void RemoteView::slot_drag_ready()
@@ -884,7 +863,7 @@ void RemoteView::slot_drag_ready()
     for (int i = 0 ; i< mil.count() ;i += this->remote_dir_model->columnCount()) {
         QModelIndex midx = mil.at(i);
         temp_file_path = (qobject_cast<RemoteDirModel*>(this->remote_dir_model))
-            ->filePath(this->remote_dir_sort_filter_model->mapToSource(midx) );
+            ->filePath(this->m_tableProxyModel->mapToSource(midx) );
         tpkg.files<<temp_file_path;
     }
     
@@ -958,13 +937,13 @@ bool RemoteView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction actio
 
 void RemoteView::slot_show_hidden(bool show)
 {
-    if (show) {
-        remote_dir_sort_filter_model->setFilter(QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot);
-        remote_dir_sort_filter_model_ex->setFilter(QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot);
-    } else {
-        remote_dir_sort_filter_model->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
-        remote_dir_sort_filter_model_ex->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
-    }
+    // if (show) {
+    //     m_tableProxyModel->setFilter(QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot);
+    //     m_treeProxyModel->setFilter(QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot);
+    // } else {
+    //     m_tableProxyModel->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
+    //     m_treeProxyModel->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
+    // }
 }
 
 void RemoteView::encryption_focus_label_double_clicked()

@@ -25,8 +25,8 @@
 #include "ui_remoteview.h"
 
 class ProgressDialog;
-class RemoteDirSortFilterModel;
-class RemoteDirSortFilterModelEX;
+// class RemoteDirSortFilterModel;
+// class RemoteDirSortFilterModelEX;
 class LocalView;
 class EncryptionDetailFocusLabel;
 class Connection;
@@ -40,7 +40,6 @@ public:
 
     virtual QString get_selected_directory();
     //
-    // void set_host_info(QString host_name, QString user_name, QString password, short port, QString pubkey);
     virtual void set_user_home_path(QString user_home_path);
     virtual void setConnection(Connection *conn);
     
@@ -57,16 +56,15 @@ protected:
     Ui::remoteview remoteview;
     RemoteDirModel *remote_dir_model;
     int   table_row_height;
-    RemoteDirSortFilterModel *remote_dir_sort_filter_model;
-    RemoteDirSortFilterModelEX *remote_dir_sort_filter_model_ex;
-    QSortFilterProxyModel *m_proxyModel;
+    QSortFilterProxyModel *m_treeProxyModel;
+    QSortFilterProxyModel *m_tableProxyModel;
 
     QAbstractItemView *curr_item_view;    //
         
     QMenu *dir_tree_context_menu;
         
     virtual void init_popup_context_menu();
-        
+    
     QString user_home_path;
         
     QCursor orginal_cursor;

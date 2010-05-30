@@ -1,4 +1,4 @@
-// remotedirsortfiltermodel.h --- 
+// netdirsortfiltermodel.h --- 
 // 
 // Author: liuguangzhao
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
@@ -7,8 +7,8 @@
 // Version: $Id$
 // 
 
-#ifndef REMOTEDIRSORTFILTERMODEL_H
-#define REMOTEDIRSORTFILTERMODEL_H
+#ifndef NETDIRSORTFILTERMODEL_H
+#define NETDIRSORTFILTERMODEL_H
 
 #include <QtCore>
 #include <QtGui>
@@ -22,7 +22,7 @@ public:
     DirTreeSortFilterModel(QObject *parent = 0);
     virtual ~DirTreeSortFilterModel();
 
-    virtual QModelIndex 	parent ( const QModelIndex & child ) const;
+    // virtual QModelIndex 	parent ( const QModelIndex & child ) const;
     // virtual bool canFetchMore(const QModelIndex &parent) const;    
 
     // virtual QModelIndex index(const QString &path, int column = 0) const;    
@@ -31,7 +31,7 @@ public:
     // virtual QString filePath(const QModelIndex &index) const;
     // virtual bool isDir(const QModelIndex &index) const;
     // virtual bool isSymLink(const QModelIndex &index) const;
-    // virtual void setFilter(QDir::Filters filters);
+    virtual void setFilter(QDir::Filters filters);
 
     virtual bool hasChildren(const QModelIndex &parent) const;
 
@@ -41,12 +41,56 @@ public:
     
     // virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole ) const;
 protected:
-    // virtual bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const;
+    virtual bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const;
 protected:
     // RemoteDirModel *source_model; 
-    // QDir::Filters filters;
+    QDir::Filters filters;
 };
 
+/////////////////////////////////////
+/////
+/////////////////////////////////////
+
+class DirTableSortFilterModel : public QSortFilterProxyModel
+{
+    Q_OBJECT;
+public:
+    DirTableSortFilterModel(QObject *parent = 0);
+    virtual ~DirTableSortFilterModel();
+
+    // virtual QModelIndex 	parent ( const QModelIndex & child ) const;
+    // virtual bool canFetchMore(const QModelIndex &parent) const;    
+
+    // virtual QModelIndex index(const QString &path, int column = 0) const;    
+    // virtual void setSourceModel(QAbstractItemModel *sourceModel);
+            
+    // virtual QString filePath(const QModelIndex &index) const;
+    // virtual bool isDir(const QModelIndex &index) const;
+    // virtual bool isSymLink(const QModelIndex &index) const;
+    virtual void setFilter(QDir::Filters filters);
+
+    virtual bool hasChildren(const QModelIndex &parent) const;
+
+    // virtual QModelIndex	mapFromSource ( const QModelIndex & sourceIndex ) const;
+    // virtual QModelIndex	mapToSource ( const QModelIndex & proxyIndex ) const;
+    // virtual int rowCount ( const QModelIndex & parent = QModelIndex() ) const;
+    
+    // virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole ) const;
+protected:
+    virtual bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const;
+protected:
+    // RemoteDirModel *source_model; 
+    QDir::Filters filters;
+};
+
+/////////////////////////////////////
+/////
+/////////////////////////////////////
+
+
+/////////////////////////////////////
+/////
+/////////////////////////////////////
 class RemoteDirSortFilterModel : public QSortFilterProxyModel
 {
     Q_OBJECT;

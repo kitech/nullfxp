@@ -18,7 +18,7 @@
 #include "progressdialog.h"
 #include "localview.h"
 #include "ftpview.h"
-#include "remotedirsortfiltermodel.h"
+#include "netdirsortfiltermodel.h"
 
 #include "fileproperties.h"
 #include "encryptiondetailfocuslabel.h"
@@ -37,106 +37,13 @@
 FTPView::FTPView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *parent)
     : RemoteView(main_mdi_area, local_view, parent)
 {
-    // this->remoteview.setupUi(this);
-    // this->local_view = local_view;
-    // this->main_mdi_area = main_mdi_area;
-    // this->setObjectName("rv");
-    // ///////
-    // this->status_bar = new QStatusBar();
-    // this->layout()->addWidget(this->status_bar);
-    // this->status_bar->addPermanentWidget(this->enc_label = new EncryptionDetailFocusLabel("ENC", this));
-    // QObject::connect(this->enc_label, SIGNAL(mouseDoubleClick()),
-    //                  this, SLOT(encryption_focus_label_double_clicked()));
-    // HostInfoDetailFocusLabel *hi_label = new HostInfoDetailFocusLabel("HI", this);
-    // this->status_bar->addPermanentWidget(hi_label);
-    // QObject::connect(hi_label, SIGNAL(mouseDoubleClick()), 
-    //                 this, SLOT(host_info_focus_label_double_clicked()));
-
-    // ////////////
-    // //     this->remoteview.treeView->setAcceptDrops(false);
-    // //     this->remoteview.treeView->setDragEnabled(false);
-    // //     this->remoteview.treeView->setDropIndicatorShown(false);
-    // //     this->remoteview.treeView->setDragDropMode(QAbstractItemView::NoDragDrop);
-    // //this->remoteview.treeView->setSelectionMode(QAbstractItemView::ExtendedSelection);
-    
-    // QObject::connect(this->remoteview.treeView, SIGNAL(customContextMenuRequested(const QPoint &)),
-    //                  this, SLOT(slot_dir_tree_customContextMenuRequested (const QPoint &)));
-    // QObject::connect(this->remoteview.tableView,SIGNAL(customContextMenuRequested(const QPoint &)),
-    //                  this, SLOT(slot_dir_tree_customContextMenuRequested (const QPoint & )));
-    
     this->init_popup_context_menu();
-    
-    // this->in_remote_dir_retrive_loop = false;
-    // this->remoteview.tableView->test_use_qt_designer_prompt = 0;
-    // CompleteLineEditDelegate *delegate = new CompleteLineEditDelegate();
-    // this->remoteview.tableView->setItemDelegate(delegate);
-    // this->remoteview.tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    // this->remoteview.treeView->setItemDelegate(delegate);
-    // this->remoteview.treeView->setAnimated(true);
 
     this->rconn = NULL;
 }
 
 void FTPView::init_popup_context_menu()
 {
-    // this->dir_tree_context_menu = new QMenu();
-    // QAction *action ;
-    // action  = new QAction(tr("Download"), 0);
-    // this->dir_tree_context_menu->addAction(action);
-    // QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_new_transfer()));
-    
-    // action = new QAction("", 0);
-    // action->setSeparator(true);
-    // this->dir_tree_context_menu->addAction(action);
-    
-    // action = new QAction(tr("Refresh"), 0);
-    // this->dir_tree_context_menu->addAction(action);
-    // QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_refresh_directory_tree()));
-    
-    // action = new QAction(tr("Properties..."), 0);
-    // this->dir_tree_context_menu->addAction(action);
-    // QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_show_properties()));
-    // attr_action = action ;
-    
-    // action = new QAction(tr("Show Hidden"), 0);
-    // action->setCheckable(true);
-    // this->dir_tree_context_menu->addAction(action);
-    // QObject::connect(action, SIGNAL(toggled(bool)), this, SLOT(slot_show_hidden(bool)));
-    
-    // action = new QAction("", 0);
-    // action->setSeparator(true);
-    // this->dir_tree_context_menu->addAction(action);
-
-    // //TODO  CUT, COPY, PASTE, ||set initial directory,||open,open with    
-    // action = new QAction(tr("Copy &Path"), 0);
-    // this->dir_tree_context_menu->addAction(action);
-    // QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_copy_path()));
-
-    // action = new QAction(tr("Copy &URL"), 0);
-    // this->dir_tree_context_menu->addAction(action);
-    // QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_copy_url()));
-        
-    // action = new QAction(tr("Create directory..."), 0);
-    // this->dir_tree_context_menu->addAction(action);
-    // QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_mkdir()));
-    
-    // action = new QAction(tr("Delete directory"), 0);
-    // this->dir_tree_context_menu->addAction(action);
-    // QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_rmdir()));
-
-    // action = new QAction(tr("Rename..."),0);
-    // this->dir_tree_context_menu->addAction(action);
-    // QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_rename()));
-    
-    // action = new QAction("", 0);
-    // action->setSeparator(true);
-    // this->dir_tree_context_menu->addAction(action);
-        
-    // //递归删除目录功能，删除文件的用户按钮
-    // action = new QAction(tr("Remove recursively !!!"), 0);
-    // this->dir_tree_context_menu->addAction(action);
-    // QObject::connect(action, SIGNAL(triggered()), this, SLOT(rm_file_or_directory_recursively()));
-    
     RemoteView::init_popup_context_menu();
 
     // 编码设置菜单
@@ -203,12 +110,12 @@ void FTPView::i_init_dir_view()
     this->remote_dir_model->setConnection(this->conn);
     
     this->remote_dir_model->set_user_home_path(this->user_home_path);
-    this->remote_dir_sort_filter_model = new RemoteDirSortFilterModel();
-    this->remote_dir_sort_filter_model->setSourceModel(this->remote_dir_model);
-    this->remote_dir_sort_filter_model_ex = new RemoteDirSortFilterModelEX();
-    this->remote_dir_sort_filter_model_ex->setSourceModel(this->remote_dir_model);
+    this->m_tableProxyModel = new RemoteDirSortFilterModel();
+    this->m_tableProxyModel->setSourceModel(this->remote_dir_model);
+    this->m_treeProxyModel = new RemoteDirSortFilterModelEX();
+    this->m_treeProxyModel->setSourceModel(this->remote_dir_model);
     
-    this->remoteview.treeView->setModel(remote_dir_sort_filter_model_ex);
+    this->remoteview.treeView->setModel(m_treeProxyModel);
     this->remoteview.treeView->setAcceptDrops(true);
     this->remoteview.treeView->setDragEnabled(false);
     this->remoteview.treeView->setDropIndicatorShown(true);
@@ -233,18 +140,18 @@ void FTPView::i_init_dir_view()
     this->remoteview.treeView->setColumnHidden(3, true);
     
     /////tableView
-    this->remoteview.tableView->setModel(this->remote_dir_sort_filter_model);
-    this->remoteview.tableView->setRootIndex(this->remote_dir_sort_filter_model->index(this->user_home_path));
+    this->remoteview.tableView->setModel(this->m_tableProxyModel);
+    // this->remoteview.tableView->setRootIndex(this->m_tableProxyModel->index(this->user_home_path));
 
     //change row height of table 
-    if (this->remote_dir_sort_filter_model->rowCount(this->remote_dir_sort_filter_model->index(this->user_home_path)) > 0) {
-        this->table_row_height = this->remoteview.tableView->rowHeight(0)*2/3;
-    } else {
-        this->table_row_height = 20;
-    }
-    for (int i = 0; i < this->remote_dir_sort_filter_model->rowCount(this->remote_dir_sort_filter_model->index(this->user_home_path)); i ++) {
-        this->remoteview.tableView->setRowHeight(i, this->table_row_height);
-    }
+    // if (this->m_tableProxyModel->rowCount(this->m_tableProxyModel->index(this->user_home_path)) > 0) {
+    //     this->table_row_height = this->remoteview.tableView->rowHeight(0)*2/3;
+    // } else {
+    //     this->table_row_height = 20;
+    // }
+    // for (int i = 0; i < this->m_tableProxyModel->rowCount(this->m_tableProxyModel->index(this->user_home_path)); i ++) {
+    //     this->remoteview.tableView->setRowHeight(i, this->table_row_height);
+    // }
     this->remoteview.tableView->resizeColumnToContents(0);
     
     /////
@@ -304,8 +211,8 @@ void FTPView::slot_new_transfer()
         QModelIndex midx = mil.at(i);
         NetDirNode *dti = (NetDirNode*)
             (this->curr_item_view!=this->remoteview.treeView 
-             ? this->remote_dir_sort_filter_model->mapToSource(midx).internalPointer() 
-             : (this->remote_dir_sort_filter_model_ex->mapToSource(midx ).internalPointer()));
+             ? this->m_tableProxyModel->mapToSource(midx).internalPointer() 
+             : (this->m_treeProxyModel->mapToSource(midx ).internalPointer()));
         qDebug()<<dti->_fileName<<" "<<" "<<dti->fullPath;
         file_path = dti->fullPath;
         remote_pkg.files<<file_path;
@@ -336,14 +243,14 @@ QString FTPView::get_selected_directory()
 
     for (int i = 0 ; i < mil.size(); i +=4) {
         QModelIndex midx = mil.at(i);
-        QModelIndex aim_midx = this->remote_dir_sort_filter_model_ex->mapToSource(midx);
+        QModelIndex aim_midx = this->m_treeProxyModel->mapToSource(midx);
         NetDirNode *dti = (NetDirNode*)aim_midx.internalPointer();
         q_debug()<<dti->_fileName<<" "<<dti->fullPath;
-        if (this->remote_dir_sort_filter_model_ex->isDir(midx)) {
-            file_path = dti->fullPath;
-        } else {
-            file_path = "";
-        }
+        // if (this->m_treeProxyModel->isDir(midx)) {
+        //     file_path = dti->fullPath;
+        // } else {
+        //     file_path = "";
+        // }
     }
     
     return file_path;
@@ -366,16 +273,16 @@ QPair<QString, QString> FTPView::get_selected_directory(bool pair)
 
     for (int i = 0 ; i < mil.size(); i +=4) {
         QModelIndex midx = mil.at(i);
-        QModelIndex aim_midx = this->remote_dir_sort_filter_model_ex->mapToSource(midx);
+        QModelIndex aim_midx = this->m_treeProxyModel->mapToSource(midx);
         NetDirNode *dti = (NetDirNode*)aim_midx.internalPointer();
         qDebug()<<dti->_fileName<<" "<<dti->fullPath;
-        if (this->remote_dir_sort_filter_model_ex->isDir(midx)) {
-            file_path.first = dti->fullPath;
-            file_path.second = dti->_fileName;
-        } else {
-            file_path.first = "";
-            file_path.second = "";
-        }
+        // if (this->m_treeProxyModel->isDir(midx)) {
+        //     file_path.first = dti->fullPath;
+        //     file_path.second = dti->_fileName;
+        // } else {
+        //     file_path.first = "";
+        //     file_path.second = "";
+        // }
     }
     
     return file_path;
@@ -450,7 +357,7 @@ void FTPView::slot_leave_remote_dir_retrive_loop()
     this->remoteview.splitter->setCursor(this->orginal_cursor);
     this->remote_dir_model->set_keep_alive(true);
     this->in_remote_dir_retrive_loop = false ;
-    for (int i = 0 ; i < this->remote_dir_sort_filter_model->rowCount(this->remoteview.tableView->rootIndex()); i ++) {
+    for (int i = 0 ; i < this->m_tableProxyModel->rowCount(this->remoteview.tableView->rootIndex()); i ++) {
         this->remoteview.tableView->setRowHeight(i, this->table_row_height);
     }
     this->remoteview.tableView->resizeColumnToContents ( 0 );
@@ -481,12 +388,12 @@ void FTPView::update_layout()
         qDebug()<<midx ;
         //这个地方为什么不使用mapToSource会崩溃呢？
         NetDirNode *dti = static_cast<NetDirNode*>
-            (this->remote_dir_sort_filter_model_ex->mapToSource(midx).internalPointer());
+            (this->m_treeProxyModel->mapToSource(midx).internalPointer());
         qDebug()<<dti->_fileName<<" "<< dti->fullPath;
         file_path = dti->fullPath;
         dti->retrFlag = 1;
         dti->prevFlag = 9;
-        this->remote_dir_model->slot_remote_dir_node_clicked(this->remote_dir_sort_filter_model_ex->mapToSource(midx));
+        this->remote_dir_model->slot_remote_dir_node_clicked(this->m_treeProxyModel->mapToSource(midx));
     }
 }
 
@@ -508,11 +415,11 @@ void FTPView::slot_show_properties()
     QModelIndexList aim_mil;
     if (this->curr_item_view == this->remoteview.treeView) {
         for (int i = 0 ; i < mil.count() ; i ++) {
-            aim_mil << this->remote_dir_sort_filter_model_ex->mapToSource(mil.at(i));
+            aim_mil << this->m_treeProxyModel->mapToSource(mil.at(i));
         }
     } else {
         for (int i = 0 ; i < mil.count() ; i ++) {
-            aim_mil << this->remote_dir_sort_filter_model->mapToSource(mil.at(i));
+            aim_mil << this->m_tableProxyModel->mapToSource(mil.at(i));
         }
     }
     if (aim_mil.count() == 0) {
@@ -550,7 +457,7 @@ void FTPView::slot_mkdir()
     }
     
     QModelIndex midx = mil.at(0);
-    QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) ? this->remote_dir_sort_filter_model_ex->mapToSource(midx): this->remote_dir_sort_filter_model->mapToSource(midx);
+    QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) ? this->m_treeProxyModel->mapToSource(midx): this->m_tableProxyModel->mapToSource(midx);
     NetDirNode *dti = (NetDirNode*)(aim_midx.internalPointer());
     
     //检查所选择的项是不是目录
@@ -600,8 +507,8 @@ void FTPView::slot_rmdir()
     
     QModelIndex midx = mil.at(0);
     QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) 
-        ? this->remote_dir_sort_filter_model_ex->mapToSource(midx)
-        : this->remote_dir_sort_filter_model->mapToSource(midx);    
+        ? this->m_treeProxyModel->mapToSource(midx)
+        : this->m_tableProxyModel->mapToSource(midx);    
     NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
     QModelIndex parent_model =  aim_midx.parent() ;
     NetDirNode *parent_item = (NetDirNode*)parent_model.internalPointer();
@@ -639,19 +546,19 @@ void FTPView::rm_file_or_directory_recursively()
     for (int i = mil.count() - 1 - 3; i >= 0; i -= 4) {
         QModelIndex midx = mil.at(i);
         QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) 
-            ? this->remote_dir_sort_filter_model_ex->mapToSource(midx)
-            : this->remote_dir_sort_filter_model->mapToSource(midx);
+            ? this->m_treeProxyModel->mapToSource(midx)
+            : this->m_tableProxyModel->mapToSource(midx);
         NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
         if (firstWarning) { // 只有第一次提示用户操作，其他的不管
             QString hintMsg;
             if (mil.count()/4 > 1) {
                 hintMsg = QString(tr("Are you sure remove all of these files/directories?"));
-            } else {
-                hintMsg = this->remote_dir_sort_filter_model->isDir(midx) 
-                    ? QString(tr("Are you sure remove this directory and it's subnodes?\n    %1/"))
-                    .arg(this->remote_dir_sort_filter_model->filePath(midx))
-                    : QString(tr("Are you sure remove this file?\n    %1"))
-                    .arg(this->remote_dir_sort_filter_model->filePath(midx));
+            // } else {
+            //     hintMsg = this->m_tableProxyModel->isDir(midx) 
+            //         ? QString(tr("Are you sure remove this directory and it's subnodes?\n    %1/"))
+            //         .arg(this->m_tableProxyModel->filePath(midx))
+            //         : QString(tr("Are you sure remove this file?\n    %1"))
+            //         .arg(this->m_tableProxyModel->filePath(midx));
             }
             if (QMessageBox::warning(this, tr("Warning:"), hintMsg,
                                      QMessageBox::Yes, QMessageBox::Cancel) == QMessageBox::Yes) {
@@ -709,8 +616,8 @@ void FTPView::slot_copy_path()
     
     QModelIndex midx = mil.at(0);
     QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) 
-        ? this->remote_dir_sort_filter_model_ex->mapToSource(midx)
-        : this->remote_dir_sort_filter_model->mapToSource(midx);    
+        ? this->m_treeProxyModel->mapToSource(midx)
+        : this->m_tableProxyModel->mapToSource(midx);    
     NetDirNode *dti = (NetDirNode*)aim_midx.internalPointer();
 
     QApplication::clipboard()->setText(dti->fullPath);
@@ -736,8 +643,8 @@ void FTPView::slot_copy_url()
     
     QModelIndex midx = mil.at(0);
     QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) 
-        ? this->remote_dir_sort_filter_model_ex->mapToSource(midx)
-        : this->remote_dir_sort_filter_model->mapToSource(midx);    
+        ? this->m_treeProxyModel->mapToSource(midx)
+        : this->m_tableProxyModel->mapToSource(midx);    
     NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
 
     QString url = QString("ftp://%1@%2:%3%4").arg(this->conn->userName)
@@ -869,13 +776,13 @@ void FTPView::slot_dir_tree_item_clicked(const QModelIndex & index)
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     QString file_path;
 
-    remote_dir_model->slot_remote_dir_node_clicked(this->remote_dir_sort_filter_model_ex->mapToSource(index));
+    remote_dir_model->slot_remote_dir_node_clicked(this->m_treeProxyModel->mapToSource(index));
     
-    file_path = this->remote_dir_sort_filter_model_ex->filePath(index);
-    this->remoteview.tableView->setRootIndex(this->remote_dir_sort_filter_model->index(file_path));
-    for (int i = 0 ; i < this->remote_dir_sort_filter_model->rowCount(this->remote_dir_sort_filter_model->index(file_path)); i ++ ) {
-        this->remoteview.tableView->setRowHeight(i, this->table_row_height);
-    }
+    // file_path = this->m_treeProxyModel->filePath(index);
+    // this->remoteview.tableView->setRootIndex(this->m_tableProxyModel->index(file_path));
+    // for (int i = 0 ; i < this->m_tableProxyModel->rowCount(this->m_tableProxyModel->index(file_path)); i ++ ) {
+    //     this->remoteview.tableView->setRowHeight(i, this->table_row_height);
+    // }
     this->remoteview.tableView->resizeColumnToContents(0);
 }
 
@@ -889,21 +796,21 @@ void FTPView::slot_dir_file_view_double_clicked(const QModelIndex & index)
     //1。　本地主机，如果是目录，则打开这个目录，如果是文件，则使用本机的程序打开这个文件
     //2。对于远程主机，　如果是目录，则打开这个目录，如果是文件，则提示是否要下载它(或者也可以直接打开这个文件）。
     QString file_path;
-    if (this->remote_dir_sort_filter_model->isDir(index)) {
-        this->remoteview.treeView->expand(this->remote_dir_sort_filter_model_ex->index(this->remote_dir_sort_filter_model->filePath(index)).parent());
-        this->remoteview.treeView->expand(this->remote_dir_sort_filter_model_ex->index(this->remote_dir_sort_filter_model->filePath(index)));
-        this->slot_dir_tree_item_clicked(this->remote_dir_sort_filter_model_ex->index(this->remote_dir_sort_filter_model->filePath(index)));
-        this->remoteview.treeView->selectionModel()->clearSelection();
-        this->remoteview.treeView->selectionModel()->select(this->remote_dir_sort_filter_model_ex->index(this->remote_dir_sort_filter_model->filePath(index)) , QItemSelectionModel::Select);
-    } else if (this->remote_dir_sort_filter_model->isSymLink(index)) {
-        QModelIndex idx = this->remote_dir_sort_filter_model->mapToSource(index);
-        NetDirNode *node_item = (NetDirNode*)idx.internalPointer();
-        q_debug()<<node_item->fullPath;
-        this->remote_dir_model->slot_execute_command(node_item, idx.internalPointer(),
-                                                     SSH2_FXP_REALPATH, QString(""));
-    } else {
-        q_debug()<<"double clicked a regular file, no op now, only now";
-    }
+    // if (this->m_tableProxyModel->isDir(index)) {
+    //     this->remoteview.treeView->expand(this->m_treeProxyModel->index(this->m_tableProxyModel->filePath(index)).parent());
+    //     this->remoteview.treeView->expand(this->m_treeProxyModel->index(this->m_tableProxyModel->filePath(index)));
+    //     this->slot_dir_tree_item_clicked(this->m_treeProxyModel->index(this->m_tableProxyModel->filePath(index)));
+    //     this->remoteview.treeView->selectionModel()->clearSelection();
+    //     this->remoteview.treeView->selectionModel()->select(this->m_treeProxyModel->index(this->m_tableProxyModel->filePath(index)) , QItemSelectionModel::Select);
+    // } else if (this->m_tableProxyModel->isSymLink(index)) {
+    //     QModelIndex idx = this->m_tableProxyModel->mapToSource(index);
+    //     NetDirNode *node_item = (NetDirNode*)idx.internalPointer();
+    //     q_debug()<<node_item->fullPath;
+    //     this->remote_dir_model->slot_execute_command(node_item, idx.internalPointer(),
+    //                                                  SSH2_FXP_REALPATH, QString(""));
+    // } else {
+    //     q_debug()<<"double clicked a regular file, no op now, only now";
+    // }
 }
 
 void FTPView::slot_drag_ready()
@@ -934,7 +841,7 @@ void FTPView::slot_drag_ready()
     for (int i = 0 ; i< mil.count() ;i += this->remote_dir_model->columnCount()) {
         QModelIndex midx = mil.at(i);
         temp_file_path = (qobject_cast<RemoteDirModel*>(this->remote_dir_model))
-            ->filePath(this->remote_dir_sort_filter_model->mapToSource(midx) );
+            ->filePath(this->m_tableProxyModel->mapToSource(midx) );
         tpkg.files<<temp_file_path;
     }
     
@@ -1003,13 +910,13 @@ bool FTPView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction action,
 
 void FTPView::slot_show_hidden(bool show)
 {
-    if (show) {
-        remote_dir_sort_filter_model->setFilter(QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot);
-        remote_dir_sort_filter_model_ex->setFilter(QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot);
-    } else {
-        remote_dir_sort_filter_model->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
-        remote_dir_sort_filter_model_ex->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
-    }
+    // if (show) {
+    //     m_tableProxyModel->setFilter(QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot);
+    //     m_treeProxyModel->setFilter(QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot);
+    // } else {
+    //     m_tableProxyModel->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
+    //     m_treeProxyModel->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
+    // }
 }
 
 // 这个图标可使用在FTPS上，显示安全性算法等。简单的FTP不需要显示。

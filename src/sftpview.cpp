@@ -18,7 +18,7 @@
 #include "progressdialog.h"
 #include "localview.h"
 #include "sftpview.h"
-#include "remotedirsortfiltermodel.h"
+#include "netdirsortfiltermodel.h"
 
 #include "fileproperties.h"
 #include "encryptiondetailfocuslabel.h"
@@ -38,8 +38,6 @@ SFTPView::SFTPView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *pare
 {
     
     this->init_popup_context_menu();
-    
-
     this->rconn = NULL;
 }
 
@@ -66,9 +64,9 @@ void SFTPView::i_init_dir_view()
     // this->remote_dir_sort_filter_model->setSourceModel(this->remote_dir_model);
 
     // this->remoteview.treeView->setModel(remote_dir_sort_filter_model_ex);
-    this->m_proxyModel = new DirTreeSortFilterModel();
-    this->m_proxyModel->setSourceModel(this->remote_dir_model);
-    this->remoteview.treeView->setModel(this->m_proxyModel);
+    this->m_treeProxyModel = new DirTreeSortFilterModel();
+    this->m_treeProxyModel->setSourceModel(this->remote_dir_model);
+    this->remoteview.treeView->setModel(this->m_treeProxyModel);
     // this->remoteview.treeView->setModel(this->remote_dir_model);
 
     this->remoteview.treeView->setAcceptDrops(true);
@@ -292,7 +290,7 @@ void SFTPView::slot_leave_remote_dir_retrive_loop()
     // for (int i = 0 ; i < this->remote_dir_sort_filter_model->rowCount(this->remoteview.tableView->rootIndex()); i ++) {
     //     this->remoteview.tableView->setRowHeight(i, this->table_row_height);
     // }
-    // this->remoteview.tableView->resizeColumnToContents ( 0 );
+    this->remoteview.tableView->resizeColumnToContents(0);
 }
 
 void SFTPView::update_layout()
@@ -325,7 +323,7 @@ void SFTPView::update_layout()
         qDebug()<<midx;
 
         proxyIndex = midx;
-        sourceIndex = this->m_proxyModel->mapToSource(proxyIndex);
+        sourceIndex = this->m_treeProxyModel->mapToSource(proxyIndex);
         useIndex = sourceIndex;
 
         NetDirNode *dti = static_cast<NetDirNode*>(useIndex.internalPointer());
@@ -357,8 +355,8 @@ void SFTPView::slot_show_properties()
     QModelIndexList aim_mil;
     if (this->curr_item_view == this->remoteview.treeView) {
         for (int i = 0 ; i < mil.count() ; i ++) {
-            // aim_mil << this->remote_dir_sort_filter_model_ex->mapToSource(mil.at(i));
-            aim_mil << mil.at(i);
+            aim_mil<<this->m_treeProxyModel->mapToSource(mil.at(i));
+            // aim_mil << mil.at(i);
         }
     } else {
         for (int i = 0 ; i < mil.count() ; i ++) {
@@ -725,7 +723,7 @@ void SFTPView::slot_dir_tree_item_clicked(const QModelIndex & index)
     QModelIndex useIndex;
 
     proxyIndex = index;
-    sourceIndex = this->m_proxyModel->mapToSource(index);
+    sourceIndex = this->m_treeProxyModel->mapToSource(index);
     // sourceIndex = index;
     useIndex = sourceIndex;
 

@@ -72,7 +72,7 @@ SOURCES += main.cpp \
  globaloptionsdialog.cpp \
  utils.cpp \
  fileproperties.cpp \
- remotedirsortfiltermodel.cpp \
+ netdirsortfiltermodel.cpp \
  remoteviewdirtableview.cpp \
  remotedirtreeview.cpp \
  localdirsortfiltermodel.cpp \
@@ -127,7 +127,7 @@ HEADERS += nullfxp.h \
  globaloption.h \
  globaloptionsdialog.h \
  fileproperties.h \
- remotedirsortfiltermodel.h \
+ netdirsortfiltermodel.h \
  remoteviewdirtableview.h \
  remotedirtreeview.h \
  localdirsortfiltermodel.h \
@@ -209,7 +209,7 @@ DEFINES -= NDEBUG QT_NO_DEBUG_OUTPUT
 
 win32-g++ {     
 } else:win32 {
-     DEFINES += LIBSSH2_WIN32 _CRT_SECURE_NO_DEPRECATE GCC_MV=\"\\\"MSVC-2005-Express-Edition\\\"\"
+     DEFINES += LIBSSH2_WIN32 _CRT_SECURE_NO_DEPRECATE GCC_MV=\"\\\"MSVC-2010-Express-Edition\\\"\"
      RC_FILE = nullfxp.rc 
 } else {
 #  QMAKE_CXXFLAGS += -std=c++0x

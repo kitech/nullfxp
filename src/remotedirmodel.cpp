@@ -440,9 +440,10 @@ int RemoteDirModel::rowCount(const QModelIndex &parent) const
         Q_ASSERT(parent_item != NULL);
 
         // q_debug()<<parent<<"opening "<<parent_item->fullPath<<parent_item->_fileName;
-        // if (parent_item->_fileName == "kitsoft") {
-        //     this->dump_tree_node_item(parent_item);
-        // }
+        if (parent_item->_fileName == ".wicd") {
+            // this->dump_tree_node_item(parent_item);
+            Q_ASSERT(1 == 2);
+        }
 
         // if (parent_item->retrFlag == 0
         //     // || parent_item->retrFlag == 1
@@ -464,7 +465,7 @@ int RemoteDirModel::rowCount(const QModelIndex &parent) const
         // row_count =1 ;
     }
     // q_debug()<<parent<< "row_count="<<row_count;
-    return row_count ;
+    return row_count;
 }
 
 bool RemoteDirModel::hasChildren(const QModelIndex &parent) const
@@ -518,7 +519,7 @@ bool RemoteDirModel::setData(const QModelIndex &index, const QVariant &value, in
         Q_ASSERT(oldNode != NULL);
         Q_ASSERT(newNode != NULL);
         oldNode->copyFrom(newNode);
-        
+
         QModelIndex endIndex = this->createIndex(index.row(), 3, oldNode->pNode);
         emit this->dataChanged(index, endIndex);
     }
@@ -528,7 +529,7 @@ bool RemoteDirModel::setData(const QModelIndex &index, const QVariant &value, in
 
 bool RemoteDirModel::insertRows(int row, int count, const QModelIndex &parent)
 {
-    q_debug()<<""<<row<<count<<parent;
+    // q_debug()<<""<<row<<count<<parent;
     NetDirNode *pnode = NULL;
     NetDirNode *node = NULL;
 
@@ -638,6 +639,7 @@ void RemoteDirModel::dump_tree_node_item(NetDirNode *node_item) const
     qDebug()<<"<<<<====================";
 }
 
+// TODO a lot of memory leak here
 void RemoteDirModel::slot_remote_dir_node_retrived(NetDirNode *parent_item,
                                                    void *parent_persistent_index, 
                                                    NetDirNode *newNodes

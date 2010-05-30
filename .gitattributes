@@ -414,6 +414,8 @@ src/localview.cpp -text
 src/localview.h -text
 src/localview.ui -text
 src/main.cpp -text
+src/netdirsortfiltermodel.cpp -text
+src/netdirsortfiltermodel.h -text
 src/nscp/nscp.c -text
 src/nscp/nscp.pro -text
 src/nscp/nscp_o.c -text
@@ -531,8 +533,6 @@ src/quickconnectinfodialog.h -text
 src/quickconnectinfodialog.ui -text
 src/remotedirmodel.cpp -text
 src/remotedirmodel.h -text
-src/remotedirsortfiltermodel.cpp -text
-src/remotedirsortfiltermodel.h -text
 src/remotedirtreeview.cpp -text
 src/remotedirtreeview.h -text
 src/remotehostconnectthread.cpp -text
