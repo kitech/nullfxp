@@ -66,7 +66,7 @@ void DirRetriver::run()
         cmd_elem = this->command_queue.at(0);
         switch(cmd_elem->cmd) {
         case SSH2_FXP_READDIR:
-            this->dir_node_process_queue.insert(std::make_pair(cmd_elem->parent_item, cmd_elem->parent_model_internal_pointer) );
+            this->dir_node_process_queue.insert(std::make_pair(cmd_elem->parent_item, cmd_elem->parent_persistent_index));
             exec_ret_code = this->retrive_dir();
             break;
         case SSH2_FXP_MKDIR:
@@ -93,7 +93,7 @@ void DirRetriver::run()
         }
 
         // 通知其他人命令执行完成
-        emit execute_command_finished(cmd_elem->parent_item, cmd_elem->parent_model_internal_pointer,
+        emit execute_command_finished(cmd_elem->parent_item, cmd_elem->parent_persistent_index,
                                       cmd_elem->cmd, exec_ret_code);
 
         //delet item form queue , stopping infinite cycle
@@ -108,10 +108,13 @@ void DirRetriver::run()
 
 int  DirRetriver::retrive_dir()
 {
+    // TODO clean this
+    Q_ASSERT(1 == 2);
+
     int exec_ret = -1;
     
     NetDirNode *parent_item, *new_item, *tmp_item;
-    void *parent_model_internal_pointer;
+    void *parent_persistent_index;
 
     QString tmp;
     QVector<NetDirNode*> deltaItems;
@@ -124,7 +127,7 @@ int  DirRetriver::retrive_dir()
         mit = this->dir_node_process_queue.begin();
 
         parent_item = mit->first;
-        parent_model_internal_pointer = mit->second;
+        parent_persistent_index = mit->second;
        
         fileinfos.clear();
         // 状态初始化,假设所有的条目都是要删掉的
@@ -178,10 +181,10 @@ int  DirRetriver::retrive_dir()
 	
         //将多出的记录插入到树中
         for (int i = 0 ;i < deltaItems.count(); i ++) {
-            deltaItems.at(i)->onRow = parent_item->childCount();
+            // deltaItems.at(i)->onRow = parent_item->childCount();
             // parent_item->child_items.insert(std::make_pair(parent_item->childCount(), deltaItems.at(i)));
             // parent_item->child_items.insert(parent_item->childCount(), deltaItems.at(i));
-            parent_item->childNodes.insert(deltaItems.at(i)->onRow, deltaItems.at(i));
+            // parent_item->childNodes.insert(deltaItems.at(i)->onRow, deltaItems.at(i));
         }
 
         deltaItems.clear();
@@ -190,7 +193,7 @@ int  DirRetriver::retrive_dir()
 
         //         //////
         this->dir_node_process_queue.erase(parent_item);
-        emit this->remote_dir_node_retrived(parent_item, parent_model_internal_pointer);
+        emit this->remote_dir_node_retrived(parent_item, parent_persistent_index, 0);
 
         if (ssh2_sftp_handle != 0) //TODO 应该在循环上面检测到为0就continue才对啊。
             libssh2_sftp_closedir(ssh2_sftp_handle);
@@ -212,7 +215,7 @@ int  DirRetriver::mkdir()
     
     exec_ret = libssh2_sftp_mkdir(ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(abs_path).data(), 0777);
 
-    this->add_node(cmd_item->parent_item, cmd_item->parent_model_internal_pointer);
+    this->add_node(cmd_item->parent_item, cmd_item->parent_persistent_index);
     
     return exec_ret ;
 }
@@ -238,7 +241,7 @@ int  DirRetriver::rmdir()
         exec_ret = libssh2_sftp_rmdir(ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(abs_path).data());
     }
     //cmd_item->parent_item->retrived = 2 ;   //让上层视图更新这个结点
-    this->add_node(cmd_item->parent_item, cmd_item->parent_model_internal_pointer);
+    this->add_node(cmd_item->parent_item, cmd_item->parent_persistent_index);
     
     return exec_ret;
 }
@@ -274,7 +277,7 @@ int  DirRetriver::rm_file_or_directory_recursively()
         }
     }
 
-    this->add_node(cmd_item->parent_item, cmd_item->parent_model_internal_pointer);
+    this->add_node(cmd_item->parent_item, cmd_item->parent_persistent_index);
     
     return exec_ret;
 }
@@ -363,7 +366,7 @@ int  DirRetriver::rename()
                                        GlobalOption::instance()->remote_codec->fromUnicode(abs_path_rename_to));
     }
 
-    this->add_node(cmd_item->parent_item, cmd_item->parent_model_internal_pointer);
+    this->add_node(cmd_item->parent_item, cmd_item->parent_persistent_index);
     
     return exec_ret ;
 }
@@ -499,7 +502,7 @@ int DirRetriver::fxp_realpath()
     return ret;
 }
 
-void DirRetriver::add_node(NetDirNode *parent_item, void *parent_model_internal_pointer)
+void DirRetriver::add_node(NetDirNode *parent_item, void *parent_persistent_index)
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 	
@@ -507,7 +510,7 @@ void DirRetriver::add_node(NetDirNode *parent_item, void *parent_model_internal_
     parent_item->retrFlag = POP_UPDATING;
     command_queue_elem *cmd_elem = new command_queue_elem();
     cmd_elem->parent_item = parent_item;
-    cmd_elem->parent_model_internal_pointer = parent_model_internal_pointer;
+    cmd_elem->parent_persistent_index = parent_persistent_index;
     cmd_elem->cmd = SSH2_FXP_READDIR;
     this->command_queue.push_back(cmd_elem);
 	
@@ -517,13 +520,13 @@ void DirRetriver::add_node(NetDirNode *parent_item, void *parent_model_internal_
 }
 
 void DirRetriver::slot_execute_command(NetDirNode *parent_item,
-                                                  void *parent_model_internal_pointer, int cmd, QString params)
+                                                  void *parent_persistent_index, int cmd, QString params)
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
     command_queue_elem *cmd_elem = new command_queue_elem();
     cmd_elem->parent_item = parent_item;
-    cmd_elem->parent_model_internal_pointer = parent_model_internal_pointer;
+    cmd_elem->parent_persistent_index = parent_persistent_index;
     cmd_elem->cmd = cmd;
     cmd_elem->params = params;
     

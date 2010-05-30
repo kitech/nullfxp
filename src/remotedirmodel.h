@@ -50,7 +50,7 @@ public:
                         int role = Qt::DisplayRole) const;
     QModelIndex index(int row, int column,
                       const QModelIndex &parent = QModelIndex()) const;
-    // QModelIndex index(const QString & path, int column = 0) const;
+    QModelIndex index(const QString & path, int column = 0) const; // 效率可能有问题
         
     QModelIndex parent(const QModelIndex &child) const;
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
@@ -80,12 +80,12 @@ public:
 
     void dump_tree_node_item(NetDirNode *node_item) const;
 public slots:
-    void slot_remote_dir_node_retrived(NetDirNode *parent_item, void *parent_model_internal_pointer);
+    void slot_remote_dir_node_retrived(NetDirNode *parent_item, void *parent_persistent_index, NetDirNode *newNodes);
     void slot_remote_dir_node_clicked(const QModelIndex &index);
         
-    void slot_execute_command(NetDirNode *parent_item, void *parent_model_internal_pointer, int cmd, QString params );
+    void slot_execute_command(NetDirNode *parent_item, void *parent_persistent_index, int cmd, QString params );
 
-    void execute_command_finished(NetDirNode *parent_item, void *parent_model_internal_pointer,
+    void execute_command_finished(NetDirNode *parent_item, void *parent_persistent_index,
                                   int cmd, int status);
     //keep_alive
     void set_keep_alive(bool keep_alive, int time_out = DEFAULT_KEEP_ALIVE_TIMEOUT);
@@ -111,8 +111,8 @@ private:
     DirRetriver *dir_retriver;
 
     // 递归查找树
-    // QModelIndex find_node_item_by_path_elements(NetDirNode *parent_node_item,
-    //                                             QStringList &path_elements, int level) const;
+    QModelIndex find_node_item_by_path_elements(NetDirNode *parent_node_item,
+                                                QStringList &path_elements, int level) const;
 
 
     QString user_home_path;

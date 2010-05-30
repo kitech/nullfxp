@@ -122,7 +122,7 @@ NetDirNode *NetDirNode::childAt(int index)
     if (this->childNodes.contains(index)) {
         return this->childNodes.value(index);
     } else {
-        q_debug()<<"can find child at:"<<index;
+        q_debug()<<"can not find child at:"<<index;
     }
     return NULL;
 }
@@ -195,8 +195,10 @@ bool NetDirNode::copyFrom(NetDirNode *node)
     this->fullPath = node->fullPath;
     this->_fileName = node->_fileName;
     this->linkToDir = node->linkToDir;
-    
-    // this->onRow = node->onRow;
+    this->retrFlag = node->retrFlag;
+    this->prevFlag = node->prevFlag;
+    this->deleted = node->deleted;
+    this->onRow = node->onRow;
     // this->pNode = node->pNode;
     
     memcpy(&this->attrib, &node->attrib, sizeof(this->attrib));

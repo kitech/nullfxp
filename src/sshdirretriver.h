@@ -47,9 +47,9 @@ public:
     
     virtual void run();
         
-    void add_node(NetDirNode *parent_item, void *parent_model_internal_pointer);
+    void add_node(NetDirNode *parent_item, void *parent_persistent_index);
     
-    void slot_execute_command(NetDirNode *parent_item, void *parent_model_internal_pointer,
+    void slot_execute_command(NetDirNode *parent_item, void *parent_persistent_index,
                               int cmd, QString params);
 
 private:
@@ -59,13 +59,13 @@ private:
         command_queue_elem()
         {  
             this->parent_item = 0;
-            this->parent_model_internal_pointer = 0;
+            this->parent_persistent_index = 0;
             this->cmd = -1;
             this->retry_times = 0;
         }
                
         NetDirNode *parent_item;
-        void *parent_model_internal_pointer;
+        void *parent_persistent_index;
         int  cmd;
         QString  params;
         int  retry_times;
@@ -89,9 +89,9 @@ signals:
     void enter_remote_dir_retrive_loop();
     void leave_remote_dir_retrive_loop();
         
-    void remote_dir_node_retrived(NetDirNode *parent_item, void *parent_model_internal_pointer);
+    void remote_dir_node_retrived(NetDirNode *parent_item, void *parent_persistent_index, NetDirNode *newNodes);
         
-    void execute_command_finished(NetDirNode *parent_item, void *parent_model_internal_pointer,
+    void execute_command_finished(NetDirNode *parent_item, void *parent_persistent_index,
                                   int cmd, int status);
 
 private:

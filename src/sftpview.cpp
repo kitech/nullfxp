@@ -89,25 +89,27 @@ void SFTPView::i_init_dir_view()
     this->remoteview.treeView->setColumnWidth(0, this->remoteview.treeView->columnWidth(0)*2);
     
     //这里设置为true时，导致这个treeView不能正确显示滚动条了，为什么呢?
-    this->remoteview.treeView->setColumnHidden(1, true);
-    // this->remoteview.treeView->setColumnWidth(1, 0);使用这种方法隐藏看上去就正常了。
+    // this->remoteview.treeView->setColumnHidden(1, true);
+    this->remoteview.treeView->setColumnWidth(1, 0); // 使用这种方法隐藏看上去就正常了。
     this->remoteview.treeView->setColumnHidden(2, true);
     this->remoteview.treeView->setColumnHidden(3, true);
     
     /////tableView
+    QModelIndex homeIndex = this->remote_dir_model->index(this->user_home_path);
     // this->remoteview.tableView->setModel(this->remote_dir_sort_filter_model);
     this->remoteview.tableView->setModel(this->remote_dir_model);
-    // this->remoteview.tableView->setRootIndex(this->remote_dir_model->index(this->user_home_path));
+    this->remoteview.tableView->setRootIndex(homeIndex);
     
     //change row height of table 
-    // if (this->remote_dir_model->rowCount(this->remote_dir_model->index(this->user_home_path)) > 0) {
-    //     this->table_row_height = this->remoteview.tableView->rowHeight(0)*2/3;
-    // } else {
-    //     this->table_row_height = 20 ;
-    // }
-    // for (int i = 0; i < this->remote_dir_model->rowCount(this->remote_dir_model->index(this->user_home_path)); i ++) {
-    //     this->remoteview.tableView->setRowHeight(i, this->table_row_height);
-    // }
+    this->table_row_height = 20; // default table height
+    if (this->remote_dir_model->rowCount(homeIndex) > 0) {
+        this->table_row_height = this->remoteview.tableView->rowHeight(0)*2/3;
+    } else {
+        this->table_row_height = 20 ;
+    }
+    for (int i = 0; i < this->remote_dir_model->rowCount(homeIndex); i ++) {
+        this->remoteview.tableView->setRowHeight(i, this->table_row_height);
+    }
     this->remoteview.tableView->resizeColumnToContents(0);
     
     /////
@@ -330,8 +332,8 @@ void SFTPView::update_layout()
         // (this->remote_dir_sort_filter_model_ex->mapToSource(midx).internalPointer());
         qDebug()<<dti->_fileName<<" "<< dti->fullPath;
         file_path = dti->fullPath;
-        dti->retrFlag = 1;
-        dti->prevFlag=9;
+        dti->retrFlag = POP_NO_NEED_WITH_DATA; // 1;
+        dti->prevFlag = POP_NEWEST; // 9;
         // this->remote_dir_model->slot_remote_dir_node_clicked(this->remote_dir_sort_filter_model_ex->mapToSource(midx));
         this->remote_dir_model->slot_remote_dir_node_clicked(useIndex);
     }
@@ -740,13 +742,23 @@ void SFTPView::slot_dir_tree_item_clicked(const QModelIndex & index)
     // }
     
     remote_dir_model->slot_remote_dir_node_clicked(useIndex);
-    
+
+    this->remoteview.tableView->setRootIndex(useIndex);
+    for (int i = 0; i < this->remote_dir_model->rowCount(useIndex); ++i) {
+        this->remoteview.tableView->setRowHeight(i, this->table_row_height);
+    }
+
     // file_path = this->remote_dir_model->filePath(useIndex);
     // this->remoteview.tableView->setRootIndex(this->remote_dir_model->index(file_path));
     // for (int i = 0 ; i < this->remote_dir_model->rowCount(this->remote_dir_model->index(file_path)); i ++ ) {
     //     this->remoteview.tableView->setRowHeight(i, this->table_row_height);
     // }
     this->remoteview.tableView->resizeColumnToContents(0);
+
+    // useIndex = this->remoteview.tableView->rootIndex();
+    // qDebug()<<useIndex<<this->remote_dir_model->rowCount(useIndex);
+    // node = static_cast<NetDirNode*>(useIndex.internalPointer());
+    // this->remote_dir_model->dump_tree_node_item(pnode);
 }
 
 void SFTPView::slot_dir_file_view_double_clicked(const QModelIndex & index)
