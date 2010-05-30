@@ -27,7 +27,6 @@ LocalView::LocalView(QWidget *parent )
     this->status_bar->showMessage(tr("Ready"));
     
     ////
-    // model = new QDirModel();
     model = new QFileSystemModel();
     QObject::connect(model, SIGNAL(directoryLoaded(const QString &)),
                      this, SLOT(onDirectoryLoaded(const QString &)));
@@ -35,7 +34,7 @@ LocalView::LocalView(QWidget *parent )
                      this, SLOT(onFileRenamed(const QString &, const QString &, const QString &)));
     QObject::connect(model, SIGNAL(rootPathChanged(const QString &)),
                      this, SLOT(onRootPathChanged(const QString &)));
-    model->setRootPath("/");
+    model->setRootPath(""); // on widows this can list all drivers
 
     //     model->setFilter( QDir::AllEntries|QDir::Hidden|QDir::NoDotAndDotDot );
     this->dir_file_model = new LocalDirSortFilterModel();
@@ -43,7 +42,7 @@ LocalView::LocalView(QWidget *parent )
 
     
     this->localView.treeView->setModel(this->dir_file_model);
-    this->localView.treeView->setRootIndex(this->dir_file_model->index("/"));
+    this->localView.treeView->setRootIndex(this->dir_file_model->index(""));
     // this->localView.treeView->setColumnHidden(1, true);
     this->localView.treeView->setColumnWidth(1, 0);
     this->localView.treeView->setColumnHidden(2, true);
@@ -166,33 +165,26 @@ void LocalView::init_local_dir_tree_context_menu()
 void LocalView::expand_to_home_directory(QModelIndex parent_model, int level)
 {
     Q_UNUSED(parent_model);
-    // int row_cnt = this->dir_file_model->rowCount(parent_model);
+    QString homePath = QDir::homePath();
     QStringList homePathParts = QDir::homePath().split('/');
     // qDebug()<<home_path_grade<<level<<row_cnt;
     QStringList stepPathParts;
     QString tmpPath;
     QModelIndex curr_model;
+
+    // windows fix case: C:/abcd/efg/hi
+    bool unixRootFix = true;
+    if (homePath.length() > 1 && homePath.at(1) == ':') {
+        unixRootFix = false;
+    }
+    
     for (int i = 1; i < homePathParts.count(); i++) {
         stepPathParts << homePathParts.at(i);
-        tmpPath = QString("/") + stepPathParts.join("/");
+        tmpPath = unixRootFix ? QString("/") : QString() + stepPathParts.join("/");
         // qDebug()<<tmpPath;
         curr_model = this->dir_file_model->index(tmpPath);
         this->localView.treeView->expand(curr_model);
     }
-    // for (int i = 0 ; i < row_cnt; i++) {
-    //     curr_model = this->dir_file_model->index(i, 0, parent_model);
-    //     QString file_name = this->dir_file_model->data(curr_model).toString();
-    //     qDebug()<<file_name;
-    //     if (file_name == home_path_grade.at(level)) {
-    //         this->localView.treeView->expand(curr_model);
-    //         if (level == home_path_grade.count() - 1) {
-    //             break;
-    //         } else {
-    //             this->expand_to_home_directory(curr_model, level+1);
-    //             break;
-    //         }
-    //     }
-    // }
     if (level == 1) {
         this->localView.treeView->scrollTo(curr_model);
     }
@@ -238,7 +230,7 @@ QString LocalView::get_selected_directory()
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
     QString local_path ;
-    QItemSelectionModel * ism = this->localView.treeView->selectionModel();
+    QItemSelectionModel *ism = this->localView.treeView->selectionModel();
 
     if (ism == 0) {        
         return QString();
@@ -315,8 +307,8 @@ void LocalView::slot_dir_file_view_double_clicked(const QModelIndex & index)
     //expand left tree dir and update right table view
     // got the file path , tell tree ' model , then expand it
     //文件列表中的双击事件
-    //1。　本地主机，如果是目录，则打开这个目录，如果是文件，则使用本机的程序打开这个文件
-    //2。对于远程主机，　如果是目录，则打开这个目录，如果是文件，则提示是否要下载它。
+    //1。 本地主机，如果是目录，则打开这个目录，如果是文件，则使用本机的程序打开这个文件
+    //2。 对于远程主机，　如果是目录，则打开这个目录，如果是文件，则提示是否要下载它。
     QString file_path ;
     
     if (this->model->isDir(index)) {
@@ -329,6 +321,7 @@ void LocalView::slot_dir_file_view_double_clicked(const QModelIndex & index)
         qDebug()<<" double clicked a regular file , no op now,only now";
     }
 }
+
 //TODO accept drop 
 
 void LocalView::slot_show_hidden(bool show)
@@ -493,8 +486,8 @@ void LocalView::slot_copy_path_url()
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
     if (ism == 0) {
-        qDebug()<<" why???? no QItemSelectionModel??";        
-        return ;
+        qDebug()<<"Why???? no QItemSelectionModel??";        
+        return;
     }
     
     QModelIndexList mil = ism->selectedIndexes()   ;
@@ -514,13 +507,13 @@ void LocalView::slot_show_properties()
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
     if (ism == 0) {
-        qDebug()<<" why???? no QItemSelectionModel??";        
+        qDebug()<<"Why???? no QItemSelectionModel??";
         return ;
     }
     
-    QModelIndexList mil = ism->selectedIndexes()   ;
+    QModelIndexList mil = ism->selectedIndexes();
     if (mil.count() == 0 ) {
-        qDebug()<<" why???? no QItemSelectionModel??";
+        qDebug()<<"Why???? no QItemSelectionModel??";
         return;
     }
     QString local_file = this->curr_item_view==this->localView.treeView
@@ -541,9 +534,12 @@ void LocalView::rm_file_or_directory_recursively()
 void LocalView::onDirectoryLoaded(const QString &path)
 {
     q_debug()<<path;
+    if (this->model->filePath(this->localView.tableView->rootIndex()) == path) {
+        this->localView.tableView->resizeColumnToContents(0);
+    }
 }
 
-void LocalView::onFileRenamed(const QString &path,  const QString &oldName, const QString & newName)
+void LocalView::onFileRenamed(const QString &path, const QString &oldName, const QString &newName)
 {
     q_debug()<<path<<oldName<<newName;
 }
