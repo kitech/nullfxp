@@ -79,6 +79,7 @@ src/icons/edit-cut.png -text
 src/icons/edit-delete.png -text
 src/icons/edit-paste.png -text
 src/icons/emblem-symbolic-link.png -text
+src/icons/folder-favorites.png -text
 src/icons/folder-new.png -text
 src/icons/go-next.png -text
 src/icons/go-previous.png -text
