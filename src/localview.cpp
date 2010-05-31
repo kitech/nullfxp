@@ -178,10 +178,10 @@ void LocalView::expand_to_home_directory(QModelIndex parent_model, int level)
         unixRootFix = false;
     }
     
-    for (int i = 1; i < homePathParts.count(); i++) {
+    for (int i = 0; i < homePathParts.count(); i++) {
         stepPathParts << homePathParts.at(i);
-        tmpPath = unixRootFix ? QString("/") : QString() + stepPathParts.join("/");
-        // qDebug()<<tmpPath;
+        tmpPath = (unixRootFix ? QString("/") : QString()) + stepPathParts.join("/");
+        /// qDebug()<<tmpPath<<stepPathParts;
         curr_model = this->dir_file_model->index(tmpPath);
         this->localView.treeView->expand(curr_model);
     }
@@ -536,6 +536,7 @@ void LocalView::onDirectoryLoaded(const QString &path)
     q_debug()<<path;
     if (this->model->filePath(this->localView.tableView->rootIndex()) == path) {
         this->localView.tableView->resizeColumnToContents(0);
+        this->onUpdateEntriesStatus();
     }
 }
 
@@ -549,4 +550,9 @@ void LocalView::onRootPathChanged(const QString &newPath)
     q_debug()<<newPath;
 }
 
-
+void LocalView::onUpdateEntriesStatus()
+{
+    int entries = this->model->rowCount(this->localView.tableView->rootIndex());
+    QString msg = QString("%1 entries").arg(entries);
+    this->status_bar->showMessage(msg);
+}

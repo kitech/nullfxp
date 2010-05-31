@@ -25,8 +25,6 @@
 #include "remoteview.h"
 
 class ProgressDialog;
-class RemoteDirSortFilterModel;
-class RemoteDirSortFilterModelEX;
 class LocalView;
 class EncryptionDetailFocusLabel;
 class Connection;
@@ -45,8 +43,6 @@ public:
     // 这个函数同时返回这两个值, first=strip_path, second=file_name
     QPair<QString, QString> get_selected_directory(bool pair);
     //
-    // void set_host_info(QString host_name, QString user_name, QString password, short port, QString pubkey);
-    // void set_ssh2_handler(void *ssh2_sess, int ssh2_sock );
     // void set_user_home_path(std::string user_home_path);
     void setConnection(Connection *conn);
     
@@ -57,42 +53,7 @@ public:
     
 protected:
     void init_popup_context_menu();
-    // LocalView  *local_view;
-    // QMdiArea   *main_mdi_area;
-    // QStatusBar *status_bar;
-        
-    // Ui::remoteview remoteview;
-    // RemoteDirModel *remote_dir_model;
-    // int   table_row_height ;
-    // RemoteDirSortFilterModel *remote_dir_sort_filter_model;
-    // RemoteDirSortFilterModelEX *remote_dir_sort_filter_model_ex;
-    // QAbstractItemView *curr_item_view;    //
-        
-    // QMenu *dir_tree_context_menu ;
-            
-    // std::string user_home_path;
-        
-    // QCursor orginal_cursor;
-    // bool    in_remote_dir_retrive_loop;
-    // ProgressDialog *own_progress_dialog;
-    
-    // //
-    // int     ssh2_sock;
-    // LIBSSH2_SESSION *ssh2_sess;
-    // LIBSSH2_CHANNEL *ssh2_channel;
-    // LIBSSH2_SFTP *ssh2_sftp;
-        
-    // QString host_name;
-    // QString user_name;
-    // QString password;
-    // short  port;
-    // QString pubkey;
-    // Connection *conn;
-        
-    // //menu item
-    // QAction *attr_action;
-    // EncryptionDetailFocusLabel *enc_label;
-                                  
+
     FTPConnection *rconn; // real connection type;
 
 public slots:

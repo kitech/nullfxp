@@ -81,55 +81,55 @@ QT4_WRAP_UI(qtproject_UIS_H ${qtproject_UIS})
 
 # 
 SET( qtproject_SRCS
-aboutnullfxp.cpp     
-fileproperties.cpp       
-remotehostconnectingstatusdialog.cpp
-localview.cpp
-localdirsortfiltermodel.cpp
-remotehostconnectthread.cpp
-nullfxp.cpp                 
-remotehostquickconnectinfodialog.cpp
-progressdialog.cpp          
-remoteview.cpp
-remoteviewdirtableview.cpp
-remotedirmodel.cpp
-remotedirsortfiltermodel.cpp
-localdirorginalmodel.cpp
-transferthread.cpp
-remotedirretrivethread.cpp
-globaloptionsdialog.cpp
-forwardconnectdaemon.cpp
-fileexistaskdialog.cpp
-encryptiondetaildialog.cpp
-encryptiondetailfocuslabel.cpp
- )
+  aboutnullfxp.cpp     
+  fileproperties.cpp       
+  remotehostconnectingstatusdialog.cpp
+  localview.cpp
+  localdirsortfiltermodel.cpp
+  remotehostconnectthread.cpp
+  nullfxp.cpp                 
+  remotehostquickconnectinfodialog.cpp
+  progressdialog.cpp          
+  remoteview.cpp
+  remoteviewdirtableview.cpp
+  remotedirmodel.cpp
+  netdirsortfiltermodel.cpp
+  localdirorginalmodel.cpp
+  transferthread.cpp
+  remotedirretrivethread.cpp
+  globaloptionsdialog.cpp
+  forwardconnectdaemon.cpp
+  fileexistaskdialog.cpp
+  encryptiondetaildialog.cpp
+  encryptiondetailfocuslabel.cpp
+  )
 
- SET ( qtproject_moc_HDRS 
-aboutnullfxp.h    
-fileproperties.h        
-remotehostconnectingstatusdialog.h
-localview.h
-localdirsortfiltermodel.h
-remotehostconnectthread.h
-nullfxp.h                 
-remotehostquickconnectinfodialog.h
-progressdialog.h          
-remoteview.h
-remoteviewdirtableview.h
-remotedirmodel.h
-remotedirsortfiltermodel.h
-localdirorginalmodel.h
-transferthread.h
-remotedirretrivethread.h
-globaloptionsdialog.h
-forwardconnectdaemon.h
-forwardconnectinfodialog.h
-forwarddebugwindow.h
-sessiondialog.h
-fileexistaskdialog.h
-encryptiondetaildialog.h
-encryptiondetailfocuslabel.h
- )
+SET ( qtproject_moc_HDRS 
+  aboutnullfxp.h    
+  fileproperties.h        
+  remotehostconnectingstatusdialog.h
+  localview.h
+  localdirsortfiltermodel.h
+  remotehostconnectthread.h
+  nullfxp.h                 
+  remotehostquickconnectinfodialog.h
+  progressdialog.h          
+  remoteview.h
+  remoteviewdirtableview.h
+  remotedirmodel.h
+  netdirsortfiltermodel.h
+  localdirorginalmodel.h
+  transferthread.h
+  remotedirretrivethread.h
+  globaloptionsdialog.h
+  forwardconnectdaemon.h
+  forwardconnectinfodialog.h
+  forwarddebugwindow.h
+  sessiondialog.h
+  fileexistaskdialog.h
+  encryptiondetaildialog.h
+  encryptiondetailfocuslabel.h
+  )
 QT4_WRAP_CPP(qtproject_moc_SRCS ${qtproject_moc_HDRS})
 
 
@@ -156,7 +156,7 @@ ${qtproject_QRC_SRCS}
     remotehostconnectthread.cpp
     remotedirretrivethread.cpp
     remotedirmodel.cpp
-    remotedirsortfiltermodel.cpp
+    netdirsortfiltermodel.cpp
     localdirorginalmodel.cpp
     localdirsortfiltermodel.cpp
     transferthread.cpp

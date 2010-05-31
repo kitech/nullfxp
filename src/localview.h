@@ -55,7 +55,8 @@ private slots:
     void slot_rename();
     void rm_file_or_directory_recursively();
     void slot_copy_path_url();
-    
+
+    void onUpdateEntriesStatus();
     void onDirectoryLoaded(const QString &path);
     void onFileRenamed(const QString &path,  const QString &oldName, const QString & newName);
     void onRootPathChanged(const QString &newPath);
@@ -65,7 +66,6 @@ protected:
         
 private:
     QStatusBar *status_bar;
-    // QDirModel *model;
     QFileSystemModel *model;
     Ui::LocalView localView;
     LocalDirSortFilterModel *dir_file_model;

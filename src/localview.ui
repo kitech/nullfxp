@@ -1,7 +1,8 @@
-<ui version="4.0" >
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
  <class>LocalView</class>
- <widget class="QWidget" name="LocalView" >
-  <property name="geometry" >
+ <widget class="QWidget" name="LocalView">
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
@@ -9,52 +10,174 @@
     <height>447</height>
    </rect>
   </property>
-  <property name="windowTitle" >
+  <property name="windowTitle">
    <string>Local Host</string>
   </property>
-  <layout class="QVBoxLayout" >
+  <layout class="QVBoxLayout">
    <item>
-    <widget class="QSplitter" name="splitter" >
-     <property name="sizePolicy" >
-      <sizepolicy vsizetype="Expanding" hsizetype="Expanding" >
+    <widget class="QWidget" name="widget" native="true">
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QToolButton" name="toolButton_6">
+        <property name="toolTip">
+         <string>Bookmarks</string>
+        </property>
+        <property name="text">
+         <string>...</string>
+        </property>
+        <property name="icon">
+         <iconset resource="nullfxp.qrc">
+          <normaloff>:/icons/folder-favorites.png</normaloff>:/icons/folder-favorites.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="comboBox">
+        <property name="editable">
+         <bool>true</bool>
+        </property>
+        <item>
+         <property name="text">
+          <string>ixvxcv</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>vxc</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>oiew</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>dsfsdf</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Clear...</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="toolButton_5">
+        <property name="toolTip">
+         <string>Go Home</string>
+        </property>
+        <property name="text">
+         <string>...</string>
+        </property>
+        <property name="icon">
+         <iconset resource="nullfxp.qrc">
+          <normaloff>:/icons/user-home.png</normaloff>:/icons/user-home.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="toolButton_4">
+        <property name="toolTip">
+         <string>Go Previous</string>
+        </property>
+        <property name="text">
+         <string>...</string>
+        </property>
+        <property name="icon">
+         <iconset resource="nullfxp.qrc">
+          <normaloff>:/icons/go-previous.png</normaloff>:/icons/go-previous.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="toolButton_3">
+        <property name="toolTip">
+         <string>Go Next</string>
+        </property>
+        <property name="text">
+         <string>...</string>
+        </property>
+        <property name="icon">
+         <iconset resource="nullfxp.qrc">
+          <normaloff>:/icons/go-next.png</normaloff>:/icons/go-next.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="toolButton_2">
+        <property name="toolTip">
+         <string>Go Parent</string>
+        </property>
+        <property name="text">
+         <string>...</string>
+        </property>
+        <property name="icon">
+         <iconset resource="nullfxp.qrc">
+          <normaloff>:/icons/go-up.png</normaloff>:/icons/go-up.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="toolButton">
+        <property name="toolTip">
+         <string>Reload</string>
+        </property>
+        <property name="text">
+         <string>...</string>
+        </property>
+        <property name="icon">
+         <iconset resource="nullfxp.qrc">
+          <normaloff>:/icons/appointment-recurring.png</normaloff>:/icons/appointment-recurring.png</iconset>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QSplitter" name="splitter">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="orientation" >
+     <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
-     <widget class="QTreeView" name="treeView" >
-      <property name="contextMenuPolicy" >
+     <widget class="QTreeView" name="treeView">
+      <property name="contextMenuPolicy">
        <enum>Qt::CustomContextMenu</enum>
       </property>
-      <property name="acceptDrops" >
+      <property name="acceptDrops">
        <bool>true</bool>
       </property>
-      <property name="dragEnabled" >
+      <property name="dragEnabled">
        <bool>true</bool>
       </property>
-      <property name="dragDropMode" >
+      <property name="dragDropMode">
        <enum>QAbstractItemView::DragDrop</enum>
       </property>
-      <property name="selectionMode" >
+      <property name="selectionMode">
        <enum>QAbstractItemView::ExtendedSelection</enum>
       </property>
      </widget>
-     <widget class="QTableView" name="tableView" >
-      <property name="contextMenuPolicy" >
+     <widget class="QTableView" name="tableView">
+      <property name="contextMenuPolicy">
        <enum>Qt::CustomContextMenu</enum>
       </property>
-      <property name="dragEnabled" >
+      <property name="dragEnabled">
        <bool>true</bool>
       </property>
-      <property name="selectionBehavior" >
+      <property name="selectionBehavior">
        <enum>QAbstractItemView::SelectRows</enum>
       </property>
-      <property name="showGrid" >
+      <property name="showGrid">
        <bool>false</bool>
       </property>
-      <property name="sortingEnabled" >
+      <property name="sortingEnabled">
        <bool>true</bool>
       </property>
      </widget>
@@ -62,6 +185,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="nullfxp.qrc"/>
+ </resources>
  <connections/>
 </ui>

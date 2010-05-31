@@ -166,12 +166,14 @@ void SFTPView::slot_new_transfer()
     
     for(int i = 0 ; i < mil.size(); i +=4 ) {
         QModelIndex midx = mil.at(i);
-        NetDirNode *dti = (NetDirNode*)midx.internalPointer();
-            // (this->curr_item_view!=this->remoteview.treeView 
-            //  ? this->remote_dir_sort_filter_model->mapToSource(midx).internalPointer() 
-            //  : (this->remote_dir_sort_filter_model_ex->mapToSource(midx ).internalPointer()));
-        qDebug()<<dti->_fileName<<" "<<" "<<dti->fullPath;
-        file_path = dti->fullPath;
+        QModelIndex proxyIndex = midx;
+        QModelIndex sourceIndex = (this->curr_item_view == this->remoteview.treeView)
+            ? this->m_treeProxyModel->mapToSource(midx)
+            : this->m_tableProxyModel->mapToSource(midx);
+        QModelIndex useIndex = sourceIndex;
+
+        qDebug()<<this->remote_dir_model->fileName(useIndex)<<" "<<" "<<this->remote_dir_model->filePath(useIndex);
+        file_path = this->remote_dir_model->filePath(useIndex);
         remote_pkg.files<<file_path;
     }
 
@@ -224,7 +226,6 @@ void SFTPView::setConnection(Connection *conn)
     this->conn = conn;
     this->ssh2_sftp = libssh2_sftp_init(this->conn->sess);
     assert(this->ssh2_sftp != 0);    
-    this->ssh2_sock = this->conn->sock;
     this->setWindowTitle(this->windowTitle() + ": " + this->conn->userName + "@" + this->conn->hostName);
 }
 
@@ -289,6 +290,7 @@ void SFTPView::slot_leave_remote_dir_retrive_loop()
     //     this->remoteview.tableView->setRowHeight(i, this->table_row_height);
     // }
     this->remoteview.tableView->resizeColumnToContents(0);
+    this->onUpdateEntriesStatus();
 }
 
 void SFTPView::update_layout()
@@ -595,8 +597,9 @@ void SFTPView::slot_copy_url()
         : this->m_tableProxyModel->mapToSource(midx);
     QModelIndex useIndex = sourceIndex;
 
-    QString url = QString("sftp://%1@%2:%3%4").arg(this->user_name)
-        .arg(this->host_name).arg(this->port)
+    
+    QString url = QString("sftp://%1@%2:%3%4").arg(this->conn->userName)
+        .arg(this->conn->hostName).arg(this->conn->port)
         .arg(this->remote_dir_model->filePath(useIndex));
     QApplication::clipboard()->setText(url);
 }
@@ -760,6 +763,8 @@ void SFTPView::slot_dir_tree_item_clicked(const QModelIndex & index)
     // qDebug()<<useIndex<<this->remote_dir_model->rowCount(useIndex);
     // node = static_cast<NetDirNode*>(useIndex.internalPointer());
     // this->remote_dir_model->dump_tree_node_item(pnode);
+
+    this->onUpdateEntriesStatus();
 }
 
 void SFTPView::slot_dir_file_view_double_clicked(const QModelIndex & index)
@@ -906,6 +911,17 @@ void SFTPView::slot_show_hidden(bool show)
         tree->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
         table->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
     }
+    this->onUpdateEntriesStatus();
+}
+
+void SFTPView::onUpdateEntriesStatus()
+{
+    QModelIndex proxyIndex = this->remoteview.tableView->rootIndex();
+    QModelIndex sourceIndex = this->m_tableProxyModel->mapToSource(proxyIndex);
+    QModelIndex useIndex = sourceIndex;
+    int entries = this->m_tableProxyModel->rowCount(proxyIndex);
+    QString msg = QString("%1 entries").arg(entries);
+    this->entriesLabel->setText(msg);
 }
 
 void SFTPView::encryption_focus_label_double_clicked()

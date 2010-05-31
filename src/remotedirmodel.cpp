@@ -814,7 +814,7 @@ void RemoteDirModel::execute_command_finished(NetDirNode *parent_item, void *par
         break;
     default:
         // i do not care other command result
-        q_debug()<<"Unknown command:"<<cmd<<status<<persisIndex<<sender()<<persisIndex->isValid();
+        q_debug()<<"Unknown command:"<<cmd<<status<<persisIndex<<sender();
         if (persisIndex != NULL) {
             delete persisIndex;
             persisIndex = 0;

@@ -24,8 +24,6 @@
 #include "remoteview.h"
 
 class ProgressDialog;
-class RemoteDirSortFilterModel;
-class RemoteDirSortFilterModelEX;
 class LocalView;
 class EncryptionDetailFocusLabel;
 class Connection;
@@ -98,6 +96,8 @@ private slots:
 
     virtual void encryption_focus_label_double_clicked();
     virtual void host_info_focus_label_double_clicked();
+
+    void onUpdateEntriesStatus();
         
 protected:
     virtual void closeEvent(QCloseEvent *event);

@@ -25,8 +25,6 @@
 #include "ui_remoteview.h"
 
 class ProgressDialog;
-// class RemoteDirSortFilterModel;
-// class RemoteDirSortFilterModelEX;
 class LocalView;
 class EncryptionDetailFocusLabel;
 class Connection;
@@ -72,20 +70,13 @@ protected:
     ProgressDialog *own_progress_dialog;
     
     //
-    int     ssh2_sock;
-    LIBSSH2_CHANNEL *ssh2_channel;
     LIBSSH2_SFTP *ssh2_sftp;
     Connection *conn;
 
-    QString host_name;
-    QString user_name;
-    QString password;
-    short  port;
-    QString pubkey;
-        
     //menu item
     QAction *attr_action;
     EncryptionDetailFocusLabel *enc_label;
+    QLabel *entriesLabel;
         
 public slots:
     virtual void i_init_dir_view();
@@ -134,6 +125,8 @@ private slots:
 
     virtual void encryption_focus_label_double_clicked();
     virtual void host_info_focus_label_double_clicked();
+
+    void onUpdateEntriesStatus();
         
 protected:
     virtual void closeEvent(QCloseEvent *event);

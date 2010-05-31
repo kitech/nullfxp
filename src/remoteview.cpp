@@ -41,14 +41,18 @@ RemoteView::RemoteView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *
     this->setObjectName("rv");
     ///////
     this->status_bar = new QStatusBar();
-    this->layout()->addWidget(this->status_bar);
+    this->entriesLabel = new QLabel("Entries label", this);
+    this->entriesLabel->setTextInteractionFlags(this->entriesLabel->textInteractionFlags() 
+                                                | Qt::TextSelectableByMouse);
+    this->status_bar->addPermanentWidget(this->entriesLabel);
     this->status_bar->addPermanentWidget(this->enc_label = new EncryptionDetailFocusLabel("ENC", this));
     QObject::connect(this->enc_label, SIGNAL(mouseDoubleClick()),
                      this, SLOT(encryption_focus_label_double_clicked()));
     HostInfoDetailFocusLabel *hi_label = new HostInfoDetailFocusLabel("HI", this);
     this->status_bar->addPermanentWidget(hi_label);
     QObject::connect(hi_label, SIGNAL(mouseDoubleClick()), 
-                    this, SLOT(host_info_focus_label_double_clicked()));
+                     this, SLOT(host_info_focus_label_double_clicked()));
+    this->layout()->addWidget(this->status_bar);
 
     ////////////
     //     this->remoteview.treeView->setAcceptDrops(false);
@@ -166,9 +170,9 @@ void RemoteView::i_init_dir_view()
     this->remote_dir_model->setConnection(this->conn);
     
     // this->remote_dir_model->set_user_home_path(this->user_home_path);
-    // this->m_tableProxyModel = new RemoteDirSortFilterModel();
+    // this->m_tableProxyModel = new DirTableSortFilterModel();
     // this->m_tableProxyModel->setSourceModel(this->remote_dir_model);
-    // this->m_treeProxyModel = new RemoteDirSortFilterModelEX();
+    // this->m_treeProxyModel = new DirTreeSortFilterModelEX();
     // this->m_treeProxyModel->setSourceModel(this->remote_dir_model);
     
     this->remoteview.treeView->setModel(m_treeProxyModel);
@@ -328,7 +332,6 @@ void RemoteView::setConnection(Connection *conn)
     this->conn = conn;
     this->ssh2_sftp = libssh2_sftp_init(this->conn->sess);
     assert(this->ssh2_sftp != 0);    
-    this->ssh2_sock = this->conn->sock;
     this->setWindowTitle(this->windowTitle() + ": " + this->conn->userName + "@" + this->conn->hostName);
 }
 
@@ -660,8 +663,8 @@ void RemoteView::slot_copy_url()
         : this->m_tableProxyModel->mapToSource(midx);    
     NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
 
-    QString url = QString("sftp://%1@%2:%3%4").arg(this->user_name)
-        .arg(this->host_name).arg(this->port).arg(dti->fullPath);
+    QString url = QString("sftp://%1@%2:%3%4").arg(this->conn->userName)
+        .arg(this->conn->hostName).arg(this->conn->port).arg(dti->fullPath);
     QApplication::clipboard()->setText(url);
 }
 
@@ -945,6 +948,11 @@ void RemoteView::slot_show_hidden(bool show)
     //     m_tableProxyModel->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
     //     m_treeProxyModel->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
     // }
+}
+
+void RemoteView::onUpdateEntriesStatus()
+{
+    q_debug()<<"";
 }
 
 void RemoteView::encryption_focus_label_double_clicked()

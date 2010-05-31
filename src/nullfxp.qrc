@@ -1,5 +1,11 @@
 <RCC>
-  <qresource prefix="/" >
+  <qresource prefix="/">
+    <file>icons/folder-favorites.png</file>
+    <file>icons/go-previous.png</file>
+    <file>icons/appointment-recurring.png</file>
+    <file>icons/go-next.png</file>
+    <file>icons/go-up.png</file>
+    <file>icons/user-home.png</file>
     <file>data/about_author.html</file>
     <file>data/about_info.html</file>
     <file>icons/emblem-symbolic-link.png</file>

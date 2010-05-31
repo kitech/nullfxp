@@ -209,12 +209,14 @@ void FTPView::slot_new_transfer()
     
     for(int i = 0 ; i < mil.size(); i +=4 ) {
         QModelIndex midx = mil.at(i);
-        NetDirNode *dti = (NetDirNode*)
-            (this->curr_item_view!=this->remoteview.treeView 
-             ? this->m_tableProxyModel->mapToSource(midx).internalPointer() 
-             : (this->m_treeProxyModel->mapToSource(midx ).internalPointer()));
-        qDebug()<<dti->_fileName<<" "<<" "<<dti->fullPath;
-        file_path = dti->fullPath;
+        QModelIndex proxyIndex = midx;
+        QModelIndex sourceIndex = (this->curr_item_view == this->remoteview.treeView)
+            ? this->m_treeProxyModel->mapToSource(midx)
+            : this->m_tableProxyModel->mapToSource(midx);
+        QModelIndex useIndex = sourceIndex;
+
+        qDebug()<<this->remote_dir_model->fileName(useIndex)<<" "<<" "<<this->remote_dir_model->filePath(useIndex);
+        file_path = this->remote_dir_model->filePath(useIndex);
         remote_pkg.files<<file_path;
     }
 
@@ -695,7 +697,7 @@ void FTPView::slot_new_upload_requested(TaskPackage local_pkg)
         remote_pkg.username = this->conn->userName;
         remote_pkg.password = this->conn->password;
         remote_pkg.port = QString("%1").arg(this->conn->port);
-        remote_pkg.pubkey = this->pubkey;
+        remote_pkg.pubkey = this->conn->pubkey;
 
         this->slot_new_upload_requested(local_pkg, remote_pkg);
     }
