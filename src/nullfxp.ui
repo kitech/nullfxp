@@ -117,10 +117,16 @@
    <property name="text">
     <string>New Connect ...</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
   </action>
   <action name="actionDisconnect">
    <property name="text">
     <string>Disconnect..</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
    </property>
   </action>
   <action name="actionInit_remote_dir_view">
@@ -154,6 +160,9 @@
    <property name="text">
     <string>Show log</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
+   </property>
   </action>
   <action name="actionCascade_window">
    <property name="checkable">
@@ -174,6 +183,9 @@
   <action name="actionAbout_NullFXP">
    <property name="text">
     <string>About &amp;NullFXP</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+A</string>
    </property>
   </action>
   <action name="actionAbout_Qt">
@@ -198,10 +210,19 @@
    <property name="text">
     <string>Session ...</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
+   </property>
   </action>
   <action name="actionCheck_for_update">
    <property name="text">
     <string>C&amp;heck for updates...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+U</string>
    </property>
   </action>
   <action name="action_Global_Options">

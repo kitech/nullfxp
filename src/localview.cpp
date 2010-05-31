@@ -298,6 +298,7 @@ void LocalView::slot_dir_tree_item_clicked(const QModelIndex & index)
     for (int i = 0 ; i < this->model->rowCount(this->model->index(file_path)); i ++)
         this->localView.tableView->setRowHeight(i, this->table_row_height);
     this->localView.tableView->resizeColumnToContents(0);
+    this->onUpdateEntriesStatus();
 }
 
 void LocalView::slot_dir_file_view_double_clicked(const QModelIndex & index)

@@ -136,24 +136,25 @@ NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
     } else {
         // this->resize(this->desktop->screenGeometry(this->desktop->primaryScreen()).width()*5/6, 
         //              this->desktop->screenGeometry(this->desktop->primaryScreen()).height()*5/6);
-        this->resize(this->desktop->screenGeometry().width()*3/6, 
-                     this->desktop->screenGeometry().height()*3/6);
+        this->resize(this->desktop->screenGeometry().width()*6/10, 
+                     this->desktop->screenGeometry().height()*7/10);
     }
 
     //调整本地目录树窗口的大小
     //QList<QMdiSubWindow *> mdiSubWindow = mdiArea->subWindowList();
     //qDebug()<<" mdi sub window count :"<< mdiSubWindow.count();
     QMdiSubWindow *local_sub_win = mdiArea->subWindowList().at(0);
-    local_sub_win->setGeometry(local_sub_win->x(), local_sub_win->y(), mdiArea->width()/2, mdiArea->height()*18/19);
+    local_sub_win->setGeometry(local_sub_win->x(), local_sub_win->y(), mdiArea->width()/2, mdiArea->height()*19/19);
 
     BaseStorage *storage = BaseStorage::instance();
     int host_count = storage->hostCount();
     if (host_count > 0) {
-        this->slot_show_session_dialog();
+        QTimer::singleShot(20, this, SLOT(slot_show_session_dialog()));
     } else {
-        this->connect_to_remote_host();
+        QTimer::singleShot(20, this, SLOT(connect_to_remote_host()));
     }
 
+    // QTimer::singleShot(10, this, SLOT(slot_set_mdi_area_background()));
     //////////////////////
     //this->mUIMain.action_Forward_connect->setVisible(false);
     //this->mUIMain.action_Synchronize_file->setVisible(false);

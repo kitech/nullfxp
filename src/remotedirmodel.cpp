@@ -465,7 +465,7 @@ int RemoteDirModel::rowCount(const QModelIndex &parent) const
 
 bool RemoteDirModel::hasChildren(const QModelIndex &parent) const
 {
-    // q_debug()<<""<<parent;
+
     if (parent.isValid()) {
         NetDirNode *curr_item = static_cast<NetDirNode*>(parent.internalPointer());
         if (curr_item != NULL) {
@@ -793,31 +793,36 @@ void RemoteDirModel::execute_command_finished(NetDirNode *parent_item, void *par
                                               int cmd, int status)
 {
     QPersistentModelIndex *persisIndex = (QPersistentModelIndex*)parent_persistent_index;
+    // q_debug()<<cmd<<status<<persisIndex<<sender();
     switch (cmd) {
     case SSH2_FXP_REALPATH:
         if (status == 0) {
             parent_item->linkToDir = true;
-            // emit this->layoutChanged(); // 这种效率不高啊，还有其他办法吗
             // we own persisIndex now, so use data changed on exact index
             QModelIndex beginIndex = this->index(persisIndex->row(), 0, persisIndex->parent());
             QModelIndex endIndex = this->index(persisIndex->row(), 3, persisIndex->parent());
             emit dataChanged(beginIndex, endIndex);
 
             // TODO how goto the task?
-            if (parent_item->retrFlag == POP_NO_NEED_WITH_DATA) { // 半满状态结点
+            // if (parent_item->retrFlag == POP_NO_NEED_WITH_DATA) { // 半满状态结点
+            if (parent_item->retrFlag == POP_NO_NEED_NO_DATA) {
                 this->dir_retriver->add_node(parent_item, parent_persistent_index);
             }
+        } else {
+            parent_item->prevFlag = parent_item->retrFlag;
+            parent_item->retrFlag = POP_NEWEST;
+            QModelIndex beginIndex = this->index(persisIndex->row(), 0, persisIndex->parent());
+            QModelIndex endIndex = this->index(persisIndex->row(), 3, persisIndex->parent());
+            emit dataChanged(beginIndex, endIndex);
         }
         break;
-    case SSH2_FXP_READDIR:
-        // persisIndex will be destructed at slot_remote_dir_node_retrived
-        break;
     default:
+        // persisIndex will be destructed at slot_remote_dir_node_retrived
         // i do not care other command result
-        q_debug()<<"Unknown command:"<<cmd<<status<<persisIndex<<sender();
+        q_debug()<<"Unknown/Uncared command:"<<cmd<<status<<persisIndex<<sender();
         if (persisIndex != NULL) {
-            delete persisIndex;
-            persisIndex = 0;
+            // delete persisIndex;
+            // persisIndex = 0;
         }
         break;
     }

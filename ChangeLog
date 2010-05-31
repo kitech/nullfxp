@@ -6,6 +6,7 @@ Version 2.0.3 (xxx xx, 2010)
 	* 添加FTP Over SSL支持。
 	* 改进Windows 7 原生64位支持。
 	* 清理远程model/view代码。
+	* 添加几个常用菜单项的全局快捷键。
 
 Version 2.0.2 (May 01, 2010)
 	* 修正本地目录重命名问题。

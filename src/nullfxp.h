@@ -30,7 +30,7 @@ class Connector;
 class TaskQueueView;
 
 /**
- * NullFXP 主窗口类
+ * NullFXP main window class
  */
 class NullFXP : public QMainWindow
 {
@@ -65,6 +65,8 @@ private slots:
 	void slot_show_session_dialog();
     void slot_check_for_updates();
     void slot_show_option_dialog();
+
+    void slot_set_mdi_area_background();
 
 private:
     MdiChild *activeMdiChild();        

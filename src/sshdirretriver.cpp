@@ -161,7 +161,8 @@ int  SSHDirRetriver::retrive_dir()
                 new_item->fullPath = parent_item->fullPath + QString("/") + tmp ; // this is unicode
                 new_item->_fileName = tmp;
                 new_item->attrib = ssh2_sftp_attrib;
-                new_item->retrFlag = (new_item->isDir()) ? POP_NO_NEED_NO_DATA : POP_NEWEST;
+                new_item->retrFlag = (new_item->isDir() || new_item->isSymLink()) 
+                    ? POP_NO_NEED_NO_DATA : POP_NEWEST;
                 deltaItems.append(new_item);
             }
         }  
@@ -337,6 +338,7 @@ int  SSHDirRetriver::rename()
     QStringList  sys_dirs;
     sys_dirs<<"/usr"<<"/bin"<<"/sbin"<<"/lib"<<"/etc"<<"/dev"<<"/proc"
             <<"/mnt"<<"/sys"<<"/var";
+    sys_dirs<<"c:"<<"d:"<<"e:"<<"f:"<<"g:";
     
     command_queue_elem *cmd_item = this->command_queue.at(0);
     
@@ -348,7 +350,7 @@ int  SSHDirRetriver::rename()
     qDebug()<<"abs  path :"<<abs_path
             <<"abs path rename to ;"<<abs_path_rename_to;
     
-    if (sys_dirs.contains(  abs_path )) {
+    if (sys_dirs.contains(abs_path.toLower())) {
         qDebug()<<"rename system directory , this is danger.";
     } else {
         exec_ret = libssh2_sftp_rename(ssh2_sftp,
@@ -453,7 +455,7 @@ int SSHDirRetriver::fxp_do_ls_dir(QString path, QVector<QPair<QString, LIBSSH2_S
         while (libssh2_sftp_readdir(sftp_handle, file_name, PATH_MAX, &ssh2_sftp_attrib) > 0) {
             if (strlen(file_name) == 1 && file_name[0] == '.') continue ;
             if (strlen(file_name) == 2 && file_name[0] == '.' && file_name[1] == '.') continue;
-            //不处理隐藏文件? 处理隐藏文件
+            // hidden file handled on upper level
             // if(file_name[0] == '.' ) continue;
 
             attr = (LIBSSH2_SFTP_ATTRIBUTES*)calloc(1, sizeof(LIBSSH2_SFTP_ATTRIBUTES));
@@ -477,12 +479,14 @@ int SSHDirRetriver::fxp_realpath()
 
     q_debug()<<GlobalOption::instance()->remote_codec->fromUnicode(node_item->fullPath).data();
     // stat will follow the link if it is.
-    ret = libssh2_sftp_stat(this->ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(node_item->fullPath).data(), &ssh2_sftp_attrib);
+    ret = libssh2_sftp_stat(this->ssh2_sftp,
+                            GlobalOption::instance()->remote_codec->fromUnicode(node_item->fullPath).data(),
+                            &ssh2_sftp_attrib);
     if (ret != 0) {
         q_debug()<<"stat error.";
     } else {
-        if (S_ISDIR(ssh2_sftp_attrib.permissions)) {
-            // node_item->linkToDir = true;
+        if (LIBSSH2_SFTP_S_ISDIR(ssh2_sftp_attrib.permissions)) {
+            // node_item->linkToDir = true; // set at RemotDirModel
             ret = 0;
         } else {
             ret = 1;

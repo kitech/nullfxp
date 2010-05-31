@@ -22,9 +22,11 @@
 
 #include <QtNetwork>
 #include <QCoreApplication>
+#include <QtGui>
 
 #include "nullfxp.h"
 
+#include "utils.h"
 #include "localview.h"
 #include "remoteview.h"
 #include "progressdialog.h"
@@ -64,3 +66,24 @@ void NullFXP::slot_synchronize_file()
     sync_dlg->show();
 }
 
+void NullFXP::slot_set_mdi_area_background()
+{
+    q_debug()<<""; // #CDE8D0
+    // QColor color(165, 165, 165);
+    QColor color("#CDE8D0");
+    QBrush brush = this->mdiArea->background();
+    brush.setColor(color);
+    QPixmap logo(":/icons/nullget-1.png");
+    logo.scaled(300, 400);
+    brush.setTexture(logo);
+
+    QTransform trform;
+    trform.rotate(60);
+    // trform.scale(2.2, 2.8);
+    trform.shear(2.5, 3.5);
+    brush.setTransform(trform);
+
+    this->mdiArea->setBackground(brush);
+
+    // i dont want to set entie background, but only a little rect
+}

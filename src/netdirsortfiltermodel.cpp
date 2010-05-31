@@ -30,7 +30,8 @@ void dump_tree_node_item(NetDirNode *node_item)
     qDebug()<<"Size="<<QString(node_item->strFileSize());
     qDebug()<<"Date="<<QString(node_item->fileMDate());
     qDebug()<<"ChildCount="<<node_item->childNodes.count();
-    qDebug()<< "DeleteFlag="<<node_item->deleted;
+    qDebug()<<"DeleteFlag="<<node_item->deleted;
+    qDebug()<<"LinktoDir:"<<node_item->linkToDir;
     qDebug()<<"<<<<====================";
 }
 

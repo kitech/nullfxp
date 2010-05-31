@@ -413,7 +413,7 @@ void SFTPView::slot_mkdir()
     }
     
     dir_name = QInputDialog::getText(this, tr("Create directory:"),
-                                     tr("Input directory name:").leftJustified(100, ' '),
+                                     tr("Input directory name:").leftJustified(80, ' '),
                                      QLineEdit::Normal,
                                      tr("new_direcotry"));
     if (dir_name == QString::null) {
@@ -426,6 +426,7 @@ void SFTPView::slot_mkdir()
     }
     //TODO 将 file_path 转换编码再执行下面的操作
     QPersistentModelIndex *persisIndex = new QPersistentModelIndex(useIndex);
+    q_debug()<<persisIndex->parent();
     this->remote_dir_model->slot_execute_command(dti, persisIndex, SSH2_FXP_MKDIR, dir_name);
     
 }
@@ -782,10 +783,7 @@ void SFTPView::slot_dir_file_view_double_clicked(const QModelIndex & index)
     QModelIndex useIndex = sourceIndex;
 
     QString file_path;
-    if (this->remote_dir_model->isDir(useIndex)) {
-        // this->remoteview.treeView->expand(this->remote_dir_model->index(this->remote_dir_model->filePath(index)).parent());
-        // this->remoteview.treeView->expand(this->remote_dir_model->index(this->remote_dir_model->filePath(index)));
-        // this->slot_dir_tree_item_clicked(this->remote_dir_model->index(this->remote_dir_model->filePath(index)));
+    if (this->remote_dir_model->isDir(useIndex) || this->remote_dir_model->isSymLinkToDir(useIndex)) {
         this->remoteview.treeView->expand(this->m_treeProxyModel->mapFromSource(useIndex).parent());
         this->remoteview.treeView->expand(this->m_treeProxyModel->mapFromSource(useIndex));
         this->slot_dir_tree_item_clicked(this->m_treeProxyModel->mapFromSource(useIndex));
@@ -793,11 +791,11 @@ void SFTPView::slot_dir_file_view_double_clicked(const QModelIndex & index)
         this->remoteview.treeView->selectionModel()->clearSelection();
         this->remoteview.treeView->selectionModel()->select(this->m_treeProxyModel->mapFromSource(useIndex), 
                                                             QItemSelectionModel::Select);
-        // this->remoteview.treeView->selectionModel()->select(this->remote_dir_model->index(this->remote_dir_model->filePath(index)) , QItemSelectionModel::Select);
     } else if (this->remote_dir_model->isSymLink(useIndex)) {
         NetDirNode *node_item = (NetDirNode*)useIndex.internalPointer();
         QPersistentModelIndex *persisIndex = new QPersistentModelIndex(useIndex);
         q_debug()<<node_item->fullPath;
+        this->remote_dir_model->dump_tree_node_item(node_item);
         this->remote_dir_model->slot_execute_command(node_item, persisIndex,
                                                      SSH2_FXP_REALPATH, QString(""));
     } else {
