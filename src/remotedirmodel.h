@@ -74,6 +74,7 @@ public:
     Qt::DropActions supportedDropActions() const;
 
     QString filePath(const QModelIndex &index) const;
+    QString fileName(const QModelIndex &index) const;
     bool isDir(const QModelIndex &index) const;
     bool isSymLink(const QModelIndex &index) const;
     bool isSymLinkToDir(const QModelIndex &index) const;

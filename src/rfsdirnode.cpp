@@ -18,7 +18,7 @@
 ////////////////////////NetDirNode
 NetDirNode::~NetDirNode()
 {
-    //qDebug()<<"tree delete now";
+    // qDebug()<<"Deleting now, with childs number:"<<this->childNodes.count();
     NetDirNode *node = NULL;
     int line = this->childNodes.count();
     for (int i = line -1 ; i >=0 ; i --) {

@@ -159,16 +159,17 @@ void RemoteView::slot_show_fxp_command_log(bool show)
 void RemoteView::i_init_dir_view()
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    Q_ASSERT(1 == 2);
 
     this->remote_dir_model = new RemoteDirModel();
     // this->remote_dir_model->set_ssh2_handler(this->ssh2_sess);
     this->remote_dir_model->setConnection(this->conn);
     
-    this->remote_dir_model->set_user_home_path(this->user_home_path);
-    this->m_tableProxyModel = new RemoteDirSortFilterModel();
-    this->m_tableProxyModel->setSourceModel(this->remote_dir_model);
-    this->m_treeProxyModel = new RemoteDirSortFilterModelEX();
-    this->m_treeProxyModel->setSourceModel(this->remote_dir_model);
+    // this->remote_dir_model->set_user_home_path(this->user_home_path);
+    // this->m_tableProxyModel = new RemoteDirSortFilterModel();
+    // this->m_tableProxyModel->setSourceModel(this->remote_dir_model);
+    // this->m_treeProxyModel = new RemoteDirSortFilterModelEX();
+    // this->m_treeProxyModel->setSourceModel(this->remote_dir_model);
     
     this->remoteview.treeView->setModel(m_treeProxyModel);
     // this->remoteview.treeView->setModel(this->remote_dir_model);

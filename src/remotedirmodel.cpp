@@ -98,8 +98,6 @@ void vdump_node(NetDirNode *node, int depth)
         vdump_node(node->childNodes.value(i), depth + 2);
     }
 }
-NetDirNode *homeNode = NULL;
-QModelIndex homeIndex;
 
 void RemoteDirModel::set_user_home_path(QString user_home_path)
 {
@@ -170,9 +168,6 @@ void RemoteDirModel::set_user_home_path(QString user_home_path)
     }
 
     // vdump_node(this->rootNode, 1);
-    homeNode = currNode;
-    homeIndex = pIndex;
-
     // currNode->dumpTreeRecursive();
     delete tempNode; tempNode = NULL;    
     // 启动keep alive 功能。
@@ -668,6 +663,7 @@ void RemoteDirModel::slot_remote_dir_node_retrived(NetDirNode *parent_item,
     parent_item->prevFlag = parent_item->retrFlag;
     parent_item->retrFlag = POP_NEWEST;
 
+    Q_ASSERT(newNodes != NULL);
     for (int i = 0; i < newNodes->childNodes.count(); ++i) {
         NetDirNode *node = newNodes->childAt(i);
         int row = this->rowCount(currIndex);
@@ -677,6 +673,9 @@ void RemoteDirModel::slot_remote_dir_node_retrived(NetDirNode *parent_item,
         QVariant vv = qVariantFromValue((void*)node);
         this->setData(newIndex, vv);
     }
+
+    delete persisIndex; persisIndex = NULL;
+    delete newNodes; newNodes = NULL;
 
     // qDebug()<<parent_item->childNodes.keys();
     // for (int i = 0; i < parent_item->childNodes.count() ; ++i) {
@@ -704,6 +703,7 @@ void RemoteDirModel::slot_remote_dir_node_retrived(NetDirNode *parent_item,
     //             <<node->_fileName<<node->onRow;
     // }
 
+    // clean memory
     // emit layoutChanged(); // this cause crash!!!!!
 }
 
@@ -792,21 +792,33 @@ void RemoteDirModel::slot_execute_command(NetDirNode *parent_item,
 void RemoteDirModel::execute_command_finished(NetDirNode *parent_item, void *parent_persistent_index,
                                               int cmd, int status)
 {
+    QPersistentModelIndex *persisIndex = (QPersistentModelIndex*)parent_persistent_index;
     switch (cmd) {
     case SSH2_FXP_REALPATH:
         if (status == 0) {
             parent_item->linkToDir = true;
-            emit this->layoutChanged(); // 这种效率不高啊，还有其他办法吗
+            // emit this->layoutChanged(); // 这种效率不高啊，还有其他办法吗
+            // we own persisIndex now, so use data changed on exact index
+            QModelIndex beginIndex = this->index(persisIndex->row(), 0, persisIndex->parent());
+            QModelIndex endIndex = this->index(persisIndex->row(), 3, persisIndex->parent());
+            emit dataChanged(beginIndex, endIndex);
 
             // TODO how goto the task?
-            // if (parent_item->retrFlag == 1) { // 半满状态结点
-            this->dir_retriver->add_node(parent_item, parent_persistent_index);
-            // }
+            if (parent_item->retrFlag == POP_NO_NEED_WITH_DATA) { // 半满状态结点
+                this->dir_retriver->add_node(parent_item, parent_persistent_index);
+            }
         }
+        break;
+    case SSH2_FXP_READDIR:
+        // persisIndex will be destructed at slot_remote_dir_node_retrived
         break;
     default:
         // i do not care other command result
-        // q_debug()<<"Unknown command:"<<cmd<<status;
+        q_debug()<<"Unknown command:"<<cmd<<status<<persisIndex<<sender()<<persisIndex->isValid();
+        if (persisIndex != NULL) {
+            delete persisIndex;
+            persisIndex = 0;
+        }
         break;
     }
 }
@@ -848,6 +860,15 @@ QString RemoteDirModel::filePath(const QModelIndex &index) const
 
     return node_item->filePath();
 }
+QString RemoteDirModel::fileName(const QModelIndex &index) const
+{
+    NetDirNode *node_item = 0;
+    node_item =  static_cast<NetDirNode*>(index.internalPointer());
+    assert(node_item != 0);
+
+    return node_item->fileName();
+}
+
 bool RemoteDirModel::isDir(const QModelIndex &index) const
 {
     NetDirNode *node_item = static_cast<NetDirNode*>(index.internalPointer());

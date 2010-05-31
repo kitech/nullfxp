@@ -110,9 +110,9 @@ void FTPView::i_init_dir_view()
     this->remote_dir_model->setConnection(this->conn);
     
     this->remote_dir_model->set_user_home_path(this->user_home_path);
-    this->m_tableProxyModel = new RemoteDirSortFilterModel();
+    this->m_tableProxyModel = new DirTableSortFilterModel();
     this->m_tableProxyModel->setSourceModel(this->remote_dir_model);
-    this->m_treeProxyModel = new RemoteDirSortFilterModelEX();
+    this->m_treeProxyModel = new DirTreeSortFilterModel();
     this->m_treeProxyModel->setSourceModel(this->remote_dir_model);
     
     this->remoteview.treeView->setModel(m_treeProxyModel);
@@ -241,16 +241,19 @@ QString FTPView::get_selected_directory()
     
     QModelIndexList mil = ism->selectedIndexes();
 
-    for (int i = 0 ; i < mil.size(); i +=4) {
+    for (int i = 0 ; i < mil.size(); i += 4) {
         QModelIndex midx = mil.at(i);
-        QModelIndex aim_midx = this->m_treeProxyModel->mapToSource(midx);
-        NetDirNode *dti = (NetDirNode*)aim_midx.internalPointer();
-        q_debug()<<dti->_fileName<<" "<<dti->fullPath;
-        // if (this->m_treeProxyModel->isDir(midx)) {
-        //     file_path = dti->fullPath;
-        // } else {
-        //     file_path = "";
-        // }
+
+        QModelIndex proxyIndex = midx;
+        QModelIndex sourceIndex = this->m_treeProxyModel->mapToSource(midx);
+        QModelIndex useIndex = sourceIndex;
+
+        if (this->remote_dir_model->isDir(useIndex)) {
+            file_path = this->remote_dir_model->filePath(useIndex);
+        } else {
+            file_path = "";
+        }
+        break; // only use the first line
     }
     
     return file_path;
@@ -273,16 +276,18 @@ QPair<QString, QString> FTPView::get_selected_directory(bool pair)
 
     for (int i = 0 ; i < mil.size(); i +=4) {
         QModelIndex midx = mil.at(i);
-        QModelIndex aim_midx = this->m_treeProxyModel->mapToSource(midx);
-        NetDirNode *dti = (NetDirNode*)aim_midx.internalPointer();
-        qDebug()<<dti->_fileName<<" "<<dti->fullPath;
-        // if (this->m_treeProxyModel->isDir(midx)) {
-        //     file_path.first = dti->fullPath;
-        //     file_path.second = dti->_fileName;
-        // } else {
-        //     file_path.first = "";
-        //     file_path.second = "";
-        // }
+
+        QModelIndex proxyIndex = midx;
+        QModelIndex sourceIndex = this->m_treeProxyModel->mapToSource(midx);
+        QModelIndex useIndex = sourceIndex;
+
+        if (this->remote_dir_model->isDir(useIndex)) {
+            file_path.first = this->remote_dir_model->filePath(useIndex);
+            file_path.second = this->remote_dir_model->fileName(useIndex);
+        } else {
+            file_path.first = "";
+            file_path.second = "";
+        }
     }
     
     return file_path;

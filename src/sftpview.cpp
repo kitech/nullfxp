@@ -58,12 +58,8 @@ void SFTPView::i_init_dir_view()
     this->remote_dir_model->setConnection(this->conn);
     
     this->remote_dir_model->set_user_home_path(this->user_home_path);
-    // this->remote_dir_sort_filter_model_ex = new RemoteDirSortFilterModelEX();
-    // this->remote_dir_sort_filter_model_ex->setSourceModel(this->remote_dir_model);
-    // this->remote_dir_sort_filter_model = new RemoteDirSortFilterModel();
-    // this->remote_dir_sort_filter_model->setSourceModel(this->remote_dir_model);
-
-    // this->remoteview.treeView->setModel(remote_dir_sort_filter_model_ex);
+    this->m_tableProxyModel = new DirTableSortFilterModel();
+    this->m_tableProxyModel->setSourceModel(this->remote_dir_model);
     this->m_treeProxyModel = new DirTreeSortFilterModel();
     this->m_treeProxyModel->setSourceModel(this->remote_dir_model);
     this->remoteview.treeView->setModel(this->m_treeProxyModel);
@@ -84,7 +80,7 @@ void SFTPView::i_init_dir_view()
                      this, SLOT(slot_leave_remote_dir_retrive_loop()));
     
     this->remoteview.treeView->expandAll();
-    this->remoteview.treeView->setColumnWidth(0, this->remoteview.treeView->columnWidth(0)*2);
+    this->remoteview.treeView->setColumnWidth(0, this->remoteview.treeView->columnWidth(0) * 2);
     
     //这里设置为true时，导致这个treeView不能正确显示滚动条了，为什么呢?
     // this->remoteview.treeView->setColumnHidden(1, true);
@@ -94,9 +90,9 @@ void SFTPView::i_init_dir_view()
     
     /////tableView
     QModelIndex homeIndex = this->remote_dir_model->index(this->user_home_path);
-    // this->remoteview.tableView->setModel(this->remote_dir_sort_filter_model);
-    this->remoteview.tableView->setModel(this->remote_dir_model);
-    this->remoteview.tableView->setRootIndex(homeIndex);
+    this->remoteview.tableView->setModel(this->m_tableProxyModel);
+    // this->remoteview.tableView->setModel(this->remote_dir_model);
+    this->remoteview.tableView->setRootIndex(this->m_tableProxyModel->mapFromSource(homeIndex));
     
     //change row height of table 
     this->table_row_height = 20; // default table height
@@ -203,15 +199,17 @@ QString SFTPView::get_selected_directory()
 
     for (int i = 0 ; i < mil.size(); i += 4) {
         QModelIndex midx = mil.at(i);
-        // QModelIndex aim_midx =  this->remote_dir_sort_filter_model_ex->mapToSource(midx);
-        QModelIndex aim_midx = midx;
-        NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
-        qDebug()<<dti->_fileName <<" "<< dti->fullPath;
-        if (this->remote_dir_model->isDir(midx)) {
-        	  file_path = dti->fullPath;
+
+        QModelIndex proxyIndex = midx;
+        QModelIndex sourceIndex = this->m_treeProxyModel->mapToSource(midx);
+        QModelIndex useIndex = sourceIndex;
+
+        if (this->remote_dir_model->isDir(useIndex)) {
+            file_path = this->remote_dir_model->filePath(useIndex);
         } else {
-        	  file_path = "";
+            file_path = "";
         }
+        break; // only use the first line
     }
     
     return file_path;
@@ -360,8 +358,8 @@ void SFTPView::slot_show_properties()
         }
     } else {
         for (int i = 0 ; i < mil.count() ; i ++) {
-            // aim_mil<<this->remote_dir_sort_filter_model->mapToSource(mil.at(i));
-            aim_mil<<mil.at(i);
+            aim_mil<<this->m_tableProxyModel->mapToSource(mil.at(i));
+            // aim_mil<<mil.at(i);
         }
     }
     if (aim_mil.count() == 0) {
@@ -399,14 +397,17 @@ void SFTPView::slot_mkdir()
     }
     
     QModelIndex midx = mil.at(0);
-    // QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) ? this->remote_dir_sort_filter_model_ex->mapToSource(midx): this->remote_dir_sort_filter_model->mapToSource(midx) ;
-    QModelIndex aim_midx = midx;
-    NetDirNode *dti = (NetDirNode*)(aim_midx.internalPointer());
+    QModelIndex proxyIndex = midx;
+    QModelIndex sourceIndex = (this->curr_item_view == this->remoteview.treeView)
+        ? this->m_treeProxyModel->mapToSource(midx)
+        : this->m_tableProxyModel->mapToSource(midx);
+    QModelIndex useIndex = sourceIndex;
+    NetDirNode *dti = (NetDirNode*)(useIndex.internalPointer());
     
     //检查所选择的项是不是目录
-    if (!this->remote_dir_model->isDir(aim_midx)) {
+    if (!this->remote_dir_model->isDir(useIndex)) {
         QMessageBox::critical(this, tr("waring..."), tr("The selected item is not a directory."));
-        return ;
+        return;
     }
     
     dir_name = QInputDialog::getText(this, tr("Create directory:"),
@@ -414,7 +415,7 @@ void SFTPView::slot_mkdir()
                                      QLineEdit::Normal,
                                      tr("new_direcotry"));
     if (dir_name == QString::null) {
-        return;
+        return; // user canceled
     } 
     if (dir_name.length() == 0) {
         qDebug()<<"selectedIndexes count :"<<mil.count()<<"why no item selected????";
@@ -422,8 +423,8 @@ void SFTPView::slot_mkdir()
         return;
     }
     //TODO 将 file_path 转换编码再执行下面的操作
-    
-    this->remote_dir_model->slot_execute_command(dti, aim_midx.internalPointer(), SSH2_FXP_MKDIR, dir_name);
+    QPersistentModelIndex *persisIndex = new QPersistentModelIndex(useIndex);
+    this->remote_dir_model->slot_execute_command(dti, persisIndex, SSH2_FXP_MKDIR, dir_name);
     
 }
 
@@ -448,18 +449,18 @@ void SFTPView::slot_rmdir()
     }
     
     QModelIndex midx = mil.at(0);
-    // QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) 
-    //     ? this->remote_dir_sort_filter_model_ex->mapToSource(midx)
-    //     : this->remote_dir_sort_filter_model->mapToSource(midx);    
-    QModelIndex aim_midx = midx;
-    NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
-    QModelIndex parent_model =  aim_midx.parent();
+    QModelIndex proxyIndex = midx;
+    QModelIndex sourceIndex = (this->curr_item_view == this->remoteview.treeView)
+        ? this->m_treeProxyModel->mapToSource(midx)
+        : this->m_tableProxyModel->mapToSource(midx);
+    QModelIndex useIndex = sourceIndex;
+    QModelIndex parent_model =  useIndex.parent();
     NetDirNode *parent_item = (NetDirNode*)parent_model.internalPointer();
     
     //TODO 检查所选择的项是不是目录
-    
-    this->remote_dir_model->slot_execute_command(parent_item, parent_model.internalPointer(),
-                                                 SSH2_FXP_RMDIR, dti->_fileName);
+    QPersistentModelIndex *persisIndex = new QPersistentModelIndex(parent_model);
+    this->remote_dir_model->slot_execute_command(parent_item, persisIndex,
+                                                 SSH2_FXP_RMDIR, this->remote_dir_model->fileName(useIndex));
     
 }
 
@@ -483,26 +484,28 @@ void SFTPView::rm_file_or_directory_recursively()
         return;
     }
 
-    // 支持多选情况
     // TODO magic number
     bool firstWarning = true;
     for (int i = mil.count() - 1 - 3; i >= 0; i -= 4) {
         QModelIndex midx = mil.at(i);
-        // QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) 
-        //     ? this->remote_dir_sort_filter_model_ex->mapToSource(midx)
-        //     : this->remote_dir_sort_filter_model->mapToSource(midx);
-        QModelIndex aim_midx = midx;
-        NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
+        QModelIndex proxyIndex = midx;
+        QModelIndex sourceIndex = (this->curr_item_view == this->remoteview.treeView)
+            ? this->m_treeProxyModel->mapToSource(midx)
+            : this->m_tableProxyModel->mapToSource(midx);
+        QModelIndex useIndex = sourceIndex;
+        QModelIndex parent_model =  useIndex.parent();
+        NetDirNode *parent_item = (NetDirNode*)parent_model.internalPointer();
+
         if (firstWarning) { // 只有第一次提示用户操作，其他的不管
             QString hintMsg;
             if (mil.count()/4 > 1) {
                 hintMsg = QString(tr("Are you sure remove all of these files/directories?"));
             } else {
-                hintMsg = this->remote_dir_model->isDir(midx) 
+                hintMsg = this->remote_dir_model->isDir(useIndex) 
                     ? QString(tr("Are you sure remove this directory and it's subnodes?\n    %1/"))
-                    .arg(this->remote_dir_model->filePath(midx))
+                    .arg(this->remote_dir_model->filePath(useIndex))
                     : QString(tr("Are you sure remove this file?\n    %1"))
-                    .arg(this->remote_dir_model->filePath(midx));
+                    .arg(this->remote_dir_model->filePath(useIndex));
             }
             if (QMessageBox::warning(this, tr("Warning:"), hintMsg,
                                      QMessageBox::Yes, QMessageBox::Cancel) == QMessageBox::Yes) {
@@ -511,11 +514,10 @@ void SFTPView::rm_file_or_directory_recursively()
             }
             firstWarning = false;
         }
-        QModelIndex parent_model =  aim_midx.parent();
-        NetDirNode *parent_item = (NetDirNode*)parent_model.internalPointer();
-        
-        this->remote_dir_model->slot_execute_command(parent_item, parent_model.internalPointer(),
-                                                     SSH2_FXP_REMOVE, dti->_fileName);
+
+        QPersistentModelIndex *persisIndex = new QPersistentModelIndex(parent_model);
+        this->remote_dir_model->slot_execute_command(parent_item, persisIndex,
+                                                     SSH2_FXP_REMOVE, this->remote_dir_model->fileName(useIndex));
     }
 }
 
@@ -559,13 +561,13 @@ void SFTPView::slot_copy_path()
     }
     
     QModelIndex midx = mil.at(0);
-    // QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) 
-    //     ? this->remote_dir_sort_filter_model_ex->mapToSource(midx)
-    //     : this->remote_dir_sort_filter_model->mapToSource(midx);    
-    QModelIndex aim_midx = midx;
-    NetDirNode *dti = (NetDirNode*)aim_midx.internalPointer();
+    QModelIndex proxyIndex = midx;
+    QModelIndex sourceIndex = (this->curr_item_view == this->remoteview.treeView)
+        ? this->m_treeProxyModel->mapToSource(midx)
+        : this->m_tableProxyModel->mapToSource(midx);
+    QModelIndex useIndex = sourceIndex;
 
-    QApplication::clipboard()->setText(dti->fullPath);
+    QApplication::clipboard()->setText(this->remote_dir_model->filePath(useIndex));
 }
 
 void SFTPView::slot_copy_url()
@@ -587,14 +589,15 @@ void SFTPView::slot_copy_url()
     }
     
     QModelIndex midx = mil.at(0);
-    // QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) 
-    //     ? this->remote_dir_sort_filter_model_ex->mapToSource(midx)
-    //     : this->remote_dir_sort_filter_model->mapToSource(midx);    
-    QModelIndex aim_midx = midx;
-    NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
+    QModelIndex proxyIndex = midx;
+    QModelIndex sourceIndex = (this->curr_item_view == this->remoteview.treeView)
+        ? this->m_treeProxyModel->mapToSource(midx)
+        : this->m_tableProxyModel->mapToSource(midx);
+    QModelIndex useIndex = sourceIndex;
 
     QString url = QString("sftp://%1@%2:%3%4").arg(this->user_name)
-        .arg(this->host_name).arg(this->port).arg(dti->fullPath);
+        .arg(this->host_name).arg(this->port)
+        .arg(this->remote_dir_model->filePath(useIndex));
     QApplication::clipboard()->setText(url);
 }
 
@@ -741,7 +744,7 @@ void SFTPView::slot_dir_tree_item_clicked(const QModelIndex & index)
     
     remote_dir_model->slot_remote_dir_node_clicked(useIndex);
 
-    this->remoteview.tableView->setRootIndex(useIndex);
+    this->remoteview.tableView->setRootIndex(this->m_tableProxyModel->mapFromSource(useIndex));
     for (int i = 0; i < this->remote_dir_model->rowCount(useIndex); ++i) {
         this->remoteview.tableView->setRowHeight(i, this->table_row_height);
     }
@@ -762,26 +765,35 @@ void SFTPView::slot_dir_tree_item_clicked(const QModelIndex & index)
 void SFTPView::slot_dir_file_view_double_clicked(const QModelIndex & index)
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    //TODO if the clicked item is direcotry ,
-    //expand left tree dir and update right table view
+    // TODO if the clicked item is direcotry ,
+    // expand left tree dir and update right table view
     // got the file path , tell tree ' model , then expand it
-    //文件列表中的双击事件
-    //1。　本地主机，如果是目录，则打开这个目录，如果是文件，则使用本机的程序打开这个文件
+    // 文件列表中的双击事件
+    //1。本地主机，如果是目录，则打开这个目录，如果是文件，则使用本机的程序打开这个文件
     //2。对于远程主机，　如果是目录，则打开这个目录，如果是文件，则提示是否要下载它(或者也可以直接打开这个文件）。
+
+    QModelIndex proxyIndex = index;
+    QModelIndex sourceIndex = this->m_tableProxyModel->mapToSource(proxyIndex);
+    QModelIndex useIndex = sourceIndex;
+
     QString file_path;
-    if (this->remote_dir_model->isDir(index)) {
+    if (this->remote_dir_model->isDir(useIndex)) {
         // this->remoteview.treeView->expand(this->remote_dir_model->index(this->remote_dir_model->filePath(index)).parent());
         // this->remoteview.treeView->expand(this->remote_dir_model->index(this->remote_dir_model->filePath(index)));
-        // this->slot_dir_tree_item_clicked(this->remote_dir_model->index(this->remote_dir_model->filePath(index)))
-            ;
+        // this->slot_dir_tree_item_clicked(this->remote_dir_model->index(this->remote_dir_model->filePath(index)));
+        this->remoteview.treeView->expand(this->m_treeProxyModel->mapFromSource(useIndex).parent());
+        this->remoteview.treeView->expand(this->m_treeProxyModel->mapFromSource(useIndex));
+        this->slot_dir_tree_item_clicked(this->m_treeProxyModel->mapFromSource(useIndex));
+
         this->remoteview.treeView->selectionModel()->clearSelection();
+        this->remoteview.treeView->selectionModel()->select(this->m_treeProxyModel->mapFromSource(useIndex), 
+                                                            QItemSelectionModel::Select);
         // this->remoteview.treeView->selectionModel()->select(this->remote_dir_model->index(this->remote_dir_model->filePath(index)) , QItemSelectionModel::Select);
-    } else if (this->remote_dir_model->isSymLink(index)) {
-        // QModelIndex idx = this->remote_dir_sort_filter_model->mapToSource(index);
-        QModelIndex idx = index;
-        NetDirNode *node_item = (NetDirNode*)idx.internalPointer();
+    } else if (this->remote_dir_model->isSymLink(useIndex)) {
+        NetDirNode *node_item = (NetDirNode*)useIndex.internalPointer();
+        QPersistentModelIndex *persisIndex = new QPersistentModelIndex(useIndex);
         q_debug()<<node_item->fullPath;
-        this->remote_dir_model->slot_execute_command(node_item, idx.internalPointer(),
+        this->remote_dir_model->slot_execute_command(node_item, persisIndex,
                                                      SSH2_FXP_REALPATH, QString(""));
     } else {
         q_debug()<<"double clicked a regular file, no op now, only now";
@@ -885,13 +897,15 @@ bool SFTPView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction action,
 
 void SFTPView::slot_show_hidden(bool show)
 {
-    // if (show) {
-    //     remote_dir_sort_filter_model->setFilter(QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot);
-    //     remote_dir_sort_filter_model_ex->setFilter(QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot);
-    // } else {
-    //     remote_dir_sort_filter_model->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
-    //     remote_dir_sort_filter_model_ex->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
-    // }
+    DirTreeSortFilterModel *tree = (DirTreeSortFilterModel*)this->m_treeProxyModel;
+    DirTableSortFilterModel *table = (DirTableSortFilterModel*)this->m_tableProxyModel;
+    if (show) {
+        tree->setFilter(QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot);
+        table->setFilter(QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot);
+    } else {
+        tree->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
+        table->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
+    }
 }
 
 void SFTPView::encryption_focus_label_double_clicked()
