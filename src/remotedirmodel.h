@@ -102,6 +102,8 @@ signals:
     //for wait option
     void enter_remote_dir_retrive_loop();
     void leave_remote_dir_retrive_loop();
+    void operationTriggered(QString text) const; // for rowCount method
+    // see http://lists.trolltech.com/qt-interest/2002-09/thread00073-0.html
     
 private:
     enum { DEFAULT_KEEP_ALIVE_TIMEOUT = 30*1000 };

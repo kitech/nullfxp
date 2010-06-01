@@ -42,26 +42,35 @@ void TaskQueueView::initContextMenu()
 
     this->ctxMenu = new QMenu(this);
     action = new QAction(tr("&Select All"), this);
+    QObject::connect(action, SIGNAL(triggered()), this, SLOT(onSelectAll()));
     this->ctxMenu->addAction(action);
     this->ctxMenu->addSeparator();
 
     action = new QAction(tr("&Transfer All"), this);
+    QObject::connect(action, SIGNAL(triggered()), this, SLOT(onTransferAll()));
     this->ctxMenu->addAction(action);
     action = new QAction(tr("T&ransfer Selected"), this);
+    QObject::connect(action, SIGNAL(triggered()), this, SLOT(onTransferSelected()));
+    this->ctxMenu->addAction(action);
     this->ctxMenu->addSeparator();
     
     action = new QAction(tr("R&emove All"), this);
+    QObject::connect(action, SIGNAL(triggered()), this, SLOT(onRemoveAll()));
     this->ctxMenu->addAction(action);
     action = new QAction(tr("Re&move Selected"), this);
+    QObject::connect(action, SIGNAL(triggered()), this, SLOT(onRemoveSelected()));
     this->ctxMenu->addAction(action);
     action = new QAction(tr("Rem&ove Finished"), this);
+    QObject::connect(action, SIGNAL(triggered()), this, SLOT(onRemoveFinished()));
     this->ctxMenu->addAction(action);
     this->ctxMenu->addSeparator();
 
     action = new QAction(tr("&Cancel Selected"), this);
+    QObject::connect(action, SIGNAL(triggered()), this, SLOT(onCancelSelected()));
     this->ctxMenu->addAction(action);
     action = new QAction(tr("C&ancel All"), this);
-
+    QObject::connect(action, SIGNAL(triggered()), this, SLOT(onCancelAll()));
+    this->ctxMenu->addAction(action);
 }
 
 void TaskQueueView::slotCustomContextMenuRequested(const QPoint & pos)
@@ -71,4 +80,40 @@ void TaskQueueView::slotCustomContextMenuRequested(const QPoint & pos)
     }
     Q_ASSERT(this->ctxMenu != NULL);
     this->ctxMenu->popup(this->ui_win.tableView->mapToGlobal(pos));
+}
+
+void TaskQueueView::onSelectAll()
+{
+
+}
+
+void TaskQueueView::onTransferAll()
+{
+    
+}
+void TaskQueueView::onTransferSelected()
+{
+    
+}
+
+void TaskQueueView::onRemoveAll()
+{
+    
+}
+void TaskQueueView::onRemoveSelected()
+{
+    
+}
+void TaskQueueView::onRemoveFinished()
+{
+    
+}
+
+void TaskQueueView::onCancelAll()
+{
+    
+}
+void TaskQueueView::onCancelSelected()
+{
+    
 }

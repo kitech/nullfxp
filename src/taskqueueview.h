@@ -27,6 +27,16 @@ public:
 
 private slots:
     void slotCustomContextMenuRequested(const QPoint & pos);
+    void onSelectAll();
+    void onTransferAll();
+    void onTransferSelected();
+
+    void onRemoveAll();
+    void onRemoveSelected();
+    void onRemoveFinished();
+
+    void onCancelAll();
+    void onCancelSelected();
 
 private:
     void initContextMenu();

@@ -48,7 +48,8 @@ public:
     
 protected:
     SSHConnection *rconn;
-        
+    QStringListModel *m_operationLogModel;
+
 public slots:
     virtual void i_init_dir_view();
     virtual void slot_disconnect_from_remote_host();
@@ -78,6 +79,9 @@ public slots:
 			     int row, int column, const QModelIndex &parent);
     virtual void slot_show_hidden(bool show);
 	
+    // log msg handler
+    void slot_operation_triggered(QString text);
+
 signals:
         
 private slots:

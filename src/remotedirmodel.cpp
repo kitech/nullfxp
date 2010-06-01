@@ -85,6 +85,7 @@ void RemoteDirModel::setConnection(Connection *conn)
 
     // 设置连接对象
     this->dir_retriver->setConnection(this->conn);
+    emit operationTriggered(tr("Info SSH2_FXP_INIT"));
 }
 
 void vdump_node(NetDirNode *node, int depth)
@@ -452,6 +453,7 @@ int RemoteDirModel::rowCount(const QModelIndex &parent) const
                     <<parent_item->fullPath<<parent_item->_fileName;
             QPersistentModelIndex *persisIndex = new QPersistentModelIndex(parent);
             this->dir_retriver->add_node(parent_item, persisIndex);
+            emit operationTriggered(QString(tr("Sending SSH2_FXP_READDIR %1")).arg(parent_item->filePath()));
         } else {
             row_count = parent_item->childNodes.count();
         }
@@ -507,6 +509,7 @@ bool RemoteDirModel::setData(const QModelIndex &index, const QVariant &value, in
         
         QPersistentModelIndex *persisIndex = new QPersistentModelIndex(index.parent());
         this->dir_retriver->slot_execute_command(parent_item, persisIndex, cmd, data);
+        emit operationTriggered(QString(tr("Sending SSH2_FXP_RENAME %1")).arg(parent_item->filePath()));
     } else {
         NetDirNode *oldNode = static_cast<NetDirNode*>(index.internalPointer());
         NetDirNode *newNode = (NetDirNode*)qVariantValue<void*>(value);
@@ -662,7 +665,8 @@ void RemoteDirModel::slot_remote_dir_node_retrived(NetDirNode *parent_item,
 
     parent_item->prevFlag = parent_item->retrFlag;
     parent_item->retrFlag = POP_NEWEST;
-
+    
+    emit operationTriggered(QString(tr("Info subdirectories of %1")).arg(parent_item->filePath()));
     Q_ASSERT(newNodes != NULL);
     for (int i = 0; i < newNodes->childNodes.count(); ++i) {
         NetDirNode *node = newNodes->childAt(i);
@@ -672,6 +676,9 @@ void RemoteDirModel::slot_remote_dir_node_retrived(NetDirNode *parent_item,
         QModelIndex newIndex = this->index(row, 0, currIndex);
         QVariant vv = qVariantFromValue((void*)node);
         this->setData(newIndex, vv);
+
+        emit operationTriggered(QString(tr("< %1 %2 %3 %4")).arg(node->fileMode()).arg(node->fileSize())
+                                .arg(node->fileMDate()).arg(node->fileName()));
     }
 
     delete persisIndex; persisIndex = NULL;
@@ -778,14 +785,41 @@ void RemoteDirModel::slot_remote_dir_node_clicked(const QModelIndex &index)
 
     if (clicked_item->retrFlag == POP_NO_NEED_WITH_DATA) { // 半满状态结点
         this->dir_retriver->add_node(clicked_item, persisIndex);
+        emit operationTriggered(QString(tr("Sending SSH2_FXP_READDIR %1")).arg(clicked_item->filePath()));
     } else {
         //no op needed
     }
 }
 
+// TODO split this into several method, upper can not call this method.
+// maybe execute_rename, execute_mkdir, execute_rmdir and so on.
 void RemoteDirModel::slot_execute_command(NetDirNode *parent_item, 
                                            void *parent_persistent_index, int cmd, QString params)
 {
+    QString msg = QString(tr("Sending %3 %2 %1")).arg(params);
+    if (parent_item == NULL) {
+        msg.replace("%2", "");
+    } else {
+        msg.replace("%2", parent_item->filePath());
+    }
+    switch (cmd) {
+    case SSH2_FXP_RENAME:
+        msg.replace("%3", "SSH2_FXP_RENAME");
+        break;
+    case SSH2_FXP_MKDIR:
+        msg.replace("%3", "SSH2_FXP_MKDIR");
+        break;
+    case SSH2_FXP_RMDIR:
+        msg.replace("%3", "SSH2_FXP_RMDIR");
+        break;
+    case SSH2_FXP_REALPATH:
+        msg.replace("%3", "SSH2_FXP_REALPATH");
+        break;
+    default:
+        msg.replace("%3", "unknown operation SSH2_FXP_???");
+        break;
+    };
+    emit operationTriggered(msg);
     this->dir_retriver->slot_execute_command(parent_item, parent_persistent_index, cmd, params);
 }
 
@@ -826,6 +860,26 @@ void RemoteDirModel::execute_command_finished(NetDirNode *parent_item, void *par
         }
         break;
     }
+
+    QString msg = QString(tr("Received %2: %1")).arg(status == 0 ? "OK" : "Failed");
+    switch (cmd) {
+    case SSH2_FXP_RENAME:
+        msg = msg.arg("SSH2_FXP_RENAME");
+        break;
+    case SSH2_FXP_MKDIR:
+        msg = msg.arg("SSH2_FXP_MKDIR");
+        break;
+    case SSH2_FXP_RMDIR:
+        msg = msg.arg("SSH2_FXP_RMDIR");
+        break;
+    case SSH2_FXP_REALPATH:
+        msg = msg.arg("SSH2_FXP_REALPATH");
+        break;
+    default:
+        msg = msg.arg(QString("SSH2_FXP_%1(%2)").arg(cmd).arg(status));
+        break;
+    };
+    emit operationTriggered(msg);
 }
 
 //TODO

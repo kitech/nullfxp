@@ -552,7 +552,7 @@ src/rfsdirnode.cpp -text
 src/rfsdirnode.h -text
 src/sessiondialog.cpp -text
 src/sessiondialog.h -text
-src/sftp.h -text
+src/sftp-const.h -text
 src/sftpdirmodel.cpp -text
 src/sftpdirmodel.h -text
 src/sftpfile.cpp -text

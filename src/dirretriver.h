@@ -15,7 +15,7 @@
 #include <QtCore>
 #include <QThread>
 
-#include "sftp.h"
+#include "sftp-const.h"
 #include "libssh2.h"
 #include "libssh2_sftp.h"
 

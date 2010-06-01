@@ -36,9 +36,9 @@
 SFTPView::SFTPView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *parent)
     : RemoteView(main_mdi_area, local_view, parent)
 {
-    
     this->init_popup_context_menu();
     this->rconn = NULL;
+    this->m_operationLogModel;
 }
 
 SFTPView::~SFTPView()
@@ -56,6 +56,10 @@ void SFTPView::i_init_dir_view()
 
     this->remote_dir_model = new RemoteDirModel();
     this->remote_dir_model->setConnection(this->conn);
+    this->m_operationLogModel = new QStringListModel();
+    this->remoteview.listView->setModel(this->m_operationLogModel);
+    QObject::connect(this->remote_dir_model, SIGNAL(operationTriggered(QString)), 
+                     this, SLOT(slot_operation_triggered(QString)));
     
     this->remote_dir_model->set_user_home_path(this->user_home_path);
     this->m_tableProxyModel = new DirTableSortFilterModel();
@@ -263,11 +267,12 @@ void SFTPView::slot_custom_ui_area()
 
     this->remoteview.splitter_2->setStretchFactor(0,6);
     this->remoteview.splitter_2->setStretchFactor(1,1);
-    this->remoteview.listView->setVisible(false);//暂时没有功能在里面先隐藏掉
+    // this->remoteview.listView->setVisible(false);// 暂时没有功能在里面先隐藏掉
     //this->remoteview.tableView->setVisible(false);
-    qDebug()<<this->geometry();
+    q_debug()<<this->geometry();
     this->setGeometry(this->x(), this->y(), this->width(), this->height()*2);
-    qDebug()<<this->geometry();
+    // this->resize(this->width(), this->height() + 200);
+    q_debug()<<this->geometry();
 }
 
 void SFTPView::slot_enter_remote_dir_retrive_loop()
@@ -920,6 +925,23 @@ void SFTPView::onUpdateEntriesStatus()
     int entries = this->m_tableProxyModel->rowCount(proxyIndex);
     QString msg = QString("%1 entries").arg(entries);
     this->entriesLabel->setText(msg);
+}
+
+void SFTPView::slot_operation_triggered(QString text)
+{
+    if (this->m_operationLogModel == NULL) {
+        this->m_operationLogModel = new QStringListModel();
+    }
+    int rc = this->m_operationLogModel->rowCount();
+    this->m_operationLogModel->insertRows(rc, 1, QModelIndex());
+    QModelIndex useIndex = this->m_operationLogModel->index(rc, 0, QModelIndex());
+    this->m_operationLogModel->setData(useIndex, QVariant(text));
+    this->remoteview.listView->scrollTo(useIndex);
+
+    if (rc > 300) {
+        useIndex = this->m_operationLogModel->index(0, 0, QModelIndex());
+        this->m_operationLogModel->removeRows(0, 1, QModelIndex());
+    }
 }
 
 void SFTPView::encryption_focus_label_double_clicked()

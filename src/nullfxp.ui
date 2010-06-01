@@ -77,6 +77,11 @@
     </property>
     <addaction name="actionTransfer_queue"/>
     <addaction name="actionShow_log"/>
+    <addaction name="separator"/>
+    <addaction name="actionLar_ge_Icons"/>
+    <addaction name="actionS_mall_Icons"/>
+    <addaction name="action_List"/>
+    <addaction name="action_Details"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menuFfff"/>
@@ -155,7 +160,7 @@
     <bool>true</bool>
    </property>
    <property name="checked">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
     <string>Show log</string>
@@ -228,6 +233,31 @@
   <action name="action_Global_Options">
    <property name="text">
     <string>&amp;Global Options...</string>
+   </property>
+  </action>
+  <action name="actionLar_ge_Icons">
+   <property name="text">
+    <string>Lar&amp;ge Icons</string>
+   </property>
+  </action>
+  <action name="actionS_mall_Icons">
+   <property name="text">
+    <string>S&amp;mall Icons</string>
+   </property>
+  </action>
+  <action name="action_List">
+   <property name="text">
+    <string>&amp;List</string>
+   </property>
+  </action>
+  <action name="action_Details">
+   <property name="text">
+    <string>&amp;Details</string>
+   </property>
+  </action>
+  <action name="actionReconnect">
+   <property name="text">
+    <string>&amp;Reconnect</string>
    </property>
   </action>
  </widget>
