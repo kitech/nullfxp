@@ -79,7 +79,7 @@ extern "C" {
 typedef unsigned int uint32_t;
 #endif
 
-#if defined(LIBSSH2_WIN32) && defined(_MSC_VER) && (_MSC_VER <= 1600)
+#if defined(LIBSSH2_WIN32) && defined(_MSC_VER) && (_MSC_VER <= 1400)
 typedef unsigned __int64 libssh2_uint64_t;
 typedef __int64 libssh2_int64_t;
 typedef unsigned int uint32_t;
@@ -622,7 +622,7 @@ LIBSSH2_API int libssh2_channel_process_startup(LIBSSH2_CHANNEL *channel,
                                   sizeof("subsystem") - 1, (subsystem), \
                                   strlen(subsystem))
 
-LIBSSH2_API ssize_t libssh2_channel_read_ex(LIBSSH2_CHANNEL *channel,
+LIBSSH2_API size_t libssh2_channel_read_ex(LIBSSH2_CHANNEL *channel,
                                             int stream_id, char *buf,
                                             size_t buflen);
 #define libssh2_channel_read(channel, buf, buflen) \
@@ -652,7 +652,7 @@ libssh2_channel_receive_window_adjust2(LIBSSH2_CHANNEL *channel,
                                        unsigned char force,
                                        unsigned int *storewindow);
 
-LIBSSH2_API ssize_t libssh2_channel_write_ex(LIBSSH2_CHANNEL *channel,
+LIBSSH2_API size_t libssh2_channel_write_ex(LIBSSH2_CHANNEL *channel,
                                              int stream_id, const char *buf,
                                              size_t buflen);
 
