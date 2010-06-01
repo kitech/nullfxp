@@ -75,7 +75,7 @@ NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
   
     this->setCentralWidget(this->central_splitter_widget);
 
-    windowMapper = new QSignalMapper(this);
+    // windowMapper = new QSignalMapper(this);
 
     ///////////////////////
     QObject::connect(this->mUIMain.actionConnect, SIGNAL(triggered()),
@@ -90,6 +90,8 @@ NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
     localView = new LocalView();
 
     mdiArea->addSubWindow(localView);
+
+    return;
 
     QObject::connect(localView, SIGNAL(new_upload_requested(TaskPackage)),
                      this, SLOT(slot_new_upload_requested(TaskPackage)));
@@ -121,8 +123,9 @@ NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
     this->central_splitter_widget->setStretchFactor(0, 3);
     this->central_splitter_widget->setStretchFactor(1, 1);
 
+
     //启动连接对话框
-    this->show();
+    // this->show();
     //根据当前屏幕大小调整界面的大小。
     this->desktop = QApplication::desktop();
     //qDebug()<<dw->screenGeometry();

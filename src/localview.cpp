@@ -25,7 +25,7 @@ LocalView::LocalView(QWidget *parent )
     this->status_bar = new QStatusBar();
     this->layout()->addWidget(this->status_bar);
     this->status_bar->showMessage(tr("Ready"));
-    
+  
     ////
     model = new QFileSystemModel();
     QObject::connect(model, SIGNAL(directoryLoaded(const QString &)),
@@ -40,23 +40,47 @@ LocalView::LocalView(QWidget *parent )
     this->dir_file_model = new LocalDirSortFilterModel();
     this->dir_file_model->setSourceModel(model);
 
+
     
     this->localView.treeView->setModel(this->dir_file_model);
+
+
+
     this->localView.treeView->setRootIndex(this->dir_file_model->index(""));
+
+
+    // this is the problem for x64
     // this->localView.treeView->setColumnHidden(1, true);
-    this->localView.treeView->setColumnWidth(1, 0);
-    this->localView.treeView->setColumnHidden(2, true);
-    this->localView.treeView->setColumnHidden(3, true);
-    this->localView.treeView->setColumnWidth(0, this->localView.treeView->columnWidth(0) * 2);    
-    this->expand_to_home_directory(this->localView.treeView->rootIndex(), 1);
+    // this->localView.treeView->setColumnWidth(1, 0);
+    // this->localView.treeView->setColumnHidden(2, true);
+    // this->localView.treeView->setColumnHidden(3, true);
+
+
+
+    // this->localView.treeView->setColumnWidth(0, this->localView.treeView->columnWidth(0) * 2);    
+
+
+
+    // this->expand_to_home_directory(this->localView.treeView->rootIndex(), 1);
     // this->localView.treeView->expand(this->dir_file_model->index("/home/gzleo"));
+
+
   
     this->init_local_dir_tree_context_menu();
     this->localView.treeView->setAnimated(true);
+
+
   
     this->localView.tableView->setModel(this->model);
-    this->localView.tableView->setRootIndex(this->model->index(QDir::homePath()));
-    this->localView.tableView->verticalHeader()->setVisible(false);
+
+
+    // this->localView.tableView->setRootIndex(this->model->index(QDir::homePath()));
+
+
+
+    // this->localView.tableView->verticalHeader()->setVisible(false);
+
+
 
     //change row height of table 
     if (this->model->rowCount(this->model->index(QDir::homePath())) > 0) {
@@ -285,7 +309,7 @@ void LocalView::closeEvent(QCloseEvent * event)
     //this->setVisible(false); 
     // QMessageBox::information(this, tr("Attemp to close this window?"), tr("Close this window is not needed."));
     // 把这个窗口最小化是不是好些。
-    this->showMinimized();
+    // this->showMinimized();
 }
 
 void LocalView::slot_dir_tree_item_clicked(const QModelIndex & index)
