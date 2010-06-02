@@ -47,6 +47,8 @@ src/connection.h -text
 src/data/about_author.html -text
 src/data/about_info.html -text
 src/data/freedesktop.org.xml -text
+src/dirnavbar.cpp -text
+src/dirnavbar.h -text
 src/encryptiondetaildialog.cpp -text
 src/encryptiondetaildialog.h -text
 src/encryptiondetailfocuslabel.cpp -text
@@ -325,6 +327,9 @@ src/icons/os/osx.png -text
 src/icons/os/tux.png -text
 src/icons/os/windows.png -text
 src/icons/user-home.png -text
+src/libssh/libssh.pro -text
+src/libssh/libssh/config.h -text
+src/libssh/libssh/libssh.pro -text
 src/libssh2/AUTHORS -text
 src/libssh2/CMakeLists.txt -text
 src/libssh2/COPYING -text
@@ -587,6 +592,7 @@ src/taskqueuemodel.h -text
 src/taskqueueview.cpp -text
 src/taskqueueview.h -text
 src/tmpmain.cpp -text
+src/ui/dirnavbar.ui -text
 src/ui/encryptiondetaildialog.ui -text
 src/ui/fileexistaskdialog.ui -text
 src/ui/hostlistdialog.ui -text

@@ -863,6 +863,9 @@ void RemoteDirModel::execute_command_finished(NetDirNode *parent_item, void *par
 
     QString msg = QString(tr("Received %2: %1")).arg(status == 0 ? "OK" : "Failed");
     switch (cmd) {
+    case SSH2_FXP_READDIR:
+        msg = msg.arg("SSH2_FXP_READDIR");
+        break;
     case SSH2_FXP_RENAME:
         msg = msg.arg("SSH2_FXP_RENAME");
         break;

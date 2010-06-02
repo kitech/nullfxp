@@ -54,7 +54,8 @@ FORMS += nullfxp.ui \
  ui/fileexistaskdialog.ui \
  ui/updatedialog.ui \
  ui/systeminfodialog.ui \
- ui/taskqueueview.ui
+ ui/taskqueueview.ui \
+ ui/dirnavbar.ui
 
 SOURCES += main.cpp \
  nullfxp.cpp \
@@ -111,6 +112,7 @@ SOURCES += main.cpp \
 # taskqueue.cpp \
  taskqueuemodel.cpp \
  taskqueueview.cpp \
+ dirnavbar.cpp \
  sqlite/sqlite3.c
 
 HEADERS += nullfxp.h \
@@ -161,7 +163,8 @@ HEADERS += nullfxp.h \
  systeminfodialog.h \
 # taskqueue.h \
  taskqueuemodel.h \
- taskqueueview.h
+ taskqueueview.h \
+ dirnavbar.h
 
 DISTFILES += ../CMakeLists.txt \
           CMakeLists.txt \

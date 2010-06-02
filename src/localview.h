@@ -44,6 +44,9 @@ public slots:
     void slot_local_new_upload_requested();        
     void slot_refresh_directory_tree();        
     void slot_show_hidden(bool show);
+
+    void slot_dir_nav_go_home();
+    void slot_dir_nav_prefix_changed(QString prefix);
         
 private slots:
     void slot_dir_tree_item_clicked(const QModelIndex & index);
@@ -67,11 +70,14 @@ protected:
 private:
     QStatusBar *status_bar;
     QFileSystemModel *model;
-    Ui::LocalView localView;
+    Ui::LocalView uiw;
     LocalDirSortFilterModel *dir_file_model;
     int   table_row_height;
     QAbstractItemView *curr_item_view;    //
     QMenu *local_dir_tree_context_menu;
+
+    bool is_dir_complete_request;
+    QString dir_complete_request_prefix;
         
     void expand_to_home_directory(QModelIndex parent_model, int level);
     void init_local_dir_tree_context_menu();
