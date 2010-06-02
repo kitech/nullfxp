@@ -33,26 +33,9 @@
      <property name="editable">
       <bool>true</bool>
      </property>
-     <item>
-      <property name="text">
-       <string>ixvxcv</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>vxc</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>oiew</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>dsfsdf</string>
-      </property>
-     </item>
+     <property name="currentIndex">
+      <number>-1</number>
+     </property>
      <item>
       <property name="text">
        <string>Clear...</string>

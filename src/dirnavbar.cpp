@@ -13,6 +13,7 @@
 #include <QtCore>
 #include <QtGui>
 
+// TODO now not support CJKs paths, why?
 DirNavBar::DirNavBar(QWidget *parent)
     : QWidget(parent)
 {
@@ -59,7 +60,10 @@ void DirNavBar::onSetHome(QString path)
 void DirNavBar::onNavToPath(QString path)
 {
     Q_ASSERT(!path.isEmpty());
+    this->blockCompleteRequest = true;
+    this->uiw.comboBox->setEditText(path);
     this->dirConfirmHistory.append(path);
+    this->blockCompleteRequest = false;
 }
 
 void DirNavBar::onSetCompleteList(QString dirPrefix, QStringList paths)
@@ -71,20 +75,18 @@ void DirNavBar::onSetCompleteList(QString dirPrefix, QStringList paths)
     int orc = this->comModel->rowCount(QModelIndex());
     // q_debug()<<nrc<<orc<<this->uiw.comboBox->currentIndex()<<this->comModel->rowCount();
     for (int i = nrc - 1 ; i >= 0 ; --i) {
-        // this->uiw.comboBox->insertItem(0, paths.at(i));
         this->comModel->insertRows(0,1, QModelIndex());
         index = this->comModel->index(0, 0, QModelIndex());
         this->comModel->setData(index, paths.at(i));
         // q_debug()<<"completer elem count:"<<this->comModel->rowCount();
         if (i == 0) {
-            // this->uiw.comboBox->setCurrentIndex(0);
+
         }
     }
     // q_debug()<<nrc<<orc<<this->uiw.comboBox->count()<<this->uiw.comboBox->currentIndex()<<this->comModel->rowCount();
     // -1, the last item, - 1, side
     for (int i = orc + nrc - 2; i >= nrc ; --i) {
         // q_debug()<<"removing "<<i<<this->uiw.comboBox->itemText(i);
-        // this->uiw.comboBox->removeItem(i);
         // index = this->comModel->index(i, 0, QModelIndex());
         this->comModel->removeRows(i, 1, QModelIndex());
     }
@@ -96,15 +98,19 @@ void DirNavBar::onGoPrevious()
 {
     // pos - 1, hicnt, 0
     int p1 = this->dirHistoryCurrentPos - 1;
-    int p3 = this->dirConfirmHistory.count();
+    int p3 = this->dirConfirmHistory.count() - 2;
     int p4 = p1;
 
-    if (p3 == 0) {
+    q_debug()<<this->dirConfirmHistory;
+
+    if (p3 < 0) {
         p3 = -1;
     }
+    q_debug()<<p4;
     if (p4 < 0) {
         p4 = p3;
     }
+    q_debug()<<p4;
     if (p4 < 0) {
         // no op
     } else {

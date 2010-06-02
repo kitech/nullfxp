@@ -47,6 +47,7 @@ public slots:
 
     void slot_dir_nav_go_home();
     void slot_dir_nav_prefix_changed(QString prefix);
+    void slot_dir_nav_input_comfirmed(QString prefix);
         
 private slots:
     void slot_dir_tree_item_clicked(const QModelIndex & index);
@@ -80,6 +81,7 @@ private:
     QString dir_complete_request_prefix;
         
     void expand_to_home_directory(QModelIndex parent_model, int level);
+    void expand_to_directory(QString path, int level);
     void init_local_dir_tree_context_menu();
 };
 

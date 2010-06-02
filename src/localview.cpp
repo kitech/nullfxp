@@ -87,7 +87,9 @@ LocalView::LocalView(QWidget *parent )
                      this, SLOT(slot_dir_nav_go_home()));
     QObject::connect(this->uiw.widget, SIGNAL(dirPrefixChanged(QString)),
                      this, SLOT(slot_dir_nav_prefix_changed(QString)));
-
+    QObject::connect(this->uiw.widget, SIGNAL(dirInputConfirmed(QString)),
+                     this, SLOT(slot_dir_nav_input_comfirmed(QString)));
+    this->uiw.widget->onSetHome(QDir::homePath());
 
     //TODO localview 标题格式: Local(主机名) - 当前所在目录名
     //TODO remoteview 标题格式: user@hostname - 当前所在目录名
@@ -200,6 +202,35 @@ void LocalView::expand_to_home_directory(QModelIndex parent_model, int level)
     //qDebug()<<" root row count:"<< row_cnt ;
 }
 
+void LocalView::expand_to_directory(QString path, int level)
+{
+    QString homePath = path;
+    QStringList homePathParts = homePath.split('/');
+    // qDebug()<<home_path_grade<<level<<row_cnt;
+    QStringList stepPathParts;
+    QString tmpPath;
+    QModelIndex curr_model;
+
+    // windows fix case: C:/abcd/efg/hi
+    bool unixRootFix = true;
+    if (homePath.length() > 1 && homePath.at(1) == ':') {
+        unixRootFix = false;
+    }
+    
+    for (int i = 0; i < homePathParts.count(); i++) {
+        stepPathParts << homePathParts.at(i);
+        tmpPath = (unixRootFix ? QString("/") : QString()) + stepPathParts.join("/");
+        /// qDebug()<<tmpPath<<stepPathParts;
+        curr_model = this->dir_file_model->index(tmpPath);
+        this->uiw.treeView->expand(curr_model);
+    }
+    if (level == 1) {
+        this->uiw.treeView->scrollTo(curr_model);
+    }
+    //qDebug()<<" root row count:"<< row_cnt ;
+}
+
+
 void LocalView::slot_local_dir_tree_context_menu_request(const QPoint & pos)
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
@@ -307,6 +338,7 @@ void LocalView::slot_dir_tree_item_clicked(const QModelIndex & index)
     for (int i = 0 ; i < this->model->rowCount(this->model->index(file_path)); i ++)
         this->uiw.tableView->setRowHeight(i, this->table_row_height);
     this->uiw.tableView->resizeColumnToContents(0);
+    this->uiw.widget->onNavToPath(file_path);
     this->onUpdateEntriesStatus();
 }
 
@@ -599,8 +631,8 @@ void LocalView::slot_dir_nav_go_home()
         this->uiw.treeView->collapseAll();
         this->expand_to_home_directory(QModelIndex(), 1);
         this->uiw.tableView->setRootIndex(this->model->index(QDir::homePath()));
-        this->uiw.widget->onSetHome(QDir::homePath());
     }
+    this->uiw.widget->onSetHome(QDir::homePath());
 }
 
 void LocalView::slot_dir_nav_prefix_changed(QString prefix)
@@ -630,6 +662,10 @@ void LocalView::slot_dir_nav_prefix_changed(QString prefix)
                 this->dir_complete_request_prefix = prefix;
                 this->model->fetchMore(sourceIndex);
             }
+            // sience qt < 4.7 has no directoryLoaded signal, so we should execute now if > 0
+            if (strcmp(qVersion(), "4.7.0") < 0) {
+                // QTimer::singleShot(this, SLOT(
+            }
         } else {
             int rc = this->model->rowCount(sourceIndex);
             q_debug()<<"lazy load dir rows:"<<rc;
@@ -644,5 +680,27 @@ void LocalView::slot_dir_nav_prefix_changed(QString prefix)
     } else {
         // any operation for this case???
         q_debug()<<"any operation for this case???"<<prefix;
+    }
+}
+
+void LocalView::slot_dir_nav_input_comfirmed(QString prefix)
+{
+    q_debug()<<"";
+
+    QModelIndex sourceIndex = this->model->index(prefix);
+    QModelIndex currIndex = this->uiw.tableView->rootIndex();
+    QString currPath = this->model->filePath(currIndex);
+
+    if (!sourceIndex.isValid()) {
+        q_debug()<<"directory not found!!!"<<prefix;
+        // TODO, show status???
+        this->status_bar->showMessage(tr("Directory not found: %1").arg(prefix));
+        return;
+    }
+
+    if (currPath != prefix) {
+        this->uiw.treeView->collapseAll();
+        this->expand_to_directory(prefix, 1);
+        this->uiw.tableView->setRootIndex(this->model->index(prefix));
     }
 }
