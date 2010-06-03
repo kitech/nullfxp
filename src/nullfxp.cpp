@@ -278,7 +278,7 @@ void NullFXP::slot_disconnect_from_remote_host()
     
         for (sub_wnd_count = sub_wnd_count -1 ; sub_wnd_count >= 0 ; sub_wnd_count --) {
             if (sub_window_list.at(sub_wnd_count)->widget() != this->localView 
-                && sub_window_list.at(sub_wnd_count)->widget()->objectName() == "rv") {
+                && sub_window_list.at(sub_wnd_count)->widget()->objectName() == "NetDirView") {
                 sub_window_list.at(sub_wnd_count)->close();
                 break ;
             }
@@ -446,7 +446,7 @@ void NullFXP::slot_show_remote_view(bool triggered)
     
         for (sub_wnd_count = sub_wnd_count -1 ; sub_wnd_count >= 0 ; sub_wnd_count --) {
             if (sub_window_list.at( sub_wnd_count )->widget() != this->localView 
-                && sub_window_list.at(sub_wnd_count)->widget()->objectName() == "rv") {
+                && sub_window_list.at(sub_wnd_count)->widget()->objectName() == "NetDirView") {
                 this->mdiArea->setActiveSubWindow(sub_window_list.at(sub_wnd_count));
                 break ;
             }
@@ -463,7 +463,7 @@ RemoteView *NullFXP::get_top_most_remote_view()
     
     for (sub_wnd_count = sub_wnd_count -1 ; sub_wnd_count >= 0 ; sub_wnd_count --) {
         if (sub_window_list.at( sub_wnd_count )->widget() != this->localView 
-            && sub_window_list.at(sub_wnd_count)->widget()->objectName() == "rv") {
+            && sub_window_list.at(sub_wnd_count)->widget()->objectName() == "NetDirView") {
             remote_view = static_cast<RemoteView*>(sub_window_list.at(sub_wnd_count)->widget());
             break ;
         }

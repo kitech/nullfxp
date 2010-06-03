@@ -40,6 +40,7 @@ private slots:
     void onGoNext();
     void onGoUp();
     void onGoHome();
+    void onReload();
 
     void onComboBoxEditTextChanged(const QString &text);
     void onComboboxIndexChanged(const QString &text);

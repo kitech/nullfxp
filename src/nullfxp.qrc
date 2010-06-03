@@ -1,5 +1,8 @@
 <RCC>
   <qresource prefix="/">
+    <file>icons/os/osx.png</file>
+    <file>icons/os/tux.png</file>
+    <file>icons/os/windows.png</file>
     <file>icons/folder-favorites.png</file>
     <file>icons/go-previous.png</file>
     <file>icons/appointment-recurring.png</file>

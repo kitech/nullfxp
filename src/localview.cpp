@@ -20,11 +20,28 @@ LocalView::LocalView(QWidget *parent )
     : QWidget(parent)
 {
     uiw.setupUi(this);
-    this->setObjectName("lv");
+    this->setObjectName("LocalFileSystemView");
     ////
     this->status_bar = new QStatusBar();
     this->layout()->addWidget(this->status_bar);
     this->status_bar->showMessage(tr("Ready"));
+    this->entriesLabel = new QLabel(tr("Entries label"), this);
+    this->status_bar->addPermanentWidget(this->entriesLabel);
+    this->entriesLabel->setTextInteractionFlags(this->entriesLabel->textInteractionFlags() 
+                                                | Qt::TextSelectableByMouse);
+
+    QLabel *tmpLabel = new QLabel(tr("System"), this);
+    this->status_bar->addPermanentWidget(tmpLabel);
+#if defined(Q_OS_WIN)
+    tmpLabel->setPixmap(QPixmap(":/icons/os/windows.png").scaled(22, 22));
+    tmpLabel->setToolTip(tr("Running Windows OS."));
+#elif defined(Q_OS_MAC)
+    tmpLabel->setPixmap(QPixmap(":/icons/os/osx.png").scaled(22, 22));
+    tmpLabel->setToolTip(tr("Running Mac OS X."));
+#else
+    tmpLabel->setPixmap(QPixmap(":/icons/os/tux.png").scaled(22, 22));
+    tmpLabel->setToolTip(tr("Running Linux/Unix Like OS."));
+#endif
     
     ////
     model = new QFileSystemModel();
@@ -36,7 +53,7 @@ LocalView::LocalView(QWidget *parent )
                      this, SLOT(onRootPathChanged(const QString &)));
     model->setRootPath(""); // on widows this can list all drivers
 
-    //     model->setFilter( QDir::AllEntries|QDir::Hidden|QDir::NoDotAndDotDot );
+    // model->setFilter(QDir::AllEntries|QDir::Hidden|QDir::NoDotAndDotDot);
     this->dir_file_model = new LocalDirSortFilterModel();
     this->dir_file_model->setSourceModel(model);
 
@@ -615,7 +632,8 @@ void LocalView::onUpdateEntriesStatus()
 {
     int entries = this->model->rowCount(this->uiw.tableView->rootIndex());
     QString msg = QString("%1 entries").arg(entries);
-    this->status_bar->showMessage(msg);
+    // this->status_bar->showMessage(msg);
+    this->entriesLabel->setText(msg);
 }
 
 void LocalView::slot_dir_nav_go_home()

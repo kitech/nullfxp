@@ -77,6 +77,7 @@ private:
     QAbstractItemView *curr_item_view;    //
     QMenu *local_dir_tree_context_menu;
 
+    QLabel *entriesLabel;
     bool is_dir_complete_request;
     QString dir_complete_request_prefix;
         

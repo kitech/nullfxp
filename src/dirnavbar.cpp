@@ -40,6 +40,9 @@ DirNavBar::DirNavBar(QWidget *parent)
                      this, SLOT(onGoNext()));
     QObject::connect(this->uiw.toolButton_2, SIGNAL(clicked()),
                      this, SLOT(onGoUp()));
+    QObject::connect(this->uiw.toolButton, SIGNAL(clicked()),
+                     this, SLOT(onReload()));
+
     this->uiw.comboBox->installEventFilter(this);
 }
 
@@ -55,6 +58,7 @@ void DirNavBar::onSetHome(QString path)
     this->homePath = path;
     this->uiw.comboBox->setEditText(path);
     this->dirConfirmHistory.append(path);
+    this->dirHistoryCurrentPos = this->dirConfirmHistory.count() - 1;
     this->blockCompleteRequest = false;
 }
 void DirNavBar::onNavToPath(QString path)
@@ -63,6 +67,7 @@ void DirNavBar::onNavToPath(QString path)
     this->blockCompleteRequest = true;
     this->uiw.comboBox->setEditText(path);
     this->dirConfirmHistory.append(path);
+    this->dirHistoryCurrentPos = this->dirConfirmHistory.count() - 1;
     this->blockCompleteRequest = false;
 }
 
@@ -73,24 +78,18 @@ void DirNavBar::onSetCompleteList(QString dirPrefix, QStringList paths)
     QModelIndex index;
     int nrc = paths.count();
     int orc = this->comModel->rowCount(QModelIndex());
-    // q_debug()<<nrc<<orc<<this->uiw.comboBox->currentIndex()<<this->comModel->rowCount();
+
     for (int i = nrc - 1 ; i >= 0 ; --i) {
         this->comModel->insertRows(0,1, QModelIndex());
         index = this->comModel->index(0, 0, QModelIndex());
         this->comModel->setData(index, paths.at(i));
-        // q_debug()<<"completer elem count:"<<this->comModel->rowCount();
-        if (i == 0) {
-
-        }
     }
-    // q_debug()<<nrc<<orc<<this->uiw.comboBox->count()<<this->uiw.comboBox->currentIndex()<<this->comModel->rowCount();
+
     // -1, the last item, - 1, side
     for (int i = orc + nrc - 2; i >= nrc ; --i) {
-        // q_debug()<<"removing "<<i<<this->uiw.comboBox->itemText(i);
-        // index = this->comModel->index(i, 0, QModelIndex());
         this->comModel->removeRows(i, 1, QModelIndex());
     }
-    // q_debug()<<nrc<<orc<<this->uiw.comboBox->count()<<this->uiw.comboBox->currentIndex()<<this->comModel->rowCount();
+
     this->blockCompleteRequest = false;
 }
     
@@ -98,25 +97,22 @@ void DirNavBar::onGoPrevious()
 {
     // pos - 1, hicnt, 0
     int p1 = this->dirHistoryCurrentPos - 1;
-    int p3 = this->dirConfirmHistory.count() - 2;
-    int p4 = p1;
+    int p2 = this->dirConfirmHistory.count() - 1;
 
     q_debug()<<this->dirConfirmHistory;
 
-    if (p3 < 0) {
-        p3 = -1;
+    if (p1 < 0) {
+        p1 = p2;
     }
-    q_debug()<<p4;
-    if (p4 < 0) {
-        p4 = p3;
-    }
-    q_debug()<<p4;
-    if (p4 < 0) {
-        // no op
+    
+    if (p1 < 0) {
+        q_debug()<<"no previous item";
+    } else if (p1 == 0 && p2 == 0) {
+        // only 1 item, no previous and next item, no op
     } else {
-        Q_ASSERT(p4 >= 0 && p4 < this->dirConfirmHistory.count());
-        QString path = this->dirConfirmHistory.at(p4);
-        this->dirHistoryCurrentPos = p4;
+        Q_ASSERT(p1 >= 0 && p1 < this->dirConfirmHistory.count());
+        QString path = this->dirConfirmHistory.at(p1);
+        this->dirHistoryCurrentPos = p1;
         this->uiw.comboBox->setEditText(path);
         emit dirInputConfirmed(path);
     }
@@ -124,11 +120,56 @@ void DirNavBar::onGoPrevious()
 
 void DirNavBar::onGoNext()
 {
+    int p1 = this->dirHistoryCurrentPos + 1;
+    int p2 = this->dirConfirmHistory.count() - 1;
+
+    q_debug()<<this->dirConfirmHistory;
+
+    if (p1 > p2) {
+        p1 = 0;
+    }
+    
+    if (p1 == 0 && p2 == 0) {
+        // only 1 item, no previous and next item, no op
+    } else {
+        Q_ASSERT(p1 >= 0 && p1 < this->dirConfirmHistory.count());
+        QString path = this->dirConfirmHistory.at(p1);
+        this->dirHistoryCurrentPos = p1;
+        this->uiw.comboBox->setEditText(path);
+        emit dirInputConfirmed(path);
+    }
 }
 
 void DirNavBar::onGoUp()
 {
+    QString currPath = this->uiw.comboBox->currentText();
+    if (currPath.length() > 1 
+        && (currPath.endsWith('/') || currPath.startsWith('\\'))) {
+        currPath = currPath.left(currPath.length() - 2);
+    }
+    if (currPath == "/") {
+        q_debug()<<"already toppest, can not go up";
+        return;
+    }
+
+    int upos = currPath.lastIndexOf('/');
+    if (upos == -1) {
+        upos = currPath.lastIndexOf('\\');
+    }
     
+    if (upos == -1) {
+        q_debug()<<"What's happened, not possible???"<<currPath;
+        Q_ASSERT(upos != -1);
+    }
+
+    q_debug()<<upos<<currPath;
+
+    currPath = currPath.left(upos + 1);
+    
+    this->uiw.comboBox->setEditText(currPath);
+    this->dirConfirmHistory.append(currPath);
+    this->dirHistoryCurrentPos = this->dirConfirmHistory.count() - 1;
+    emit this->dirInputConfirmed(currPath);
 }
 
 void DirNavBar::onGoHome()
@@ -139,6 +180,12 @@ void DirNavBar::onGoHome()
         this->uiw.comboBox->setEditText(this->homePath);
         emit dirInputConfirmed(this->homePath);
     }
+}
+
+void DirNavBar::onReload()
+{
+    QString currPath = this->uiw.comboBox->currentText();
+    emit dirInputConfirmed(currPath);
 }
 
 void DirNavBar::onComboBoxEditTextChanged(const QString &text)

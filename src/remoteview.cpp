@@ -38,10 +38,10 @@ RemoteView::RemoteView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *
     this->remoteview.setupUi(this);
     this->local_view = local_view;
     this->main_mdi_area = main_mdi_area;
-    this->setObjectName("rv");
+    this->setObjectName("NetDirView");
     ///////
     this->status_bar = new QStatusBar();
-    this->entriesLabel = new QLabel("Entries label", this);
+    this->entriesLabel = new QLabel(tr("Entries label"), this);
     this->entriesLabel->setTextInteractionFlags(this->entriesLabel->textInteractionFlags() 
                                                 | Qt::TextSelectableByMouse);
     this->status_bar->addPermanentWidget(this->entriesLabel);
