@@ -198,7 +198,7 @@ void LocalView::expand_to_home_directory(QModelIndex parent_model, int level)
     // qDebug()<<home_path_grade<<level<<row_cnt;
     QStringList stepPathParts;
     QString tmpPath;
-    QModelIndex curr_model;
+    QModelIndex currIndex;
 
     // windows fix case: C:/abcd/efg/hi
     bool unixRootFix = true;
@@ -210,11 +210,11 @@ void LocalView::expand_to_home_directory(QModelIndex parent_model, int level)
         stepPathParts << homePathParts.at(i);
         tmpPath = (unixRootFix ? QString("/") : QString()) + stepPathParts.join("/");
         /// qDebug()<<tmpPath<<stepPathParts;
-        curr_model = this->dir_file_model->index(tmpPath);
-        this->uiw.treeView->expand(curr_model);
+        currIndex = this->dir_file_model->index(tmpPath);
+        this->uiw.treeView->expand(currIndex);
     }
     if (level == 1) {
-        this->uiw.treeView->scrollTo(curr_model);
+        this->uiw.treeView->scrollTo(currIndex);
     }
     //qDebug()<<" root row count:"<< row_cnt ;
 }

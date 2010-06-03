@@ -54,7 +54,7 @@ void FTPView::init_popup_context_menu()
 FTPView::~FTPView()
 {
     // because this line will call in base view class RemoteView
-    // this->remoteview.treeView->setModel(0);
+    // this->uiw.treeView->setModel(0);
     // delete this->remote_dir_model;
 }
 
@@ -99,7 +99,7 @@ QMenu *FTPView::encodingMenu()
 
 void FTPView::slot_show_fxp_command_log(bool show)
 {
-    this->remoteview.listView->setVisible(show);    
+    this->uiw.listView->setVisible(show);    
 }
 
 void FTPView::i_init_dir_view()
@@ -115,11 +115,11 @@ void FTPView::i_init_dir_view()
     this->m_treeProxyModel = new DirTreeSortFilterModel();
     this->m_treeProxyModel->setSourceModel(this->remote_dir_model);
     
-    this->remoteview.treeView->setModel(m_treeProxyModel);
-    this->remoteview.treeView->setAcceptDrops(true);
-    this->remoteview.treeView->setDragEnabled(false);
-    this->remoteview.treeView->setDropIndicatorShown(true);
-    this->remoteview.treeView->setDragDropMode(QAbstractItemView::DropOnly);
+    this->uiw.treeView->setModel(m_treeProxyModel);
+    this->uiw.treeView->setAcceptDrops(true);
+    this->uiw.treeView->setDragEnabled(false);
+    this->uiw.treeView->setDropIndicatorShown(true);
+    this->uiw.treeView->setDragDropMode(QAbstractItemView::DropOnly);
 
     QObject::connect(this->remote_dir_model,
                      SIGNAL(sig_drop_mime_data(const QMimeData *, Qt::DropAction, int, int, const QModelIndex &)),
@@ -130,36 +130,36 @@ void FTPView::i_init_dir_view()
     QObject::connect(this->remote_dir_model, SIGNAL(leave_remote_dir_retrive_loop()),
                      this, SLOT(slot_leave_remote_dir_retrive_loop()));
     
-    this->remoteview.treeView->expandAll();
-    this->remoteview.treeView->setColumnWidth(0, this->remoteview.treeView->columnWidth(0)*2);
+    this->uiw.treeView->expandAll();
+    this->uiw.treeView->setColumnWidth(0, this->uiw.treeView->columnWidth(0)*2);
     
     //这里设置为true时，导致这个treeView不能正确显示滚动条了，为什么呢?
-    //this->remoteview.treeView->setColumnHidden( 1, false);
-    this->remoteview.treeView->setColumnWidth(1, 0);//使用这种方法隐藏看上去就正常了。
-    this->remoteview.treeView->setColumnHidden(2, true);
-    this->remoteview.treeView->setColumnHidden(3, true);
+    //this->uiw.treeView->setColumnHidden( 1, false);
+    this->uiw.treeView->setColumnWidth(1, 0);//使用这种方法隐藏看上去就正常了。
+    this->uiw.treeView->setColumnHidden(2, true);
+    this->uiw.treeView->setColumnHidden(3, true);
     
     /////tableView
-    this->remoteview.tableView->setModel(this->m_tableProxyModel);
-    // this->remoteview.tableView->setRootIndex(this->m_tableProxyModel->index(this->user_home_path));
+    this->uiw.tableView->setModel(this->m_tableProxyModel);
+    // this->uiw.tableView->setRootIndex(this->m_tableProxyModel->index(this->user_home_path));
 
     //change row height of table 
     // if (this->m_tableProxyModel->rowCount(this->m_tableProxyModel->index(this->user_home_path)) > 0) {
-    //     this->table_row_height = this->remoteview.tableView->rowHeight(0)*2/3;
+    //     this->table_row_height = this->uiw.tableView->rowHeight(0)*2/3;
     // } else {
     //     this->table_row_height = 20;
     // }
     // for (int i = 0; i < this->m_tableProxyModel->rowCount(this->m_tableProxyModel->index(this->user_home_path)); i ++) {
-    //     this->remoteview.tableView->setRowHeight(i, this->table_row_height);
+    //     this->uiw.tableView->setRowHeight(i, this->table_row_height);
     // }
-    this->remoteview.tableView->resizeColumnToContents(0);
+    this->uiw.tableView->resizeColumnToContents(0);
     
     /////
-    QObject::connect(this->remoteview.treeView, SIGNAL(clicked(const QModelIndex &)),
+    QObject::connect(this->uiw.treeView, SIGNAL(clicked(const QModelIndex &)),
                      this, SLOT(slot_dir_tree_item_clicked(const QModelIndex &)));
-    QObject::connect(this->remoteview.tableView, SIGNAL(doubleClicked(const QModelIndex &)),
+    QObject::connect(this->uiw.tableView, SIGNAL(doubleClicked(const QModelIndex &)),
                      this, SLOT(slot_dir_file_view_double_clicked(const QModelIndex &)));
-    QObject::connect(this->remoteview.tableView, SIGNAL(drag_ready()),
+    QObject::connect(this->uiw.tableView, SIGNAL(drag_ready()),
                      this, SLOT(slot_drag_ready()));
 
     //TODO 连接remoteview.treeView 的drag信号
@@ -173,7 +173,7 @@ void FTPView::i_init_dir_view()
 
 void FTPView::slot_disconnect_from_remote_host()
 {
-    this->remoteview.treeView->setModel(0);
+    this->uiw.treeView->setModel(0);
     delete this->remote_dir_model;
     this->remote_dir_model = 0;
 }
@@ -210,7 +210,7 @@ void FTPView::slot_new_transfer()
     for(int i = 0 ; i < mil.size(); i +=4 ) {
         QModelIndex midx = mil.at(i);
         QModelIndex proxyIndex = midx;
-        QModelIndex sourceIndex = (this->curr_item_view == this->remoteview.treeView)
+        QModelIndex sourceIndex = (this->curr_item_view == this->uiw.treeView)
             ? this->m_treeProxyModel->mapToSource(midx)
             : this->m_tableProxyModel->mapToSource(midx);
         QModelIndex useIndex = sourceIndex;
@@ -233,7 +233,7 @@ QString FTPView::get_selected_directory()
 {
     QString file_path;
     
-    QItemSelectionModel *ism = this->remoteview.treeView->selectionModel();
+    QItemSelectionModel *ism = this->uiw.treeView->selectionModel();
     
     if (ism == 0) {
         QMessageBox::critical(this, tr("Waring..."),
@@ -266,7 +266,7 @@ QPair<QString, QString> FTPView::get_selected_directory(bool pair)
     QPair<QString, QString> file_path;
     // QString file_path;
     
-    QItemSelectionModel *ism = this->remoteview.treeView->selectionModel();
+    QItemSelectionModel *ism = this->uiw.treeView->selectionModel();
     
     if (ism == 0) {
         QMessageBox::critical(this, tr("Waring..."),
@@ -334,15 +334,15 @@ void FTPView::slot_custom_ui_area()
     
     QSizePolicy sp;
     sp.setVerticalPolicy(QSizePolicy::Ignored);
-    this->remoteview.listView->setSizePolicy(sp);
+    this->uiw.listView->setSizePolicy(sp);
     //这个设置必须在show之前设置才有效果
-    this->remoteview.splitter->setStretchFactor(0,1);
-    this->remoteview.splitter->setStretchFactor(1,2);
+    this->uiw.splitter->setStretchFactor(0,1);
+    this->uiw.splitter->setStretchFactor(1,2);
 
-    this->remoteview.splitter_2->setStretchFactor(0,6);
-    this->remoteview.splitter_2->setStretchFactor(1,1);
-    this->remoteview.listView->setVisible(false);//暂时没有功能在里面先隐藏掉
-    //this->remoteview.tableView->setVisible(false);
+    this->uiw.splitter_2->setStretchFactor(0,6);
+    this->uiw.splitter_2->setStretchFactor(1,1);
+    this->uiw.listView->setVisible(false);//暂时没有功能在里面先隐藏掉
+    //this->uiw.tableView->setVisible(false);
     qDebug()<<this->geometry();
     this->setGeometry(this->x(), this->y(), this->width(), this->height()*2);
     qDebug()<<this->geometry();
@@ -353,21 +353,21 @@ void FTPView::slot_enter_remote_dir_retrive_loop()
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     this->in_remote_dir_retrive_loop = true ;
     this->remote_dir_model->set_keep_alive(false);
-    this->orginal_cursor = this->remoteview.splitter->cursor();
-    this->remoteview.splitter->setCursor(Qt::BusyCursor);
+    this->orginal_cursor = this->uiw.splitter->cursor();
+    this->uiw.splitter->setCursor(Qt::BusyCursor);
 }
 
 void FTPView::slot_leave_remote_dir_retrive_loop()
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
-    this->remoteview.splitter->setCursor(this->orginal_cursor);
+    this->uiw.splitter->setCursor(this->orginal_cursor);
     this->remote_dir_model->set_keep_alive(true);
     this->in_remote_dir_retrive_loop = false ;
-    for (int i = 0 ; i < this->m_tableProxyModel->rowCount(this->remoteview.tableView->rootIndex()); i ++) {
-        this->remoteview.tableView->setRowHeight(i, this->table_row_height);
+    for (int i = 0 ; i < this->m_tableProxyModel->rowCount(this->uiw.tableView->rootIndex()); i ++) {
+        this->uiw.tableView->setRowHeight(i, this->table_row_height);
     }
-    this->remoteview.tableView->resizeColumnToContents ( 0 );
+    this->uiw.tableView->resizeColumnToContents ( 0 );
 }
 
 void FTPView::update_layout()
@@ -376,7 +376,7 @@ void FTPView::update_layout()
     
     QString file_path ;
     
-    QItemSelectionModel *ism = this->remoteview.treeView->selectionModel();
+    QItemSelectionModel *ism = this->uiw.treeView->selectionModel();
     
     if (ism == 0) {
         //QMessageBox::critical(this,tr("waring..."),tr("maybe you haven't connected"));        //return file_path ;
@@ -420,7 +420,7 @@ void FTPView::slot_show_properties()
     
     QModelIndexList mil = ism->selectedIndexes();
     QModelIndexList aim_mil;
-    if (this->curr_item_view == this->remoteview.treeView) {
+    if (this->curr_item_view == this->uiw.treeView) {
         for (int i = 0 ; i < mil.count() ; i ++) {
             aim_mil << this->m_treeProxyModel->mapToSource(mil.at(i));
         }
@@ -464,7 +464,7 @@ void FTPView::slot_mkdir()
     }
     
     QModelIndex midx = mil.at(0);
-    QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) ? this->m_treeProxyModel->mapToSource(midx): this->m_tableProxyModel->mapToSource(midx);
+    QModelIndex aim_midx = (this->curr_item_view == this->uiw.treeView) ? this->m_treeProxyModel->mapToSource(midx): this->m_tableProxyModel->mapToSource(midx);
     NetDirNode *dti = (NetDirNode*)(aim_midx.internalPointer());
     
     //检查所选择的项是不是目录
@@ -513,7 +513,7 @@ void FTPView::slot_rmdir()
     }
     
     QModelIndex midx = mil.at(0);
-    QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) 
+    QModelIndex aim_midx = (this->curr_item_view == this->uiw.treeView) 
         ? this->m_treeProxyModel->mapToSource(midx)
         : this->m_tableProxyModel->mapToSource(midx);    
     NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
@@ -552,7 +552,7 @@ void FTPView::rm_file_or_directory_recursively()
     bool firstWarning = true;
     for (int i = mil.count() - 1 - 3; i >= 0; i -= 4) {
         QModelIndex midx = mil.at(i);
-        QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) 
+        QModelIndex aim_midx = (this->curr_item_view == this->uiw.treeView) 
             ? this->m_treeProxyModel->mapToSource(midx)
             : this->m_tableProxyModel->mapToSource(midx);
         NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
@@ -622,7 +622,7 @@ void FTPView::slot_copy_path()
     }
     
     QModelIndex midx = mil.at(0);
-    QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) 
+    QModelIndex aim_midx = (this->curr_item_view == this->uiw.treeView) 
         ? this->m_treeProxyModel->mapToSource(midx)
         : this->m_tableProxyModel->mapToSource(midx);    
     NetDirNode *dti = (NetDirNode*)aim_midx.internalPointer();
@@ -649,7 +649,7 @@ void FTPView::slot_copy_url()
     }
     
     QModelIndex midx = mil.at(0);
-    QModelIndex aim_midx = (this->curr_item_view == this->remoteview.treeView) 
+    QModelIndex aim_midx = (this->curr_item_view == this->uiw.treeView) 
         ? this->m_treeProxyModel->mapToSource(midx)
         : this->m_tableProxyModel->mapToSource(midx);    
     NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
@@ -786,11 +786,11 @@ void FTPView::slot_dir_tree_item_clicked(const QModelIndex & index)
     remote_dir_model->slot_remote_dir_node_clicked(this->m_treeProxyModel->mapToSource(index));
     
     // file_path = this->m_treeProxyModel->filePath(index);
-    // this->remoteview.tableView->setRootIndex(this->m_tableProxyModel->index(file_path));
+    // this->uiw.tableView->setRootIndex(this->m_tableProxyModel->index(file_path));
     // for (int i = 0 ; i < this->m_tableProxyModel->rowCount(this->m_tableProxyModel->index(file_path)); i ++ ) {
-    //     this->remoteview.tableView->setRowHeight(i, this->table_row_height);
+    //     this->uiw.tableView->setRowHeight(i, this->table_row_height);
     // }
-    this->remoteview.tableView->resizeColumnToContents(0);
+    this->uiw.tableView->resizeColumnToContents(0);
 }
 
 void FTPView::slot_dir_file_view_double_clicked(const QModelIndex & index)
@@ -804,11 +804,11 @@ void FTPView::slot_dir_file_view_double_clicked(const QModelIndex & index)
     //2。对于远程主机，　如果是目录，则打开这个目录，如果是文件，则提示是否要下载它(或者也可以直接打开这个文件）。
     QString file_path;
     // if (this->m_tableProxyModel->isDir(index)) {
-    //     this->remoteview.treeView->expand(this->m_treeProxyModel->index(this->m_tableProxyModel->filePath(index)).parent());
-    //     this->remoteview.treeView->expand(this->m_treeProxyModel->index(this->m_tableProxyModel->filePath(index)));
+    //     this->uiw.treeView->expand(this->m_treeProxyModel->index(this->m_tableProxyModel->filePath(index)).parent());
+    //     this->uiw.treeView->expand(this->m_treeProxyModel->index(this->m_tableProxyModel->filePath(index)));
     //     this->slot_dir_tree_item_clicked(this->m_treeProxyModel->index(this->m_tableProxyModel->filePath(index)));
-    //     this->remoteview.treeView->selectionModel()->clearSelection();
-    //     this->remoteview.treeView->selectionModel()->select(this->m_treeProxyModel->index(this->m_tableProxyModel->filePath(index)) , QItemSelectionModel::Select);
+    //     this->uiw.treeView->selectionModel()->clearSelection();
+    //     this->uiw.treeView->selectionModel()->select(this->m_treeProxyModel->index(this->m_tableProxyModel->filePath(index)) , QItemSelectionModel::Select);
     // } else if (this->m_tableProxyModel->isSymLink(index)) {
     //     QModelIndex idx = this->m_tableProxyModel->mapToSource(index);
     //     NetDirNode *node_item = (NetDirNode*)idx.internalPointer();
@@ -830,10 +830,10 @@ void FTPView::slot_drag_ready()
     QMimeData *mimeData = new QMimeData;
     
     //这个视图中所选择的目录优先，如果没有则查找左侧目录树是是否有选择的目录，如果再找不到，则使用右侧表视图的根
-    QItemSelectionModel *ism = this->remoteview.tableView->selectionModel();
+    QItemSelectionModel *ism = this->uiw.tableView->selectionModel();
     QModelIndexList mil = ism->selectedIndexes();
     if (mil.count() == 0) {
-        ism = this->remoteview.treeView->selectionModel();
+        ism = this->uiw.treeView->selectionModel();
         mil = ism->selectedIndexes();
     }
 

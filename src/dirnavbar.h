@@ -20,7 +20,6 @@
 class DirNavBar : public QWidget
 {
     Q_OBJECT;
-
 public:
     DirNavBar(QWidget *parent = 0);
     ~DirNavBar();
@@ -53,7 +52,8 @@ private:
     Ui::DirNavBar uiw;
     QString homePath;
     QVector<QString> dirConfirmHistory;
-    int dirHistoryCurrentPos;
+    unsigned char dirHistoryCurrentPos;
+    unsigned char maxHistoryCount;
     bool blockCompleteRequest;
     QCompleter *comer;
     QStringListModel *comModel;

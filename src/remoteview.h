@@ -47,11 +47,11 @@ public:
     virtual void update_layout();
     
 protected:
-    LocalView  *local_view;
-    QMdiArea   *main_mdi_area;
+    LocalView  *local_view;    // from LocalView class
+    QMdiArea   *main_mdi_area; // from NullFXP class
     QStatusBar *status_bar;
         
-    Ui::remoteview remoteview;
+    Ui::RemoteView uiw;
     RemoteDirModel *remote_dir_model;
     int   table_row_height;
     QSortFilterProxyModel *m_treeProxyModel;
@@ -76,7 +76,13 @@ protected:
     //menu item
     QAction *attr_action;
     EncryptionDetailFocusLabel *enc_label;
+
     QLabel *entriesLabel;
+    bool is_dir_complete_request;
+    QString dir_complete_request_prefix;
+
+    virtual void expand_to_home_directory(QModelIndex parent_model, int level);
+    virtual void expand_to_directory(QString path, int level);
         
 public slots:
     virtual void i_init_dir_view();
@@ -106,6 +112,10 @@ public slots:
     virtual bool slot_drop_mime_data(const QMimeData *data, Qt::DropAction action,
 			     int row, int column, const QModelIndex &parent);
     virtual void slot_show_hidden(bool show);
+
+    virtual void slot_dir_nav_go_home();
+    virtual void slot_dir_nav_prefix_changed(QString prefix);
+    virtual void slot_dir_nav_input_comfirmed(QString prefix);
 	
 signals:
         

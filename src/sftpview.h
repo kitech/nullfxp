@@ -50,6 +50,9 @@ protected:
     SSHConnection *rconn;
     QStringListModel *m_operationLogModel;
 
+    virtual void expand_to_home_directory(QModelIndex parent_model, int level);
+    virtual void expand_to_directory(QString path, int level);
+
 public slots:
     virtual void i_init_dir_view();
     virtual void slot_disconnect_from_remote_host();
@@ -81,6 +84,10 @@ public slots:
 	
     // log msg handler
     void slot_operation_triggered(QString text);
+
+    virtual void slot_dir_nav_go_home();
+    virtual void slot_dir_nav_prefix_changed(QString prefix);
+    virtual void slot_dir_nav_input_comfirmed(QString prefix);
 
 signals:
         

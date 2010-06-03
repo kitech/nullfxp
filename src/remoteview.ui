@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>remoteview</class>
- <widget class="QWidget" name="remoteview">
+ <class>RemoteView</class>
+ <widget class="QWidget" name="RemoteView">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -18,126 +18,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QWidget" name="widget" native="true">
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <item>
-       <widget class="QToolButton" name="toolButton_6">
-        <property name="toolTip">
-         <string>Bookmarks</string>
-        </property>
-        <property name="text">
-         <string>...</string>
-        </property>
-        <property name="icon">
-         <iconset resource="nullfxp.qrc">
-          <normaloff>:/icons/folder-favorites.png</normaloff>:/icons/folder-favorites.png</iconset>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QComboBox" name="comboBox">
-        <property name="editable">
-         <bool>true</bool>
-        </property>
-        <item>
-         <property name="text">
-          <string>ixvxcv</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>vxc</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>oiew</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>dsfsdf</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Clear...</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item>
-       <widget class="QToolButton" name="toolButton_5">
-        <property name="toolTip">
-         <string>Go Home</string>
-        </property>
-        <property name="text">
-         <string>...</string>
-        </property>
-        <property name="icon">
-         <iconset resource="nullfxp.qrc">
-          <normaloff>:/icons/user-home.png</normaloff>:/icons/user-home.png</iconset>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QToolButton" name="toolButton_4">
-        <property name="toolTip">
-         <string>Go Previous</string>
-        </property>
-        <property name="text">
-         <string>...</string>
-        </property>
-        <property name="icon">
-         <iconset resource="nullfxp.qrc">
-          <normaloff>:/icons/go-previous.png</normaloff>:/icons/go-previous.png</iconset>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QToolButton" name="toolButton_3">
-        <property name="toolTip">
-         <string>Go Next</string>
-        </property>
-        <property name="text">
-         <string>...</string>
-        </property>
-        <property name="icon">
-         <iconset resource="nullfxp.qrc">
-          <normaloff>:/icons/go-next.png</normaloff>:/icons/go-next.png</iconset>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QToolButton" name="toolButton_2">
-        <property name="toolTip">
-         <string>Go Parent</string>
-        </property>
-        <property name="text">
-         <string>...</string>
-        </property>
-        <property name="icon">
-         <iconset resource="nullfxp.qrc">
-          <normaloff>:/icons/go-up.png</normaloff>:/icons/go-up.png</iconset>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QToolButton" name="toolButton">
-        <property name="toolTip">
-         <string>Reload</string>
-        </property>
-        <property name="text">
-         <string>...</string>
-        </property>
-        <property name="icon">
-         <iconset resource="nullfxp.qrc">
-          <normaloff>:/icons/appointment-recurring.png</normaloff>:/icons/appointment-recurring.png</iconset>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
+    <widget class="DirNavBar" name="widget" native="true"/>
    </item>
    <item>
     <widget class="QSplitter" name="splitter_2">
@@ -221,6 +102,12 @@
    <class>RemoteViewDirTableView</class>
    <extends>QTableView</extends>
    <header location="global">remoteviewdirtableview.h</header>
+  </customwidget>
+  <customwidget>
+   <class>DirNavBar</class>
+   <extends>QWidget</extends>
+   <header location="global">dirnavbar.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>

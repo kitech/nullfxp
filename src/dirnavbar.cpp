@@ -14,6 +14,7 @@
 #include <QtGui>
 
 // TODO now not support CJKs paths, why?
+// TODO drop duplicate item in history vector
 DirNavBar::DirNavBar(QWidget *parent)
     : QWidget(parent)
 {
@@ -44,6 +45,8 @@ DirNavBar::DirNavBar(QWidget *parent)
                      this, SLOT(onReload()));
 
     this->uiw.comboBox->installEventFilter(this);
+
+    this->maxHistoryCount = 100;
 }
 
 DirNavBar::~DirNavBar()
@@ -58,6 +61,9 @@ void DirNavBar::onSetHome(QString path)
     this->homePath = path;
     this->uiw.comboBox->setEditText(path);
     this->dirConfirmHistory.append(path);
+    if (this->dirConfirmHistory.count() > 100) {
+        this->dirConfirmHistory.remove(0);
+    }
     this->dirHistoryCurrentPos = this->dirConfirmHistory.count() - 1;
     this->blockCompleteRequest = false;
 }
@@ -67,6 +73,9 @@ void DirNavBar::onNavToPath(QString path)
     this->blockCompleteRequest = true;
     this->uiw.comboBox->setEditText(path);
     this->dirConfirmHistory.append(path);
+    if (this->dirConfirmHistory.count() > 100) {
+        this->dirConfirmHistory.remove(0);
+    }
     this->dirHistoryCurrentPos = this->dirConfirmHistory.count() - 1;
     this->blockCompleteRequest = false;
 }
@@ -101,6 +110,10 @@ void DirNavBar::onGoPrevious()
 
     q_debug()<<this->dirConfirmHistory;
 
+    if (this->dirConfirmHistory.isEmpty()) {
+        return;
+    }
+
     if (p1 < 0) {
         p1 = p2;
     }
@@ -124,6 +137,9 @@ void DirNavBar::onGoNext()
     int p2 = this->dirConfirmHistory.count() - 1;
 
     q_debug()<<this->dirConfirmHistory;
+    if (this->dirConfirmHistory.isEmpty()) {
+        return;
+    }
 
     if (p1 > p2) {
         p1 = 0;
@@ -143,6 +159,10 @@ void DirNavBar::onGoNext()
 void DirNavBar::onGoUp()
 {
     QString currPath = this->uiw.comboBox->currentText();
+    if (currPath.length() == 0) {
+        q_debug()<<"No current path set!!!";
+        return;
+    }
     if (currPath.length() > 1 
         && (currPath.endsWith('/') || currPath.startsWith('\\'))) {
         currPath = currPath.left(currPath.length() - 2);
@@ -159,7 +179,9 @@ void DirNavBar::onGoUp()
     
     if (upos == -1) {
         q_debug()<<"What's happened, not possible???"<<currPath;
+        // on windows, if currPath is C: D: and so on, this will happen
         Q_ASSERT(upos != -1);
+        return;
     }
 
     q_debug()<<upos<<currPath;
@@ -168,6 +190,9 @@ void DirNavBar::onGoUp()
     
     this->uiw.comboBox->setEditText(currPath);
     this->dirConfirmHistory.append(currPath);
+    if (this->dirConfirmHistory.count() > 100) {
+        this->dirConfirmHistory.remove(0);
+    }
     this->dirHistoryCurrentPos = this->dirConfirmHistory.count() - 1;
     emit this->dirInputConfirmed(currPath);
 }
