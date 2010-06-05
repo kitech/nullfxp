@@ -14,11 +14,11 @@
 
 #include "globaloption.h"
 
-GlobalOption * gOpt = GlobalOption::instance();
+GlobalOption *gOpt = GlobalOption::instance();
 
-GlobalOption * GlobalOption::mInstance = 0 ;
+GlobalOption *GlobalOption::mInstance = 0;
 
-GlobalOption * GlobalOption::instance()
+GlobalOption *GlobalOption::instance()
 {
     if (GlobalOption::mInstance == 0) {
         GlobalOption::mInstance = new GlobalOption();
@@ -36,6 +36,7 @@ GlobalOption * GlobalOption::instance()
         GlobalOption::mInstance->test_codec =  QTextCodec::codecForName("C");
         //Q_CHECK_PTR(GlobalOption::mInstance->test_codec);
 		//qDebug()<<"GBK: "<<  GlobalOption::mInstance->test_codec->aliases();
+        GlobalOption::mInstance->file_list_view_mode = FLV_DETAIL;
     }
     
     return GlobalOption::mInstance;

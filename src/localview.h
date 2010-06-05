@@ -49,6 +49,8 @@ public slots:
     void slot_dir_nav_prefix_changed(const QString &prefix);
     void slot_dir_nav_input_comfirmed(const QString &prefix);
     void slot_icon_size_changed(int value);
+
+    void setFileListViewMode(int mode);
     
 private slots:
     void slot_dir_tree_item_clicked(const QModelIndex & index);

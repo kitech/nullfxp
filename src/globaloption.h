@@ -23,8 +23,9 @@ class GlobalOption
 {
 public:
     static GlobalOption *instance();
-
     ~GlobalOption();
+
+    enum {FLV_DETAIL, FLV_LIST, FLV_SMALL_ICON, FLV_LARGE_ICON};
     
     //options
     QTextCodec *remote_codec ;
@@ -32,7 +33,8 @@ public:
 	QTextCodec *test_codec ;
     bool        keep_alive ;
     bool        kepp_alive_internal ;
-    
+    unsigned char file_list_view_mode;
+
     void set_remote_codec(const char *codes);
     
 private:

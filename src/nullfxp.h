@@ -68,6 +68,8 @@ private slots:
 
     void slot_set_mdi_area_background();
 
+    void slot_set_file_list_mode(QAction *action);
+
 private:
     MdiChild *activeMdiChild();        
     QMdiArea *mdiArea;

@@ -118,6 +118,8 @@ public slots:
     virtual void slot_dir_nav_input_comfirmed(const QString &prefix);
     virtual void slot_icon_size_changed(int value);
 
+    virtual void setFileListViewMode(int mode);
+
     virtual void onDirectoryLoaded(const QString &path);
 
 signals:

@@ -88,6 +88,7 @@ RemoteView::RemoteView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *
     QObject::connect(this->uiw.widget, SIGNAL(iconSizeChanged(int)),
                      this, SLOT(slot_icon_size_changed(int)));
     // this->uiw.widget->onSetHome(QDir::homePath()); // call from set_user_home_path
+    this->setFileListViewMode(GlobalOption::FLV_DETAIL);
 }
 
 RemoteView::~RemoteView()
@@ -1147,3 +1148,27 @@ void RemoteView::slot_icon_size_changed(int value)
     this->uiw.listView_2->setGridSize(QSize(value, value));
 }
 
+void RemoteView::setFileListViewMode(int mode)
+{
+    if (mode == GlobalOption::FLV_LARGE_ICON) {
+        this->uiw.tableView->setVisible(false);
+        this->uiw.listView_2->setVisible(true);
+        this->slot_icon_size_changed(96);
+        this->uiw.listView_2->setViewMode(QListView::IconMode);
+    } else if (mode == GlobalOption::FLV_SMALL_ICON) {
+        this->uiw.tableView->setVisible(false);
+        this->uiw.listView_2->setVisible(true);
+        this->slot_icon_size_changed(48);
+        this->uiw.listView_2->setViewMode(QListView::IconMode);
+    } else if (mode == GlobalOption::FLV_LIST) {
+        this->uiw.tableView->setVisible(false);
+        this->uiw.listView_2->setVisible(true);
+        this->slot_icon_size_changed(32);
+        this->uiw.listView_2->setViewMode(QListView::ListMode);
+    } else if (mode == GlobalOption::FLV_DETAIL) {
+        this->uiw.tableView->setVisible(true);
+        this->uiw.listView_2->setVisible(false);
+    } else {
+        Q_ASSERT(1 == 2);
+    }    
+}

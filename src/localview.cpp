@@ -115,6 +115,7 @@ LocalView::LocalView(QWidget *parent )
     QObject::connect(this->uiw.widget, SIGNAL(iconSizeChanged(int)),
                      this, SLOT(slot_icon_size_changed(int)));
     this->uiw.widget->onSetHome(QDir::homePath());
+    this->setFileListViewMode(GlobalOption::FLV_DETAIL);
 
     //TODO localview 标题格式: Local(主机名) - 当前所在目录名
     //TODO remoteview 标题格式: user@hostname - 当前所在目录名
@@ -738,5 +739,30 @@ void LocalView::slot_icon_size_changed(int value)
 {
     q_debug()<<value;
     this->uiw.listView->setGridSize(QSize(value, value));
+}
+
+void LocalView::setFileListViewMode(int mode)
+{
+    if (mode == GlobalOption::FLV_LARGE_ICON) {
+        this->uiw.tableView->setVisible(false);
+        this->uiw.listView->setVisible(true);
+        this->slot_icon_size_changed(96);
+        this->uiw.listView->setViewMode(QListView::IconMode);
+    } else if (mode == GlobalOption::FLV_SMALL_ICON) {
+        this->uiw.tableView->setVisible(false);
+        this->uiw.listView->setVisible(true);
+        this->slot_icon_size_changed(48);
+        this->uiw.listView->setViewMode(QListView::IconMode);
+    } else if (mode == GlobalOption::FLV_LIST) {
+        this->uiw.tableView->setVisible(false);
+        this->uiw.listView->setVisible(true);
+        this->slot_icon_size_changed(32);
+        this->uiw.listView->setViewMode(QListView::ListMode);
+    } else if (mode == GlobalOption::FLV_DETAIL) {
+        this->uiw.tableView->setVisible(true);
+        this->uiw.listView->setVisible(false);
+    } else {
+        Q_ASSERT(1 == 2);
+    }
 }
 

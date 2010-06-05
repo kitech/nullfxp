@@ -82,6 +82,7 @@
     <addaction name="actionS_mall_Icons"/>
     <addaction name="action_List"/>
     <addaction name="action_Details"/>
+    <addaction name="separator"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menuFfff"/>
@@ -236,21 +237,36 @@
    </property>
   </action>
   <action name="actionLar_ge_Icons">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Lar&amp;ge Icons</string>
    </property>
   </action>
   <action name="actionS_mall_Icons">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>S&amp;mall Icons</string>
    </property>
   </action>
   <action name="action_List">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>&amp;List</string>
    </property>
   </action>
   <action name="action_Details">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>&amp;Details</string>
    </property>

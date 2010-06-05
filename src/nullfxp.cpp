@@ -37,6 +37,9 @@
 #include "sftpview.h"
 #include "updatedialog.h"
 #include "taskqueueview.h"
+#include "globaloption.h"
+
+extern GlobalOption *gOpt;
 
 //////////////////////////
 NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
@@ -142,9 +145,17 @@ NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
 
     //调整本地目录树窗口的大小
     //QList<QMdiSubWindow *> mdiSubWindow = mdiArea->subWindowList();
-    //qDebug()<<" mdi sub window count :"<< mdiSubWindow.count();
+    //qDebug()<<"mdi sub window count :"<< mdiSubWindow.count();
     QMdiSubWindow *local_sub_win = mdiArea->subWindowList().at(0);
     local_sub_win->setGeometry(local_sub_win->x(), local_sub_win->y(), mdiArea->width()/2, mdiArea->height()*19/19);
+
+    QActionGroup *flv_ag = new QActionGroup(this);
+    flv_ag->addAction(this->mUIMain.actionLar_ge_Icons);
+    flv_ag->addAction(this->mUIMain.actionS_mall_Icons);
+    flv_ag->addAction(this->mUIMain.action_List);
+    flv_ag->addAction(this->mUIMain.action_Details);
+    QObject::connect(flv_ag, SIGNAL(triggered(QAction*)),
+                     this, SLOT(slot_set_file_list_mode(QAction*)));
 
     BaseStorage *storage = BaseStorage::instance();
     int host_count = storage->hostCount();
@@ -469,6 +480,38 @@ RemoteView *NullFXP::get_top_most_remote_view()
         }
     }
     return remote_view;
+}
+
+void NullFXP::slot_set_file_list_mode(QAction *action)
+{
+    RemoteView *remote_view = 0;
+    QList<QMdiSubWindow *> sub_window_list = this->mdiArea->subWindowList(QMdiArea::StackingOrder);
+    int sub_wnd_count = sub_window_list.count() ;
+
+    if (action == this->mUIMain.actionLar_ge_Icons) {
+        gOpt->file_list_view_mode = GlobalOption::FLV_LARGE_ICON;
+    } else if (action == this->mUIMain.actionS_mall_Icons) {
+        gOpt->file_list_view_mode = GlobalOption::FLV_SMALL_ICON;
+    } else if (action == this->mUIMain.action_List) {
+        gOpt->file_list_view_mode = GlobalOption::FLV_LIST;
+    } else if (action == this->mUIMain.action_Details) {
+        gOpt->file_list_view_mode = GlobalOption::FLV_DETAIL;
+    } else {
+        Q_ASSERT(1 == 2);
+    }
+    
+    for (sub_wnd_count = sub_wnd_count -1 ; sub_wnd_count >= 0 ; sub_wnd_count --) {
+        if (sub_window_list.at(sub_wnd_count)->widget() == this->localView) {
+            this->localView->setFileListViewMode(gOpt->file_list_view_mode);
+        } else if (sub_window_list.at(sub_wnd_count)->widget() != this->localView
+                   && sub_window_list.at(sub_wnd_count)->widget()->objectName() == "NetDirView") {
+            remote_view = static_cast<RemoteView*>(sub_window_list.at(sub_wnd_count)->widget());
+            remote_view->setFileListViewMode(gOpt->file_list_view_mode);
+        } else {
+            // maybe prograss window
+        }
+    }
+
 }
 
 void NullFXP::slot_check_for_updates()

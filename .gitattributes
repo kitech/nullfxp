@@ -327,6 +327,7 @@ src/icons/os/osx.png -text
 src/icons/os/tux.png -text
 src/icons/os/windows.png -text
 src/icons/user-home.png -text
+src/icons/zoom-in.png -text
 src/libssh/libssh.pro -text
 src/libssh/libssh/config.h -text
 src/libssh/libssh/libssh.pro -text
