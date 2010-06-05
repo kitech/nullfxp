@@ -12,7 +12,9 @@ CONFIG += qt thread console warn_on ordered
 TARGET = nullfxp
 DESTDIR = ../bin
 
-VERSION=2.0.2.86  # using in nullfxp-version.h
+VERSION=2.0.2.87  # using in nullfxp-version.h
+
+# get compiling qt version
 
 include(../install.pri)
 
@@ -21,6 +23,7 @@ win32 {
     !win32-g++ {
          CONFIG -= embed_manifest_exe
          CONFIG -= embed_manifest_dll
+         QTPLUGIN += qgif
     }
 } else:solaris-g++ {
     QT -= webkit

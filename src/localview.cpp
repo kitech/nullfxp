@@ -549,7 +549,7 @@ void LocalView::slot_copy_path_url()
         return;
     }
     
-    QModelIndexList mil = ism->selectedIndexes()   ;
+    QModelIndexList mil = ism->selectedIndexes();
     if (mil.count() == 0) {
         qDebug()<<" why???? no QItemSelectionModel??";
         return;
@@ -567,7 +567,7 @@ void LocalView::slot_show_properties()
     
     if (ism == 0) {
         qDebug()<<"Why???? no QItemSelectionModel??";
-        return ;
+        return;
     }
     
     QModelIndexList mil = ism->selectedIndexes();
@@ -579,10 +579,10 @@ void LocalView::slot_show_properties()
         ? this->dir_file_model->filePath(mil.at(0)) : this->model->filePath(mil.at(0));
     //  文件类型，大小，几个时间，文件权限
     //TODO 从模型中取到这些数据并显示在属性对话框中。
-    LocalFileProperties * fp = new LocalFileProperties(this);
+    LocalFileProperties *fp = new LocalFileProperties(this);
     fp->set_file_info_model_list(local_file);
     fp->exec();
-    delete fp ;
+    delete fp;
 }
 
 void LocalView::rm_file_or_directory_recursively()

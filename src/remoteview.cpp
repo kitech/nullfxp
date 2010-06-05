@@ -1048,6 +1048,11 @@ void RemoteView::host_info_focus_label_double_clicked()
     delete dlg;
 }
 
+void RemoteView::onDirectoryLoaded(const QString &path)
+{
+    q_debug()<<"Warning: base call.";
+}
+
 void RemoteView::slot_dir_nav_go_home()
 {
     q_debug()<<"";

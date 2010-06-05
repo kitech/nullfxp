@@ -116,7 +116,9 @@ public slots:
     virtual void slot_dir_nav_go_home();
     virtual void slot_dir_nav_prefix_changed(QString prefix);
     virtual void slot_dir_nav_input_comfirmed(QString prefix);
-	
+
+    virtual void onDirectoryLoaded(const QString &path);
+
 signals:
         
 private slots:

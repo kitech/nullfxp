@@ -660,6 +660,7 @@ void RemoteDirModel::slot_remote_dir_node_retrived(NetDirNode *parent_item,
 
     QPersistentModelIndex *persisIndex = (QPersistentModelIndex*)parent_persistent_index;
     QModelIndex currIndex = this->index(persisIndex->row(), persisIndex->column(), persisIndex->parent());
+    QString currPath = parent_item->filePath();
     int row, col = 0;
     int changeCount = 0;
 
@@ -702,6 +703,8 @@ void RemoteDirModel::slot_remote_dir_node_retrived(NetDirNode *parent_item,
             changeCount ++;
         }
     }
+
+    emit directoryLoaded(currPath);
 
     // qDebug()<<parent_item->childNodes.keys();
     // for (int i = 0; i < parent_item->childNodes.count() ; ++i) {

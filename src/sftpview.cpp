@@ -60,6 +60,8 @@ void SFTPView::i_init_dir_view()
     this->uiw.listView->setModel(this->m_operationLogModel);
     QObject::connect(this->remote_dir_model, SIGNAL(operationTriggered(QString)), 
                      this, SLOT(slot_operation_triggered(QString)));
+    QObject::connect(this->remote_dir_model, SIGNAL(directoryLoaded(const QString &)),
+                     this, SLOT(onDirectoryLoaded(const QString &)));
     
     this->remote_dir_model->set_user_home_path(this->user_home_path);
     this->m_tableProxyModel = new DirTableSortFilterModel();
@@ -166,6 +168,34 @@ void SFTPView::expand_to_home_directory(QModelIndex parent_model, int level)
 void SFTPView::expand_to_directory(QString path, int level)
 {
     Q_ASSERT(!path.isEmpty());
+    QString homePath = path;
+    QStringList homePathParts = homePath.split('/');
+    // qDebug()<<home_path_grade<<level<<row_cnt;
+    QStringList stepPathParts;
+    QString tmpPath;
+    QModelIndex currIndex;
+    QModelIndex proxyIndex;
+    QModelIndex useIndex;
+
+    // windows fix case: C:/abcd/efg/hi
+    bool unixRootFix = true;
+    if (homePath.length() > 1 && homePath.at(1) == ':') {
+        unixRootFix = false;
+    }
+    
+    for (int i = 0; i < homePathParts.count(); i++) {
+        stepPathParts << homePathParts.at(i);
+        tmpPath = (unixRootFix ? QString("/") : QString()) + stepPathParts.join("/");
+        /// qDebug()<<tmpPath<<stepPathParts;
+        currIndex = this->remote_dir_model->index(tmpPath);
+        proxyIndex = this->m_treeProxyModel->mapFromSource(currIndex);
+        useIndex = proxyIndex;
+        this->uiw.treeView->expand(useIndex);
+    }
+    if (level == 1) {
+        this->uiw.treeView->scrollTo(useIndex);
+    }
+
 }
 
 void SFTPView::slot_disconnect_from_remote_host()
@@ -285,14 +315,14 @@ void SFTPView::closeEvent(QCloseEvent *event)
         //如果说是在上传或者下载,则强烈建议用户先关闭传输窗口，再关闭连接
         if (this->own_progress_dialog != 0) {
             QMessageBox::warning(this, tr("Attentions:"), tr("You can't close connection when transfering file."));
-            return ;
+            return;
         }
     }
     //this->setVisible(false);
     if (QMessageBox::question(this, tr("Attemp to close this window?"),tr("Are you sure disconnect from %1?").arg(this->windowTitle()), QMessageBox::Ok|QMessageBox::Cancel, QMessageBox::Cancel) == QMessageBox::Ok) {
         this->setVisible(false);
         qDebug()<<"delete remote view";
-        delete this ;
+        delete this;
     }
 }
 void SFTPView::slot_custom_ui_area()
@@ -332,9 +362,9 @@ void SFTPView::slot_leave_remote_dir_retrive_loop()
     this->uiw.splitter->setCursor(this->orginal_cursor);
     this->remote_dir_model->set_keep_alive(true);
     this->in_remote_dir_retrive_loop = false ;
-    // for (int i = 0 ; i < this->remote_dir_sort_filter_model->rowCount(this->uiw.tableView->rootIndex()); i ++) {
-    //     this->uiw.tableView->setRowHeight(i, this->table_row_height);
-    // }
+    for (int i = 0 ; i < this->m_tableProxyModel->rowCount(this->uiw.tableView->rootIndex()); i ++) {
+        this->uiw.tableView->setRowHeight(i, this->table_row_height);
+    }
     this->uiw.tableView->resizeColumnToContents(0);
     this->onUpdateEntriesStatus();
 }
@@ -969,6 +999,35 @@ void SFTPView::onUpdateEntriesStatus()
     this->entriesLabel->setText(msg);
 }
 
+void SFTPView::onDirectoryLoaded(const QString &path)
+{
+    q_debug()<<path;
+    // if (this->model->filePath(this->uiw.tableView->rootIndex()) == path) {
+    //     this->uiw.tableView->resizeColumnToContents(0);
+    //     this->onUpdateEntriesStatus();
+    // }
+
+    if (this->is_dir_complete_request) {
+        this->is_dir_complete_request = false;
+
+        QString prefix = this->dir_complete_request_prefix;
+        
+        QStringList matches;
+        QModelIndex currIndex;
+        QModelIndex sourceIndex = this->remote_dir_model->index(path);
+        int rc = this->remote_dir_model->rowCount(sourceIndex);
+        q_debug()<<"lazy load dir rows:"<<rc;
+        for (int i = rc - 1; i >= 0; --i) {
+            currIndex = this->remote_dir_model->index(i, 0, sourceIndex);
+            if (this->remote_dir_model->isDir(currIndex)) {
+                matches << this->remote_dir_model->filePath(currIndex);
+            }
+        }
+        this->uiw.widget->onSetCompleteList(prefix, matches);
+    }
+
+}
+
 void SFTPView::slot_operation_triggered(QString text)
 {
     if (this->m_operationLogModel == NULL) {
@@ -1009,71 +1068,79 @@ void SFTPView::slot_dir_nav_go_home()
 void SFTPView::slot_dir_nav_prefix_changed(QString prefix)
 {
     // q_debug()<<""<<prefix;
-    // QStringList matches;
-    // QModelIndex sourceIndex = this->model->index(prefix);
-    // QModelIndex currIndex;
+    QStringList matches;
+    QModelIndex sourceIndex = this->remote_dir_model->index(prefix);
+    QModelIndex currIndex;
 
-    // if (prefix == "") {
-    //     sourceIndex = this->model->index(0, 0, QModelIndex());
-    // } else if (!sourceIndex.isValid()) {
-    //     int pos = prefix.lastIndexOf('/');
-    //     if (pos == -1) {
-    //         pos = prefix.lastIndexOf('\\');
-    //     }
-    //     if (pos == -1) {
-    //         // how deal this case
-    //         Q_ASSERT(pos >= 0);
-    //     }
-    //     sourceIndex = this->model->index(prefix.left(prefix.length() - pos));
-    // }
-    // if (sourceIndex.isValid()) {
-    //     if (this->model->canFetchMore(sourceIndex)) {
-    //         while (this->model->canFetchMore(sourceIndex)) {
-    //             this->is_dir_complete_request = true;
-    //             this->dir_complete_request_prefix = prefix;
-    //             this->model->fetchMore(sourceIndex);
-    //         }
-    //         // sience qt < 4.7 has no directoryLoaded signal, so we should execute now if > 0
-    //         if (strcmp(qVersion(), "4.7.0") < 0) {
-    //             // QTimer::singleShot(this, SLOT(
-    //         }
-    //     } else {
-    //         int rc = this->model->rowCount(sourceIndex);
-    //         q_debug()<<"lazy load dir rows:"<<rc;
-    //         for (int i = rc - 1; i >= 0; --i) {
-    //             currIndex = this->model->index(i, 0, sourceIndex);
-    //             if (this->model->isDir(currIndex)) {
-    //                 matches << this->model->filePath(currIndex);
-    //             }
-    //         }
-    //         this->uiw.widget->onSetCompleteList(prefix, matches);
-    //     }
-    // } else {
-    //     // any operation for this case???
-    //     q_debug()<<"any operation for this case???"<<prefix;
-    // }
+    if (prefix == "") {
+        sourceIndex = this->remote_dir_model->index(0, 0, QModelIndex());
+    } else if (!sourceIndex.isValid()) {
+        int pos = prefix.lastIndexOf('/');
+        if (pos == -1) {
+            pos = prefix.lastIndexOf('\\');
+        }
+        if (pos == -1) {
+            // how deal this case
+            Q_ASSERT(pos >= 0);
+        }
+        sourceIndex = this->remote_dir_model->index(prefix.left(prefix.length() - pos));
+    }
+    if (sourceIndex.isValid()) {
+        if (this->remote_dir_model->canFetchMore(sourceIndex)) {
+            while (this->remote_dir_model->canFetchMore(sourceIndex)) {
+                this->is_dir_complete_request = true;
+                this->dir_complete_request_prefix = prefix;
+                this->remote_dir_model->fetchMore(sourceIndex);
+            }
+            // sience qt < 4.7 has no directoryLoaded signal, so we should execute now if > 0
+            if (strcmp(qVersion(), "4.7.0") < 0) {
+                // QTimer::singleShot(this, SLOT(
+            }
+        } else {
+            int rc = this->remote_dir_model->rowCount(sourceIndex);
+            q_debug()<<"lazy load dir rows:"<<rc;
+            for (int i = rc - 1; i >= 0; --i) {
+                currIndex = this->remote_dir_model->index(i, 0, sourceIndex);
+                if (this->remote_dir_model->isDir(currIndex)) {
+                    matches << this->remote_dir_model->filePath(currIndex);
+                }
+            }
+            this->uiw.widget->onSetCompleteList(prefix, matches);
+        }
+    } else {
+        // any operation for this case???
+        q_debug()<<"any operation for this case???"<<prefix;
+    }
 }
 
 void SFTPView::slot_dir_nav_input_comfirmed(QString prefix)
 {
     q_debug()<<"";
 
-    // QModelIndex sourceIndex = this->model->index(prefix);
-    // QModelIndex currIndex = this->uiw.tableView->rootIndex();
-    // QString currPath = this->model->filePath(currIndex);
+    QModelIndex sourceIndex = this->remote_dir_model->index(prefix);
+    QModelIndex currIndex = this->uiw.tableView->rootIndex();
 
-    // if (!sourceIndex.isValid()) {
-    //     q_debug()<<"directory not found!!!"<<prefix;
-    //     // TODO, show status???
-    //     this->status_bar->showMessage(tr("Directory not found: %1").arg(prefix));
-    //     return;
-    // }
+    if (!sourceIndex.isValid()) {
+        q_debug()<<"directory not found!!!"<<prefix;
+        // TODO, show status???
+        this->status_bar->showMessage(tr("Directory not found: %1").arg(prefix));
+        return;
+    }
 
-    // if (currPath != prefix) {
-    //     this->uiw.treeView->collapseAll();
-    //     this->expand_to_directory(prefix, 1);
-    //     this->uiw.tableView->setRootIndex(this->model->index(prefix));
-    // }
+    // q_debug()<<currIndex.isValid();
+    QString currPath;
+    if (!currIndex.isValid()) {
+        // some case will be !isValid(), eg. the tableView has been set to a invalid QModelIndex
+        currPath = "";
+    } else {
+        currPath = this->remote_dir_model->filePath(currIndex);
+    }
+    QModelIndex proxyIndex = this->m_tableProxyModel->mapFromSource(sourceIndex);
+    if (currPath != prefix) {
+        this->uiw.treeView->collapseAll();
+        this->expand_to_directory(prefix, 1);
+        this->uiw.tableView->setRootIndex(proxyIndex);
+    }
 }
 
 void SFTPView::encryption_focus_label_double_clicked()

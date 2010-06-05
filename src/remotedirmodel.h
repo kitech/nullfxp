@@ -102,6 +102,7 @@ signals:
     //for wait option
     void enter_remote_dir_retrive_loop();
     void leave_remote_dir_retrive_loop();
+    void directoryLoaded(const QString &path);
     void operationTriggered(QString text) const; // for rowCount method
     // see http://lists.trolltech.com/qt-interest/2002-09/thread00073-0.html
     
