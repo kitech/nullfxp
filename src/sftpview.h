@@ -86,8 +86,8 @@ public slots:
     void slot_operation_triggered(QString text);
 
     virtual void slot_dir_nav_go_home();
-    virtual void slot_dir_nav_prefix_changed(QString prefix);
-    virtual void slot_dir_nav_input_comfirmed(QString prefix);
+    virtual void slot_dir_nav_prefix_changed(const QString &prefix);
+    virtual void slot_dir_nav_input_comfirmed(const QString &prefix);
 
     virtual void onDirectoryLoaded(const QString &path);
 

@@ -114,8 +114,9 @@ public slots:
     virtual void slot_show_hidden(bool show);
 
     virtual void slot_dir_nav_go_home();
-    virtual void slot_dir_nav_prefix_changed(QString prefix);
-    virtual void slot_dir_nav_input_comfirmed(QString prefix);
+    virtual void slot_dir_nav_prefix_changed(const QString &prefix);
+    virtual void slot_dir_nav_input_comfirmed(const QString &prefix);
+    virtual void slot_icon_size_changed(int value);
 
     virtual void onDirectoryLoaded(const QString &path);
 

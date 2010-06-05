@@ -23,7 +23,7 @@ win32 {
     !win32-g++ {
          CONFIG -= embed_manifest_exe
          CONFIG -= embed_manifest_dll
-         QTPLUGIN += qgif
+         # QTPLUGIN += qgif # if static plugin qgif module, this line should not used
     }
 } else:solaris-g++ {
     QT -= webkit

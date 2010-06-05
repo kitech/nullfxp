@@ -30,9 +30,11 @@ public slots:
     void onSetCompleteList(QString dirPrefix, QStringList paths);
     
 signals:
-    void dirPrefixChanged(QString dirPrefix);
-    void dirInputConfirmed(QString path);
+    void dirPrefixChanged(const QString &dirPrefix);
+    void dirInputConfirmed(const QString &path);
     void goHome();
+
+    void iconSizeChanged(int value);
 
 private slots:
     void onGoPrevious();
@@ -44,6 +46,10 @@ private slots:
     void onComboBoxEditTextChanged(const QString &text);
     void onComboboxIndexChanged(const QString &text);
 
+    // 
+    void onDropDownZoonSlider();
+    void onSliderChanged(int value);
+
 protected:
     // event filter for dir combobox edit
     bool eventFilter(QObject *obj, QEvent *event);
@@ -54,9 +60,11 @@ private:
     QVector<QString> dirConfirmHistory;
     unsigned char dirHistoryCurrentPos;
     unsigned char maxHistoryCount;
-    bool blockCompleteRequest;
+    // bool blockCompleteRequest;
     QCompleter *comer;
     QStringListModel *comModel;
+
+    QSlider *zoonSlider;
 };
 
 #endif /* _DIRNAVBAR_H_ */

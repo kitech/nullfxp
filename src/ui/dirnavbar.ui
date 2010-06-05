@@ -113,6 +113,20 @@
      </property>
     </widget>
    </item>
+   <item>
+    <widget class="QToolButton" name="toolButton_7">
+     <property name="toolTip">
+      <string>Zoon In/Out View</string>
+     </property>
+     <property name="text">
+      <string>...</string>
+     </property>
+     <property name="icon">
+      <iconset resource="../nullfxp.qrc">
+       <normaloff>:/icons/zoom-in.png</normaloff>:/icons/zoom-in.png</iconset>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <resources>

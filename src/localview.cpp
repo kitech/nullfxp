@@ -91,6 +91,12 @@ LocalView::LocalView(QWidget *parent )
                      this, SLOT(slot_dir_tree_item_clicked(const QModelIndex &)));
     QObject::connect(this->uiw.tableView, SIGNAL(doubleClicked(const QModelIndex &)),
                      this, SLOT(slot_dir_file_view_double_clicked(const QModelIndex &)));
+
+    // list view of icon mode
+    this->uiw.listView->setModel(this->model);
+    this->uiw.listView->setRootIndex(this->model->index(QDir::homePath()));
+    this->uiw.listView->setViewMode(QListView::IconMode);
+    this->uiw.listView->setGridSize(QSize(80, 80));
     
     ////////ui area custom
     this->uiw.splitter->setStretchFactor(0, 1);
@@ -102,10 +108,12 @@ LocalView::LocalView(QWidget *parent )
     // this->dir_complete_request_prefix = "";
     QObject::connect(this->uiw.widget, SIGNAL(goHome()),
                      this, SLOT(slot_dir_nav_go_home()));
-    QObject::connect(this->uiw.widget, SIGNAL(dirPrefixChanged(QString)),
-                     this, SLOT(slot_dir_nav_prefix_changed(QString)));
-    QObject::connect(this->uiw.widget, SIGNAL(dirInputConfirmed(QString)),
-                     this, SLOT(slot_dir_nav_input_comfirmed(QString)));
+    QObject::connect(this->uiw.widget, SIGNAL(dirPrefixChanged(const QString &)),
+                     this, SLOT(slot_dir_nav_prefix_changed(const QString &)));
+    QObject::connect(this->uiw.widget, SIGNAL(dirInputConfirmed(const QString &)),
+                     this, SLOT(slot_dir_nav_input_comfirmed(const QString &)));
+    QObject::connect(this->uiw.widget, SIGNAL(iconSizeChanged(int)),
+                     this, SLOT(slot_icon_size_changed(int)));
     this->uiw.widget->onSetHome(QDir::homePath());
 
     //TODO localview 标题格式: Local(主机名) - 当前所在目录名
@@ -355,6 +363,9 @@ void LocalView::slot_dir_tree_item_clicked(const QModelIndex & index)
     for (int i = 0 ; i < this->model->rowCount(this->model->index(file_path)); i ++)
         this->uiw.tableView->setRowHeight(i, this->table_row_height);
     this->uiw.tableView->resizeColumnToContents(0);
+
+    this->uiw.listView->setRootIndex(this->model->index(file_path));
+
     this->uiw.widget->onNavToPath(file_path);
     this->onUpdateEntriesStatus();
 }
@@ -653,7 +664,7 @@ void LocalView::slot_dir_nav_go_home()
     this->uiw.widget->onSetHome(QDir::homePath());
 }
 
-void LocalView::slot_dir_nav_prefix_changed(QString prefix)
+void LocalView::slot_dir_nav_prefix_changed(const QString &prefix)
 {
     // q_debug()<<""<<prefix;
     QStringList matches;
@@ -701,7 +712,7 @@ void LocalView::slot_dir_nav_prefix_changed(QString prefix)
     }
 }
 
-void LocalView::slot_dir_nav_input_comfirmed(QString prefix)
+void LocalView::slot_dir_nav_input_comfirmed(const QString &prefix)
 {
     q_debug()<<"";
 
@@ -722,3 +733,10 @@ void LocalView::slot_dir_nav_input_comfirmed(QString prefix)
         this->uiw.tableView->setRootIndex(this->model->index(prefix));
     }
 }
+
+void LocalView::slot_icon_size_changed(int value)
+{
+    q_debug()<<value;
+    this->uiw.listView->setGridSize(QSize(value, value));
+}
+

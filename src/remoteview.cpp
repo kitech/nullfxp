@@ -81,10 +81,12 @@ RemoteView::RemoteView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *
     // this->dir_complete_request_prefix = "";
     QObject::connect(this->uiw.widget, SIGNAL(goHome()),
                      this, SLOT(slot_dir_nav_go_home()));
-    QObject::connect(this->uiw.widget, SIGNAL(dirPrefixChanged(QString)),
-                     this, SLOT(slot_dir_nav_prefix_changed(QString)));
-    QObject::connect(this->uiw.widget, SIGNAL(dirInputConfirmed(QString)),
-                     this, SLOT(slot_dir_nav_input_comfirmed(QString)));
+    QObject::connect(this->uiw.widget, SIGNAL(dirPrefixChanged(const QString&)),
+                     this, SLOT(slot_dir_nav_prefix_changed(const QString&)));
+    QObject::connect(this->uiw.widget, SIGNAL(dirInputConfirmed(const QString&)),
+                     this, SLOT(slot_dir_nav_input_comfirmed(const QString&)));
+    QObject::connect(this->uiw.widget, SIGNAL(iconSizeChanged(int)),
+                     this, SLOT(slot_icon_size_changed(int)));
     // this->uiw.widget->onSetHome(QDir::homePath()); // call from set_user_home_path
 }
 
@@ -1070,7 +1072,7 @@ void RemoteView::slot_dir_nav_go_home()
     // this->uiw.widget->onSetHome(QDir::homePath());
 }
 
-void RemoteView::slot_dir_nav_prefix_changed(QString prefix)
+void RemoteView::slot_dir_nav_prefix_changed(const QString &prefix)
 {
     // q_debug()<<""<<prefix;
     // QStringList matches;
@@ -1118,7 +1120,7 @@ void RemoteView::slot_dir_nav_prefix_changed(QString prefix)
     // }
 }
 
-void RemoteView::slot_dir_nav_input_comfirmed(QString prefix)
+void RemoteView::slot_dir_nav_input_comfirmed(const QString &prefix)
 {
     q_debug()<<"";
 
@@ -1138,5 +1140,10 @@ void RemoteView::slot_dir_nav_input_comfirmed(QString prefix)
     //     this->expand_to_directory(prefix, 1);
     //     this->uiw.tableView->setRootIndex(this->model->index(prefix));
     // }
+}
+
+void RemoteView::slot_icon_size_changed(int value)
+{
+    this->uiw.listView_2->setGridSize(QSize(value, value));
 }
 

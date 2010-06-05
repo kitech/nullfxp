@@ -46,9 +46,10 @@ public slots:
     void slot_show_hidden(bool show);
 
     void slot_dir_nav_go_home();
-    void slot_dir_nav_prefix_changed(QString prefix);
-    void slot_dir_nav_input_comfirmed(QString prefix);
-        
+    void slot_dir_nav_prefix_changed(const QString &prefix);
+    void slot_dir_nav_input_comfirmed(const QString &prefix);
+    void slot_icon_size_changed(int value);
+    
 private slots:
     void slot_dir_tree_item_clicked(const QModelIndex & index);
     void slot_dir_file_view_double_clicked(const QModelIndex & index);

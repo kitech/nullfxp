@@ -20,7 +20,10 @@ DirNavBar::DirNavBar(QWidget *parent)
 {
     this->uiw.setupUi(this);
 
-    this->blockCompleteRequest = false;
+    ////
+    this->zoonSlider = NULL;
+
+    // this->blockCompleteRequest = false;
     this->dirHistoryCurrentPos = -1;
     this->comer = this->uiw.comboBox->completer();
     this->comer->setCompletionMode(QCompleter::PopupCompletion);
@@ -29,8 +32,9 @@ DirNavBar::DirNavBar(QWidget *parent)
     // this->comModel = this->comer->completionModel(); // it is static , can not add more item
     this->comer->setModel(this->comModel);
 
-    QObject::connect(this->uiw.comboBox, SIGNAL(currentIndexChanged(const QString &)),
-                     this, SLOT(onComboboxIndexChanged(const QString &)));
+    // on emit signal by key, not program setting
+    // QObject::connect(this->uiw.comboBox, SIGNAL(currentIndexChanged(const QString &)),
+    //                  this, SLOT(onComboboxIndexChanged(const QString &)));
     QObject::connect(this->uiw.comboBox, SIGNAL(editTextChanged(const QString &)),
                      this, SLOT(onComboBoxEditTextChanged(const QString &)));
     QObject::connect(this->uiw.toolButton_5, SIGNAL(clicked()),
@@ -43,6 +47,8 @@ DirNavBar::DirNavBar(QWidget *parent)
                      this, SLOT(onGoUp()));
     QObject::connect(this->uiw.toolButton, SIGNAL(clicked()),
                      this, SLOT(onReload()));
+    QObject::connect(this->uiw.toolButton_7, SIGNAL(clicked()),
+                     this, SLOT(onDropDownZoonSlider()));
 
     this->uiw.comboBox->installEventFilter(this);
 
@@ -56,7 +62,7 @@ DirNavBar::~DirNavBar()
 
 void DirNavBar::onSetHome(QString path)
 {
-    this->blockCompleteRequest = true;
+    // this->blockCompleteRequest = true;
     Q_ASSERT(!path.isEmpty());
     this->homePath = path;
     this->uiw.comboBox->setEditText(path);
@@ -65,24 +71,24 @@ void DirNavBar::onSetHome(QString path)
         this->dirConfirmHistory.remove(0);
     }
     this->dirHistoryCurrentPos = this->dirConfirmHistory.count() - 1;
-    this->blockCompleteRequest = false;
+    // this->blockCompleteRequest = false;
 }
 void DirNavBar::onNavToPath(QString path)
 {
     Q_ASSERT(!path.isEmpty());
-    this->blockCompleteRequest = true;
+    // this->blockCompleteRequest = true;
     this->uiw.comboBox->setEditText(path);
     this->dirConfirmHistory.append(path);
     if (this->dirConfirmHistory.count() > 100) {
         this->dirConfirmHistory.remove(0);
     }
     this->dirHistoryCurrentPos = this->dirConfirmHistory.count() - 1;
-    this->blockCompleteRequest = false;
+    // this->blockCompleteRequest = false;
 }
 
 void DirNavBar::onSetCompleteList(QString dirPrefix, QStringList paths)
 {
-    this->blockCompleteRequest = true;
+    // this->blockCompleteRequest = true;
     // q_debug()<<paths;
     QModelIndex index;
     int nrc = paths.count();
@@ -99,7 +105,7 @@ void DirNavBar::onSetCompleteList(QString dirPrefix, QStringList paths)
         this->comModel->removeRows(i, 1, QModelIndex());
     }
 
-    this->blockCompleteRequest = false;
+    // this->blockCompleteRequest = false;
 }
     
 void DirNavBar::onGoPrevious()
@@ -184,10 +190,12 @@ void DirNavBar::onGoUp()
         return;
     }
 
-    q_debug()<<upos<<currPath;
-
-    currPath = currPath.left(upos + 1);
+    currPath = currPath.left(upos);
+    if (currPath.length() == 0) {
+        currPath = "/";
+    }
     
+    // this->blockCompleteRequest = true;
     this->uiw.comboBox->setEditText(currPath);
     this->dirConfirmHistory.append(currPath);
     if (this->dirConfirmHistory.count() > 100) {
@@ -195,6 +203,7 @@ void DirNavBar::onGoUp()
     }
     this->dirHistoryCurrentPos = this->dirConfirmHistory.count() - 1;
     emit this->dirInputConfirmed(currPath);
+    // this->blockCompleteRequest = false;
 }
 
 void DirNavBar::onGoHome()
@@ -213,11 +222,12 @@ void DirNavBar::onReload()
     emit dirInputConfirmed(currPath);
 }
 
+// depcreated
 void DirNavBar::onComboBoxEditTextChanged(const QString &text)
 {
-    if (!this->blockCompleteRequest) {
-        emit dirPrefixChanged(text);
-    }
+    // if (!this->blockCompleteRequest) {
+    //     emit dirPrefixChanged(text);
+    // }
 }
 
 void DirNavBar::onComboboxIndexChanged(const QString &text)
@@ -233,8 +243,61 @@ bool DirNavBar::eventFilter(QObject *obj, QEvent *event)
             if (kevt->key() == Qt::Key_Return) {
                 q_debug()<<"filter got return key";
                 emit dirInputConfirmed(this->uiw.comboBox->currentText());
+            } else {
+                QString currPath = this->uiw.comboBox->currentText();
+                emit dirPrefixChanged(currPath);
             }
+        }
+    }
+    if (obj == this->zoonSlider) {
+        if (event->type() == QEvent::FocusOut) {
+            q_debug()<<"";
+            this->zoonSlider->hide();
         }
     }
     return QObject::eventFilter(obj, event);
 }
+
+void DirNavBar::onDropDownZoonSlider()
+{
+    if (this->zoonSlider == NULL) {
+        // this->zoonSlider = new QSlider(this->uiw.toolButton_7);
+        this->zoonSlider = new QSlider(this);
+        this->zoonSlider->installEventFilter(this);
+        // this->zoonSlider->setWindowFlags(Qt::ToolTip);
+        this->zoonSlider->setWindowFlags(Qt::Window | Qt::FramelessWindowHint); // ok
+        this->zoonSlider->setMinimum(16);
+        this->zoonSlider->setMaximum(128);
+        this->zoonSlider->setPageStep(16);
+        this->zoonSlider->setSingleStep(8);
+        this->zoonSlider->setTracking(false);
+        this->zoonSlider->setValue(64);
+        this->zoonSlider->setOrientation(Qt::Vertical);
+        this->zoonSlider->setFixedHeight(130);
+        
+        QObject::connect(this->zoonSlider, SIGNAL(valueChanged(int)),
+                         this, SLOT(onSliderChanged(int)));
+    }
+    if (this->zoonSlider->isVisible()) {
+        this->zoonSlider->hide();
+    } else {
+        QPoint parentPos = this->uiw.toolButton_7->pos();
+        QPoint realPos = this->mapToGlobal(parentPos);
+        realPos.setY(realPos.y() + this->uiw.toolButton_7->height());
+        q_debug()<<parentPos<<realPos;
+        this->zoonSlider->move(realPos);
+        this->zoonSlider->show();
+        this->zoonSlider->activateWindow();
+        this->zoonSlider->setFocus(Qt::PopupFocusReason);
+    }
+}
+
+void DirNavBar::onSliderChanged(int value)
+{
+    // q_debug()<<value;
+    if (value % 8 == 0) {
+        // emit 
+    }
+    emit this->iconSizeChanged(value);
+}
+

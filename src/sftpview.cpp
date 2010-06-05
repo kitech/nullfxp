@@ -93,7 +93,7 @@ void SFTPView::i_init_dir_view()
     this->uiw.treeView->setColumnWidth(1, 0); // 使用这种方法隐藏看上去就正常了。
     this->uiw.treeView->setColumnHidden(2, true);
     this->uiw.treeView->setColumnHidden(3, true);
-    
+  
     /////tableView
     QModelIndex homeIndex = this->remote_dir_model->index(this->user_home_path);
     this->uiw.tableView->setModel(this->m_tableProxyModel);
@@ -111,6 +111,12 @@ void SFTPView::i_init_dir_view()
         this->uiw.tableView->setRowHeight(i, this->table_row_height);
     }
     this->uiw.tableView->resizeColumnToContents(0);
+
+    // list view
+    this->uiw.listView_2->setModel(this->m_tableProxyModel);
+    this->uiw.listView_2->setRootIndex(this->m_tableProxyModel->mapFromSource(homeIndex));
+    this->uiw.listView_2->setViewMode(QListView::IconMode);
+    this->uiw.listView_2->setGridSize(QSize(80, 80));
     
     /////
     QObject::connect(this->uiw.treeView, SIGNAL(clicked(const QModelIndex &)),
@@ -841,6 +847,8 @@ void SFTPView::slot_dir_tree_item_clicked(const QModelIndex & index)
     // node = static_cast<NetDirNode*>(useIndex.internalPointer());
     // this->remote_dir_model->dump_tree_node_item(pnode);
 
+    this->uiw.listView_2->setRootIndex(this->m_tableProxyModel->mapFromSource(useIndex));
+
     this->uiw.widget->onNavToPath(this->remote_dir_model->filePath(sourceIndex));
     this->onUpdateEntriesStatus();
 }
@@ -1065,7 +1073,7 @@ void SFTPView::slot_dir_nav_go_home()
     this->uiw.widget->onSetHome(this->user_home_path);
 }
 
-void SFTPView::slot_dir_nav_prefix_changed(QString prefix)
+void SFTPView::slot_dir_nav_prefix_changed(const QString &prefix)
 {
     // q_debug()<<""<<prefix;
     QStringList matches;
@@ -1113,12 +1121,14 @@ void SFTPView::slot_dir_nav_prefix_changed(QString prefix)
     }
 }
 
-void SFTPView::slot_dir_nav_input_comfirmed(QString prefix)
+void SFTPView::slot_dir_nav_input_comfirmed(const QString &prefix)
 {
-    q_debug()<<"";
+    q_debug()<<prefix;
 
     QModelIndex sourceIndex = this->remote_dir_model->index(prefix);
-    QModelIndex currIndex = this->uiw.tableView->rootIndex();
+    QModelIndex proxyRootIndex = this->uiw.tableView->rootIndex(); 
+    QModelIndex currIndex = this->m_tableProxyModel->mapToSource(proxyRootIndex);
+    QString currPath, useIndex;
 
     if (!sourceIndex.isValid()) {
         q_debug()<<"directory not found!!!"<<prefix;
@@ -1128,7 +1138,6 @@ void SFTPView::slot_dir_nav_input_comfirmed(QString prefix)
     }
 
     // q_debug()<<currIndex.isValid();
-    QString currPath;
     if (!currIndex.isValid()) {
         // some case will be !isValid(), eg. the tableView has been set to a invalid QModelIndex
         currPath = "";
@@ -1136,6 +1145,7 @@ void SFTPView::slot_dir_nav_input_comfirmed(QString prefix)
         currPath = this->remote_dir_model->filePath(currIndex);
     }
     QModelIndex proxyIndex = this->m_tableProxyModel->mapFromSource(sourceIndex);
+    q_debug()<<currPath.length()<<currPath.isEmpty()<<currPath;
     if (currPath != prefix) {
         this->uiw.treeView->collapseAll();
         this->expand_to_directory(prefix, 1);
