@@ -71,7 +71,7 @@ private:
     QTimer  time_cacl_timer;
         
 private:    //UI element
-    Ui::ProgressDialog ui_progress_dialog; 
+    Ui::ProgressDialog uiw; 
     int modelId;
 
 private:

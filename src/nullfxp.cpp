@@ -66,7 +66,6 @@ NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
     QObject::connect(this->mUIMain.actionTile_window, SIGNAL(triggered(bool)),
                      this, SLOT(slot_tile_sub_windows(bool)));
   
-    // this->task_queue_view = new QTableView();
     this->task_queue_view = new TaskQueueView();
     this->central_splitter_widget->addWidget(mdiArea);
     this->central_splitter_widget->addWidget(this->task_queue_view);

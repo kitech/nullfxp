@@ -136,13 +136,13 @@ QVariant TaskQueueModel::headerData(int section, Qt::Orientation orientation, in
             dv = tr("Destination");
             break;
         case 3:
-            dv = tr("Size of File");
+            dv = tr("File Size");
             break;
         case 4:
-            dv = tr("Bytes Transferred");
+            dv = tr("Transferred");
             break;
         case 5:
-            dv = tr("% Progress");
+            dv = tr("Progress %");
             break;
         case 6:
             dv = tr("Elapsed Time");
@@ -199,7 +199,7 @@ void TaskQueueModel::slot_transfer_thread_finished(int modelId)
     }
     this->submitAll();    
 }
-int TaskQueueModel::slot_new_file_transfer_started(QString new_file_name)
+int TaskQueueModel::slot_new_file_transfer_started(QString new_file_name, QString dest_path)
 {
     // char *preSql = "INSERT INTO task_queue (id, file_name, dest_path, start_time) VALUES (NULL, '%s', '%s', '%s');";
     // sqlite3_stmt *pStmt = NULL;
@@ -219,8 +219,9 @@ int TaskQueueModel::slot_new_file_transfer_started(QString new_file_name)
     // emit this->insertRow(sqlite3_last_insert_rowid(this->pDB)-1);
 
     this->insertRows(0, 1);
-    this->setData(this->index(0, 1), QFileInfo(new_file_name).baseName());
-    this->setData(this->index(0, 2), new_file_name);
+    this->setData(this->index(0, 1), QFileInfo(new_file_name).fileName());
+    QString dest_file_path = dest_path + "/" + QFileInfo(new_file_name).fileName();
+    this->setData(this->index(0, 2), dest_file_path); // TODO need dest path, not src path
     this->setData(this->index(0, 10), QDateTime::currentDateTime().toString());
     this->setData(this->index(0, 9), tr("Running"));
     this->submit();

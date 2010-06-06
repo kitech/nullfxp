@@ -853,6 +853,14 @@ void RemoteDirModel::execute_command_finished(NetDirNode *parent_item, void *par
             emit dataChanged(beginIndex, endIndex);
         }
         break;
+    case SSH2_FXP_REMOVE:
+    case SSH2_FXP_RMDIR:
+    case SSH2_FXP_MKDIR:
+    case SSH2_FXP_READDIR:
+    case SSH2_FXP_RENAME:
+    case SSH2_FXP_INIT:
+    case SSH2_FXP_KEEP_ALIVE:
+        break;
     default:
         // persisIndex will be destructed at slot_remote_dir_node_retrived
         // i do not care other command result
@@ -867,6 +875,7 @@ void RemoteDirModel::execute_command_finished(NetDirNode *parent_item, void *par
     QString msg = QString(tr("Received %2: %1")).arg(status == 0 ? "OK" : "Failed");
     switch (cmd) {
     case SSH2_FXP_READDIR:
+        // TODO always return error, even read sucessfully.
         msg = msg.arg("SSH2_FXP_READDIR");
         break;
     case SSH2_FXP_RENAME:
@@ -880,6 +889,16 @@ void RemoteDirModel::execute_command_finished(NetDirNode *parent_item, void *par
         break;
     case SSH2_FXP_REALPATH:
         msg = msg.arg("SSH2_FXP_REALPATH");
+        break;
+    case SSH2_FXP_REMOVE:
+        msg = msg.arg("SSH2_FXP_REMOVE");
+        break;
+    case SSH2_FXP_KEEP_ALIVE:
+        // TODO always return error, even exec sucessfully.
+        msg = msg.arg("SSH2_FXP_KEEP_ALIVE");
+        break;
+    case SSH2_FXP_INIT:
+        msg = msg.arg("SSH2_FXP_INIT");
         break;
     default:
         msg = msg.arg(QString("SSH2_FXP_%1(%2)").arg(cmd).arg(status));

@@ -25,6 +25,14 @@ TaskQueueView::TaskQueueView(QWidget *parent)
     this->ctxMenu = NULL;
     QObject::connect(this->ui_win.tableView, SIGNAL(customContextMenuRequested(const QPoint &)),
                      this, SLOT(slotCustomContextMenuRequested(const QPoint &)));
+
+    // resize column tableView
+    this->ui_win.tableView->setColumnWidth(0, 35);
+    this->ui_win.tableView->setColumnWidth(1, 170);
+    this->ui_win.tableView->setColumnWidth(2, 170);
+    this->ui_win.tableView->setColumnWidth(5, 65);
+    this->ui_win.tableView->setColumnWidth(10, 150);
+    this->ui_win.tableView->setColumnWidth(11, 150);
 }
 
 TaskQueueView::~TaskQueueView()
@@ -84,7 +92,19 @@ void TaskQueueView::slotCustomContextMenuRequested(const QPoint & pos)
 
 void TaskQueueView::onSelectAll()
 {
+    QItemSelectionModel *ism = this->ui_win.tableView->selectionModel();
+    int rc = this->taskQueueModel->rowCount(QModelIndex());
+    int cc = this->taskQueueModel->columnCount(QModelIndex());
+    
+    QModelIndex topLeftIndex = this->taskQueueModel->index(0, 0, QModelIndex());
+    QModelIndex bottomRightIndex = this->taskQueueModel->index(rc - 1, cc - 1, QModelIndex());
+    QItemSelection is(topLeftIndex, bottomRightIndex);
 
+    ism->select(is, QItemSelectionModel::ClearAndSelect);
+
+    for (int r = 0; r < rc; ++ r) {
+        
+    }
 }
 
 void TaskQueueView::onTransferAll()

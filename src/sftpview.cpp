@@ -580,6 +580,7 @@ void SFTPView::slot_rmdir()
     
 }
 
+// TODO when remove multi files, the view's behaviour is strange
 void SFTPView::rm_file_or_directory_recursively()
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
@@ -595,7 +596,7 @@ void SFTPView::rm_file_or_directory_recursively()
     QModelIndexList mil = ism->selectedIndexes();
     
     if (mil.count() == 0) {
-        qDebug()<<"selectedIndexes count :"<<mil.count()<<"why no item selected????";
+        qDebug()<<"selectedIndexes count:"<<mil.count()<<"why no item selected????";
         QMessageBox::critical(this, tr("Waring..."), tr("No item selected"));
         return;
     }
@@ -610,11 +611,12 @@ void SFTPView::rm_file_or_directory_recursively()
             : this->m_tableProxyModel->mapToSource(midx);
         QModelIndex useIndex = sourceIndex;
         QModelIndex parent_model =  useIndex.parent();
-        NetDirNode *parent_item = (NetDirNode*)parent_model.internalPointer();
+        NetDirNode *parent_item = static_cast<NetDirNode*>(parent_model.internalPointer());
 
         if (firstWarning) { // 只有第一次提示用户操作，其他的不管
             QString hintMsg;
             if (mil.count()/4 > 1) {
+                // select multi lines/files
                 hintMsg = QString(tr("Are you sure remove all of these files/directories?"));
             } else {
                 hintMsg = this->remote_dir_model->isDir(useIndex) 
