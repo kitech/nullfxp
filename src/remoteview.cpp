@@ -65,7 +65,8 @@ RemoteView::RemoteView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *
                      this, SLOT(slot_dir_tree_customContextMenuRequested (const QPoint &)));
     QObject::connect(this->uiw.tableView,SIGNAL(customContextMenuRequested(const QPoint &)),
                      this, SLOT(slot_dir_tree_customContextMenuRequested (const QPoint & )));
-    
+    QObject::connect(this->uiw.listView_2, SIGNAL(customContextMenuRequested(const QPoint &)),
+                     this, SLOT(slot_dir_tree_customContextMenuRequested (const QPoint &)));
     // this->init_popup_context_menu();
     
     this->in_remote_dir_retrive_loop = false;

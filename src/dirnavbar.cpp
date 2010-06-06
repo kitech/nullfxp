@@ -23,7 +23,6 @@ DirNavBar::DirNavBar(QWidget *parent)
     ////
     this->zoonSlider = NULL;
 
-    // this->blockCompleteRequest = false;
     this->dirHistoryCurrentPos = -1;
     this->comer = this->uiw.comboBox->completer();
     this->comer->setCompletionMode(QCompleter::PopupCompletion);
@@ -62,7 +61,6 @@ DirNavBar::~DirNavBar()
 
 void DirNavBar::onSetHome(QString path)
 {
-    // this->blockCompleteRequest = true;
     Q_ASSERT(!path.isEmpty());
     this->homePath = path;
     this->uiw.comboBox->setEditText(path);
@@ -71,24 +69,24 @@ void DirNavBar::onSetHome(QString path)
         this->dirConfirmHistory.remove(0);
     }
     this->dirHistoryCurrentPos = this->dirConfirmHistory.count() - 1;
-    // this->blockCompleteRequest = false;
 }
 void DirNavBar::onNavToPath(QString path)
 {
-    Q_ASSERT(!path.isEmpty());
-    // this->blockCompleteRequest = true;
+    if (path.isEmpty()) {
+        // is this must the root node?
+        Q_ASSERT(!path.isEmpty());
+    }
+
     this->uiw.comboBox->setEditText(path);
     this->dirConfirmHistory.append(path);
     if (this->dirConfirmHistory.count() > 100) {
         this->dirConfirmHistory.remove(0);
     }
     this->dirHistoryCurrentPos = this->dirConfirmHistory.count() - 1;
-    // this->blockCompleteRequest = false;
 }
 
 void DirNavBar::onSetCompleteList(QString dirPrefix, QStringList paths)
 {
-    // this->blockCompleteRequest = true;
     // q_debug()<<paths;
     QModelIndex index;
     int nrc = paths.count();
@@ -104,8 +102,6 @@ void DirNavBar::onSetCompleteList(QString dirPrefix, QStringList paths)
     for (int i = orc + nrc - 2; i >= nrc ; --i) {
         this->comModel->removeRows(i, 1, QModelIndex());
     }
-
-    // this->blockCompleteRequest = false;
 }
     
 void DirNavBar::onGoPrevious()
@@ -195,7 +191,6 @@ void DirNavBar::onGoUp()
         currPath = "/";
     }
     
-    // this->blockCompleteRequest = true;
     this->uiw.comboBox->setEditText(currPath);
     this->dirConfirmHistory.append(currPath);
     if (this->dirConfirmHistory.count() > 100) {
@@ -203,7 +198,6 @@ void DirNavBar::onGoUp()
     }
     this->dirHistoryCurrentPos = this->dirConfirmHistory.count() - 1;
     emit this->dirInputConfirmed(currPath);
-    // this->blockCompleteRequest = false;
 }
 
 void DirNavBar::onGoHome()
@@ -225,27 +219,39 @@ void DirNavBar::onReload()
 // depcreated
 void DirNavBar::onComboBoxEditTextChanged(const QString &text)
 {
-    // if (!this->blockCompleteRequest) {
     //     emit dirPrefixChanged(text);
-    // }
 }
 
 void DirNavBar::onComboboxIndexChanged(const QString &text)
 {
-    emit dirInputConfirmed(text);
+    if (text == QString(tr("Clear..."))) {
+        q_debug()<<text;
+        // what can I do???
+    } else {
+        emit dirInputConfirmed(text);
+    }
 }
 
 bool DirNavBar::eventFilter(QObject *obj, QEvent *event)
 {
     if (obj == this->uiw.comboBox) {
-        if (event->type() == QEvent::KeyPress) {
+        if (event->type() == QEvent::KeyRelease) {
             QKeyEvent *kevt = static_cast<QKeyEvent *>(event);
             if (kevt->key() == Qt::Key_Return) {
                 q_debug()<<"filter got return key";
-                emit dirInputConfirmed(this->uiw.comboBox->currentText());
+                // emit dirInputConfirmed(this->uiw.comboBox->currentText());
+                this->onComboboxIndexChanged(this->uiw.comboBox->currentText());
             } else {
                 QString currPath = this->uiw.comboBox->currentText();
-                emit dirPrefixChanged(currPath);
+                q_debug()<<currPath;
+                if (currPath.startsWith("/")
+                    || (currPath.length() > 1 
+                        && (currPath.toUpper().at(0) >= 'A' && currPath.toUpper().at(1) <= 'Z')
+                        && currPath.at(1) == ':')) {
+                    emit dirPrefixChanged(currPath);
+                } else {
+                    q_debug()<<"Invalid path prefix.";
+                }
             }
         }
     }

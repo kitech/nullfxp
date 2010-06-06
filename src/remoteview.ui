@@ -81,7 +81,11 @@
         <bool>true</bool>
        </property>
       </widget>
-      <widget class="QListView" name="listView_2"/>
+      <widget class="QListView" name="listView_2">
+       <property name="contextMenuPolicy">
+        <enum>Qt::CustomContextMenu</enum>
+       </property>
+      </widget>
      </widget>
      <widget class="QListView" name="listView">
       <property name="sizePolicy">
@@ -100,15 +104,15 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>RemoteViewDirTableView</class>
-   <extends>QTableView</extends>
-   <header location="global">remoteviewdirtableview.h</header>
-  </customwidget>
-  <customwidget>
    <class>DirNavBar</class>
    <extends>QWidget</extends>
    <header location="global">dirnavbar.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>RemoteViewDirTableView</class>
+   <extends>QTableView</extends>
+   <header location="global">remoteviewdirtableview.h</header>
   </customwidget>
  </customwidgets>
  <resources>

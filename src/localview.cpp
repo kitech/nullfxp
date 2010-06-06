@@ -91,6 +91,8 @@ LocalView::LocalView(QWidget *parent )
                      this, SLOT(slot_dir_tree_item_clicked(const QModelIndex &)));
     QObject::connect(this->uiw.tableView, SIGNAL(doubleClicked(const QModelIndex &)),
                      this, SLOT(slot_dir_file_view_double_clicked(const QModelIndex &)));
+    QObject::connect(this->uiw.listView, SIGNAL(doubleClicked(const QModelIndex &)),
+                     this, SLOT(slot_dir_file_view_double_clicked(const QModelIndex &)));
 
     // list view of icon mode
     this->uiw.listView->setModel(this->model);
@@ -115,6 +117,8 @@ LocalView::LocalView(QWidget *parent )
     QObject::connect(this->uiw.widget, SIGNAL(iconSizeChanged(int)),
                      this, SLOT(slot_icon_size_changed(int)));
     this->uiw.widget->onSetHome(QDir::homePath());
+
+    this->uiw.listView->setSelectionModel(this->uiw.tableView->selectionModel());
     this->setFileListViewMode(GlobalOption::FLV_DETAIL);
 
     //TODO localview 标题格式: Local(主机名) - 当前所在目录名
@@ -193,8 +197,10 @@ void LocalView::init_local_dir_tree_context_menu()
     
     QObject::connect(this->uiw.treeView, SIGNAL(customContextMenuRequested(const QPoint &)),
                      this, SLOT(slot_local_dir_tree_context_menu_request(const QPoint &)));
-    QObject::connect(this->uiw.tableView,SIGNAL ( customContextMenuRequested(const QPoint &)),
-                     this, SLOT(slot_local_dir_tree_context_menu_request (const QPoint &)));
+    QObject::connect(this->uiw.tableView, SIGNAL(customContextMenuRequested(const QPoint &)),
+                     this, SLOT(slot_local_dir_tree_context_menu_request(const QPoint &)));
+    QObject::connect(this->uiw.listView, SIGNAL(customContextMenuRequested(const QPoint &)),
+                     this, SLOT(slot_local_dir_tree_context_menu_request(const QPoint &)));
 }
 
 // 可以写成一个通用的expand_to_directory(QString fullPath, int level);
@@ -674,7 +680,11 @@ void LocalView::slot_dir_nav_prefix_changed(const QString &prefix)
 
     if (prefix == "") {
         sourceIndex = this->model->index(0, 0, QModelIndex());
-    } else if (!sourceIndex.isValid()) {
+    } else if (prefix.length() > 1
+               && prefix.toUpper().at(0) >= 'A' && prefix.toUpper().at(0) <= 'Z'
+               && prefix.at(1) == ':') {
+        // leave not changed
+    }else if (!sourceIndex.isValid()) {
         int pos = prefix.lastIndexOf('/');
         if (pos == -1) {
             pos = prefix.lastIndexOf('\\');
@@ -732,6 +742,7 @@ void LocalView::slot_dir_nav_input_comfirmed(const QString &prefix)
         this->uiw.treeView->collapseAll();
         this->expand_to_directory(prefix, 1);
         this->uiw.tableView->setRootIndex(this->model->index(prefix));
+        this->uiw.listView->setRootIndex(this->uiw.tableView->rootIndex());
     }
 }
 

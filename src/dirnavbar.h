@@ -60,7 +60,6 @@ private:
     QVector<QString> dirConfirmHistory;
     unsigned char dirHistoryCurrentPos;
     unsigned char maxHistoryCount;
-    // bool blockCompleteRequest;
     QCompleter *comer;
     QStringListModel *comModel;
 

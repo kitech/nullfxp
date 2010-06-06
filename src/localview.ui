@@ -62,7 +62,11 @@
        <bool>true</bool>
       </property>
      </widget>
-     <widget class="QListView" name="listView"/>
+     <widget class="QListView" name="listView">
+      <property name="contextMenuPolicy">
+       <enum>Qt::CustomContextMenu</enum>
+      </property>
+     </widget>
     </widget>
    </item>
   </layout>
