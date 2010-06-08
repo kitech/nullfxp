@@ -120,9 +120,11 @@ int  SSHDirRetriver::retrive_dir()
         parent_persistent_index = mit->second;
        
         fileinfos.clear();
-        //状态初始化
+        // 状态初始化
+        // TODO, 这种方法不太好，像如果有一目录项，那么这个目录标记删除后，
+        // 子结点要全部删除。但新结点却要重新获取目录列表，非常低效率
         for (int i = 0; i < parent_item->childCount(); i++) {
-            parent_item->childAt(i)->deleted = true;
+            // parent_item->childAt(i)->deleted = true;
         }
 
         LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
@@ -147,9 +149,10 @@ int  SSHDirRetriver::retrive_dir()
             //不处理隐藏文件? 处理隐藏文件,在这要提供隐藏文件，上层使用过滤代理模型提供显示隐藏文件的功能。
             tmp = QString(GlobalOption::instance()->remote_codec->toUnicode(file_name));
             tmp_item = parent_item->findChindByName(tmp);
+            tmp_item = 0;
             // if (parent_item->setDeleteFlag(tmp, 0)) {
             if (tmp_item != NULL && tmp_item->matchChecksum(&ssh2_sftp_attrib)) {
-                tmp_item->setDeleteFlag(0);
+                tmp_item->setDeleteFlag(false);
                 if (fxp_ls_ret++ == 0) 
                     printf("Already in list, omited %d", fxp_ls_ret), fxp_ls_ret = fxp_ls_ret | 1<<16;
                 else 
@@ -515,7 +518,7 @@ void SSHDirRetriver::add_node(NetDirNode *parent_item, void *parent_persistent_i
 }
 
 void SSHDirRetriver::slot_execute_command(NetDirNode *parent_item,
-                                                  void *parent_persistent_index, int cmd, QString params)
+                                          void *parent_persistent_index, int cmd, QString params)
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     

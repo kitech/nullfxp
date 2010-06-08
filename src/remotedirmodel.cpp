@@ -516,7 +516,9 @@ bool RemoteDirModel::setData(const QModelIndex &index, const QVariant &value, in
 
         Q_ASSERT(oldNode != NULL);
         Q_ASSERT(newNode != NULL);
+        int oldOnRow = oldNode->onRow;
         oldNode->copyFrom(newNode);
+        oldNode->onRow = oldOnRow;
 
         QModelIndex endIndex = this->createIndex(index.row(), 3, oldNode->pNode);
         emit this->dataChanged(index, endIndex);
@@ -601,25 +603,31 @@ bool RemoteDirModel::removeRows(int row, int count, const QModelIndex &parent)
     }
 
     this->endRemoveRows();
+    q_debug()<<"";
     return true;
 }
 bool RemoteDirModel::rowMoveTo(const QModelIndex &from, const QModelIndex &to)
 {
+    Q_UNUSED(from);
+    Q_UNUSED(to);
     return true;
 }
 
 bool RemoteDirModel::insertColumns(int column, int count, const QModelIndex &parent /*= QModelIndex() */)
 {
+    Q_UNUSED(column);
+    Q_UNUSED(count);
+    Q_UNUSED(parent);
     return true ;
 }
 bool RemoteDirModel::setItemData(const QModelIndex &index, const QMap<int, QVariant> &roles)
 {
+    Q_UNUSED(roles);
     return true;
 }
 
 void RemoteDirModel::dump_tree_node_item(NetDirNode *node_item) const
 {
-    // NetDirNode *item = (NetDirNode *)item ;
     assert(node_item != 0);
     qDebug()<<"====================>>>>"<<node_item;
     qDebug()<<"dir="<<QString(node_item->fullPath);
@@ -631,6 +639,12 @@ void RemoteDirModel::dump_tree_node_item(NetDirNode *node_item) const
     qDebug()<<"prev_retr_flag="<<node_item->prevFlag;
     qDebug()<<"ChildCount="<<node_item->childNodes.count()<<node_item->childNodes.keys().count()
             <<node_item->childNodes.keys();
+    QStringList values;
+    for (int i = 0 ; i < node_item->childNodes.count(); ++i) {
+        values << node_item->childAt(i)->_fileName;
+        values << (node_item->childAt(i)->deleted ? "d" : "r");
+    }
+    qDebug()<<values;
     qDebug()<< "DeleteFlag="<<node_item->deleted;
     qDebug()<<"onRow="<<node_item->onRow;
     qDebug()<<"parent="<<node_item->pNode;
@@ -663,23 +677,72 @@ void RemoteDirModel::slot_remote_dir_node_retrived(NetDirNode *parent_item,
     QString currPath = parent_item->filePath();
     int row, col = 0;
     int changeCount = 0;
-
-    parent_item->prevFlag = parent_item->retrFlag;
-    parent_item->retrFlag = POP_NEWEST;
-    
+   
     emit operationTriggered(QString(tr("Info subdirectories of %1")).arg(parent_item->filePath()));
     Q_ASSERT(newNodes != NULL);
     for (int i = 0; i < newNodes->childNodes.count(); ++i) {
         NetDirNode *node = newNodes->childAt(i);
-        int row = this->rowCount(currIndex);
-        this->insertRows(row, 1, currIndex);
-        node->onRow = row;
-        QModelIndex newIndex = this->index(row, 0, currIndex);
-        QVariant vv = qVariantFromValue((void*)node);
-        this->setData(newIndex, vv);
-
         emit operationTriggered(QString(tr("< %1 %2 %3 %4")).arg(node->fileMode()).arg(node->fileSize())
                                 .arg(node->fileMDate()).arg(node->fileName()));
+    }
+
+    // calc delta items, some should deleted and some should add
+    // first, search should deleted items, and delete it
+    bool found = false;
+    int i, j;
+    QModelIndex tmpIndex;
+    q_debug()<<this->rowCount(currIndex);
+    for (i = this->rowCount(currIndex) - 1; i >= 0; --i) {
+        found = false;
+        tmpIndex = this->index(i, 0, currIndex);
+        NetDirNode *node = static_cast<NetDirNode*>(tmpIndex.internalPointer());
+        for (j = newNodes->childNodes.count() - 1; j >= 0; --j) {
+            NetDirNode *nnode = newNodes->childAt(j);
+            if (nnode->_fileName == node->_fileName) {
+                found = true;
+                break;
+            }
+        }
+
+        // the i'th item is not in newNodes, found should remove row
+        if (found == false) {
+            qDebug()<<"find should delete item: "<<i
+                    << node->_fileName;
+
+            this->removeRows(i, 1, currIndex);
+        } else {
+            // update the old node
+            NetDirNode *nnode = newNodes->childAt(j);
+            QVariant vv = qVariantFromValue((void*)nnode);
+            this->setData(tmpIndex, vv);
+        }
+    }
+
+    // second, search should added items, and add it
+    for (i = 0; i < newNodes->childNodes.count(); ++i) {
+        found = false;
+        NetDirNode *nnode = newNodes->childAt(i);
+        NetDirNode *node = NULL;
+
+        int row = this->rowCount(currIndex);
+        for (j = 0; j < row ; ++j) {
+            tmpIndex = this->index(j, 0, currIndex);
+            node = static_cast<NetDirNode*>(tmpIndex.internalPointer());
+            if (node->_fileName == nnode->_fileName) {
+                found = true;
+                break;
+            }
+        }
+
+        if (found == true) {
+            // omit
+        } else {
+            this->insertRows(row, 1, currIndex);
+            nnode->onRow = row;
+            QModelIndex newIndex = this->index(row, 0, currIndex);
+            QVariant vv = qVariantFromValue((void*)nnode);
+            this->setData(newIndex, vv);
+        }
     }
 
     delete persisIndex; persisIndex = NULL;
@@ -693,16 +756,20 @@ void RemoteDirModel::slot_remote_dir_node_retrived(NetDirNode *parent_item,
     // }
 
     // return;
-    for (int i = parent_item->childNodes.count() - 1 ; i >= 0; i --) {
-        if (parent_item->childNodes.value(i)->deleted == true) {
-            row = i;
-            qDebug()<<"find should delete item: "<<i
-                    <<"row num:"<<row;
+    // q_debug()<<"befor delete, child count:"<<parent_item->childNodes.count();
+    // for (int i = parent_item->childNodes.count() - 1 ; i >= 0; i --) {
+    //     if (parent_item->childNodes.value(i)->deleted == true) {
+    //         row = i;
+    //         qDebug()<<"find should delete item: "<<i
+    //                 <<"row num:"<<row;
 
-            this->removeRows(row, 1, currIndex);
-            changeCount ++;
-        }
-    }
+    //         this->removeRows(row, 1, currIndex);
+    //         changeCount ++;
+    //     }
+    // }
+
+    parent_item->prevFlag = parent_item->retrFlag;
+    parent_item->retrFlag = POP_NEWEST;
 
     emit directoryLoaded(currPath);
 

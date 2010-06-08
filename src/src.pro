@@ -202,6 +202,7 @@ win32 {
 } else {
     LIBS += libssh2/src/libssh2.a -lssl -lcrypto -lz
     TARGETDEPS += libssh2/src/libssh2.a
+# WARNING: /home/gzleo/nullfxp-svn/src/src.pro:204: Variable TARGETDEPS is deprecated; use POST_TARGETDEPS instead.
 }
 
 CONFIG(release, debug|release) {
