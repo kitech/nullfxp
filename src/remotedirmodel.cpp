@@ -134,6 +134,11 @@ void RemoteDirModel::set_user_home_path(QString user_home_path)
             fileName = "/";
             lastStripPath = "";
         } else {
+            if (pathParts.at(i).length() == 0) {
+                // should be the case: "/", special for ftp
+                q_debug()<<"detect empty path part, omit.";
+                break;
+            }
             fullPath = lastStripPath + "/" + pathParts.at(i);
             fileName = pathParts.at(i);
             lastStripPath += "/" + fileName;
@@ -652,6 +657,7 @@ void RemoteDirModel::dump_tree_node_item(NetDirNode *node_item) const
 }
 
 // TODO a lot of memory leak here
+// should not memory leak now.
 void RemoteDirModel::slot_remote_dir_node_retrived(NetDirNode *parent_item,
                                                    void *parent_persistent_index, 
                                                    NetDirNode *newNodes
@@ -687,6 +693,7 @@ void RemoteDirModel::slot_remote_dir_node_retrived(NetDirNode *parent_item,
     }
 
     // calc delta items, some should deleted and some should add
+    // this method maybe has perfomance problem, but run properly.
     // first, search should deleted items, and delete it
     bool found = false;
     int i, j;

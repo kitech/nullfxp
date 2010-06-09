@@ -61,7 +61,7 @@ FTPView::~FTPView()
 // TODO 根据服务器端的SYST值，设置初始化编码。WIN->GBK, OTHER->UTF-8
 QMenu *FTPView::encodingMenu()
 {
-    QMenu *emenu = new QMenu("Charactor encoding", 0);
+    QMenu *emenu = new QMenu(tr("Charactor encoding"), 0);
     QAction *action = NULL;
     QActionGroup *ag = new QActionGroup(this);
 
@@ -133,25 +133,26 @@ void FTPView::i_init_dir_view()
     this->uiw.treeView->expandAll();
     this->uiw.treeView->setColumnWidth(0, this->uiw.treeView->columnWidth(0)*2);
     
-    //这里设置为true时，导致这个treeView不能正确显示滚动条了，为什么呢?
+    // 这里设置为true时，导致这个treeView不能正确显示滚动条了，为什么呢?
     //this->uiw.treeView->setColumnHidden( 1, false);
-    this->uiw.treeView->setColumnWidth(1, 0);//使用这种方法隐藏看上去就正常了。
+    this->uiw.treeView->setColumnWidth(1, 0); // 使用这种方法隐藏看上去就正常了。
     this->uiw.treeView->setColumnHidden(2, true);
     this->uiw.treeView->setColumnHidden(3, true);
     
     /////tableView
+    QModelIndex homeIndex = this->remote_dir_model->index(this->user_home_path);
     this->uiw.tableView->setModel(this->m_tableProxyModel);
-    // this->uiw.tableView->setRootIndex(this->m_tableProxyModel->index(this->user_home_path));
+    this->uiw.tableView->setRootIndex(this->m_tableProxyModel->mapFromSource(homeIndex));
 
     //change row height of table 
-    // if (this->m_tableProxyModel->rowCount(this->m_tableProxyModel->index(this->user_home_path)) > 0) {
-    //     this->table_row_height = this->uiw.tableView->rowHeight(0)*2/3;
-    // } else {
-    //     this->table_row_height = 20;
-    // }
-    // for (int i = 0; i < this->m_tableProxyModel->rowCount(this->m_tableProxyModel->index(this->user_home_path)); i ++) {
-    //     this->uiw.tableView->setRowHeight(i, this->table_row_height);
-    // }
+    if (this->m_tableProxyModel->rowCount(homeIndex) > 0) {
+        this->table_row_height = this->uiw.tableView->rowHeight(0)*2/3;
+    } else {
+        this->table_row_height = 20;
+    }
+    for (int i = 0; i < this->m_tableProxyModel->rowCount(homeIndex); i ++) {
+        this->uiw.tableView->setRowHeight(i, this->table_row_height);
+    }
     this->uiw.tableView->resizeColumnToContents(0);
     
     /////

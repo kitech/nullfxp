@@ -206,9 +206,9 @@ int FTPDirRetriver::retrive_dir()
         parent_persistent_index = mit->second;
        
         fileinfos.clear();
-        //状态初始化
+        // 状态初始化
         for (int i = 0; i < parent_item->childCount(); i++) {
-            parent_item->childAt(i)->deleted = 1;
+            // parent_item->childAt(i)->deleted = true;
         }
 
         // passive
@@ -226,22 +226,25 @@ int FTPDirRetriver::retrive_dir()
             }
         }
         deltaItems = dirListToTreeNode(dirList, parent_item);
-        // 将多出的记录插入到树中,这儿使用的方法是，全部删除，再加入所有得到的数据。
-        // 效率上会有所损失,是不是改为dirretriver.cpp中一样的机制呢。
+        // // 将多出的记录插入到树中,这儿使用的方法是，全部删除，再加入所有得到的数据。
+        // // 效率上会有所损失,是不是改为dirretriver.cpp中一样的机制呢。
+        // copy to temp node, for pass as params
+        NetDirNode *newNodes = new NetDirNode();
         for (int i = 0 ; i < deltaItems.count(); i ++) {
-            deltaItems.at(i)->onRow = parent_item->childCount();
+            // deltaItems.at(i)->onRow = parent_item->childCount();
             // parent_item->child_items.insert(std::make_pair(parent_item->childCount(), deltaItems.at(i)));
             // parent_item->child_items.insert(parent_item->childCount(), deltaItems.at(i));
-            parent_item->childNodes.insert(deltaItems.at(i)->onRow, deltaItems.at(i));
+            // parent_item->childNodes.insert(deltaItems.at(i)->onRow, deltaItems.at(i));
+            newNodes->childNodes.insert(i, deltaItems.at(i));
         }
 
         deltaItems.clear();
-        parent_item->prevFlag = parent_item->retrFlag;
-        parent_item->retrFlag = POP_NEWEST;
+        // parent_item->prevFlag = parent_item->retrFlag;
+        // parent_item->retrFlag = POP_NEWEST;
 
         //         //////
         this->dir_node_process_queue.erase(parent_item);
-        emit this->remote_dir_node_retrived(parent_item, parent_persistent_index);
+        emit this->remote_dir_node_retrived(parent_item, parent_persistent_index, newNodes);
 
         // if (ssh2_sftp_handle != 0) //TODO 应该在循环上面检测到为0就continue才对啊。
         //     libssh2_sftp_closedir(ssh2_sftp_handle);

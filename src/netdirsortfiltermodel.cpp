@@ -108,11 +108,16 @@ bool DirTreeSortFilterModel::filterAcceptsRow(int source_row, const QModelIndex 
 
     if (file_name.length() == 0 && file_path.length() == 0) {
         return false;   // for new added empty node
-    } 
+    }
+    if (file_name.length() == 0 && file_path == QString("/")) {
+        return true; // for root node of ftp
+    }
+
     if (node->isDir() || node->isSymLinkToDir()) {
         if (this->filters & QDir::Hidden) {
             return true;
         } else {
+            dump_tree_node_item(node);
             if (file_name.at(0) == '.') {
                 return false;
             } else {

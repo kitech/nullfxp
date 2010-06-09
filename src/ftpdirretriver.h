@@ -30,10 +30,8 @@ public:
     FTPDirRetriver(QObject *parent = 0);
     virtual ~FTPDirRetriver();
 
-    //在实例初始化后马上调用，否则会导致程序崩溃
-    // void set_ssh2_handler(void *ssh2_sess);
+    // 在实例初始化后马上调用，否则会导致程序崩溃
     virtual void setConnection(Connection *conn);
-    // LIBSSH2_SFTP *get_ssh2_sftp();
     
     virtual void run();
         
@@ -76,14 +74,12 @@ protected:
     virtual int fxp_realpath();
 
 signals:
-    void enter_remote_dir_retrive_loop();
-    void leave_remote_dir_retrive_loop();
+    // void enter_remote_dir_retrive_loop();
+    // void leave_remote_dir_retrive_loop();
         
-    void remote_dir_node_retrived(NetDirNode *parent_item, void *parent_persistent_index);
+    // void remote_dir_node_retrived(NetDirNode *parent_item, void *parent_persistent_index, NetDirNode *newNodes);
         
-    void execute_command_finished(NetDirNode *parent_item, void *parent_persistent_index,
-                                  int cmd, int status);
-
+    // void execute_command_finished(NetDirNode *parent_item, void *parent_persistent_index, int cmd, int status);
 };
 
 #endif /* _FTPDIRRETRIVER_H_ */

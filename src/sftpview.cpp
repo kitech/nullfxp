@@ -581,6 +581,7 @@ void SFTPView::slot_rmdir()
 }
 
 // TODO when remove multi files, the view's behaviour is strange
+// should fixed now.
 void SFTPView::rm_file_or_directory_recursively()
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;

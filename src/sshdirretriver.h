@@ -43,7 +43,6 @@ public:
 
     //在实例初始化后马上调用，否则会导致程序崩溃
     void setConnection(Connection *conn);
-    // LIBSSH2_SFTP *get_ssh2_sftp();
     
     virtual void run();
         
@@ -52,24 +51,25 @@ public:
     void slot_execute_command(NetDirNode *parent_item, void *parent_persistent_index,
                               int cmd, QString params);
 
-private:
-    class command_queue_elem
-    {
-    public:
-        command_queue_elem()
-        {  
-            this->parent_item = 0;
-            this->parent_persistent_index = 0;
-            this->cmd = -1;
-            this->retry_times = 0;
-        }
+protected:
+    // inhirent from base class
+    // class command_queue_elem
+    // {
+    // public:
+    //     command_queue_elem()
+    //     {  
+    //         this->parent_item = 0;
+    //         this->parent_persistent_index = 0;
+    //         this->cmd = -1;
+    //         this->retry_times = 0;
+    //     }
                
-        NetDirNode *parent_item;
-        void *parent_persistent_index;
-        int  cmd;
-        QString  params;
-        int  retry_times;
-    };
+    //     NetDirNode *parent_item;
+    //     void *parent_persistent_index;
+    //     int  cmd;
+    //     QString  params;
+    //     int  retry_times;
+    // };
 
 private:
     int  retrive_dir();
@@ -86,16 +86,13 @@ private:
     int fxp_realpath();
 
 signals:
-    void enter_remote_dir_retrive_loop();
-    void leave_remote_dir_retrive_loop();
-        
-    void remote_dir_node_retrived(NetDirNode *parent_item, void *parent_persistent_index, NetDirNode *newNodes);
-        
-    void execute_command_finished(NetDirNode *parent_item, void *parent_persistent_index,
-                                  int cmd, int status);
+    // void enter_remote_dir_retrive_loop();
+    // void leave_remote_dir_retrive_loop();
+    
+    // void remote_dir_node_retrived(NetDirNode *parent_item, void *parent_persistent_index, NetDirNode *newNodes);
+    // void execute_command_finished(NetDirNode *parent_item, void *parent_persistent_index, int cmd, int status);
 
 private:
-
     std::map<NetDirNode *, void *> dir_node_process_queue;
     std::vector<command_queue_elem*>  command_queue;
 };

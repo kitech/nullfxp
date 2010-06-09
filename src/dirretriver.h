@@ -80,12 +80,12 @@ protected:
     virtual int fxp_realpath();
 
 signals:
-    void enter_remote_dir_retrive_loop();
-    void leave_remote_dir_retrive_loop();
+    virtual void enter_remote_dir_retrive_loop();
+    virtual void leave_remote_dir_retrive_loop();
         
-    void remote_dir_node_retrived(NetDirNode *parent_item, void *parent_persistent_index, NetDirNode *newNodes);
+    virtual void remote_dir_node_retrived(NetDirNode *parent_item, void *parent_persistent_index, NetDirNode *newNodes);
         
-    void execute_command_finished(NetDirNode *parent_item, void *parent_persistent_index,
+    virtual void execute_command_finished(NetDirNode *parent_item, void *parent_persistent_index,
                                   int cmd, int status);
 
 protected:
