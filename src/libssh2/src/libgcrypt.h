@@ -56,7 +56,7 @@
 #define MD5_DIGEST_LENGTH 16
 #define SHA_DIGEST_LENGTH 20
 
-#define libssh2_random(buf, len)                \
+#define _libssh2_random(buf, len)                \
   (gcry_randomize ((buf), (len), GCRY_STRONG_RANDOM), 1)
 
 #define libssh2_sha1_ctx gcry_md_hd_t
@@ -124,9 +124,9 @@ int _libssh2_rsa_sha1_verify(libssh2_rsa_ctx * rsa,
 int _libssh2_rsa_sha1_sign(LIBSSH2_SESSION * session,
                            libssh2_rsa_ctx * rsactx,
                            const unsigned char *hash,
-                           unsigned long hash_len,
+                           size_t hash_len,
                            unsigned char **signature,
-                           unsigned long *signature_len);
+                           size_t *signature_len);
 
 #define _libssh2_rsa_free(rsactx)  gcry_sexp_release (rsactx)
 

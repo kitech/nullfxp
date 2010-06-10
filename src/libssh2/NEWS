@@ -1,3 +1,53 @@
+libssh2 1.2.6 (June 10, 2010)
+
+This release includes the following changes:
+
+ o Added libssh2_sftp_statvfs() and libssh2_sftp_fstatvfs()
+ o Added libssh2_knownhost_checkp()
+ o Added libssh2_scp_send64()
+
+This release includes the following bugfixes:
+
+ o wait_socket: make c89 compliant and use two fd_sets for select()
+ o OpenSSL AES-128-CTR detection
+ o proper keyboard-interactive user dialog in the sftp.c example
+ o build procedure for VMS
+ o fixed libssh2.dsw to use the generated libssh2.dsp
+ o several Windows-related build fixes
+ o fail to init SFTP if session isn't already authenticated
+ o many tiny fixes that address clang-analyzer warnings
+ o sftp_open: deal with short channel_write calls
+ o libssh2_publickey_init: fixed to work better non-blocking
+ o sftp_close_handle: add precation to not access NULL pointer
+ o sftp_readdir: simplified and bugfixed
+ o channel_write: if data has been sent, don't return EAGAIN
+
+Version 1.2.5 (April 13, 2010)
+
+This release includes the following changes:
+
+ o Added Add keep-alive support: libssh2_keepalive_config() and
+   libssh2_keepalive_send()
+ o Added libssh2_knownhost_addc(), libssh2_init() and libssh2_exit()
+ o Added LIBSSH2_SFTP_S_IS***() macros
+
+This release includes the following bugfixes:
+
+ o fix memory leak in libssh2_session_startup()
+ o added missing error codes - shown as hangs in blocking mode
+ o fix memory leak in userauth_keyboard_interactive()
+ o libssh2_knownhost_del: fix write to freed memory
+ o Send and receive channel EOF before sending SSH_MSG_CHANNEL_CLOSE
+ o Use AES-CTR from OpenSSL when available
+ o Fixed gettimeofday to compile with Visual C++ 6
+ o NULL dereference when window adjusting a non-existing channel
+ o avoid using poll on interix and mac os x systems
+ o fix scp memory leak
+ o Correctly clear blocking flag after sending multipart packet
+ o Reduce used window sizes by factor 10
+ o libssh2_userauth_publickey_fromfile_ex() handles a NULL password
+ o sftp_init() deal with _libssh2_channel_write() short returns
+
  o Use poll instead of select when available.  By Paul Querna.
 
  o Add APIs to have libssh2 automatically send keep-alive requests.

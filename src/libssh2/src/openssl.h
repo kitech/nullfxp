@@ -104,7 +104,7 @@
 # define LIBSSH2_3DES 1
 #endif
 
-#define libssh2_random(buf, len) RAND_bytes ((buf), (len))
+#define _libssh2_random(buf, len) RAND_bytes ((buf), (len))
 
 #define libssh2_sha1_ctx EVP_MD_CTX
 #define libssh2_sha1_init(ctx) EVP_DigestInit(ctx, EVP_get_digestbyname("sha1"))
@@ -162,9 +162,9 @@ int _libssh2_rsa_sha1_verify(libssh2_rsa_ctx * rsa,
 int _libssh2_rsa_sha1_sign(LIBSSH2_SESSION * session,
                            libssh2_rsa_ctx * rsactx,
                            const unsigned char *hash,
-                           unsigned long hash_len,
+                           size_t hash_len,
                            unsigned char **signature,
-                           unsigned long *signature_len);
+                           size_t *signature_len);
 
 #define _libssh2_rsa_free(rsactx) RSA_free(rsactx)
 
@@ -199,7 +199,7 @@ int _libssh2_dsa_sha1_sign(libssh2_dsa_ctx * dsactx,
 #define _libssh2_cipher_aes256 EVP_aes_256_cbc
 #define _libssh2_cipher_aes192 EVP_aes_192_cbc
 #define _libssh2_cipher_aes128 EVP_aes_128_cbc
-#ifdef HAVE_EVP_AES128_CTR
+#ifdef HAVE_EVP_AES_128_CTR
 #define _libssh2_cipher_aes128ctr EVP_aes_128_ctr
 #define _libssh2_cipher_aes192ctr EVP_aes_192_ctr
 #define _libssh2_cipher_aes256ctr EVP_aes_256_ctr

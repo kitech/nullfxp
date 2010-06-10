@@ -201,7 +201,7 @@ _libssh2_cipher_crypt(_libssh2_cipher_ctx * ctx,
     return ret == 1 ? 0 : 1;
 }
 
-#if LIBSSH2_AES_CTR && !defined(HAVE_EVP_AES128_CTR)
+#if LIBSSH2_AES_CTR && !defined(HAVE_EVP_AES_128_CTR)
 
 #include <openssl/aes.h>
 
@@ -385,8 +385,8 @@ int
 _libssh2_rsa_sha1_sign(LIBSSH2_SESSION * session,
                        libssh2_rsa_ctx * rsactx,
                        const unsigned char *hash,
-                       unsigned long hash_len,
-                       unsigned char **signature, unsigned long *signature_len)
+                       size_t hash_len,
+                       unsigned char **signature, size_t *signature_len)
 {
     int ret;
     unsigned char *sig;

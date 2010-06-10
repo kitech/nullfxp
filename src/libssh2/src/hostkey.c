@@ -46,8 +46,8 @@
 
 #if LIBSSH2_RSA
 /* ***********
-   * ssh-rsa *
-   *********** */
+ * ssh-rsa *
+ *********** */
 
 static int hostkey_method_ssh_rsa_dtor(LIBSSH2_SESSION * session,
                                        void **abstract);
@@ -60,7 +60,7 @@ static int hostkey_method_ssh_rsa_dtor(LIBSSH2_SESSION * session,
 static int
 hostkey_method_ssh_rsa_init(LIBSSH2_SESSION * session,
                             const unsigned char *hostkey_data,
-                            unsigned long hostkey_data_len,
+                            size_t hostkey_data_len,
                             void **abstract)
 {
     libssh2_rsa_ctx *rsactx;
@@ -91,7 +91,6 @@ hostkey_method_ssh_rsa_init(LIBSSH2_SESSION * session,
     n_len = _libssh2_ntohu32(s);
     s += 4;
     n = s;
-    s += n_len;
 
     if (_libssh2_rsa_new(&rsactx, e, e_len, n, n_len, NULL, 0,
                          NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0))
@@ -139,9 +138,9 @@ hostkey_method_ssh_rsa_initPEM(LIBSSH2_SESSION * session,
 static int
 hostkey_method_ssh_rsa_sig_verify(LIBSSH2_SESSION * session,
                                   const unsigned char *sig,
-                                  unsigned long sig_len,
+                                  size_t sig_len,
                                   const unsigned char *m,
-                                  unsigned long m_len, void **abstract)
+                                  size_t m_len, void **abstract)
 {
     libssh2_rsa_ctx *rsactx = (libssh2_rsa_ctx *) (*abstract);
     (void) session;
@@ -160,14 +159,14 @@ hostkey_method_ssh_rsa_sig_verify(LIBSSH2_SESSION * session,
 static int
 hostkey_method_ssh_rsa_signv(LIBSSH2_SESSION * session,
                              unsigned char **signature,
-                             unsigned long *signature_len,
-                             unsigned long veccount,
+                             size_t *signature_len,
+                             int veccount,
                              const struct iovec datavec[],
                              void **abstract)
 {
     libssh2_rsa_ctx *rsactx = (libssh2_rsa_ctx *) (*abstract);
     int ret;
-    unsigned int i;
+    int i;
     unsigned char hash[SHA_DIGEST_LENGTH];
     libssh2_sha1_ctx ctx;
 
@@ -218,8 +217,8 @@ static const LIBSSH2_HOSTKEY_METHOD hostkey_method_ssh_rsa = {
 
 #if LIBSSH2_DSA
 /* ***********
-   * ssh-dss *
-   *********** */
+ * ssh-dss *
+ *********** */
 
 static int hostkey_method_ssh_dss_dtor(LIBSSH2_SESSION * session,
                                        void **abstract);
@@ -232,7 +231,7 @@ static int hostkey_method_ssh_dss_dtor(LIBSSH2_SESSION * session,
 static int
 hostkey_method_ssh_dss_init(LIBSSH2_SESSION * session,
                             const unsigned char *hostkey_data,
-                            unsigned long hostkey_data_len,
+                            size_t hostkey_data_len,
                             void **abstract)
 {
     libssh2_dsa_ctx *dsactx;
@@ -268,7 +267,7 @@ hostkey_method_ssh_dss_init(LIBSSH2_SESSION * session,
     y_len = _libssh2_ntohu32(s);
     s += 4;
     y = s;
-    s += y_len;
+    /* s += y_len; */
 
     _libssh2_dsa_new(&dsactx, p, p_len, q, q_len, g, g_len, y, y_len, NULL, 0);
 
@@ -314,9 +313,9 @@ hostkey_method_ssh_dss_initPEM(LIBSSH2_SESSION * session,
 static int
 hostkey_method_ssh_dss_sig_verify(LIBSSH2_SESSION * session,
                                   const unsigned char *sig,
-                                  unsigned long sig_len,
+                                  size_t sig_len,
                                   const unsigned char *m,
-                                  unsigned long m_len, void **abstract)
+                                  size_t m_len, void **abstract)
 {
     libssh2_dsa_ctx *dsactx = (libssh2_dsa_ctx *) (*abstract);
 
@@ -324,8 +323,8 @@ hostkey_method_ssh_dss_sig_verify(LIBSSH2_SESSION * session,
     sig += 15;
     sig_len -= 15;
     if (sig_len != 40) {
-        return libssh2_error(session, LIBSSH2_ERROR_PROTO,
-                             "Invalid DSS signature length");
+        return _libssh2_error(session, LIBSSH2_ERROR_PROTO,
+                              "Invalid DSS signature length");
     }
     return _libssh2_dsa_sha1_verify(dsactx, sig, m, m_len);
 }
@@ -338,15 +337,15 @@ hostkey_method_ssh_dss_sig_verify(LIBSSH2_SESSION * session,
 static int
 hostkey_method_ssh_dss_signv(LIBSSH2_SESSION * session,
                              unsigned char **signature,
-                             unsigned long *signature_len,
-                             unsigned long veccount,
+                             size_t *signature_len,
+                             int veccount,
                              const struct iovec datavec[],
                              void **abstract)
 {
     libssh2_dsa_ctx *dsactx = (libssh2_dsa_ctx *) (*abstract);
     unsigned char hash[SHA_DIGEST_LENGTH];
     libssh2_sha1_ctx ctx;
-    unsigned int i;
+    int i;
 
     *signature = LIBSSH2_ALLOC(session, 2 * SHA_DIGEST_LENGTH);
     if (!*signature) {

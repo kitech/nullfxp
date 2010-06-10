@@ -143,3 +143,150 @@ LIB32=link.exe -lib
 # Name "libssh2 - Win32 LIB Release"
 # Name "libssh2 - Win32 LIB Debug"
 
+# Begin Group "Source Files"
+
+# PROP Default_Filter "cpp;c;cxx"
+# Begin Source File
+
+SOURCE=..\src\agent.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\channel.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\comp.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\crypt.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\global.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\hostkey.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\keepalive.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\kex.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\knownhost.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\libgcrypt.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\mac.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\misc.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\openssl.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\packet.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\pem.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\publickey.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\scp.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\session.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\sftp.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\transport.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\userauth.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\version.c
+# End Source File
+# End Group
+# Begin Group "Header Files"
+
+# PROP Default_Filter "h;hpp;hxx"
+# Begin Source File
+
+SOURCE=..\src\channel.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\comp.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\libgcrypt.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\libssh2_config.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\libssh2_priv.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\mac.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\misc.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\openssl.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\packet.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\session.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\transport.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\userauth.h
+# End Source File
+# End Group
+# End Target
+# End Project
+

@@ -388,10 +388,12 @@ src/libssh2/src/mw_libssh2_config.h -text
 src/libssh2/src/openssl.c -text
 src/libssh2/src/openssl.h -text
 src/libssh2/src/packet.c -text
+src/libssh2/src/packet.h -text
 src/libssh2/src/pem.c -text
 src/libssh2/src/publickey.c -text
 src/libssh2/src/scp.c -text
 src/libssh2/src/session.c -text
+src/libssh2/src/session.h -text
 src/libssh2/src/sftp.c -text
 src/libssh2/src/src.pro -text
 src/libssh2/src/stamp-h1 -text
@@ -399,11 +401,13 @@ src/libssh2/src/transport.c -text
 src/libssh2/src/transport.h -text
 src/libssh2/src/un_libssh2_config.h -text
 src/libssh2/src/userauth.c -text
+src/libssh2/src/userauth.h -text
 src/libssh2/src/version.c -text
 src/libssh2/win32/.cvsignore -text
 src/libssh2/win32/Makefile -text
 src/libssh2/win32/Makefile.win32 -text
 src/libssh2/win32/config.mk -text
+src/libssh2/win32/libssh2.dsp -text
 src/libssh2/win32/libssh2.dsw -text
 src/libssh2/win32/libssh2_config.h -text
 src/libssh2/win32/libssh2_dll.dsp -text

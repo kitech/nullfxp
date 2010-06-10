@@ -76,16 +76,18 @@ extern "C" {
 
 #if (defined(NETWARE) && !defined(__NOVELL_LIBC__))
 # include <sys/bsdskt.h>
+typedef unsigned char uint8_t;
 typedef unsigned int uint32_t;
 #endif
 
-#if defined(LIBSSH2_WIN32) && defined(_MSC_VER) && (_MSC_VER <= 1600)
+#if defined(LIBSSH2_WIN32) && defined(_MSC_VER)
+typedef unsigned char uint8_t;
+typedef unsigned int uint32_t;
 typedef unsigned __int64 libssh2_uint64_t;
 typedef __int64 libssh2_int64_t;
-typedef unsigned int uint32_t;
-#ifndef _SSIZE_T_DEFINED
+# ifndef _SSIZE_T_DEFINED
 typedef int ssize_t;
-#define _SSIZE_T_DEFINED
+# define _SSIZE_T_DEFINED
 #endif
 #else
 typedef unsigned long long libssh2_uint64_t;
@@ -96,13 +98,13 @@ typedef long long libssh2_int64_t;
    to make the BANNER define (used by src/session.c) be a valid SSH
    banner. Release versions have no appended strings and may of course not
    have dashes either. */
-#define LIBSSH2_VERSION "1.2.5"
+#define LIBSSH2_VERSION "1.2.6"
 
 /* The numeric version number is also available "in parts" by using these
    defines: */
 #define LIBSSH2_VERSION_MAJOR 1
 #define LIBSSH2_VERSION_MINOR 2
-#define LIBSSH2_VERSION_PATCH 5
+#define LIBSSH2_VERSION_PATCH 6
 
 /* This is the numeric version of the libssh2 version number, meant for easier
    parsing and comparions by programs. The LIBSSH2_VERSION_NUM define will
@@ -119,7 +121,7 @@ typedef long long libssh2_int64_t;
    and it is always a greater number in a more recent release. It makes
    comparisons with greater than and less than work.
 */
-#define LIBSSH2_VERSION_NUM 0x010205
+#define LIBSSH2_VERSION_NUM 0x010206
 
 /*
  * This is the date and time when the full source package was created. The
@@ -130,7 +132,7 @@ typedef long long libssh2_int64_t;
  *
  * "Mon Feb 12 11:35:33 UTC 2007"
  */
-#define LIBSSH2_TIMESTAMP "Tue Apr 13 21:19:00 UTC 2010"
+#define LIBSSH2_TIMESTAMP "Thu Jun 10 08:19:51 UTC 2010"
 
 /* Part of every banner, user specified or not */
 #define LIBSSH2_SSH_BANNER                  "SSH-2.0-libssh2_" LIBSSH2_VERSION
@@ -717,6 +719,10 @@ LIBSSH2_API LIBSSH2_CHANNEL *libssh2_scp_send_ex(LIBSSH2_SESSION *session,
                                                  const char *path, int mode,
                                                  size_t size, long mtime,
                                                  long atime);
+LIBSSH2_API LIBSSH2_CHANNEL *
+libssh2_scp_send64(LIBSSH2_SESSION *session, const char *path, int mode,
+                   libssh2_int64_t size, time_t mtime, time_t atime);
+
 #define libssh2_scp_send(session, path, mode, size) \
   libssh2_scp_send_ex((session), (path), (mode), (size), 0, 0)
 
@@ -858,6 +864,15 @@ libssh2_knownhost_check(LIBSSH2_KNOWNHOSTS *hosts,
                         const char *host, const char *key, size_t keylen,
                         int typemask,
                         struct libssh2_knownhost **knownhost);
+
+/* this function is identital to the above one, but also takes a port
+   argument that allows libssh2 to do a better check */
+LIBSSH2_API int
+libssh2_knownhost_checkp(LIBSSH2_KNOWNHOSTS *hosts,
+                         const char *host, int port,
+                         const char *key, size_t keylen,
+                         int typemask,
+                         struct libssh2_knownhost **knownhost);
 
 /*
  * libssh2_knownhost_del

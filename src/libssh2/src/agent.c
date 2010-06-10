@@ -47,6 +47,7 @@
    support them. */
 #undef PF_UNIX
 #endif
+#include "userauth.h"
 
 /* Requests from client to agent for protocol 1 key operations */
 #define SSH_AGENTC_REQUEST_RSA_IDENTITIES 1
@@ -167,7 +168,7 @@ agent_connect_unix(LIBSSH2_AGENT *agent)
 static int
 agent_transact_unix(LIBSSH2_AGENT *agent, agent_transaction_ctx_t transctx)
 {
-    unsigned char buf[4], *s;
+    unsigned char buf[4];
     int rc;
 
     /* Send the length of the request */
@@ -203,8 +204,8 @@ agent_transact_unix(LIBSSH2_AGENT *agent, agent_transaction_ctx_t transctx)
             return -1;
         }
         transctx->response_len = _libssh2_ntohu32(buf);
-        s = transctx->response = LIBSSH2_ALLOC(agent->session,
-                                                  transctx->response_len);
+        transctx->response = LIBSSH2_ALLOC(agent->session,
+                                           transctx->response_len);
         if (!transctx->response) {
             return LIBSSH2_ERROR_ALLOC;
         }
@@ -267,6 +268,7 @@ agent_transact_pageant(LIBSSH2_AGENT *agent, agent_transaction_ctx_t transctx)
     char mapname[23];
     HANDLE filemap;
     unsigned char *p;
+    unsigned char *p2;
     int id;
     COPYDATASTRUCT cds;
 
@@ -283,9 +285,9 @@ agent_transact_pageant(LIBSSH2_AGENT *agent, agent_transaction_ctx_t transctx)
     if (filemap == NULL || filemap == INVALID_HANDLE_VALUE) {
 	return -1;
     }
-    p = MapViewOfFile(filemap, FILE_MAP_WRITE, 0, 0, 0);
-    _libssh2_htonu32(p, transctx->request_len);
-    memcpy(p + 4, transctx->request, transctx->request_len);
+    p2 = p = MapViewOfFile(filemap, FILE_MAP_WRITE, 0, 0, 0);
+    _libssh2_store_str(&p2, transctx->request, transctx->request_len);
+
     cds.dwData = PAGEANT_COPYDATA_ID;
     cds.cbData = 1 + strlen(mapname);
     cds.lpData = mapname;
@@ -361,18 +363,14 @@ agent_sign(LIBSSH2_SESSION *session, unsigned char **sig, size_t *sig_len,
 
         *s++ = SSH2_AGENTC_SIGN_REQUEST;
         /* key blob */
-        _libssh2_htonu32(s, identity->external.blob_len);
-        s += 4;
-         memcpy(s, identity->external.blob, identity->external.blob_len);
-        s += identity->external.blob_len;
+        _libssh2_store_str(&s, (const char *)identity->external.blob,
+                           identity->external.blob_len);
         /* data */
-        _libssh2_htonu32(s, data_len);
-        s += 4;
-        memcpy(s, data, data_len);
-        s += data_len;
+        _libssh2_store_str(&s, (const char *)data, data_len);
+
         /* flags */
-        _libssh2_htonu32(s, 0);
-        s += 4;
+        _libssh2_store_u32(&s, 0);
+
         transctx->request_len = s - transctx->request;
         transctx->state = agent_NB_state_request_created;
     }
@@ -618,8 +616,8 @@ libssh2_agent_init(LIBSSH2_SESSION *session)
 
     agent = LIBSSH2_ALLOC(session, sizeof *agent);
     if (!agent) {
-        libssh2_error(session, LIBSSH2_ERROR_ALLOC,
-                      "Unable to allocate space for agent connection");
+        _libssh2_error(session, LIBSSH2_ERROR_ALLOC,
+                       "Unable to allocate space for agent connection");
         return NULL;
     }
     memset(agent, 0, sizeof *agent);
@@ -720,11 +718,12 @@ libssh2_agent_userauth(LIBSSH2_AGENT *agent,
         memset(&agent->transctx, 0, sizeof agent->transctx);
         agent->identity = identity->node;
     }
-    return libssh2_userauth_publickey(agent->session, username,
-				      identity->blob,
-				      identity->blob_len,
-				      agent_sign,
-				      &abstract);
+    return _libssh2_userauth_publickey(agent->session, username,
+                                       strlen(username),
+                                       identity->blob,
+                                       identity->blob_len,
+                                       agent_sign,
+                                       &abstract);
 }
 
 /*

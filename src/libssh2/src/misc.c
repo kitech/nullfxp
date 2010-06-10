@@ -49,7 +49,7 @@
 
 #include <errno.h>
 
-int libssh2_error(LIBSSH2_SESSION* session, int errcode, const char* errmsg)
+int _libssh2_error(LIBSSH2_SESSION* session, int errcode, const char* errmsg)
 {
     session->err_msg = errmsg;
     session->err_code = errcode;
@@ -97,6 +97,11 @@ _libssh2_recv(libssh2_socket_t socket, void *buffer, size_t length, int flags)
     if (rc < 0 )
         errno = wsa2errno();
 #endif
+#ifdef __VMS
+    if (rc < 0 ){
+       if ( errno == EWOULDBLOCK ) errno = EAGAIN;
+    }
+#endif
     return rc;
 }
 #endif /* _libssh2_recv */
@@ -115,6 +120,11 @@ _libssh2_send(libssh2_socket_t socket, const void *buffer, size_t length, int fl
 #ifdef WIN32
     if (rc < 0 )
         errno = wsa2errno();
+#endif
+#ifdef VMS
+    if (rc < 0 ){
+       if ( errno == EWOULDBLOCK ) errno = EAGAIN;
+    }
 #endif
     return rc;
 }
@@ -145,12 +155,31 @@ _libssh2_ntohu64(const unsigned char *buf)
 /* _libssh2_htonu32
  */
 void
-_libssh2_htonu32(unsigned char *buf, unsigned int value)
+_libssh2_htonu32(unsigned char *buf, uint32_t value)
 {
     buf[0] = (value >> 24) & 0xFF;
     buf[1] = (value >> 16) & 0xFF;
     buf[2] = (value >> 8) & 0xFF;
     buf[3] = value & 0xFF;
+}
+
+/* _libssh2_store_u32
+ */
+void _libssh2_store_u32(unsigned char **buf, uint32_t value)
+{
+    _libssh2_htonu32(*buf, value);
+    *buf += sizeof(uint32_t);
+}
+
+/* _libssh2_store_str
+ */
+void _libssh2_store_str(unsigned char **buf, const char *str, size_t len)
+{
+    _libssh2_store_u32(buf, (uint32_t)len);
+    if(len) {
+        memcpy(*buf, str, len);
+        *buf += len;
+    }
 }
 
 /* Base64 Conversion */
@@ -201,8 +230,8 @@ libssh2_base64_decode(LIBSSH2_SESSION *session, char **data,
     *data = LIBSSH2_ALLOC(session, (3 * src_len / 4) + 1);
     d = (unsigned char *) *data;
     if (!d) {
-        return libssh2_error(session, LIBSSH2_ERROR_ALLOC,
-                             "Unable to allocate memory for base64 decoding");
+        return _libssh2_error(session, LIBSSH2_ERROR_ALLOC,
+                              "Unable to allocate memory for base64 decoding");
     }
 
     for(s = (unsigned char *) src; ((char *) s) < (src + src_len); s++) {
@@ -230,8 +259,8 @@ libssh2_base64_decode(LIBSSH2_SESSION *session, char **data,
         /* Invalid -- We have a byte which belongs exclusively to a partial
            octet */
         LIBSSH2_FREE(session, *data);
-        return libssh2_error(session, LIBSSH2_ERROR_INVAL,
-                             "Invalid data (byte belonging to partial octet)");
+        return _libssh2_error(session, LIBSSH2_ERROR_INVAL,
+                              "Invalid data (byte belonging to partial octet)");
     }
 
     *datalen = len;
@@ -504,7 +533,7 @@ void _libssh2_list_insert(struct list_node *after, /* insert before this */
 
 
 
-#ifdef WIN32
+#if defined(LIBSSH2_WIN32) && !defined(__MINGW32__)
 /*
  * gettimeofday
  * Implementation according to:
