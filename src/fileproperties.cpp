@@ -83,19 +83,20 @@ static int QUrlInfo2LIBSSH2_SFTP_ATTRIBUTES(QUrlInfo &ui, LIBSSH2_SFTP_ATTRIBUTE
     return 0;
 }
 
-FilePropertiesRetriveThread::FilePropertiesRetriveThread(Connection *conn, LIBSSH2_SFTP *ssh2_sftp, 
-                                                         QString file_path, QObject *parent)
+FilePropertiesRetriver::FilePropertiesRetriver(Connection *conn, LIBSSH2_SFTP *ssh2_sftp, 
+                                               QString file_path, QObject *parent)
   : QThread(parent)
 {
     this->ssh2_sftp = ssh2_sftp;
     this->file_path = GlobalOption::instance()->remote_codec->fromUnicode(file_path);
     this->conn = conn;
 }
-FilePropertiesRetriveThread::~FilePropertiesRetriveThread()
+FilePropertiesRetriver::~FilePropertiesRetriver()
 {
+    q_debug()<<"";
 }
 
-void FilePropertiesRetriveThread::run()
+void FilePropertiesRetriver::run()
 {
     assert(this->conn != NULL);
     if (this->conn->protocolType() == Connection::PROTO_SFTP) {
@@ -107,7 +108,7 @@ void FilePropertiesRetriveThread::run()
     }
 }
 
-void FilePropertiesRetriveThread::run_sftp()
+void FilePropertiesRetriver::run_sftp()
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     int rv = 0;
@@ -122,7 +123,7 @@ void FilePropertiesRetriveThread::run_sftp()
     }
     emit file_attr_abtained(this->file_path, sftp_attrib);    
 }
-void FilePropertiesRetriveThread::run_ftp()
+void FilePropertiesRetriver::run_ftp()
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     int rv = 0;
@@ -226,7 +227,7 @@ void FileProperties::set_file_info_model_list(QModelIndexList &mil)
 {
 	if (mil.count() == 0) return;
 
-	NetDirNode * item_node = static_cast<NetDirNode*>(mil.at(0).internalPointer());
+	NetDirNode *item_node = static_cast<NetDirNode*>(mil.at(0).internalPointer());
 	QString file_name = mil.at(0).data().toString();
 	QString file_size = mil.at(1).data().toString();
 	QString file_modify_time = mil.at(3).data().toString();
@@ -238,11 +239,28 @@ void FileProperties::set_file_info_model_list(QModelIndexList &mil)
         file_location = "/";
     }
     
-	this->ui_file_prop_dialog.lineEdit->setText ( file_name );
-	this->ui_file_prop_dialog.lineEdit_2->setText (file_perm.left ( 1 ) );
+	this->ui_file_prop_dialog.lineEdit->setText(file_name);
+	this->ui_file_prop_dialog.lineEdit_2->setText (file_perm.left(1));
     this->ui_file_prop_dialog.lineEdit_3->setText (file_location);
-	this->ui_file_prop_dialog.lineEdit_4->setText ( file_size );
-	this->ui_file_prop_dialog.lineEdit_5->setText ( file_modify_time );
+
+    {
+        long long int ifilesize = file_size.toLongLong();
+        if (ifilesize >= 1024 * 1024 * 1024) {
+            file_size = QString(tr("%1 %2 (%3 Bytes)")).arg(ifilesize/(1024*1024*1024.0))
+                .arg("G").arg(ifilesize);
+        } else if (ifilesize >= 1024 * 1024) {
+            file_size = QString(tr("%1 %2 (%3 Bytes)")).arg(ifilesize/(1024*1024.0))
+                .arg("M").arg(ifilesize);
+        } else if (ifilesize >= 1024) {
+            file_size = QString(tr("%1 %2 (%3 Bytes)")).arg(ifilesize/(1024.0))
+                .arg("K").arg(ifilesize);
+        } else {
+            file_size = QString(tr("%1 %2 (%3 Bytes)")).arg(ifilesize/1)
+                .arg("B").arg(ifilesize);
+        }
+    }
+	this->ui_file_prop_dialog.lineEdit_4->setText(file_size);
+	this->ui_file_prop_dialog.lineEdit_5->setText(file_modify_time);
 
 	if (file_perm.length() < strlen("drwxr-xr-x")) {
 		//qDebug() <<" Invalide perm string";
@@ -254,9 +272,9 @@ void FileProperties::set_file_info_model_list(QModelIndexList &mil)
     QString file_path = this->ui_file_prop_dialog.lineEdit_3->text()
         + QString("/") + this->ui_file_prop_dialog.lineEdit->text();
 
-    FilePropertiesRetriveThread *rt = 0;
-    // rt = new FilePropertiesRetriveThread(this->ssh2_sftp, file_path, this);
-    rt = new FilePropertiesRetriveThread(this->conn, this->ssh2_sftp, file_path, this);
+    FilePropertiesRetriver *rt = 0;
+    // rt = new FilePropertiesRetriver(this->ssh2_sftp, file_path, this);
+    rt = new FilePropertiesRetriver(this->conn, this->ssh2_sftp, file_path, this);
     QObject::connect(rt, SIGNAL(file_attr_abtained(QString, void*)), 
                      this, SLOT(slot_file_attr_abtained(QString, void*)));
     rt->start();
@@ -268,7 +286,7 @@ void FileProperties::slot_prop_thread_finished()
 }
 void FileProperties::slot_file_attr_abtained(QString file_name, void *attr)
 {
-    //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     this->ui_file_prop_dialog.label_13->setPixmap(this->fileIcon(file_name).pixmap(50, 50).scaledToHeight(50));
 
 	char file_perm[60] = {0};
@@ -285,7 +303,7 @@ void FileProperties::slot_file_attr_abtained(QString file_name, void *attr)
     this->ui_file_prop_dialog.lineEdit_5->setText(fi.lastRead().toString("yyyy/MM/dd HH:mm:ss"));
     
 	if (this->ui_file_prop_dialog.lineEdit_2->text() == "D") {
-        file_size = QString("%1").arg(sftp_attrib->filesize);
+         file_size = QString("%1").arg(sftp_attrib->filesize);
         this->ui_file_prop_dialog.lineEdit_4->setText(file_size);
         this->ui_file_prop_dialog.lineEdit_2->setText(tr("Folder"));
 	} else if (this->ui_file_prop_dialog.lineEdit_2->text() == "d") {
@@ -301,6 +319,10 @@ void FileProperties::slot_file_attr_abtained(QString file_name, void *attr)
 	strmode(sftp_attrib->permissions,file_perm);
 	this->update_perm_table(file_perm);
     free(sftp_attrib);
+
+    // memory clean
+    FilePropertiesRetriver *rt = static_cast<FilePropertiesRetriver*>(sender());
+    rt->deleteLater();
 }
 
 void FileProperties::update_perm_table(QString file_perm)
@@ -309,31 +331,31 @@ void FileProperties::update_perm_table(QString file_perm)
     this->ui_file_prop_dialog.label_17->setText(file_perm);
 	//perm format : drwxr-xr-x
 	{
-		QChar rp = file_perm.at ( 1 );
-		QChar wp = file_perm.at ( 1+1 );
-		QChar xp = file_perm.at ( 1+2 );
+		QChar rp = file_perm.at(1);
+		QChar wp = file_perm.at(1+1);
+		QChar xp = file_perm.at(1+2);
 
-		this->ui_file_prop_dialog.checkBox->setChecked ( rp=='r' );
-		this->ui_file_prop_dialog.checkBox_2->setChecked ( wp=='w' );
-		this->ui_file_prop_dialog.checkBox_3->setChecked ( xp=='x' );
+		this->ui_file_prop_dialog.checkBox->setChecked(rp=='r');
+		this->ui_file_prop_dialog.checkBox_2->setChecked(wp=='w');
+		this->ui_file_prop_dialog.checkBox_3->setChecked(xp=='x');
 	}
 	{
-		QChar rp = file_perm.at ( 4 );
-		QChar wp = file_perm.at ( 4+1 );
-		QChar xp = file_perm.at ( 4+2 );
+		QChar rp = file_perm.at(4);
+		QChar wp = file_perm.at(4+1);
+		QChar xp = file_perm.at(4+2);
 
-		this->ui_file_prop_dialog.checkBox_4->setChecked ( rp=='r' );
-		this->ui_file_prop_dialog.checkBox_5->setChecked ( wp=='w' );
-		this->ui_file_prop_dialog.checkBox_6->setChecked ( xp=='x' );
+		this->ui_file_prop_dialog.checkBox_4->setChecked(rp=='r');
+		this->ui_file_prop_dialog.checkBox_5->setChecked(wp=='w');
+		this->ui_file_prop_dialog.checkBox_6->setChecked(xp=='x');
 	}
 	{
-		QChar rp = file_perm.at ( 7 );
-		QChar wp = file_perm.at ( 7+1 );
-		QChar xp = file_perm.at ( 7+2 );
-		this->ui_file_prop_dialog.checkBox_7->setChecked ( rp=='r' );
-		this->ui_file_prop_dialog.checkBox_8->setChecked ( wp=='w' );
-		this->ui_file_prop_dialog.checkBox_9->setChecked ( xp=='x' );
-        this->ui_file_prop_dialog.checkBox_12->setChecked ( xp=='t' );
+		QChar rp = file_perm.at(7);
+		QChar wp = file_perm.at(7+1);
+		QChar xp = file_perm.at(7+2);
+		this->ui_file_prop_dialog.checkBox_7->setChecked(rp=='r');
+		this->ui_file_prop_dialog.checkBox_8->setChecked(wp=='w');
+		this->ui_file_prop_dialog.checkBox_9->setChecked(xp=='x');
+        this->ui_file_prop_dialog.checkBox_12->setChecked(xp=='t');
 	}
 }
 
@@ -358,7 +380,7 @@ QString FileProperties::type(QString file_name)
 #else
                                        "Folder", "All other platforms"
 #endif
-                                       );
+                                      );
     // Windows   - "File Folder"
     // OS X      - "Folder"
     // Konqueror - "Folder"
@@ -371,7 +393,7 @@ QString FileProperties::type(QString file_name)
 #else
                                        "Shortcut", "All other platforms"
 #endif
-                                       );
+                                      );
     // OS X      - "Alias"
     // Windows   - "Shortcut"
     // Konqueror - "Folder" or "TXT File" i.e. what it is pointing to
@@ -424,18 +446,37 @@ LocalFileProperties::~LocalFileProperties()
 
 void LocalFileProperties::set_file_info_model_list(QString file_name)
 {
+    q_debug()<<"";
     this->ui_file_prop_dialog.label_13->setPixmap(this->fileIcon(file_name).pixmap(50, 50).scaledToHeight(50));
 
     QFileInfo fi(file_name);
     
     this->file_name = file_name;
-    QString file_size = "";
+    QString file_size = QString("%1").arg(fi.size());
     QString file_modify_time = "";
 
     this->ui_file_prop_dialog.lineEdit->setText(fi.fileName());
     this->ui_file_prop_dialog.lineEdit_2->setText(this->type(file_name));
     this->ui_file_prop_dialog.lineEdit_3->setText(fi.path());
-    this->ui_file_prop_dialog.lineEdit_4->setText(QString("%1").arg(fi.size()));
+
+    {
+        long long int ifilesize = file_size.toLongLong();
+        if (ifilesize >= 1024 * 1024 * 1024) {
+            file_size = QString(tr("%1 %2 (%3 Bytes)")).arg(ifilesize/(1024*1024*1024.0))
+                .arg("G").arg(ifilesize);
+        } else if (ifilesize >= 1024 * 1024) {
+            file_size = QString(tr("%1 %2 (%3 Bytes)")).arg(ifilesize/(1024*1024.0))
+                .arg("M").arg(ifilesize);
+        } else if (ifilesize >= 1024) {
+            file_size = QString(tr("%1 %2 (%3 Bytes)")).arg(ifilesize/(1024.0))
+                .arg("K").arg(ifilesize);
+        } else {
+            file_size = QString(tr("%1 %2 (%3 Bytes)")).arg(ifilesize/1)
+                .arg("B").arg(ifilesize);
+        }
+    }
+    this->ui_file_prop_dialog.lineEdit_4->setText(file_size);
+
     this->ui_file_prop_dialog.lineEdit_5->setText(fi.lastModified().toString("yyyy/MM/dd hh:mm:ss"));
     this->ui_file_prop_dialog.lineEdit_6->setText(fi.lastRead().toString("yyyy/MM/dd hh:mm:ss")); //2007/11/28 06:53:45
 
@@ -521,7 +562,7 @@ QString LocalFileProperties::type(QString file_name)
 #else
                                        "Folder", "All other platforms"
 #endif
-                                       );
+                                      );
     // Windows   - "File Folder"
     // OS X      - "Folder"
     // Konqueror - "Folder"
@@ -534,7 +575,7 @@ QString LocalFileProperties::type(QString file_name)
 #else
                                        "Shortcut", "All other platforms"
 #endif
-                                       );
+                                      );
     // OS X      - "Alias"
     // Windows   - "Shortcut"
     // Konqueror - "Folder" or "TXT File" i.e. what it is pointing to

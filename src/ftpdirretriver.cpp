@@ -172,7 +172,8 @@ static QVector<NetDirNode *> dirListToTreeNode(QVector<QUrlInfo> &dirList, NetDi
         node = new NetDirNode();
         QUrlInfo2LIBSSH2_SFTP_ATTRIBUTES(ui, &node->attrib);
         node->prevFlag = 0;
-        node->retrFlag = 0;
+        node->retrFlag = (node->isDir() || node->isSymLink()) 
+                    ? POP_NO_NEED_NO_DATA : POP_NEWEST;
         node->deleted = 0;
         node->onRow = i;
         node->fullPath = pnode->fullPath + "/" + ui.name();

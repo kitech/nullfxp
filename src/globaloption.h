@@ -25,7 +25,7 @@ public:
     static GlobalOption *instance();
     ~GlobalOption();
 
-    enum {FLV_DETAIL, FLV_LIST, FLV_SMALL_ICON, FLV_LARGE_ICON};
+    enum {FLV_DETAIL, FLV_LIST, FLV_SMALL_ICON, FLV_LARGE_ICON, FLV_BOTH_VIEW};
     
     //options
     QTextCodec *remote_codec ;

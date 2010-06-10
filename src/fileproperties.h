@@ -21,12 +21,12 @@
 
 class Connection;
 
-class FilePropertiesRetriveThread : public QThread
+class FilePropertiesRetriver : public QThread
 {
     Q_OBJECT;
 public:
-    FilePropertiesRetriveThread(Connection *conn, LIBSSH2_SFTP *ssh2_sftp, QString file_path, QObject *parent = 0);
-    virtual ~FilePropertiesRetriveThread();
+    FilePropertiesRetriver(Connection *conn, LIBSSH2_SFTP *ssh2_sftp, QString file_path, QObject *parent = 0);
+    virtual ~FilePropertiesRetriver();
     virtual void run();
     virtual void run_sftp();
     virtual void run_ftp();

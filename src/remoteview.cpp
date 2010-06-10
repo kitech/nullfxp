@@ -39,6 +39,7 @@ RemoteView::RemoteView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *
     this->local_view = local_view;
     this->main_mdi_area = main_mdi_area;
     this->setObjectName("NetDirView");
+
     ///////
     this->status_bar = new QStatusBar();
     this->entriesLabel = new QLabel(tr("Entries label"), this);
@@ -89,7 +90,9 @@ RemoteView::RemoteView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *
     QObject::connect(this->uiw.widget, SIGNAL(iconSizeChanged(int)),
                      this, SLOT(slot_icon_size_changed(int)));
     // this->uiw.widget->onSetHome(QDir::homePath()); // call from set_user_home_path
+    // this->setFileListViewMode(GlobalOption::FLV_BOTH_VIEW);
     this->setFileListViewMode(GlobalOption::FLV_DETAIL);
+    this->m_operationLogModel = NULL;
 }
 
 RemoteView::~RemoteView()
@@ -1151,7 +1154,11 @@ void RemoteView::slot_icon_size_changed(int value)
 
 void RemoteView::setFileListViewMode(int mode)
 {
-    if (mode == GlobalOption::FLV_LARGE_ICON) {
+    if (mode == GlobalOption::FLV_BOTH_VIEW) {
+        // for debug purpose
+        this->uiw.tableView->setVisible(true);
+        this->uiw.listView_2->setVisible(true);
+    } else if (mode == GlobalOption::FLV_LARGE_ICON) {
         this->uiw.tableView->setVisible(false);
         this->uiw.listView_2->setVisible(true);
         this->slot_icon_size_changed(96);

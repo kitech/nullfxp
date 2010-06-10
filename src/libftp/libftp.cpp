@@ -157,7 +157,7 @@ int LibFtp::login(const QString &user, const QString &password)
             qDebug()<<"PBSZ: "<<ball;
             
             QStringList sl = QString(ball).split("\n");
-            if (sl.at(0) == "200") {
+            if (sl.at(0).split(" ").at(0) == "200") {
                 this->useTLS = true;
             } else {
                 // some else: 421, 501, 502, 503, 530, 550

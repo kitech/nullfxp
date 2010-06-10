@@ -48,7 +48,6 @@ public:
     
 protected:
     SSHConnection *rconn;
-    QStringListModel *m_operationLogModel;
 
     virtual void expand_to_home_directory(QModelIndex parent_model, int level);
     virtual void expand_to_directory(QString path, int level);

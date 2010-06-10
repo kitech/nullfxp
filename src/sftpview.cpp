@@ -38,7 +38,6 @@ SFTPView::SFTPView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *pare
 {
     this->init_popup_context_menu();
     this->rconn = NULL;
-    this->m_operationLogModel = 0;
 }
 
 SFTPView::~SFTPView()
@@ -862,7 +861,7 @@ void SFTPView::slot_dir_tree_item_clicked(const QModelIndex & index)
     //     this->remote_dir_model->dump_tree_node_item(node);
     // }
     
-    remote_dir_model->slot_remote_dir_node_clicked(useIndex);
+    this->remote_dir_model->slot_remote_dir_node_clicked(useIndex);
 
     this->uiw.tableView->setRootIndex(this->m_tableProxyModel->mapFromSource(useIndex));
     for (int i = 0; i < this->remote_dir_model->rowCount(useIndex); ++i) {

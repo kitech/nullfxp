@@ -84,6 +84,15 @@ public slots:
     bool slot_drop_mime_data(const QMimeData *data, Qt::DropAction action,
 			     int row, int column, const QModelIndex &parent ) ;
     void slot_show_hidden(bool show);
+
+    // log msg handler
+    void slot_operation_triggered(QString text);
+
+    void slot_dir_nav_go_home();
+    void slot_dir_nav_prefix_changed(const QString &prefix);
+    void slot_dir_nav_input_comfirmed(const QString &prefix);
+
+    void onDirectoryLoaded(const QString &path);
 	
 signals:
         
@@ -104,6 +113,8 @@ private slots:
 
     void encryption_focus_label_double_clicked();
     void host_info_focus_label_double_clicked();
+
+    void onUpdateEntriesStatus();
 
     void encodingChanged();
 

@@ -73,6 +73,8 @@ protected:
     LIBSSH2_SFTP *ssh2_sftp;
     Connection *conn;
 
+    QStringListModel *m_operationLogModel;
+
     //menu item
     QAction *attr_action;
     EncryptionDetailFocusLabel *enc_label;

@@ -154,6 +154,13 @@ void FTPView::i_init_dir_view()
         this->uiw.tableView->setRowHeight(i, this->table_row_height);
     }
     this->uiw.tableView->resizeColumnToContents(0);
+
+    // list view
+    this->uiw.listView_2->setModel(this->m_tableProxyModel);
+    this->uiw.listView_2->setRootIndex(this->m_tableProxyModel->mapFromSource(homeIndex));
+    this->uiw.listView_2->setViewMode(QListView::IconMode);
+    this->uiw.listView_2->setGridSize(QSize(80, 80));
+    this->uiw.listView_2->setSelectionModel(this->uiw.tableView->selectionModel());
     
     /////
     QObject::connect(this->uiw.treeView, SIGNAL(clicked(const QModelIndex &)),
@@ -162,6 +169,10 @@ void FTPView::i_init_dir_view()
                      this, SLOT(slot_dir_file_view_double_clicked(const QModelIndex &)));
     QObject::connect(this->uiw.tableView, SIGNAL(drag_ready()),
                      this, SLOT(slot_drag_ready()));
+    QObject::connect(this->uiw.listView_2, SIGNAL(doubleClicked(const QModelIndex &)),
+                     this, SLOT(slot_dir_file_view_double_clicked(const QModelIndex &)));
+
+    this->uiw.widget->onSetHome(this->user_home_path);
 
     //TODO 连接remoteview.treeView 的drag信号
     
@@ -183,7 +194,7 @@ void FTPView::slot_dir_tree_customContextMenuRequested(const QPoint &pos)
 {
     this->curr_item_view = static_cast<QAbstractItemView*>(sender());
     QPoint real_pos = this->curr_item_view->mapToGlobal(pos);
-    real_pos = QPoint(real_pos.x() + 12, real_pos.y() + 36);
+    real_pos = QPoint(real_pos.x() + 10, real_pos.y() + 26);
     attr_action->setEnabled(!this->in_remote_dir_retrive_loop);
     this->dir_tree_context_menu->popup(real_pos);
 }
@@ -368,7 +379,8 @@ void FTPView::slot_leave_remote_dir_retrive_loop()
     for (int i = 0 ; i < this->m_tableProxyModel->rowCount(this->uiw.tableView->rootIndex()); i ++) {
         this->uiw.tableView->setRowHeight(i, this->table_row_height);
     }
-    this->uiw.tableView->resizeColumnToContents ( 0 );
+    this->uiw.tableView->resizeColumnToContents(0);
+    this->onUpdateEntriesStatus();
 }
 
 void FTPView::update_layout()
@@ -423,19 +435,50 @@ void FTPView::slot_show_properties()
     QModelIndexList aim_mil;
     if (this->curr_item_view == this->uiw.treeView) {
         for (int i = 0 ; i < mil.count() ; i ++) {
-            aim_mil << this->m_treeProxyModel->mapToSource(mil.at(i));
+            aim_mil<<this->m_treeProxyModel->mapToSource(mil.at(i));
+            // aim_mil << mil.at(i);
+        }
+    } else if (this->curr_item_view == this->uiw.listView_2) {
+        QModelIndex currIndex;
+        QModelIndex tmpIndex;
+        for (int i = 0 ; i < mil.count() ; i ++) {
+            currIndex = this->m_tableProxyModel->mapToSource(mil.at(i));
+            aim_mil<<currIndex;
+            // aim_mil<<mil.at(i);
+            for (int col = 1; col < 4; col ++) {
+                tmpIndex = this->remote_dir_model->index(currIndex.row(), col, currIndex.parent());
+                aim_mil << tmpIndex;
+            }
+        }
+    } else if (this->curr_item_view == this->uiw.tableView) {
+        if (mil.count() % 4 == 0) {
+            for (int i = 0 ; i < mil.count() ; i ++) {
+                aim_mil<<this->m_tableProxyModel->mapToSource(mil.at(i));
+                // aim_mil<<mil.at(i);
+            }
+        } else {
+            QModelIndex currIndex;
+            QModelIndex tmpIndex;
+            for (int i = 0 ; i < mil.count() ; i ++) {
+                currIndex = this->m_tableProxyModel->mapToSource(mil.at(i));
+                aim_mil<<currIndex;
+                // aim_mil<<mil.at(i);
+                for (int col = 1; col < 4; col ++) {
+                    tmpIndex = this->remote_dir_model->index(currIndex.row(), col, currIndex.parent());
+                    aim_mil << tmpIndex;
+                }
+            }
         }
     } else {
-        for (int i = 0 ; i < mil.count() ; i ++) {
-            aim_mil << this->m_tableProxyModel->mapToSource(mil.at(i));
-        }
+        Q_ASSERT(1 == 2);
     }
+
     if (aim_mil.count() == 0) {
         qDebug()<<"why???? no QItemSelectionModel??";
         return;
     }
-    //  文件类型，大小，几个时间，文件权限
-    //TODO 从模型中取到这些数据并显示在属性对话框中。
+    // 文件类型，大小，几个时间，文件权限
+    // TODO 从模型中取到这些数据并显示在属性对话框中。
     FileProperties *fp = new FileProperties(this);
     // fp->set_ssh2_sftp(this->ssh2_sftp);
     fp->setConnection(this->conn);
@@ -451,7 +494,7 @@ void FTPView::slot_mkdir()
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
     if (ism == 0) {
-        qDebug()<<" why???? no QItemSelectionModel??";
+        qDebug()<<"why???? no QItemSelectionModel??";
         QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
         return;
     }
@@ -465,14 +508,15 @@ void FTPView::slot_mkdir()
     }
     
     QModelIndex midx = mil.at(0);
-    QModelIndex aim_midx = (this->curr_item_view == this->uiw.treeView) ? this->m_treeProxyModel->mapToSource(midx): this->m_tableProxyModel->mapToSource(midx);
+    QModelIndex aim_midx = (this->curr_item_view == this->uiw.treeView)
+        ? this->m_treeProxyModel->mapToSource(midx): this->m_tableProxyModel->mapToSource(midx);
     NetDirNode *dti = (NetDirNode*)(aim_midx.internalPointer());
     
     //检查所选择的项是不是目录
     if (!this->remote_dir_model->isDir(aim_midx)) {
         QMessageBox::critical(this, tr("waring..."),
                               tr("The selected item is not a directory."));
-        return ;
+        return;
     }
     
     dir_name = QInputDialog::getText(this, tr("Create directory:"),
@@ -487,10 +531,10 @@ void FTPView::slot_mkdir()
         QMessageBox::critical(this, tr("waring..."), tr("no directory name supplyed "));
         return;
     }
-    //TODO 将 file_path 转换编码再执行下面的操作
-    
-    this->remote_dir_model->slot_execute_command(dti, aim_midx.internalPointer(), SSH2_FXP_MKDIR, dir_name);
-    
+
+    // TODO 将 file_path 转换编码再执行下面的操作
+    QPersistentModelIndex *persisIndex = new QPersistentModelIndex(aim_midx);
+    this->remote_dir_model->slot_execute_command(dti, persisIndex, SSH2_FXP_MKDIR, dir_name);
 }
 
 void FTPView::slot_rmdir()
@@ -521,11 +565,12 @@ void FTPView::slot_rmdir()
     QModelIndex parent_model =  aim_midx.parent() ;
     NetDirNode *parent_item = (NetDirNode*)parent_model.internalPointer();
     
-    //TODO 检查所选择的项是不是目录
     
-    this->remote_dir_model->slot_execute_command(parent_item, parent_model.internalPointer(),
-                                                 SSH2_FXP_RMDIR, dti->_fileName   );
+    // TODO 检查所选择的项是不是目录
     
+    QPersistentModelIndex *persisIndex = new QPersistentModelIndex(parent_model);
+    this->remote_dir_model->slot_execute_command(parent_item, persisIndex,
+                                                 SSH2_FXP_RMDIR, dti->_fileName);
 }
 
 void FTPView::rm_file_or_directory_recursively()
@@ -577,8 +622,9 @@ void FTPView::rm_file_or_directory_recursively()
         }
         QModelIndex parent_model =  aim_midx.parent();
         NetDirNode *parent_item = (NetDirNode*)parent_model.internalPointer();
-        
-        this->remote_dir_model->slot_execute_command(parent_item, parent_model.internalPointer(),
+
+        QPersistentModelIndex *persisIndex = new QPersistentModelIndex(parent_model);
+        this->remote_dir_model->slot_execute_command(parent_item, persisIndex,
                                                      SSH2_FXP_REMOVE, dti->_fileName);
     }
 }
@@ -777,33 +823,85 @@ void FTPView::slot_transfer_finished(int status, QString errorString)
 
 /**
  *
- * index 是proxy的index 
+ * index is proxyIndex 
  */
 void FTPView::slot_dir_tree_item_clicked(const QModelIndex & index)
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     QString file_path;
+    QModelIndex proxyIndex;
+    QModelIndex sourceIndex;
+    QModelIndex useIndex;
 
-    remote_dir_model->slot_remote_dir_node_clicked(this->m_treeProxyModel->mapToSource(index));
+    proxyIndex = index;
+    sourceIndex = this->m_treeProxyModel->mapToSource(index);
+    // sourceIndex = index;
+    useIndex = sourceIndex;
+
+    this->remote_dir_model->slot_remote_dir_node_clicked(useIndex);
     
     // file_path = this->m_treeProxyModel->filePath(index);
-    // this->uiw.tableView->setRootIndex(this->m_tableProxyModel->index(file_path));
-    // for (int i = 0 ; i < this->m_tableProxyModel->rowCount(this->m_tableProxyModel->index(file_path)); i ++ ) {
-    //     this->uiw.tableView->setRowHeight(i, this->table_row_height);
-    // }
+    this->uiw.tableView->setRootIndex(this->m_tableProxyModel->mapFromSource(useIndex));
+    for (int i = 0 ; i < this->remote_dir_model->rowCount(useIndex); i ++ ) {
+        this->uiw.tableView->setRowHeight(i, this->table_row_height);
+    }
     this->uiw.tableView->resizeColumnToContents(0);
+    
+
+    this->uiw.listView_2->setRootIndex(this->m_tableProxyModel->mapFromSource(useIndex));
+
+    if (this->remote_dir_model->filePath(useIndex) == ""
+        && this->remote_dir_model->fileName(useIndex) == "/") {
+        this->uiw.widget->onNavToPath(this->remote_dir_model->fileName(useIndex));
+    } else {
+        this->uiw.widget->onNavToPath(this->remote_dir_model->filePath(useIndex));
+    }
+
+    this->onUpdateEntriesStatus();
 }
 
 void FTPView::slot_dir_file_view_double_clicked(const QModelIndex & index)
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    // TODO if the clicked item is direcotry ,
+    // expand left tree dir and update right table view
+    // got the file path , tell tree ' model , then expand it
+    // 文件列表中的双击事件
+    //1。本地主机，如果是目录，则打开这个目录，如果是文件，则使用本机的程序打开这个文件
+    //2。对于远程主机，　如果是目录，则打开这个目录，如果是文件，则提示是否要下载它(或者也可以直接打开这个文件）。
+
+    QModelIndex proxyIndex = index;
+    QModelIndex sourceIndex = this->m_tableProxyModel->mapToSource(proxyIndex);
+    QModelIndex useIndex = sourceIndex;
+
+    QString file_path;
+    if (this->remote_dir_model->isDir(useIndex) || this->remote_dir_model->isSymLinkToDir(useIndex)) {
+        this->uiw.treeView->expand(this->m_treeProxyModel->mapFromSource(useIndex).parent());
+        this->uiw.treeView->expand(this->m_treeProxyModel->mapFromSource(useIndex));
+        this->slot_dir_tree_item_clicked(this->m_treeProxyModel->mapFromSource(useIndex));
+
+        this->uiw.treeView->selectionModel()->clearSelection();
+        this->uiw.treeView->selectionModel()->select(this->m_treeProxyModel->mapFromSource(useIndex), 
+                                                            QItemSelectionModel::Select);
+    } else if (this->remote_dir_model->isSymLink(useIndex)) {
+        NetDirNode *node_item = (NetDirNode*)useIndex.internalPointer();
+        QPersistentModelIndex *persisIndex = new QPersistentModelIndex(useIndex);
+        q_debug()<<node_item->fullPath;
+        this->remote_dir_model->dump_tree_node_item(node_item);
+        this->remote_dir_model->slot_execute_command(node_item, persisIndex,
+                                                     SSH2_FXP_REALPATH, QString(""));
+    } else {
+        q_debug()<<"double clicked a regular file, no op now, only now";
+    }
+
+    // qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     //TODO if the clicked item is direcotry ,
     //expand left tree dir and update right table view
     // got the file path , tell tree ' model , then expand it
     //文件列表中的双击事件
     //1。　本地主机，如果是目录，则打开这个目录，如果是文件，则使用本机的程序打开这个文件
     //2。对于远程主机，　如果是目录，则打开这个目录，如果是文件，则提示是否要下载它(或者也可以直接打开这个文件）。
-    QString file_path;
+    // QString file_path;
     // if (this->m_tableProxyModel->isDir(index)) {
     //     this->uiw.treeView->expand(this->m_treeProxyModel->index(this->m_tableProxyModel->filePath(index)).parent());
     //     this->uiw.treeView->expand(this->m_treeProxyModel->index(this->m_tableProxyModel->filePath(index)));
@@ -874,15 +972,9 @@ bool FTPView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction action,
     TaskPackage remote_pkg(PROTO_FTP);
    
     NetDirNode *aim_item = static_cast<NetDirNode*>(parent.internalPointer());        
-    QString remote__fileName = aim_item->fullPath ;
+    QString remote_file_name = aim_item->fullPath ;
 
-    remote_pkg.files<<remote__fileName;
-
-    // remote_pkg.host = this->host_name;
-    // remote_pkg.username = this->user_name;
-    // remote_pkg.password = this->password;
-    // remote_pkg.port = QString("%1").arg(this->port);
-    // remote_pkg.pubkey = this->pubkey;    
+    remote_pkg.files<<remote_file_name;
 
     remote_pkg.host = this->conn->hostName;
     remote_pkg.username = this->conn->userName;
@@ -918,14 +1010,175 @@ bool FTPView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction action,
 
 void FTPView::slot_show_hidden(bool show)
 {
-    // if (show) {
-    //     m_tableProxyModel->setFilter(QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot);
-    //     m_treeProxyModel->setFilter(QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot);
-    // } else {
-    //     m_tableProxyModel->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
-    //     m_treeProxyModel->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
-    // }
+    DirTreeSortFilterModel *tree = (DirTreeSortFilterModel*)this->m_treeProxyModel;
+    DirTableSortFilterModel *table = (DirTableSortFilterModel*)this->m_tableProxyModel;
+    if (show) {
+        if (tree) tree->setFilter(QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot);
+        if (table) table->setFilter(QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot);
+    } else {
+        if (tree) tree->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
+        if (table) table->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
+    }
+    this->onUpdateEntriesStatus();
 }
+
+void FTPView::onUpdateEntriesStatus()
+{
+    QModelIndex proxyIndex = this->uiw.tableView->rootIndex();
+    QModelIndex sourceIndex = this->m_tableProxyModel->mapToSource(proxyIndex);
+    QModelIndex useIndex = sourceIndex;
+    int entries = this->m_tableProxyModel->rowCount(proxyIndex);
+    QString msg = QString("%1 entries").arg(entries);
+    this->entriesLabel->setText(msg);
+}
+
+void FTPView::onDirectoryLoaded(const QString &path)
+{
+    q_debug()<<path;
+    // if (this->model->filePath(this->uiw.tableView->rootIndex()) == path) {
+    //     this->uiw.tableView->resizeColumnToContents(0);
+    //     this->onUpdateEntriesStatus();
+    // }
+
+    if (this->is_dir_complete_request) {
+        this->is_dir_complete_request = false;
+
+        QString prefix = this->dir_complete_request_prefix;
+        
+        QStringList matches;
+        QModelIndex currIndex;
+        QModelIndex sourceIndex = this->remote_dir_model->index(path);
+        int rc = this->remote_dir_model->rowCount(sourceIndex);
+        q_debug()<<"lazy load dir rows:"<<rc;
+        for (int i = rc - 1; i >= 0; --i) {
+            currIndex = this->remote_dir_model->index(i, 0, sourceIndex);
+            if (this->remote_dir_model->isDir(currIndex)) {
+                matches << this->remote_dir_model->filePath(currIndex);
+            }
+        }
+        this->uiw.widget->onSetCompleteList(prefix, matches);
+    }
+
+}
+
+void FTPView::slot_operation_triggered(QString text)
+{
+    if (this->m_operationLogModel == NULL) {
+        this->m_operationLogModel = new QStringListModel();
+    }
+    int rc = this->m_operationLogModel->rowCount();
+    this->m_operationLogModel->insertRows(rc, 1, QModelIndex());
+    QModelIndex useIndex = this->m_operationLogModel->index(rc, 0, QModelIndex());
+    this->m_operationLogModel->setData(useIndex, QVariant(text));
+    this->uiw.listView->scrollTo(useIndex);
+
+    if (rc > 300) {
+        useIndex = this->m_operationLogModel->index(0, 0, QModelIndex());
+        this->m_operationLogModel->removeRows(0, 1, QModelIndex());
+    }
+}
+
+void FTPView::slot_dir_nav_go_home()
+{
+    q_debug()<<"";
+    // check if current index is home index
+    // if no, callepse all and expand to home
+    // tell dir nav instance the home path
+
+    QModelIndex proxyIndex = this->uiw.tableView->rootIndex();
+    QModelIndex sourceIndex = this->m_tableProxyModel->mapToSource(proxyIndex);
+    QModelIndex useIndex = sourceIndex;
+    
+    QString rootPath = this->remote_dir_model->filePath(sourceIndex);
+    if (rootPath != this->user_home_path) {
+        this->uiw.treeView->collapseAll();
+        this->expand_to_home_directory(QModelIndex(), 1);
+        this->uiw.tableView->setRootIndex(this->remote_dir_model->index(this->user_home_path));
+    }
+    this->uiw.widget->onSetHome(this->user_home_path);
+}
+
+void FTPView::slot_dir_nav_prefix_changed(const QString &prefix)
+{
+    // q_debug()<<""<<prefix;
+    QStringList matches;
+    QModelIndex sourceIndex = this->remote_dir_model->index(prefix);
+    QModelIndex currIndex;
+
+    if (prefix == "") {
+        sourceIndex = this->remote_dir_model->index(0, 0, QModelIndex());
+    } else if (!sourceIndex.isValid()) {
+        int pos = prefix.lastIndexOf('/');
+        if (pos == -1) {
+            pos = prefix.lastIndexOf('\\');
+        }
+        if (pos == -1) {
+            // how deal this case
+            Q_ASSERT(pos >= 0);
+        }
+        sourceIndex = this->remote_dir_model->index(prefix.left(prefix.length() - pos));
+    }
+    if (sourceIndex.isValid()) {
+        if (this->remote_dir_model->canFetchMore(sourceIndex)) {
+            while (this->remote_dir_model->canFetchMore(sourceIndex)) {
+                this->is_dir_complete_request = true;
+                this->dir_complete_request_prefix = prefix;
+                this->remote_dir_model->fetchMore(sourceIndex);
+            }
+            // sience qt < 4.7 has no directoryLoaded signal, so we should execute now if > 0
+            if (strcmp(qVersion(), "4.7.0") < 0) {
+                // QTimer::singleShot(this, SLOT(
+            }
+        } else {
+            int rc = this->remote_dir_model->rowCount(sourceIndex);
+            q_debug()<<"lazy load dir rows:"<<rc;
+            for (int i = rc - 1; i >= 0; --i) {
+                currIndex = this->remote_dir_model->index(i, 0, sourceIndex);
+                if (this->remote_dir_model->isDir(currIndex)) {
+                    matches << this->remote_dir_model->filePath(currIndex);
+                }
+            }
+            this->uiw.widget->onSetCompleteList(prefix, matches);
+        }
+    } else {
+        // any operation for this case???
+        q_debug()<<"any operation for this case???"<<prefix;
+    }
+}
+
+void FTPView::slot_dir_nav_input_comfirmed(const QString &prefix)
+{
+    q_debug()<<prefix;
+
+    QModelIndex sourceIndex = this->remote_dir_model->index(prefix);
+    QModelIndex proxyRootIndex = this->uiw.tableView->rootIndex(); 
+    QModelIndex currIndex = this->m_tableProxyModel->mapToSource(proxyRootIndex);
+    QString currPath, useIndex;
+
+    if (!sourceIndex.isValid()) {
+        q_debug()<<"directory not found!!!"<<prefix;
+        // TODO, show status???
+        this->status_bar->showMessage(tr("Directory not found: %1").arg(prefix));
+        return;
+    }
+
+    // q_debug()<<currIndex.isValid();
+    if (!currIndex.isValid()) {
+        // some case will be !isValid(), eg. the tableView has been set to a invalid QModelIndex
+        currPath = "";
+    } else {
+        currPath = this->remote_dir_model->filePath(currIndex);
+    }
+    QModelIndex proxyIndex = this->m_tableProxyModel->mapFromSource(sourceIndex);
+    q_debug()<<currPath.length()<<currPath.isEmpty()<<currPath;
+    if (currPath != prefix) {
+        this->uiw.treeView->collapseAll();
+        this->expand_to_directory(prefix, 1);
+        this->uiw.tableView->setRootIndex(proxyIndex);
+        this->uiw.listView_2->setRootIndex(proxyIndex);
+    }
+}
+
 
 // 这个图标可使用在FTPS上，显示安全性算法等。简单的FTP不需要显示。
 void FTPView::encryption_focus_label_double_clicked()
