@@ -73,13 +73,11 @@ private:
     QByteArray readAllByEndSymbol(QTcpSocket *sock);
     bool parseDir(const QByteArray &buffer, const QString &userName, QUrlInfo *info);
     void setError(int okno, QString msg);
-
+    int getSupportedCmds();
 
 private:
     QSslSocket *qsock;
     QSslSocket *qdsock;
-    // QSslSocket *qSslSock;
-    // QSslSocket *qdSslSock;
     QString pasvHost;
     unsigned short pasvPort;
     QVector<QUrlInfo> dirList;
@@ -88,7 +86,8 @@ private:
     QString errmsg;
     QString encoding;
     QTextCodec *codec;
-    int useTLS;
+    bool useTLS;
+    QHash<QString, bool> supportedCmds;
 };
 
         

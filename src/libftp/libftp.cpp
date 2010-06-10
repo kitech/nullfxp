@@ -19,7 +19,7 @@ LibFtp::LibFtp(QObject *parent)
     this->qsock = NULL;
     this->qdsock = NULL;
     this->setEncoding("UTF-8");
-    this->useTLS = 0;
+    this->useTLS = false;
 
 }
 LibFtp::~LibFtp()
@@ -63,6 +63,7 @@ int LibFtp::login(const QString &user, const QString &password)
     qDebug()<<__FUNCTION__<<user<<password;
     QString cmd;
     QString sigLog;
+    bool needPassword = true;
 
     assert(this->qsock->bytesAvailable() == 0);
 
@@ -76,7 +77,7 @@ int LibFtp::login(const QString &user, const QString &password)
 
         QStringList sl = QString(ball).split("\n");
         if (sl.at(sl.count() - 2).split(" ").at(0) == "234") {
-            this->useTLS = 1;
+            // this->useTLS = 1;
             qDebug()<<"Server support FTP/TLS, using encrypt connection"<<this->qsock->peerName();
             // QList<QSslError> ignoreErrors;
             // ignoreErrors.append( QSslError::HostNameMismatch);
@@ -120,43 +121,60 @@ int LibFtp::login(const QString &user, const QString &password)
         // 像ftp.gnu.org
         QStringList sl = QString(ball).split("\n");
         if (sl.at(sl.count() - 2).split(" ").at(0) == "230") {
-            return 0;
+            needPassword = false;
+            // return 0;
         }
 
-		if (password.length() == 0)  cmd = QString("PASS %1\r\n").arg("ftp");
-		else  cmd = QString("PASS %1\r\n").arg(password);
+        if (needPassword) {
+            if (password.length() == 0)  cmd = QString("PASS %1\r\n").arg("ftp");
+            else  cmd = QString("PASS %1\r\n").arg(password);
 
-		this->qsock->write(cmd.toAscii());
-		qDebug()<<cmd;
-		if (this->qsock->waitForBytesWritten()) {
-			ball = this->readAll(this->qsock);
-			qDebug()<<ball ;		
-			if (ball.length() > 0 ) {
-				sigLog = QString(ball).split("\r\n").at(0);
-				if (!sigLog.startsWith("230"))	//login error for password or ip limit 
-					return -1 ;
-				// return 0;	//suppose succ,must be changed for correct checking
-			}
-		}
+            this->qsock->write(cmd.toAscii());
+            qDebug()<<cmd;
+            if (this->qsock->waitForBytesWritten()) {
+                ball = this->readAll(this->qsock);
+                qDebug()<<ball ;		
+                if (ball.length() > 0 ) {
+                    sigLog = QString(ball).split("\r\n").at(0);
+                    if (!sigLog.startsWith("230"))	//login error for password or ip limit 
+                        return -1 ;
+                    // return 0;	//suppose succ,must be changed for correct checking
+                }
+            }
+        }
 	}
 
-    //    QString cmd;
+    // get supportedCmds;
+    this->getSupportedCmds();
+    qDebug()<<this->supportedCmds;
 
+    //    QString cmd;
     cmd = QString("PBSZ 0\r\n");
     this->qsock->write(cmd.toAscii());
     if (this->qsock->waitForBytesWritten()) {
         if (this->qsock->waitForReadyRead()) {
             QByteArray ball = this->qsock->readAll();
             qDebug()<<"PBSZ: "<<ball;
+            
+            QStringList sl = QString(ball).split("\n");
+            if (sl.at(0) == "200") {
+                this->useTLS = true;
+            } else {
+                // some else: 421, 501, 502, 503, 530, 550
+                this->useTLS = false;
+                qDebug()<<__FUNCTION__<<__LINE__<<"server not support TLS";
+            }
         }
     }
     
-    cmd = QString("PROT P\r\n");
-    this->qsock->write(cmd.toAscii());
-    if (this->qsock->waitForBytesWritten()) {
-        if (this->qsock->waitForReadyRead()) {
-            QByteArray ball = this->qsock->readAll();
-            qDebug()<<"PROT: "<<ball;
+    if (this->useTLS) {
+        cmd = QString("PROT P\r\n");
+        this->qsock->write(cmd.toAscii());
+        if (this->qsock->waitForBytesWritten()) {
+            if (this->qsock->waitForReadyRead()) {
+                QByteArray ball = this->qsock->readAll();
+                qDebug()<<"PROT: "<<ball;
+            }
         }
     }
 
@@ -172,6 +190,52 @@ int LibFtp::login(const QString &user, const QString &password)
     return 0;
 
 	return -1;
+}
+
+int LibFtp::getSupportedCmds()
+{
+    QString cmd;
+    QString sigLog;
+    QString replyText;
+    QStringList cmds;    
+
+    assert(this->qsock->bytesAvailable() == 0);
+
+    cmd = QString("HELP\r\n");
+    this->qsock->write(cmd.toAscii());
+    qDebug()<<cmd;
+    
+    if (this->qsock->waitForBytesWritten()) {
+        QByteArray ball;
+        ball = this->readAll(this->qsock);
+        qDebug()<<__FILE__<<__FUNCTION__<<__LINE__<<ball;
+        replyText = ball;
+        QStringList sl = replyText.split("\n");
+
+        if (sl.at(sl.count() - 2).startsWith("214")) {
+            // 214 Help OK.
+            for (int i = 1; i < sl.count() - 1; ++i) {
+                QStringList lcmds = sl.at(i).split(" ");
+                for (int j = 0; j < lcmds.count(); ++j) {
+                    if (!lcmds.at(j).trimmed().isEmpty()) {
+                        cmds << lcmds.at(j).trimmed().toUpper();
+                    }
+                }
+            }
+        } else {
+
+        }
+    }
+
+    // 1c photo, lzzm copy and orig, 6,17, 9:30
+
+    Q_ASSERT(this->supportedCmds.count() == 0);
+    this->supportedCmds.clear();
+    for (int i = 0 ; i < cmds.count(); ++i) {
+        this->supportedCmds.insert(cmds.at(i), true);
+    }
+
+    return cmds.count();
 }
 
 int LibFtp::logout()
@@ -555,13 +619,15 @@ int LibFtp::list(QString path)
         sl = sl.at(sl.count() - 2).split(" ");
         assert(sl.at(0) == "150");
 
-        qDebug()<<"Before data socket startClientEncryption";
-        this->qdsock->ignoreSslErrors();
-        this->qdsock->startClientEncryption();
-        if (!this->qdsock->waitForEncrypted()) {
-            qDebug()<<this->qdsock->errorString();
+        if (this->useTLS) {
+            qDebug()<<"Before data socket startClientEncryption";
+            this->qdsock->ignoreSslErrors();
+            this->qdsock->startClientEncryption();
+            if (!this->qdsock->waitForEncrypted()) {
+                qDebug()<<this->qdsock->errorString();
+            }
+            qDebug()<<"end data socket startClientEncryption";
         }
-        qDebug()<<"end data socket startClientEncryption";
 
         // ball = this->readAll(this->qdsock);
         // qDebug()<<ball;
@@ -631,14 +697,16 @@ int LibFtp::lista(QString path)
         sl = sl.at(sl.count() - 2).split(" ");
         assert(sl.at(0) == "150");
 
-        // call this after any data retr, such as LIST*/RETR/STOR...
-        qDebug()<<"Before data socket startClientEncryption";
-        this->qdsock->ignoreSslErrors();
-        this->qdsock->startClientEncryption();
-        if (!this->qdsock->waitForEncrypted()) {
-            qDebug()<<this->qdsock->errorString();
+        if (this->useTLS) {
+            // call this after any data retr, such as LIST*/RETR/STOR...
+            qDebug()<<"Before data socket startClientEncryption";
+            this->qdsock->ignoreSslErrors();
+            this->qdsock->startClientEncryption();
+            if (!this->qdsock->waitForEncrypted()) {
+                qDebug()<<this->qdsock->errorString();
+            }
+            qDebug()<<"end data socket startClientEncryption";
         }
-        qDebug()<<"end data socket startClientEncryption";
 
         // ball = this->readAll(this->qdsock);
         // qDebug()<<ball;
@@ -692,8 +760,12 @@ int LibFtp::mlst(QString path)
     QString replyText;
 
     assert(this->qsock->bytesAvailable() == 0);
-    // sigLog = this->readAll(this->qsock);
-    // q_debug()<<sigLog;
+
+    if (!this->supportedCmds.contains("MLST")) {
+        this->passive();
+        this->connectDataChannel();
+        return this->lista(path);
+    }
 
     // TODO when path has space, list match 0
     this->dirList.clear();
@@ -970,17 +1042,19 @@ int LibFtp::put(const QString fileName)
         // 553 Disk full - please upload later
         // 550 Permission denied.
         if (sl.at(0) == "150") {
-
-        // call this after any data retr, such as LIST*/RETR/STOR...
-            qDebug()<<"Before data socket startClientEncryption";
-            this->qdsock->ignoreSslErrors();
-            this->qdsock->startClientEncryption();
-            if (!this->qdsock->waitForEncrypted()) {
-                qDebug()<<this->qdsock->errorString();
+            if (this->useTLS) {
+                // call this after any data retr, such as LIST*/RETR/STOR...
+                qDebug()<<"Before data socket startClientEncryption";
+                this->qdsock->ignoreSslErrors();
+                this->qdsock->startClientEncryption();
+                if (!this->qdsock->waitForEncrypted()) {
+                    qDebug()<<this->qdsock->errorString();
+                }
+                qDebug()<<"end data socket startClientEncryption";
             }
-            qDebug()<<"end data socket startClientEncryption";
-
             return 0;
+        } else {
+            
         }
 	}
     
