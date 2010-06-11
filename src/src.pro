@@ -57,6 +57,7 @@ FORMS += nullfxp.ui \
  ui/fileexistaskdialog.ui \
  ui/updatedialog.ui \
  ui/systeminfodialog.ui \
+ ui/ftphostinfodialog.ui \
  ui/taskqueueview.ui \
  ui/dirnavbar.ui
 
@@ -112,6 +113,7 @@ SOURCES += main.cpp \
  libftp/libftp.cpp \
  updatedialog.cpp \
  systeminfodialog.cpp \
+ ftphostinfodialog.cpp \
 # taskqueue.cpp \
  taskqueuemodel.cpp \
  taskqueueview.cpp \
@@ -164,6 +166,7 @@ HEADERS += nullfxp.h \
  libftp/libftp.h \
  updatedialog.h \
  systeminfodialog.h \
+ ftphostinfodialog.h \
 # taskqueue.h \
  taskqueuemodel.h \
  taskqueueview.h \

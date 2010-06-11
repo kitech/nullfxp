@@ -1525,6 +1525,11 @@ int LibFtp::setEncoding(QString encoding)
     return 0;
 }
 
+bool LibFtp::isSupportTLS()
+{
+    return this->useTLS;
+}
+
 QByteArray LibFtp::readAll(QTcpSocket *sock)
 {
 	QByteArray ball;

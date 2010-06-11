@@ -283,6 +283,9 @@ void FileProperties::set_file_info_model_list(QModelIndexList &mil)
 void FileProperties::slot_prop_thread_finished()
 {
 	qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    // memory clean, put it here, more safe on windows
+    FilePropertiesRetriver *rt = static_cast<FilePropertiesRetriver*>(sender());
+    rt->deleteLater();
 }
 void FileProperties::slot_file_attr_abtained(QString file_name, void *attr)
 {
@@ -319,10 +322,6 @@ void FileProperties::slot_file_attr_abtained(QString file_name, void *attr)
 	strmode(sftp_attrib->permissions,file_perm);
 	this->update_perm_table(file_perm);
     free(sftp_attrib);
-
-    // memory clean
-    FilePropertiesRetriver *rt = static_cast<FilePropertiesRetriver*>(sender());
-    rt->deleteLater();
 }
 
 void FileProperties::update_perm_table(QString file_perm)

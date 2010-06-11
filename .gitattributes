@@ -67,6 +67,8 @@ src/forwardconnectinfodialog.ui -text
 src/forwarddebugwindow.cpp -text
 src/forwarddebugwindow.h -text
 src/forwarddebugwindow.ui -text
+src/ftphostinfodialog.cpp -text
+src/ftphostinfodialog.h -text
 src/globaloption.cpp -text
 src/globaloption.h -text
 src/globaloptionsdialog.cpp -text
@@ -600,6 +602,7 @@ src/tmpmain.cpp -text
 src/ui/dirnavbar.ui -text
 src/ui/encryptiondetaildialog.ui -text
 src/ui/fileexistaskdialog.ui -text
+src/ui/ftphostinfodialog.ui -text
 src/ui/hostlistdialog.ui -text
 src/ui/systeminfodialog.ui -text
 src/ui/taskqueueview.ui -text

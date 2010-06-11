@@ -16,9 +16,6 @@
 #include <QVector>
 #include <QPair>
 
-#include "libssh2.h"
-#include "libssh2_sftp.h"
-
 #include "taskpackage.h"
 #include "remotedirmodel.h"
 
@@ -43,11 +40,7 @@ public:
     // 这个函数同时返回这两个值, first=strip_path, second=file_name
     QPair<QString, QString> get_selected_directory(bool pair);
     //
-    // void set_user_home_path(std::string user_home_path);
     void setConnection(Connection *conn);
-    
-    // bool is_in_remote_dir_retrive_loop() 
-    // { return this->in_remote_dir_retrive_loop ; }
     
     void update_layout();
     

@@ -61,6 +61,8 @@ public:
     QString errorString();
     int setEncoding(QString encoding);
 
+    bool isSupportTLS();
+
 private slots:
     void onDataSockConnected();
     void onDataSockDisconnected();

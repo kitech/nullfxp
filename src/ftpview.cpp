@@ -21,8 +21,9 @@
 #include "netdirsortfiltermodel.h"
 
 #include "fileproperties.h"
-#include "encryptiondetailfocuslabel.h"
-#include "encryptiondetaildialog.h"
+// #include "encryptiondetailfocuslabel.h"
+// #include "encryptiondetaildialog.h"
+#include "ftphostinfodialog.h"
 
 #ifndef _MSC_VER
 #warning "wrapper lower class, drop this include"
@@ -30,6 +31,7 @@
 #include "rfsdirnode.h"
 
 #include "completelineeditdelegate.h"
+
 
 #include "ftpconnection.h"
 #include "libftp/libftp.h"
@@ -219,7 +221,7 @@ void FTPView::slot_new_transfer()
     
     QModelIndexList mil = ism->selectedIndexes();
     
-    for(int i = 0 ; i < mil.size(); i +=4 ) {
+    for(int i = 0; i < mil.size(); i +=4 ) {
         QModelIndex midx = mil.at(i);
         QModelIndex proxyIndex = midx;
         QModelIndex sourceIndex = (this->curr_item_view == this->uiw.treeView)
@@ -255,7 +257,7 @@ QString FTPView::get_selected_directory()
     
     QModelIndexList mil = ism->selectedIndexes();
 
-    for (int i = 0 ; i < mil.size(); i += 4) {
+    for (int i = 0; i < mil.size(); i += 4) {
         QModelIndex midx = mil.at(i);
 
         QModelIndex proxyIndex = midx;
@@ -288,7 +290,7 @@ QPair<QString, QString> FTPView::get_selected_directory(bool pair)
     
     QModelIndexList mil = ism->selectedIndexes();
 
-    for (int i = 0 ; i < mil.size(); i +=4) {
+    for (int i = 0; i < mil.size(); i +=4) {
         QModelIndex midx = mil.at(i);
 
         QModelIndex proxyIndex = midx;
@@ -307,11 +309,6 @@ QPair<QString, QString> FTPView::get_selected_directory(bool pair)
     return file_path;
 }
 
-// void FTPView::set_user_home_path(std::string user_home_path)
-// {
-//     this->user_home_path = user_home_path ;
-// }
-
 void FTPView::setConnection(Connection *conn)
 {
     this->conn = conn;
@@ -326,7 +323,7 @@ void FTPView::closeEvent(QCloseEvent *event)
     if (this->in_remote_dir_retrive_loop) {
         //TODO 怎么能友好的结束
         //QMessageBox::warning(this,tr("Attentions:"),tr("Retriving remote directory tree, wait a minute please.") );
-        //return ;
+        //return;
         //如果说是在上传或者下载,则强烈建议用户先关闭传输窗口，再关闭连接
         if (this->own_progress_dialog != 0) {
             QMessageBox::warning(this, tr("Attentions:"), tr("You can't close connection when transfering file."));
@@ -363,7 +360,7 @@ void FTPView::slot_custom_ui_area()
 void FTPView::slot_enter_remote_dir_retrive_loop()
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    this->in_remote_dir_retrive_loop = true ;
+    this->in_remote_dir_retrive_loop = true;
     this->remote_dir_model->set_keep_alive(false);
     this->orginal_cursor = this->uiw.splitter->cursor();
     this->uiw.splitter->setCursor(Qt::BusyCursor);
@@ -375,8 +372,8 @@ void FTPView::slot_leave_remote_dir_retrive_loop()
 
     this->uiw.splitter->setCursor(this->orginal_cursor);
     this->remote_dir_model->set_keep_alive(true);
-    this->in_remote_dir_retrive_loop = false ;
-    for (int i = 0 ; i < this->m_tableProxyModel->rowCount(this->uiw.tableView->rootIndex()); i ++) {
+    this->in_remote_dir_retrive_loop = false;
+    for (int i = 0; i < this->m_tableProxyModel->rowCount(this->uiw.tableView->rootIndex()); i ++) {
         this->uiw.tableView->setRowHeight(i, this->table_row_height);
     }
     this->uiw.tableView->resizeColumnToContents(0);
@@ -387,12 +384,12 @@ void FTPView::update_layout()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
-    QString file_path ;
+    QString file_path;
     
     QItemSelectionModel *ism = this->uiw.treeView->selectionModel();
     
     if (ism == 0) {
-        //QMessageBox::critical(this,tr("waring..."),tr("maybe you haven't connected"));        //return file_path ;
+        //QMessageBox::critical(this,tr("waring..."),tr("maybe you haven't connected"));        //return file_path;
         qDebug()<<" why???? no QItemSelectionModel??";        
         return;
     }
@@ -403,9 +400,9 @@ void FTPView::update_layout()
         qDebug()<<"selectedIndexes count :"<< mil.count()<<"why no item selected????";
     }
     
-    for (int i = 0 ; i < mil.size(); i += 4) {
+    for (int i = 0; i < mil.size(); i += 4) {
         QModelIndex midx = mil.at(i);
-        qDebug()<<midx ;
+        qDebug()<<midx;
         //这个地方为什么不使用mapToSource会崩溃呢？
         NetDirNode *dti = static_cast<NetDirNode*>
             (this->m_treeProxyModel->mapToSource(midx).internalPointer());
@@ -434,14 +431,14 @@ void FTPView::slot_show_properties()
     QModelIndexList mil = ism->selectedIndexes();
     QModelIndexList aim_mil;
     if (this->curr_item_view == this->uiw.treeView) {
-        for (int i = 0 ; i < mil.count() ; i ++) {
+        for (int i = 0; i < mil.count(); i ++) {
             aim_mil<<this->m_treeProxyModel->mapToSource(mil.at(i));
             // aim_mil << mil.at(i);
         }
     } else if (this->curr_item_view == this->uiw.listView_2) {
         QModelIndex currIndex;
         QModelIndex tmpIndex;
-        for (int i = 0 ; i < mil.count() ; i ++) {
+        for (int i = 0; i < mil.count(); i ++) {
             currIndex = this->m_tableProxyModel->mapToSource(mil.at(i));
             aim_mil<<currIndex;
             // aim_mil<<mil.at(i);
@@ -452,14 +449,14 @@ void FTPView::slot_show_properties()
         }
     } else if (this->curr_item_view == this->uiw.tableView) {
         if (mil.count() % 4 == 0) {
-            for (int i = 0 ; i < mil.count() ; i ++) {
+            for (int i = 0; i < mil.count(); i ++) {
                 aim_mil<<this->m_tableProxyModel->mapToSource(mil.at(i));
                 // aim_mil<<mil.at(i);
             }
         } else {
             QModelIndex currIndex;
             QModelIndex tmpIndex;
-            for (int i = 0 ; i < mil.count() ; i ++) {
+            for (int i = 0; i < mil.count(); i ++) {
                 currIndex = this->m_tableProxyModel->mapToSource(mil.at(i));
                 aim_mil<<currIndex;
                 // aim_mil<<mil.at(i);
@@ -546,15 +543,15 @@ void FTPView::slot_rmdir()
     if (ism == 0) {
         qDebug()<<" why???? no QItemSelectionModel??";
         QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
-        return  ;
+        return ;
     }
     
     QModelIndexList mil = ism->selectedIndexes();
     
     if (mil.count() == 0) {
-        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+        qDebug()<<"selectedIndexes count:"<<mil.count()<<"why no item selected????";
         QMessageBox::critical(this, tr("Waring..."), tr("No item selected").leftJustified(50, ' '));
-        return ;
+        return;
     }
     
     QModelIndex midx = mil.at(0);
@@ -562,7 +559,7 @@ void FTPView::slot_rmdir()
         ? this->m_treeProxyModel->mapToSource(midx)
         : this->m_tableProxyModel->mapToSource(midx);    
     NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
-    QModelIndex parent_model =  aim_midx.parent() ;
+    QModelIndex parent_model =  aim_midx.parent();
     NetDirNode *parent_item = (NetDirNode*)parent_model.internalPointer();
     
     
@@ -590,7 +587,7 @@ void FTPView::rm_file_or_directory_recursively()
     if (mil.count() == 0) {
         qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
         QMessageBox::critical(this, tr("Waring..."), tr("No item selected"));
-        return ;
+        return;
     }
 
     // 支持多选情况
@@ -606,12 +603,12 @@ void FTPView::rm_file_or_directory_recursively()
             QString hintMsg;
             if (mil.count()/4 > 1) {
                 hintMsg = QString(tr("Are you sure remove all of these files/directories?"));
-            // } else {
-            //     hintMsg = this->m_tableProxyModel->isDir(midx) 
-            //         ? QString(tr("Are you sure remove this directory and it's subnodes?\n    %1/"))
-            //         .arg(this->m_tableProxyModel->filePath(midx))
-            //         : QString(tr("Are you sure remove this file?\n    %1"))
-            //         .arg(this->m_tableProxyModel->filePath(midx));
+            } else {
+                hintMsg = dti->isDir() 
+                    ? QString(tr("Are you sure remove this directory and it's subnodes?\n    %1/"))
+                    .arg(dti->filePath())
+                    : QString(tr("Are you sure remove this file?\n    %1"))
+                    .arg(dti->filePath());
             }
             if (QMessageBox::warning(this, tr("Warning:"), hintMsg,
                                      QMessageBox::Yes, QMessageBox::Cancel) == QMessageBox::Yes) {
@@ -684,7 +681,7 @@ void FTPView::slot_copy_url()
     if (ism == 0) {
         qDebug()<<" why???? no QItemSelectionModel??";
         QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));
-        return  ;
+        return ;
     }
     
     QModelIndexList mil = ism->selectedIndexes();
@@ -692,7 +689,7 @@ void FTPView::slot_copy_url()
     if (mil.count() == 0) {
         qDebug()<<"selectedIndexes count :"<<mil.count()<<" why no item selected????";
         QMessageBox::critical(this, tr("Waring..."), tr("No item selected").leftJustified(50, ' '));
-        return ;
+        return;
     }
     
     QModelIndex midx = mil.at(0);
@@ -806,7 +803,7 @@ void FTPView::slot_transfer_finished(int status, QString errorString)
         }
         //else
         {
-            // xxxxx: 没有预期到的错误
+            // xxxxx: shound not occurs
             //assert ( 1== 2 );
         }
     } else if (status != 0 && status != 3) {
@@ -842,7 +839,7 @@ void FTPView::slot_dir_tree_item_clicked(const QModelIndex & index)
     
     // file_path = this->m_treeProxyModel->filePath(index);
     this->uiw.tableView->setRootIndex(this->m_tableProxyModel->mapFromSource(useIndex));
-    for (int i = 0 ; i < this->remote_dir_model->rowCount(useIndex); i ++ ) {
+    for (int i = 0; i < this->remote_dir_model->rowCount(useIndex); i ++ ) {
         this->uiw.tableView->setRowHeight(i, this->table_row_height);
     }
     this->uiw.tableView->resizeColumnToContents(0);
@@ -893,30 +890,6 @@ void FTPView::slot_dir_file_view_double_clicked(const QModelIndex & index)
     } else {
         q_debug()<<"double clicked a regular file, no op now, only now";
     }
-
-    // qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    //TODO if the clicked item is direcotry ,
-    //expand left tree dir and update right table view
-    // got the file path , tell tree ' model , then expand it
-    //文件列表中的双击事件
-    //1。　本地主机，如果是目录，则打开这个目录，如果是文件，则使用本机的程序打开这个文件
-    //2。对于远程主机，　如果是目录，则打开这个目录，如果是文件，则提示是否要下载它(或者也可以直接打开这个文件）。
-    // QString file_path;
-    // if (this->m_tableProxyModel->isDir(index)) {
-    //     this->uiw.treeView->expand(this->m_treeProxyModel->index(this->m_tableProxyModel->filePath(index)).parent());
-    //     this->uiw.treeView->expand(this->m_treeProxyModel->index(this->m_tableProxyModel->filePath(index)));
-    //     this->slot_dir_tree_item_clicked(this->m_treeProxyModel->index(this->m_tableProxyModel->filePath(index)));
-    //     this->uiw.treeView->selectionModel()->clearSelection();
-    //     this->uiw.treeView->selectionModel()->select(this->m_treeProxyModel->index(this->m_tableProxyModel->filePath(index)) , QItemSelectionModel::Select);
-    // } else if (this->m_tableProxyModel->isSymLink(index)) {
-    //     QModelIndex idx = this->m_tableProxyModel->mapToSource(index);
-    //     NetDirNode *node_item = (NetDirNode*)idx.internalPointer();
-    //     q_debug()<<node_item->fullPath;
-    //     this->remote_dir_model->slot_execute_command(node_item, idx.internalPointer(),
-    //                                                  SSH2_FXP_REALPATH, QString(""));
-    // } else {
-    //     q_debug()<<"double clicked a regular file, no op now, only now";
-    // }
 }
 
 void FTPView::slot_drag_ready()
@@ -944,7 +917,7 @@ void FTPView::slot_drag_ready()
     tpkg.port = QString("%1").arg(this->conn->port);
     tpkg.pubkey = this->conn->pubkey;
 
-    for (int i = 0 ; i< mil.count() ;i += this->remote_dir_model->columnCount()) {
+    for (int i = 0; i< mil.count();i += this->remote_dir_model->columnCount()) {
         QModelIndex midx = mil.at(i);
         temp_file_path = (qobject_cast<RemoteDirModel*>(this->remote_dir_model))
             ->filePath(this->m_tableProxyModel->mapToSource(midx) );
@@ -972,7 +945,7 @@ bool FTPView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction action,
     TaskPackage remote_pkg(PROTO_FTP);
    
     NetDirNode *aim_item = static_cast<NetDirNode*>(parent.internalPointer());        
-    QString remote_file_name = aim_item->fullPath ;
+    QString remote_file_name = aim_item->fullPath;
 
     remote_pkg.files<<remote_file_name;
 
@@ -995,7 +968,7 @@ bool FTPView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction action,
             // return false;
             assert(0);
         } else {
-            for (int i = 0 ; i < files.count(); i++) {
+            for (int i = 0; i < files.count(); i++) {
                 local_pkg.files<<files.at(i).path();
             }
             this->slot_new_upload_requested(local_pkg, remote_pkg);
@@ -1179,12 +1152,11 @@ void FTPView::slot_dir_nav_input_comfirmed(const QString &prefix)
     }
 }
 
-
 // 这个图标可使用在FTPS上，显示安全性算法等。简单的FTP不需要显示。
 void FTPView::encryption_focus_label_double_clicked()
 {
     //qDebug()<<__FILE__<<":"<<__LINE__;
-    EncryptionDetailDialog *enc_dlg = 0;
+    // EncryptionDetailDialog *enc_dlg = 0;
     char **server_info, **pptr;
     int sftp_version;
 
@@ -1207,15 +1179,23 @@ void FTPView::encryption_focus_label_double_clicked()
 // 可以输出FTP服务器的操作系统类型，使用编码，欢迎信息
 void FTPView::host_info_focus_label_double_clicked()
 {
-    HostInfoDetailFocusLabel *hi_label = (HostInfoDetailFocusLabel*)sender();
-    qDebug()<<"hehe"<<hi_label;
+    // HostInfoDetailFocusLabel *hi_label = (HostInfoDetailFocusLabel*)sender();
+    // qDebug()<<"hehe"<<hi_label;
 
     LIBSSH2_CHANNEL *ssh2_channel = 0;
     int rv = -1;
-    char buff[1024] ;
+    char buff[1024];
     QString evn_output;
     QString uname_output;
     const char *cmd = "uname -a";
+
+    FTPHostInfoDialog *ftp_hid = new FTPHostInfoDialog();
+    QString hostType = "Unix";
+    QString welcome = "welcoming............";
+    ftp_hid->setHostType(hostType);
+    ftp_hid->setWelcome(welcome);
+    ftp_hid->exec();
+    delete ftp_hid;
 
     // ssh2_channel = libssh2_channel_open_session((LIBSSH2_SESSION*)this->ssh2_sess);
     // //libssh2_channel_set_blocking(ssh2_channel, 1);
