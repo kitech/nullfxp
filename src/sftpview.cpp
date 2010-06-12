@@ -421,10 +421,11 @@ void SFTPView::update_layout()
     }
 }
 
-void SFTPView::slot_refresh_directory_tree()
-{
-    this->update_layout();
-}
+// inhirented from base class
+// void SFTPView::slot_refresh_directory_tree()
+// {
+//     this->update_layout();
+// }
 
 void SFTPView::slot_show_properties()
 {

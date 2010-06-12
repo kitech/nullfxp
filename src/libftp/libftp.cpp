@@ -1021,13 +1021,14 @@ int LibFtp::chdir(QString path)
 // 否则会出现找不到目录的情况
 int LibFtp::put(const QString fileName)
 {
-	QString cmd;
+	QString cmd, encodeCMD;
     QString sigLog;
     QString replyText;
 
 	cmd = QString("STOR %1\r\n").arg(fileName);
-	this->qsock->write(cmd.toAscii());
-	qDebug()<<cmd;
+    encodeCMD = this->codec->fromUnicode(cmd);
+	this->qsock->write(encodeCMD.toAscii());
+	qDebug()<<cmd<<encodeCMD;
 	
 	if (this->qsock->waitForBytesWritten()) {
 		QByteArray ball;

@@ -90,8 +90,7 @@ public slots:
 signals:
         
 private slots:
-
-    void slot_refresh_directory_tree();
+    // void slot_refresh_directory_tree();
     void slot_show_properties();
     void slot_mkdir();
     void slot_rmdir();        

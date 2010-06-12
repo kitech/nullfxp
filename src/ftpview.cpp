@@ -403,21 +403,22 @@ void FTPView::update_layout()
     for (int i = 0; i < mil.size(); i += 4) {
         QModelIndex midx = mil.at(i);
         qDebug()<<midx;
-        //这个地方为什么不使用mapToSource会崩溃呢？
+        // 这个地方为什么不使用mapToSource会崩溃呢？
         NetDirNode *dti = static_cast<NetDirNode*>
             (this->m_treeProxyModel->mapToSource(midx).internalPointer());
         qDebug()<<dti->_fileName<<" "<< dti->fullPath;
         file_path = dti->fullPath;
-        dti->retrFlag = 1;
-        dti->prevFlag = 9;
+        dti->retrFlag = POP_NO_NEED_WITH_DATA; // 1;
+        dti->prevFlag = POP_NEWEST; // 9;
         this->remote_dir_model->slot_remote_dir_node_clicked(this->m_treeProxyModel->mapToSource(midx));
     }
 }
 
-void FTPView::slot_refresh_directory_tree()
-{
-    this->update_layout();
-}
+// inhirented from base class
+// void FTPView::slot_refresh_directory_tree()
+// {
+//     this->update_layout();
+// }
 
 void FTPView::slot_show_properties()
 {
@@ -719,6 +720,7 @@ void FTPView::slot_new_upload_requested(TaskPackage local_pkg, TaskPackage remot
     this->own_progress_dialog = pdlg;
 
 }
+
 void FTPView::slot_new_upload_requested(TaskPackage local_pkg)
 {
     // QString remote__fileName;

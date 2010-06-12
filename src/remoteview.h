@@ -125,9 +125,11 @@ public slots:
     virtual void onDirectoryLoaded(const QString &path);
 
 signals:
-        
+
+protected slots:
+    virtual void slot_refresh_directory_tree();        
+
 private slots:
-    virtual void slot_refresh_directory_tree();
     virtual void slot_show_properties();
     virtual void slot_mkdir();
     virtual void slot_rmdir();        
