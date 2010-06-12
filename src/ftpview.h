@@ -93,7 +93,7 @@ private slots:
     // void slot_refresh_directory_tree();
     void slot_show_properties();
     void slot_mkdir();
-    void slot_rmdir();        
+    // void slot_rmdir();        
     void slot_rename();
     void slot_copy_path();
     void slot_copy_url();

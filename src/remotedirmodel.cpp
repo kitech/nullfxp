@@ -588,7 +588,7 @@ bool RemoteDirModel::removeRows(int row, int count, const QModelIndex &parent)
     NetDirNode *temp_item  = 0;
     
     this->beginRemoveRows(parent, row, row + count - 1);
-    this->dump_tree_node_item(parent_item);
+    // this->dump_tree_node_item(parent_item);
     
     for (int i = row + count -1 ; i >= row ; i --) {
         delete_item = parent_item->childNodes.value(i);

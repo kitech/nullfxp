@@ -548,37 +548,47 @@ void RemoteView::slot_mkdir()
 
 void RemoteView::slot_rmdir()
 {
-    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
     if (ism == 0) {
         qDebug()<<" why???? no QItemSelectionModel??";
         QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
-        return;
+        return ;
     }
     
     QModelIndexList mil = ism->selectedIndexes();
     
     if (mil.count() == 0) {
-        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+        qDebug()<<"selectedIndexes count:"<<mil.count()<<"why no item selected????";
         QMessageBox::critical(this, tr("Waring..."), tr("No item selected").leftJustified(50, ' '));
         return;
     }
     
     QModelIndex midx = mil.at(0);
-    QModelIndex aim_midx = (this->curr_item_view == this->uiw.treeView) 
+    QModelIndex proxyIndex = midx;
+    QModelIndex sourceIndex = (this->curr_item_view == this->uiw.treeView) 
         ? this->m_treeProxyModel->mapToSource(midx)
         : this->m_tableProxyModel->mapToSource(midx);    
-    NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
-    QModelIndex parent_model =  aim_midx.parent();
+
+    QModelIndex useIndex = sourceIndex;
+    QModelIndex parent_model = useIndex.parent();
     NetDirNode *parent_item = (NetDirNode*)parent_model.internalPointer();
     
-    //TODO 检查所选择的项是不是目录
-    
-    this->remote_dir_model->slot_execute_command(parent_item, parent_model.internalPointer(),
-                                                 SSH2_FXP_RMDIR, dti->_fileName);
-    
+    // check if the selected item is a directory
+    if (this->remote_dir_model->isDir(useIndex)
+        || this->remote_dir_model->isSymLinkToDir(useIndex)) {
+        QPersistentModelIndex *persisIndex = new QPersistentModelIndex(parent_model);
+        this->remote_dir_model->slot_execute_command(parent_item, persisIndex, SSH2_FXP_RMDIR,
+                                                     this->remote_dir_model->fileName(useIndex));
+    } else {
+        q_debug()<<"selected item is not a directory";
+        QMessageBox::critical(this, tr("Waring..."), 
+                              tr("Selected item is not a directory.\n\t%1")
+                              .arg(this->remote_dir_model->filePath(useIndex))
+                              .leftJustified(50, ' '));
+    }
 }
 
 void RemoteView::rm_file_or_directory_recursively()
@@ -980,6 +990,25 @@ void RemoteView::onUpdateEntriesStatus()
 {
     q_debug()<<"";
 }
+
+
+void RemoteView::slot_operation_triggered(QString text)
+{
+    if (this->m_operationLogModel == NULL) {
+        this->m_operationLogModel = new QStringListModel();
+    }
+    int rc = this->m_operationLogModel->rowCount();
+    this->m_operationLogModel->insertRows(rc, 1, QModelIndex());
+    QModelIndex useIndex = this->m_operationLogModel->index(rc, 0, QModelIndex());
+    this->m_operationLogModel->setData(useIndex, QVariant(text));
+    this->uiw.listView->scrollTo(useIndex);
+
+    if (rc > 300) {
+        useIndex = this->m_operationLogModel->index(0, 0, QModelIndex());
+        this->m_operationLogModel->removeRows(0, 1, QModelIndex());
+    }
+}
+
 
 void RemoteView::encryption_focus_label_double_clicked()
 {

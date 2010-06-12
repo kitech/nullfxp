@@ -25,6 +25,9 @@ public:
     TaskQueueView(QWidget *parent = 0);
     ~TaskQueueView();
 
+protected:
+    virtual void showEvent(QShowEvent *event);
+
 private slots:
     void slotCustomContextMenuRequested(const QPoint & pos);
     void onSelectAll();

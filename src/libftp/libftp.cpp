@@ -1128,16 +1128,16 @@ int LibFtp::getNoWaitResponse(const QString fileName)
 
 int LibFtp::remove(const QString path)
 {
-	QString cmd;
+	QString cmd, encodeCMD;
     QString sigLog;
     QString replyText;
 
     assert(this->qsock->bytesAvailable() == 0);
 
 	cmd = QString("DELE %1\r\n").arg(path);
-
-	this->qsock->write(cmd.toAscii());
-	qDebug()<<cmd;
+    encodeCMD = this->codec->fromUnicode(cmd);
+	this->qsock->write(encodeCMD.toAscii());
+	qDebug()<<cmd<<encodeCMD;
 	
 	if (this->qsock->waitForBytesWritten()) {
 		QByteArray ball;

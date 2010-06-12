@@ -18,9 +18,10 @@ TaskQueueView::TaskQueueView(QWidget *parent)
 {
     this->ui_win.setupUi(this);
 
-    this->taskQueueModel = TaskQueueModel::instance();
-    this->taskQueueModel->setTable("task_queue");
-    this->ui_win.tableView->setModel(this->taskQueueModel);
+    this->taskQueueModel = NULL;
+    // this->taskQueueModel = TaskQueueModel::instance();
+    // this->taskQueueModel->setTable("task_queue");
+    // this->ui_win.tableView->setModel(this->taskQueueModel);
 
     this->ctxMenu = NULL;
     QObject::connect(this->ui_win.tableView, SIGNAL(customContextMenuRequested(const QPoint &)),
@@ -37,7 +38,9 @@ TaskQueueView::TaskQueueView(QWidget *parent)
 
 TaskQueueView::~TaskQueueView()
 {
-    delete this->taskQueueModel;
+    if (this->taskQueueModel != NULL) {
+        delete this->taskQueueModel;
+    }
 }
 
 void TaskQueueView::initContextMenu()
@@ -88,6 +91,18 @@ void TaskQueueView::slotCustomContextMenuRequested(const QPoint & pos)
     }
     Q_ASSERT(this->ctxMenu != NULL);
     this->ctxMenu->popup(this->ui_win.tableView->mapToGlobal(pos));
+}
+
+void TaskQueueView::showEvent(QShowEvent *event)
+{
+    QWidget::showEvent(event);
+
+    // hope delay the model's init process;
+    if (this->taskQueueModel == NULL) {
+        this->taskQueueModel = TaskQueueModel::instance();
+        this->taskQueueModel->setTable("task_queue");
+        this->ui_win.tableView->setModel(this->taskQueueModel);
+    }
 }
 
 void TaskQueueView::onSelectAll()

@@ -117,7 +117,7 @@ bool DirTreeSortFilterModel::filterAcceptsRow(int source_row, const QModelIndex 
         if (this->filters & QDir::Hidden) {
             return true;
         } else {
-            dump_tree_node_item(node);
+            // dump_tree_node_item(node);
             if (file_name.at(0) == '.') {
                 return false;
             } else {

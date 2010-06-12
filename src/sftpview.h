@@ -81,9 +81,6 @@ public slots:
 			     int row, int column, const QModelIndex &parent);
     virtual void slot_show_hidden(bool show);
 	
-    // log msg handler
-    void slot_operation_triggered(QString text);
-
     virtual void slot_dir_nav_go_home();
     virtual void slot_dir_nav_prefix_changed(const QString &prefix);
     virtual void slot_dir_nav_input_comfirmed(const QString &prefix);
@@ -96,7 +93,7 @@ private slots:
     // virtual void slot_refresh_directory_tree();
     virtual void slot_show_properties();
     virtual void slot_mkdir();
-    virtual void slot_rmdir();        
+    // virtual void slot_rmdir();        
     virtual void slot_rename();
     virtual void slot_copy_path();
     virtual void slot_copy_url();

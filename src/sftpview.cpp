@@ -30,7 +30,6 @@
 #endif
 
 #include "rfsdirnode.h"
-#include "completelineeditdelegate.h"
 #include "connection.h"
 
 SFTPView::SFTPView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *parent)
@@ -55,6 +54,8 @@ void SFTPView::i_init_dir_view()
 
     this->remote_dir_model = new RemoteDirModel();
     this->remote_dir_model->setConnection(this->conn);
+
+    // operation log
     this->m_operationLogModel = new QStringListModel();
     this->uiw.listView->setModel(this->m_operationLogModel);
     QObject::connect(this->remote_dir_model, SIGNAL(operationTriggered(QString)), 
@@ -526,7 +527,7 @@ void SFTPView::slot_mkdir()
     }
     
     dir_name = QInputDialog::getText(this, tr("Create directory:"),
-                                     tr("Input directory name:").leftJustified(80, ' '),
+                                     tr("Input directory name:").leftJustified(60, ' '),
                                      QLineEdit::Normal,
                                      tr("new_direcotry"));
     if (dir_name == QString::null) {
@@ -541,42 +542,6 @@ void SFTPView::slot_mkdir()
     QPersistentModelIndex *persisIndex = new QPersistentModelIndex(useIndex);
     q_debug()<<persisIndex->parent();
     this->remote_dir_model->slot_execute_command(dti, persisIndex, SSH2_FXP_MKDIR, dir_name);
-    
-}
-
-void SFTPView::slot_rmdir()
-{
-    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    
-    QItemSelectionModel *ism = this->curr_item_view->selectionModel();
-    
-    if (ism == 0) {
-        qDebug()<<"why???? no QItemSelectionModel??";
-        QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
-        return;
-    }
-    
-    QModelIndexList mil = ism->selectedIndexes();
-    
-    if (mil.count() == 0) {
-        qDebug()<<"selectedIndexes count :"<<mil.count()<<"why no item selected????";
-        QMessageBox::critical(this, tr("Waring..."), tr("No item selected").leftJustified(50, ' '));
-        return;
-    }
-    
-    QModelIndex midx = mil.at(0);
-    QModelIndex proxyIndex = midx;
-    QModelIndex sourceIndex = (this->curr_item_view == this->uiw.treeView)
-        ? this->m_treeProxyModel->mapToSource(midx)
-        : this->m_tableProxyModel->mapToSource(midx);
-    QModelIndex useIndex = sourceIndex;
-    QModelIndex parent_model =  useIndex.parent();
-    NetDirNode *parent_item = (NetDirNode*)parent_model.internalPointer();
-    
-    //TODO 检查所选择的项是不是目录
-    QPersistentModelIndex *persisIndex = new QPersistentModelIndex(parent_model);
-    this->remote_dir_model->slot_execute_command(parent_item, persisIndex,
-                                                 SSH2_FXP_RMDIR, this->remote_dir_model->fileName(useIndex));
     
 }
 
@@ -1073,23 +1038,6 @@ void SFTPView::onDirectoryLoaded(const QString &path)
         this->uiw.widget->onSetCompleteList(prefix, matches);
     }
 
-}
-
-void SFTPView::slot_operation_triggered(QString text)
-{
-    if (this->m_operationLogModel == NULL) {
-        this->m_operationLogModel = new QStringListModel();
-    }
-    int rc = this->m_operationLogModel->rowCount();
-    this->m_operationLogModel->insertRows(rc, 1, QModelIndex());
-    QModelIndex useIndex = this->m_operationLogModel->index(rc, 0, QModelIndex());
-    this->m_operationLogModel->setData(useIndex, QVariant(text));
-    this->uiw.listView->scrollTo(useIndex);
-
-    if (rc > 300) {
-        useIndex = this->m_operationLogModel->index(0, 0, QModelIndex());
-        this->m_operationLogModel->removeRows(0, 1, QModelIndex());
-    }
 }
 
 void SFTPView::slot_dir_nav_go_home()

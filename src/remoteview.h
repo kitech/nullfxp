@@ -122,17 +122,20 @@ public slots:
 
     virtual void setFileListViewMode(int mode);
 
+    // log msg handler
+    void slot_operation_triggered(QString text);
+
     virtual void onDirectoryLoaded(const QString &path);
 
 signals:
 
 protected slots:
     virtual void slot_refresh_directory_tree();        
+    virtual void slot_rmdir();
 
 private slots:
     virtual void slot_show_properties();
     virtual void slot_mkdir();
-    virtual void slot_rmdir();        
     virtual void slot_rename();
     virtual void slot_copy_path();
     virtual void slot_copy_url();

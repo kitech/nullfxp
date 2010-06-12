@@ -21,17 +21,12 @@
 #include "netdirsortfiltermodel.h"
 
 #include "fileproperties.h"
-// #include "encryptiondetailfocuslabel.h"
-// #include "encryptiondetaildialog.h"
 #include "ftphostinfodialog.h"
 
 #ifndef _MSC_VER
 #warning "wrapper lower class, drop this include"
 #endif
 #include "rfsdirnode.h"
-
-#include "completelineeditdelegate.h"
-
 
 #include "ftpconnection.h"
 #include "libftp/libftp.h"
@@ -40,7 +35,6 @@ FTPView::FTPView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *parent
     : RemoteView(main_mdi_area, local_view, parent)
 {
     this->init_popup_context_menu();
-
     this->rconn = NULL;
 }
 
@@ -48,7 +42,7 @@ void FTPView::init_popup_context_menu()
 {
     RemoteView::init_popup_context_menu();
 
-    // 编码设置菜单
+    // encoding select menu
     QMenu *emenu = this->encodingMenu();
     this->dir_tree_context_menu->addMenu(emenu);
 }
@@ -63,38 +57,57 @@ FTPView::~FTPView()
 // TODO 根据服务器端的SYST值，设置初始化编码。WIN->GBK, OTHER->UTF-8
 QMenu *FTPView::encodingMenu()
 {
+    QString codecNames = "UTF-8,ISO-8895-1,,GBK,BIG5,EUC-JP,EUC-KR,KIO8-R,KIO8-U";
     QMenu *emenu = new QMenu(tr("Charactor encoding"), 0);
     QAction *action = NULL;
     QActionGroup *ag = new QActionGroup(this);
+    QString codecName;
 
-    action = new QAction("UTF-8", 0);
-    action->setCheckable(true);
-    action->setChecked(true);
-    action->setActionGroup(ag);
-    emenu->addAction(action);
-    QObject::connect(action, SIGNAL(triggered()), this, SLOT(encodingChanged()));
+    QStringList codecList = codecNames.split(',');
+    for (int i = 0 ; i < codecList.count(); ++i) {
+        codecName = codecList.at(i).trimmed();
+        action = new QAction(codecName, 0);
+        emenu->addAction(action);
+        if (codecName.isEmpty()) {
+            action->setSeparator(true);
+        } else {
+            action->setCheckable(true);
+            action->setActionGroup(ag);
+            QObject::connect(action, SIGNAL(triggered()), this, SLOT(encodingChanged()));
+        }
+        if (i == 0) {
+            action->setChecked(true);
+        }
+    }
+
+    // action = new QAction("UTF-8", 0);
+    // action->setCheckable(true);
+    // action->setChecked(true);
+    // action->setActionGroup(ag);
+    // emenu->addAction(action);
+    // QObject::connect(action, SIGNAL(triggered()), this, SLOT(encodingChanged()));
     
-    action = new QAction("ISO-8859-1", 0);
-    action->setCheckable(true);
-    action->setActionGroup(ag);
-    emenu->addAction(action);
-    QObject::connect(action, SIGNAL(triggered()), this, SLOT(encodingChanged()));
+    // action = new QAction("ISO-8859-1", 0);
+    // action->setCheckable(true);
+    // action->setActionGroup(ag);
+    // emenu->addAction(action);
+    // QObject::connect(action, SIGNAL(triggered()), this, SLOT(encodingChanged()));
 
-    action = new QAction("", 0);
-    action->setSeparator(true);
-    emenu->addAction(action);
+    // action = new QAction("", 0);
+    // action->setSeparator(true);
+    // emenu->addAction(action);
     
-    action = new QAction("GBK", 0);
-    action->setCheckable(true);
-    action->setActionGroup(ag);
-    emenu->addAction(action);
-    QObject::connect(action, SIGNAL(triggered()), this, SLOT(encodingChanged()));
+    // action = new QAction("GBK", 0);
+    // action->setCheckable(true);
+    // action->setActionGroup(ag);
+    // emenu->addAction(action);
+    // QObject::connect(action, SIGNAL(triggered()), this, SLOT(encodingChanged()));
 
-    action = new QAction("BIG5", 0);
-    action->setCheckable(true);
-    action->setActionGroup(ag);
-    emenu->addAction(action);
-    QObject::connect(action, SIGNAL(triggered()), this, SLOT(encodingChanged()));
+    // action = new QAction("BIG5", 0);
+    // action->setCheckable(true);
+    // action->setActionGroup(ag);
+    // emenu->addAction(action);
+    // QObject::connect(action, SIGNAL(triggered()), this, SLOT(encodingChanged()));
 
     return emenu;
 }
@@ -110,6 +123,15 @@ void FTPView::i_init_dir_view()
 
     this->remote_dir_model = new RemoteDirModel();
     this->remote_dir_model->setConnection(this->conn);
+
+    // operation log
+    this->m_operationLogModel = new QStringListModel();
+    this->uiw.listView->setModel(this->m_operationLogModel);
+    // TODO the log msg maybe come from another object, but not remote_dir_model
+    QObject::connect(this->remote_dir_model, SIGNAL(operationTriggered(QString)), 
+                     this, SLOT(slot_operation_triggered(QString)));
+    QObject::connect(this->remote_dir_model, SIGNAL(directoryLoaded(const QString &)),
+                     this, SLOT(onDirectoryLoaded(const QString &)));
     
     this->remote_dir_model->set_user_home_path(this->user_home_path);
     this->m_tableProxyModel = new DirTableSortFilterModel();
@@ -350,7 +372,7 @@ void FTPView::slot_custom_ui_area()
 
     this->uiw.splitter_2->setStretchFactor(0,6);
     this->uiw.splitter_2->setStretchFactor(1,1);
-    this->uiw.listView->setVisible(false);//暂时没有功能在里面先隐藏掉
+    // this->uiw.listView->setVisible(false);//暂时没有功能在里面先隐藏掉
     //this->uiw.tableView->setVisible(false);
     qDebug()<<this->geometry();
     this->setGeometry(this->x(), this->y(), this->width(), this->height()*2);
@@ -518,7 +540,7 @@ void FTPView::slot_mkdir()
     }
     
     dir_name = QInputDialog::getText(this, tr("Create directory:"),
-                                     tr("Input directory name:").leftJustified(100, ' '),
+                                     tr("Input directory name:").leftJustified(60, ' '),
                                      QLineEdit::Normal,
                                      tr("new_direcotry"));
     if (dir_name == QString::null) {
@@ -533,42 +555,6 @@ void FTPView::slot_mkdir()
     // TODO 将 file_path 转换编码再执行下面的操作
     QPersistentModelIndex *persisIndex = new QPersistentModelIndex(aim_midx);
     this->remote_dir_model->slot_execute_command(dti, persisIndex, SSH2_FXP_MKDIR, dir_name);
-}
-
-void FTPView::slot_rmdir()
-{
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    
-    QItemSelectionModel *ism = this->curr_item_view->selectionModel();
-    
-    if (ism == 0) {
-        qDebug()<<" why???? no QItemSelectionModel??";
-        QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
-        return ;
-    }
-    
-    QModelIndexList mil = ism->selectedIndexes();
-    
-    if (mil.count() == 0) {
-        qDebug()<<"selectedIndexes count:"<<mil.count()<<"why no item selected????";
-        QMessageBox::critical(this, tr("Waring..."), tr("No item selected").leftJustified(50, ' '));
-        return;
-    }
-    
-    QModelIndex midx = mil.at(0);
-    QModelIndex aim_midx = (this->curr_item_view == this->uiw.treeView) 
-        ? this->m_treeProxyModel->mapToSource(midx)
-        : this->m_tableProxyModel->mapToSource(midx);    
-    NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
-    QModelIndex parent_model =  aim_midx.parent();
-    NetDirNode *parent_item = (NetDirNode*)parent_model.internalPointer();
-    
-    
-    // TODO 检查所选择的项是不是目录
-    
-    QPersistentModelIndex *persisIndex = new QPersistentModelIndex(parent_model);
-    this->remote_dir_model->slot_execute_command(parent_item, persisIndex,
-                                                 SSH2_FXP_RMDIR, dti->_fileName);
 }
 
 void FTPView::rm_file_or_directory_recursively()
@@ -1038,19 +1024,13 @@ void FTPView::onDirectoryLoaded(const QString &path)
 
 void FTPView::slot_operation_triggered(QString text)
 {
-    if (this->m_operationLogModel == NULL) {
-        this->m_operationLogModel = new QStringListModel();
+    // wrapper from default SSH2_FXP_ to FTP_ command
+    QString myText = text;
+    if (myText.indexOf("SSH2_FXP_") != -1) {
+        myText = myText.replace("SSH2_FXP", "FTP");
     }
-    int rc = this->m_operationLogModel->rowCount();
-    this->m_operationLogModel->insertRows(rc, 1, QModelIndex());
-    QModelIndex useIndex = this->m_operationLogModel->index(rc, 0, QModelIndex());
-    this->m_operationLogModel->setData(useIndex, QVariant(text));
-    this->uiw.listView->scrollTo(useIndex);
 
-    if (rc > 300) {
-        useIndex = this->m_operationLogModel->index(0, 0, QModelIndex());
-        this->m_operationLogModel->removeRows(0, 1, QModelIndex());
-    }
+    RemoteView::slot_operation_triggered(myText);
 }
 
 void FTPView::slot_dir_nav_go_home()
