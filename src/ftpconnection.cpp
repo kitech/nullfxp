@@ -87,6 +87,15 @@ int FTPConnection::alivePing()
     return iret;
 }
 
+QString FTPConnection::getServerBanner()
+{
+    return this->ftp->getServerBanner();
+}
+QString FTPConnection::getServerWelcome()
+{
+    return this->ftp->getServerWelcome();
+}
+
 QTextCodec *FTPConnection::codecForEnv(QString env)
 {
     assert(this->ftp != NULL);

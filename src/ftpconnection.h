@@ -29,6 +29,9 @@ public:
 
     virtual QTextCodec *codecForEnv(QString env);
 
+    virtual QString getServerBanner();
+    virtual QString getServerWelcome();
+
 public slots:
     virtual int alivePing();
 

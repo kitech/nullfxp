@@ -30,13 +30,19 @@ int LibFtp::connect(const QString host, unsigned short port)
     QByteArray ba;
     QString replyText;
 
-    // this->qsock = new QTcpSocket();
     this->qsock = new QSslSocket();
     this->qsock->connectToHost(host, port);
     if (this->qsock->waitForConnected()) {
         qDebug()<<"ftp ctrl connect ok";
         ba = this->readAll(this->qsock);
+        if (ba.isEmpty()) {
+            this->errmsg = this->qsock->errorString();
+            this->errno = -1;
+            q_debug()<<"connect error:"<<this->errmsg;
+            return -1;
+        }
         replyText = ba;
+        this->parseWelcome(replyText);
         // replyText maybe contains welcome text
         QStringList sl = replyText.trimmed().split("\n");
         sl = sl.at(sl.count() - 1).split(" ");
@@ -51,7 +57,7 @@ int LibFtp::connect(const QString host, unsigned short port)
         qDebug()<<"Got server banner:"<<this->servBanner;
     } else {
         qDebug()<<this->qsock->errorString();
-        this->errnum = -1;
+        this->errno = -1;
         this->errmsg = this->qsock->errorString();
         return -1; // Connection::CONN_OTHER;
     }
@@ -236,6 +242,11 @@ int LibFtp::getSupportedCmds()
     }
 
     return cmds.count();
+}
+
+bool LibFtp::isCmdSupported(QString cmd)
+{
+    return this->supportedCmds.contains(cmd.toUpper());
 }
 
 int LibFtp::logout()
@@ -900,6 +911,11 @@ QString LibFtp::getServerBanner()
     return this->servBanner;
 }
 
+QString LibFtp::getServerWelcome()
+{
+    return this->welcomeText;
+}
+
 int LibFtp::pwd(QString &path)
 {
 	QString cmd;
@@ -1498,17 +1514,17 @@ void LibFtp::setError(int okno, QString msg)
     }
     QStringList sl = msg.split(" ");
     if (okno == sl.at(0).toInt()) {
-        this->errnum = 0;
+        this->errno = 0;
         this->errmsg = "Sucess.";
     } else {
         switch (sl.at(0).toInt()) {
         case 0:
             qDebug()<<__FILE__<<__LINE__<<"No response.";
-            this->errnum = 600;
+            this->errno = 600;
             this->errmsg = "No response.";
             break;
         default:
-            this->errnum = sl.at(0).toInt();
+            this->errno = sl.at(0).toInt();
             this->errmsg = msg.trimmed();
             break;
         };
@@ -1601,6 +1617,11 @@ QByteArray LibFtp::readAllByEndSymbol(QTcpSocket *sock)
 	ball = sall.toAscii();
 
 	return ball;
+}
+
+void LibFtp::parseWelcome(QString text)
+{
+    this->welcomeText = text;
 }
 
 void LibFtp::onDataSockConnected()

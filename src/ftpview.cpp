@@ -1173,7 +1173,7 @@ void FTPView::host_info_focus_label_double_clicked()
 
     FTPHostInfoDialog *ftp_hid = new FTPHostInfoDialog();
     QString hostType = "Unix";
-    QString welcome = "welcoming............";
+    QString welcome = this->rconn->getServerWelcome();
     ftp_hid->setHostType(hostType);
     ftp_hid->setWelcome(welcome);
     ftp_hid->exec();

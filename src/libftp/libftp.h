@@ -57,6 +57,7 @@ public:
     
     QVector<QUrlInfo> getDirList();
     QString getServerBanner();
+    QString getServerWelcome();
     QTcpSocket *getDataSocket();
     QString errorString();
     int setEncoding(QString encoding);
@@ -76,6 +77,8 @@ private:
     bool parseDir(const QByteArray &buffer, const QString &userName, QUrlInfo *info);
     void setError(int okno, QString msg);
     int getSupportedCmds();
+    bool isCmdSupported(QString cmd);
+    void parseWelcome(QString text);
 
 private:
     QSslSocket *qsock;
@@ -84,7 +87,9 @@ private:
     unsigned short pasvPort;
     QVector<QUrlInfo> dirList;
     QString servBanner;
-    int errnum;
+    QString welcomeText;
+    QString lastCmd;
+    int errno                                  ;
     QString errmsg;
     QString encoding;
     QTextCodec *codec;
