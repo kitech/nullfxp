@@ -37,8 +37,8 @@ int LibFtp::connect(const QString host, unsigned short port)
         ba = this->readAll(this->qsock);
         if (ba.isEmpty()) {
             this->errmsg = this->qsock->errorString();
-            this->errno = -1;
-            q_debug()<<"connect error:"<<this->errmsg;
+            this->errnum = -1;
+	    q_debug()<<"connect error:"<<this->errmsg;
             return -1;
         }
         replyText = ba;
@@ -57,7 +57,7 @@ int LibFtp::connect(const QString host, unsigned short port)
         qDebug()<<"Got server banner:"<<this->servBanner;
     } else {
         qDebug()<<this->qsock->errorString();
-        this->errno = -1;
+        this->errnum = -1;
         this->errmsg = this->qsock->errorString();
         return -1; // Connection::CONN_OTHER;
     }
@@ -1514,17 +1514,17 @@ void LibFtp::setError(int okno, QString msg)
     }
     QStringList sl = msg.split(" ");
     if (okno == sl.at(0).toInt()) {
-        this->errno = 0;
+        this->errnum = 0;
         this->errmsg = "Sucess.";
     } else {
         switch (sl.at(0).toInt()) {
         case 0:
             qDebug()<<__FILE__<<__LINE__<<"No response.";
-            this->errno = 600;
+            this->errnum = 600;
             this->errmsg = "No response.";
             break;
         default:
-            this->errno = sl.at(0).toInt();
+            this->errnum = sl.at(0).toInt();
             this->errmsg = msg.trimmed();
             break;
         };

@@ -89,7 +89,7 @@ private:
     QString servBanner;
     QString welcomeText;
     QString lastCmd;
-    int errno                                  ;
+    int errnum;
     QString errmsg;
     QString encoding;
     QTextCodec *codec;
