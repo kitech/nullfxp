@@ -80,3 +80,8 @@ Open terminal:
 
 that's all, then
      open bin/nullfxp
+
+
+UBUNTU:
+     dpkg -i /path/to/nullfxp-xxx.deb
+     or dpkg -D400 -i /path/to/nullfxp-xxx.deb
