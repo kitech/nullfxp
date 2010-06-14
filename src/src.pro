@@ -241,15 +241,27 @@ RESOURCES = nullfxp.qrc
 
 # install settings
 # DISTFILES += ./bin/nullfxp ./bin/unitest
-document.path = $$DATADIR/docs
-document.files = ../INSTALL ../README ../AUTHORS ../ChangeLog
+document.path = $$PKGDATADIR/docs
+document.files = ../INSTALL ../README ../AUTHORS ../ChangeLog ../TODO ../NEWS
 
-icons.path = $$DATADIR/icons
-icons.files = ./icons/* 
+mimes.path = $$PKGDATADIR/icons/mimetypes
+mimes.files = ./icons/mimetypes/*.png
 
-mimes.path = $$DATADIR/icons/mimetypes
-mimes.files = ./icons/mimetypes/*
+icons.path = $$PKGDATADIR/icons
+icons.files = ./icons/*.png
+
+osicons.path = $$PKGDATADIR/icons/os
+osicons.files = ./icons/os/*.png
+
+menus.path = $$DATADIR/applications/
+menus.files = ./data/nullfxp.desktop
+
+tools.path = $$BINDIR
+tools.files = ./../bin/touch.exe
+
+mylib.path = $$LIBDIR
+mylib.files = ./libssh2/src/libssh2.a
 
 target.path += $$BINDIR
-INSTALLS += target document icons mimes
+INSTALLS += target document icons osicons mimes tools menus mylib
 

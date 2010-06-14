@@ -1,0 +1,11 @@
+[Desktop Entry]
+Categories=Qt;Net;
+Comment=A QT4 based cross platform SFTP/FTP/FTPS GUI client.
+Comment[zh]=用QT4编写的跨平台SFTP/FTP/FTPS客户端
+Exec=nullfxp
+GenericName=nullfxp
+GenericName[zh]=nullfxp SFTP 客户端
+Icon=nullfxp
+Name=nullfxp
+Type=Application
+X-KDE-StartupNotify=false

@@ -47,6 +47,7 @@ src/connection.h -text
 src/data/about_author.html -text
 src/data/about_info.html -text
 src/data/freedesktop.org.xml -text
+src/data/nullfxp.desktop -text
 src/dirnavbar.cpp -text
 src/dirnavbar.h -text
 src/encryptiondetaildialog.cpp -text

@@ -7,16 +7,26 @@
 # Version: $Id$
 # 
 
-unix {
+# cmdline: qmake PREFIX=/usr -r 
+# or qmake "PREFIX=C:/Program Files/nullfxp" -r
+
+win32 {
+      isEmpty(PREFIX) {
+         PREFIX = "C:/Program Files/nullfxp"
+      }
+} else {
+#    message($$PREFIX)     
     isEmpty(PREFIX) {
         PREFIX = /opt/nullfxp
     }
+}
+
     BINDIR = $$PREFIX/bin
+    LIBDIR = $$PREFIX/lib
 
 #    INSTALLS += target
 #    target.path = $$BINDIR
 
     DATADIR = $$PREFIX/share
     PKGDATADIR = $$PREFIX/share/nullfxp
-}
 
