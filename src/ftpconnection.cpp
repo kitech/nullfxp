@@ -37,18 +37,30 @@ int FTPConnection::connect()
     emit connect_state_changed(tr("Connect OK %1:%2. Login %3@%4 ...")
                                .arg(this->hostName).arg(this->port)
                                .arg(this->userName).arg(this->hostName));
+    if (this->user_canceled) {
+        return Connection::CONN_CANCEL;
+    }
     if (this->ftp->login(this->userName, this->password) != 0) {
         emit connect_state_changed(tr("Connect error: ") + this->ftp->errorString());
         return Connection::CONN_AUTH_ERROR;
     }
 
     emit connect_state_changed(tr("Login OK. Retrive initial path ..."));
+
+    if (this->user_canceled) {
+        return Connection::CONN_CANCEL;
+    }
+
     if (this->ftp->pwd(this->homePath) != 0) {
         q_debug()<<"ftp home path error:";
         this->homePath = QString("/"); // set default homePath of ftp
         emit connect_state_changed(tr("Connect error:") + this->ftp->errorString());
     }
     emit connect_state_changed(tr("Connect done."));
+
+    if (this->user_canceled) {
+        return Connection::CONN_CANCEL;
+    }
     
     // 自动取到编码后,把这个值传递给底层FTP库.
     this->codec = this->codecForEnv(QString());
@@ -114,3 +126,12 @@ QTextCodec *FTPConnection::codecForEnv(QString env)
     }
     return ecodec;
 }
+
+QString FTPConnection::errorString()
+{
+    if (this->ftp == NULL) {
+        return QString();
+    } 
+    return this->ftp->errorString();
+}
+

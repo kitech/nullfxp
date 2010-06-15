@@ -50,6 +50,8 @@ public:
     virtual QTextCodec *codecForEnv(QString env);
     QTextCodec *codecForConnect();
 
+    virtual QString errorString();
+
 public slots:
     virtual int alivePing();
 
@@ -77,8 +79,8 @@ public:
     QTextCodec *codec;
 
 signals:
-    void alivePong(int alive);
-    void connect_state_changed(QString state_desc);
+    virtual void alivePong(int alive);
+    virtual void connect_state_changed(QString state_desc);
 };
 
 

@@ -1499,11 +1499,10 @@ int LibFtp::waitForCtrlResponse()
 
 QString LibFtp::errorString()
 {
-    if (this->qsock != NULL) {
-        // return this->qsock->errorString();
-        return this->errmsg;
+    if (this->errmsg.isEmpty()) {
+        return this->qsock->errorString();
     }
-    return QString();
+    return this->errmsg;
 }
 
 /// private

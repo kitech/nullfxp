@@ -25,6 +25,7 @@ public:
     void setHostInfo(QMap<QString, QString> host);
     QString get_status_desc(int status);
     void setUserCanceled();
+    QString errorString();
 
     virtual void run();
 

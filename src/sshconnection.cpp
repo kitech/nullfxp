@@ -93,11 +93,19 @@ int SSHConnection::connect()
         return ret;
     }
 
+    if (this->user_canceled) {
+        return Connection::CONN_CANCEL;
+    }
+
     //create session
     ret = this->initSSHSession();
     if (ret != 0) {
         q_debug()<<"sesion error"<<ret<<this->get_status_desc(ret);;
         return ret;
+    }
+
+    if (this->user_canceled) {
+        return Connection::CONN_CANCEL;
     }
     
     ///////////
@@ -115,12 +123,21 @@ int SSHConnection::connect()
         return ret;
     }
 
+    if (this->user_canceled) {
+        return Connection::CONN_CANCEL;
+    }
+
     //getevn
     QString envs = this->get_server_env_vars("env");
     this->codec = this->codecForEnv(envs);
     this->get_server_env_vars("uname -a");
     //qDebug()<<"MD5 Hostkey hash:"<<libssh2_hostkey_hash(this->sess,LIBSSH2_HOSTKEY_HASH_MD5 )
     //<<"\nSHA1 Hostkey hash:"<<libssh2_hostkey_hash(this->sess, LIBSSH2_HOSTKEY_HASH_SHA1);
+
+    if (this->user_canceled) {
+        return Connection::CONN_CANCEL;
+    }
+
     return 0;
 }
 int SSHConnection::disconnect()

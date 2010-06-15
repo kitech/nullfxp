@@ -192,7 +192,6 @@ void NullFXP::connect_to_remote_host()
     short   port;
     QString pubkey = QString::null;
     QMap<QString,QString> host, old_host;
-    //提示输入远程主机信息
 
     this->quick_connect_info_dailog = new QuickConnectInfoDialog(this);
     if (this->quick_connect_info_dailog->exec() == QDialog::Accepted) {
@@ -362,19 +361,27 @@ void NullFXP::slot_connect_remote_host_finished(int status, Connection *conn)
         view->i_init_dir_view();
     } else if (status == Connection::CONN_CANCEL) {   //use canceled connection
         qDebug()<<"user canceled connecting";
+        if (conn != NULL) {
+            delete conn;
+        }
     } else {
         //assert ( 1==2 );
         //this->connect_status_dailog->setVisible(false);
         this->connect_status_dailog->stop_progress_bar();
     
         QString emsg = connector->get_status_desc(status);
-        QMessageBox::critical(this, tr("Connect Error:"), emsg);
+        QString errstr = connector->errorString();
+        QMessageBox::critical(this, tr("Connect Error:"), errstr);
+        if (conn != NULL) {
+            delete conn;
+        }
     }
 
     this->connect_status_dailog->accept();
     delete this->connect_status_dailog;
     this->connect_status_dailog = 0;
-    delete this->connector;
+    // delete this->connector;
+    this->connector->deleteLater();
     this->connector = 0;    
 }
 

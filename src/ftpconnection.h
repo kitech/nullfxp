@@ -32,6 +32,8 @@ public:
     virtual QString getServerBanner();
     virtual QString getServerWelcome();
 
+    virtual QString errorString();
+
 public slots:
     virtual int alivePing();
 

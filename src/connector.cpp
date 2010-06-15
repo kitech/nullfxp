@@ -55,15 +55,23 @@ void Connector::setUserCanceled()
     this->conn->setUserCanceled();
 }
 
+QString Connector::errorString()
+{
+    if (this->conn == NULL) {
+        return QString();
+    }
+    return this->conn->errorString();
+}
+
 void Connector::run()
 {
     assert(this->conn != NULL);
 
     int iret = this->conn->connect();
     if (iret == 0) {
-
     } else {
-        this->connect_status = Connection::CONN_OTHER;
+         this->connect_status = iret;
+         // this->connect_status = Connection::CONN_OTHER;
     }
 }
 

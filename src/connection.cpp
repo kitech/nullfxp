@@ -145,3 +145,8 @@ QTextCodec *Connection::codecForConnect()
 {
     return this->codec;
 }
+
+QString Connection::errorString()
+{
+    return QString();
+}
