@@ -23,6 +23,7 @@ packages/debian/DEBIAN/preinst -text
 packages/gentoo/net-ftp/nullfxp/nullfxp-1.5.2.ebuild -text
 packages/gentoo/net-ftp/nullfxp/nullfxp-1.6.3.ebuild -text
 packages/mkdeb.sh -text
+packages/mkdmg.sh -text
 packages/mkpkg.sh -text
 packages/nullfxp -text
 packages/opensuse_buildservice/nullfxp.spec -text

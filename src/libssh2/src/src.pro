@@ -76,11 +76,12 @@ win32 {
     }
 }
 
+# using latest cococa qt, it's support x86_64 now
 macx-g++ {
-    QMAKE_CFLAGS_DEBUG += -arch i386
-    QMAKE_CFLAGS_RELEASE += -arch i386
-    QMAKE_CXXFLAGS_DEBUG += -arch i386
-    QMAKE_CXXFLAGS_RELEASE += -arch i386
+#    QMAKE_CFLAGS_DEBUG += -arch i386
+#    QMAKE_CFLAGS_RELEASE += -arch i386
+#    QMAKE_CXXFLAGS_DEBUG += -arch i386
+#    QMAKE_CXXFLAGS_RELEASE += -arch i386
 }
 
 QMAKE_CFLAGS_DEBUG += -g
