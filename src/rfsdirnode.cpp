@@ -145,7 +145,7 @@ QString NetDirNode::fileMDate()
     // char file_date[PATH_MAX+1] = {0};
 
     QDateTime theTime = QDateTime::fromTime_t(this->attrib.mtime);
-    QString timeStr = theTime.toString("%Y/%m/%d %H:%M:%S");
+    QString timeStr = theTime.toString("yyyy/MM/dd HH:mm:ss");
     // strncpy(file_date, timeStr.toAscii().data(), sizeof(file_date) - 1);
 
     return timeStr;
@@ -166,7 +166,7 @@ QString NetDirNode::fileMDate()
 QString NetDirNode::fileADate()
 {
     QDateTime theTime = QDateTime::fromTime_t(this->attrib.atime);
-    QString timeStr = theTime.toString("%Y/%m/%d %H:%M:%S");
+    QString timeStr = theTime.toString("yyyy/MM/dd HH:mm:ss");
     // strncpy(file_date, timeStr.toAscii().data(), sizeof(file_date) - 1);
 
     return timeStr;

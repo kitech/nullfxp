@@ -80,14 +80,14 @@ protected:
     virtual int fxp_realpath();
 
 signals:
-    virtual void enter_remote_dir_retrive_loop();
-    virtual void leave_remote_dir_retrive_loop();
+    void enter_remote_dir_retrive_loop();
+    void leave_remote_dir_retrive_loop();
         
-    virtual void remote_dir_node_retrived(NetDirNode *parent_item, void *parent_persistent_index, NetDirNode *newNodes);
-        
-    virtual void execute_command_finished(NetDirNode *parent_item, void *parent_persistent_index,
+    void remote_dir_node_retrived(NetDirNode *parent_item, void *parent_persistent_index, NetDirNode *newNodes);
+    
+    void execute_command_finished(NetDirNode *parent_item, void *parent_persistent_index,
                                   int cmd, int status);
-
+    // dirretriver.h:84: Warning: Signals cannot be declared virtual
 protected:
 
     std::map<NetDirNode *, void *> dir_node_process_queue;

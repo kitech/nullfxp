@@ -12,7 +12,7 @@ CONFIG += qt thread console warn_on ordered
 TARGET = nullfxp
 DESTDIR = ../bin
 
-VERSION=2.0.2.91  # using in nullfxp-version.h
+VERSION=2.0.2.92  # using in nullfxp-version.h
 
 # get compiling qt version
 
@@ -193,10 +193,13 @@ win32 {
         VAMD64=$$find(CLARCH,amd64)
         isEmpty(VAMD64) {
              LIBPATH += Z:/librarys/vc-ssl-x86/lib Z:/librarys/vc-zlib/static32
+             QMAKE_LIBDIR += Z:/librarys/vc-ssl-x86/lib Z:/librarys/vc-zlib/static32
         } else {
              LIBPATH += Z:/librarys/vc-ssl-x64/lib Z:/librarys/vc-zlib/staticx64
+             QMAKE_LIBDIR += Z:/librarys/vc-ssl-x64/lib Z:/librarys/vc-zlib/staticx64
         }
-        	LIBPATH += ./libssh2/src/release 
+        LIBPATH += ./libssh2/src/release 
+        QMAKE_LIBDIR += ./libssh2/src/release 
 
         LIBS += -lqtmain -lzlibstat -llibeay32 -lssleay32 -ladvapi32 -luser32 -lws2_32
     }
@@ -205,6 +208,7 @@ win32 {
 } else {
     LIBS += libssh2/src/libssh2.a -lssl -lcrypto -lz
     TARGETDEPS += libssh2/src/libssh2.a
+    POST_TARGETDEPS += libssh2/src/libssh2.a
 # WARNING: /home/gzleo/nullfxp-svn/src/src.pro:204: Variable TARGETDEPS is deprecated; use POST_TARGETDEPS instead.
 }
 

@@ -403,7 +403,7 @@ int SSHDirRetriver::fxp_do_ls_dir(QString path, QVector<QMap<char, QString> > & 
             memset(file_size, 0, sizeof(file_size));
             memset(file_date, 0, sizeof(file_date));
             QDateTime theTime = QDateTime::fromTime_t(ssh2_sftp_attrib.mtime);
-            QString timeStr = theTime.toString("%Y/%m/%d %H:%M:%S");
+            QString timeStr = theTime.toString("yyyy/MM/dd HH:mm:ss");
             strncpy(file_date, timeStr.toAscii().data(), sizeof(file_date) - 1);
 // #ifdef _MSC_VER
 // 			_snprintf(file_size, sizeof(file_size) - 1, "%llu", ssh2_sftp_attrib.filesize);

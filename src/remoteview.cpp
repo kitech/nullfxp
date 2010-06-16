@@ -252,10 +252,14 @@ void RemoteView::i_init_dir_view()
 
 void RemoteView::expand_to_home_directory(QModelIndex parent_model, int level)
 {
+    Q_UNUSED(parent_model);
+    Q_UNUSED(level);
 }
 
 void RemoteView::expand_to_directory(QString path, int level)
 {
+    Q_UNUSED(path);
+    Q_UNUSED(level);
 }
 
 void RemoteView::slot_disconnect_from_remote_host()
@@ -754,7 +758,7 @@ void RemoteView::slot_new_upload_requested(TaskPackage local_pkg)
 void RemoteView::slot_new_download_requested(TaskPackage local_pkg, TaskPackage remote_pkg)
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    RemoteView *remote_view = this ;
+    // RemoteView *remote_view = this ;
         
     ProgressDialog *pdlg = new ProgressDialog(0);
     // src is remote file , dest if localfile 
@@ -770,7 +774,7 @@ void RemoteView::slot_new_download_requested(TaskPackage remote_pkg)
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
     QString local_file_path;
-    RemoteView *remote_view = this;
+    // RemoteView *remote_view = this;
     TaskPackage local_pkg(PROTO_FILE);
     
     local_file_path = this->local_view->get_selected_directory();
@@ -843,6 +847,7 @@ void RemoteView::slot_dir_tree_item_clicked(const QModelIndex & index)
 
 void RemoteView::slot_dir_file_view_double_clicked(const QModelIndex & index)
 {
+    Q_UNUSED(index);
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     //TODO if the clicked item is direcotry ,
     //expand left tree dir and update right table view
@@ -921,6 +926,7 @@ bool RemoteView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction actio
                                      int row, int column, const QModelIndex &parent)
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    Q_UNUSED(action);
     Q_UNUSED(row);
     Q_UNUSED(column);
     
@@ -977,6 +983,7 @@ bool RemoteView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction actio
 
 void RemoteView::slot_show_hidden(bool show)
 {
+    Q_UNUSED(show);
     // if (show) {
     //     m_tableProxyModel->setFilter(QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot);
     //     m_treeProxyModel->setFilter(QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot);
@@ -1086,7 +1093,7 @@ void RemoteView::host_info_focus_label_double_clicked()
 
 void RemoteView::onDirectoryLoaded(const QString &path)
 {
-    q_debug()<<"Warning: base call.";
+    q_debug()<<"Warning: base call."<<path;
 }
 
 void RemoteView::slot_dir_nav_go_home()
@@ -1108,6 +1115,7 @@ void RemoteView::slot_dir_nav_go_home()
 
 void RemoteView::slot_dir_nav_prefix_changed(const QString &prefix)
 {
+    Q_UNUSED(prefix);
     // q_debug()<<""<<prefix;
     // QStringList matches;
     // QModelIndex sourceIndex = this->model->index(prefix);
@@ -1156,6 +1164,7 @@ void RemoteView::slot_dir_nav_prefix_changed(const QString &prefix)
 
 void RemoteView::slot_dir_nav_input_comfirmed(const QString &prefix)
 {
+    Q_UNUSED(prefix);
     q_debug()<<"";
 
     // QModelIndex sourceIndex = this->model->index(prefix);

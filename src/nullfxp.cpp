@@ -117,22 +117,25 @@ NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
     QObject::connect(this->mUIMain.action_Synchronize_file, SIGNAL(triggered()),
                      this, SLOT(slot_synchronize_file()));
     
-    //启动主界面大小调整
-    //this->slot_tile_sub_windows();
-
     this->central_splitter_widget->setStretchFactor(0, 3);
     this->central_splitter_widget->setStretchFactor(1, 1);
 
-    //启动连接对话框
+    // force show event
     this->show();
-    //根据当前屏幕大小调整界面的大小。
+    // 根据当前屏幕大小调整界面的大小。
     this->desktop = QApplication::desktop();
     //qDebug()<<dw->screenGeometry();
     // this->resize(dw->screenGeometry().width()*5/6, dw->screenGeometry().height()*5/6);
     // delete dw;
     // #bug245
-    qDebug()<<"Desktop screen count:"<<this->desktop->screenCount();
-    if (this->desktop->screenCount() == 1) {
+    int screenCount = 1;
+#if QT_VERSION >= 0x040600
+    if (strcmp(qVersion(), "4.6.0") >= 0) {
+        screenCount = this->desktop->screenCount();
+    }
+#endif
+    qDebug()<<"Desktop screen count:"<<screenCount;
+    if (screenCount == 1) {
         this->resize(this->desktop->screenGeometry().width()*5/6, 
                      this->desktop->screenGeometry().height()*5/6);
     } else {
@@ -142,7 +145,7 @@ NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
                      this->desktop->screenGeometry().height()*7/10);
     }
 
-    //调整本地目录树窗口的大小
+    // 调整本地目录树窗口的大小
     //QList<QMdiSubWindow *> mdiSubWindow = mdiArea->subWindowList();
     //qDebug()<<"mdi sub window count :"<< mdiSubWindow.count();
     QMdiSubWindow *local_sub_win = mdiArea->subWindowList().at(0);

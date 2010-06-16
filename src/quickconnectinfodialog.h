@@ -17,7 +17,7 @@
 #include "ui_quickconnectinfodialog.h"
 
 /**
- *@author liuguangzhao <gzl@localhost>
+ *
  */
 class QuickConnectInfoDialog : public QDialog
 {

@@ -40,7 +40,7 @@ private:
 };
 
 /**
- * @author liuguangzhao <gzl@localhost>
+ * 
  */
 class FileProperties : public  QDialog
 {

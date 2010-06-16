@@ -22,7 +22,7 @@ class LocalDirSortFilterModel : public QSortFilterProxyModel
     Q_OBJECT;
 public:
     LocalDirSortFilterModel(QObject *parent = 0);
-    ~LocalDirSortFilterModel();
+    virtual ~LocalDirSortFilterModel();
     
     QModelIndex index(const QString &path, int column = 0) const;
     QModelIndex index(int& row, int column, QModelIndex& parent) const;
