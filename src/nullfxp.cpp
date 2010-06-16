@@ -324,10 +324,8 @@ void NullFXP::slot_connect_remote_host_finished(int status, Connection *conn)
         switch (conn->protocolType()) {
         case Connection::PROTO_FTP:
             view = new FTPView(this->mdiArea, this->localView);
-            q_debug()<<"here";
             break;
         case Connection::PROTO_SFTP:
-            // view = new RemoteView(this->mdiArea, this->localView);
             view = new SFTPView(this->mdiArea, this->localView);
             break;
         default:
@@ -336,28 +334,21 @@ void NullFXP::slot_connect_remote_host_finished(int status, Connection *conn)
         } 
         
         mdiArea->addSubWindow(view);
-        QMdiSubWindow *local_sub_win = mdiArea->subWindowList(QMdiArea::CreationOrder).at(mdiArea->subWindowList(QMdiArea::CreationOrder).count()-1);
+        QMdiSubWindow *local_sub_win = mdiArea->subWindowList(QMdiArea::CreationOrder)
+            .at(mdiArea->subWindowList(QMdiArea::CreationOrder).count() - 1);
         
         view->slot_custom_ui_area();
-        //remote_view->show();
         local_sub_win->show();
-        //调整本地目录树窗口的大小
+        // resize view window size
         //QList<QMdiSubWindow *> mdiSubWindow = mdiArea->subWindowList();
         //qDebug()<<" mdi sub window count :"<< mdiSubWindow.count();        
         //local_sub_win->setGeometry( local_sub_win->x(),local_sub_win->y(), mdiArea->width()/2,  mdiArea->height()*18/19 );
         local_sub_win->resize(mdiArea->width()/2, mdiArea->height()*18/19);
         
-        // remote_view->set_ssh2_handler(ssh2_sess, ssh2_sock);
-        // remote_view->set_user_home_path ( this->remote_conn_thread->get_user_home_path());
-        // remote_view->set_host_info(conn_thread->get_host_name(),
-        //                            conn_thread->get_user_name(),
-        //                            conn_thread->get_password(),
-        //                            conn_thread->get_port(),
-        //                            conn_thread->get_pubkey());
         view->set_user_home_path(conn->userHomePath());
         view->setConnection(conn);
 
-        //初始化远程目录树        
+        // 初始化远程目录树        
         view->i_init_dir_view();
     } else if (status == Connection::CONN_CANCEL) {   //use canceled connection
         qDebug()<<"user canceled connecting";
@@ -380,7 +371,6 @@ void NullFXP::slot_connect_remote_host_finished(int status, Connection *conn)
     this->connect_status_dailog->accept();
     delete this->connect_status_dailog;
     this->connect_status_dailog = 0;
-    // delete this->connector;
     this->connector->deleteLater();
     this->connector = 0;    
 }
@@ -388,13 +378,14 @@ void NullFXP::slot_connect_remote_host_finished(int status, Connection *conn)
 void NullFXP::slot_cancel_connect()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    // this->remote_conn_thread->set_user_canceled();
     this->connector->setUserCanceled();
 }
 
 void NullFXP::slot_new_upload_requested(TaskPackage local_pkg)
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    // TODO, maybe has problem when use drag/drop to the window,
+    // but the window is not the toppest window.
     RemoteView *remote_view = this->get_top_most_remote_view();
     if (remote_view == 0) {
         qDebug()<<"may be not connected";
@@ -413,8 +404,9 @@ void NullFXP::slot_show_fxp_command_log(bool show)
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     RemoteView *remote_view = this->get_top_most_remote_view();
-    if (remote_view != 0)
+    if (remote_view != 0) {
         remote_view->slot_show_fxp_command_log(show);
+    }
 }
 
 void NullFXP::slot_cascade_sub_windows(bool triggered)
@@ -430,7 +422,7 @@ void NullFXP::slot_tile_sub_windows(bool triggered)
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     if (triggered) {
-        //让本地视图总是显示在左侧,并不改为原来的窗口顺序
+        // 让本地视图总是显示在左侧,并不改为原来的窗口顺序
         QMdiSubWindow *curr_active_sub_window = this->mdiArea->activeSubWindow();
         this->mdiArea->setActiveSubWindow(this->mdiArea->subWindowList(QMdiArea::CreationOrder).at(0));
         this->mdiArea->tileSubWindows();
@@ -456,8 +448,7 @@ void NullFXP::slot_show_remote_view(bool triggered)
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
     if (triggered) {
-        //将最上面一个RemoteView提升起来，条件是这个RemoteView现在还不是最上面的一个子窗口。
-    
+        // set the toppest RemoteView window, if not
         QList<QMdiSubWindow *> sub_window_list = this->mdiArea->subWindowList(QMdiArea::StackingOrder);
         int sub_wnd_count = sub_window_list.count();
     
@@ -465,7 +456,7 @@ void NullFXP::slot_show_remote_view(bool triggered)
             if (sub_window_list.at( sub_wnd_count )->widget() != this->localView 
                 && sub_window_list.at(sub_wnd_count)->widget()->objectName() == "NetDirView") {
                 this->mdiArea->setActiveSubWindow(sub_window_list.at(sub_wnd_count));
-                break ;
+                break;
             }
         }
     }

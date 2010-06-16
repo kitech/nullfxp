@@ -946,7 +946,7 @@ void RemoteDirModel::execute_command_finished(NetDirNode *parent_item, void *par
         break;
     }
 
-    QString msg = QString(tr("Received %2: %1")).arg(status == 0 ? "OK" : "Failed");
+    QString msg = QString(tr("Received %2: %1")).arg(status == 0 ? tr("OK") : tr("Failed (%1)").arg(status));
     switch (cmd) {
     case SSH2_FXP_READDIR:
         // TODO always return error, even read sucessfully.

@@ -142,36 +142,48 @@ QString NetDirNode::fileMode()
 }
 QString NetDirNode::fileMDate()
 {
-    char file_date[PATH_MAX+1];
-#ifndef _MSC_VER
-    struct tm *ltime = localtime((time_t*)&this->attrib.mtime);
-    if (ltime != NULL) {
-        if (time(NULL) - this->attrib.mtime < (365*24*60*60) / 2)
-            strftime(file_date, sizeof file_date, "%Y/%m/%d %H:%M:%S", ltime);
-        else
-            strftime(file_date, sizeof file_date, "%Y/%m/%d %H:%M:%S", ltime);
-    }
-#else
-    _snprintf(file_date, sizeof(file_date) - 1, "0000/00/00 00:00:00");
-#endif    
-    return QString(file_date);
+    // char file_date[PATH_MAX+1] = {0};
+
+    QDateTime theTime = QDateTime::fromTime_t(this->attrib.mtime);
+    QString timeStr = theTime.toString("%Y/%m/%d %H:%M:%S");
+    // strncpy(file_date, timeStr.toAscii().data(), sizeof(file_date) - 1);
+
+    return timeStr;
+
+// #ifndef _MSC_VER
+//     struct tm *ltime = localtime((time_t*)&this->attrib.mtime);
+//     if (ltime != NULL) {
+//         if (time(NULL) - this->attrib.mtime < (365*24*60*60) / 2)
+//             strftime(file_date, sizeof file_date, "%Y/%m/%d %H:%M:%S", ltime);
+//         else
+//             strftime(file_date, sizeof file_date, "%Y/%m/%d %H:%M:%S", ltime);
+//     }
+// #else
+//     _snprintf(file_date, sizeof(file_date) - 1, "0000/00/00 00:00:00");
+// #endif    
+    // return QString(file_date);
 }
 QString NetDirNode::fileADate()
 {
-    return QString();
-    char file_date[PATH_MAX+1];
-#ifndef _MSC_VER
-    struct tm *ltime = localtime((time_t*)&this->attrib.atime);
-    if (ltime != NULL) {
-        if (time(NULL) - this->attrib.atime < (365*24*60*60) / 2)
-            strftime(file_date, sizeof file_date, "%Y/%m/%d %H:%M:%S", ltime);
-        else
-            strftime(file_date, sizeof file_date, "%Y/%m/%d %H:%M:%S", ltime);
-    }
-#else
-    _snprintf(file_date, sizeof(file_date) - 1, "0000/00/00 00:00:00");
-#endif    
-    return QString(file_date);
+    QDateTime theTime = QDateTime::fromTime_t(this->attrib.atime);
+    QString timeStr = theTime.toString("%Y/%m/%d %H:%M:%S");
+    // strncpy(file_date, timeStr.toAscii().data(), sizeof(file_date) - 1);
+
+    return timeStr;
+
+//     char file_date[PATH_MAX+1];
+// #ifndef _MSC_VER
+//     struct tm *ltime = localtime((time_t*)&this->attrib.atime);
+//     if (ltime != NULL) {
+//         if (time(NULL) - this->attrib.atime < (365*24*60*60) / 2)
+//             strftime(file_date, sizeof file_date, "%Y/%m/%d %H:%M:%S", ltime);
+//         else
+//             strftime(file_date, sizeof file_date, "%Y/%m/%d %H:%M:%S", ltime);
+//     }
+// #else
+//     _snprintf(file_date, sizeof(file_date) - 1, "0000/00/00 00:00:00");
+// #endif    
+//     return QString(file_date);
 }
 
 quint64 NetDirNode::fileSize()

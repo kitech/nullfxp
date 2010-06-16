@@ -164,7 +164,7 @@ static QVector<NetDirNode *> dirListToTreeNode(QVector<QUrlInfo> &dirList, NetDi
 {
     QVector<NetDirNode *> nodes;
     NetDirNode *node;
-    LIBSSH2_SFTP_ATTRIBUTES attr;
+    // LIBSSH2_SFTP_ATTRIBUTES attr;
     
     for (int i = 0 ; i < dirList.count(); i++) {
         QUrlInfo ui = dirList.at(i);
@@ -189,15 +189,15 @@ int FTPDirRetriver::retrive_dir()
 {
     int exec_ret = -1;
     
-    NetDirNode *parent_item, *new_item;
+    NetDirNode *parent_item;
     void *parent_persistent_index;
 
     QByteArray ba;
     QString tmp;
     QVector<NetDirNode*> deltaItems;
     QVector<QMap<char, QString> > fileinfos;
-    char file_name[PATH_MAX+1];
-    int fxp_ls_ret = 0;
+    // char file_name[PATH_MAX+1] = {0};
+    // int fxp_ls_ret = 0;
  
     while (this->dir_node_process_queue.size() > 0) {
         std::map<NetDirNode*,void * >::iterator mit;
@@ -207,10 +207,6 @@ int FTPDirRetriver::retrive_dir()
         parent_persistent_index = mit->second;
        
         fileinfos.clear();
-        // 状态初始化
-        for (int i = 0; i < parent_item->childCount(); i++) {
-            // parent_item->childAt(i)->deleted = true;
-        }
 
         // passive
         this->conn->ftp->passive();
@@ -223,19 +219,13 @@ int FTPDirRetriver::retrive_dir()
             QUrlInfo ui = dirList.at(i);
             qDebug()<<ui.name()<<ui.lastModified()<<ui.permissions()<<ui.size()<<ui.isSymLink();
             if (ui.name() == "." || ui.name() == "..") {
-                dirList.remove(i); // 去掉本目录及上级目录这个特殊目录
+                dirList.remove(i); // omit . and .. special director
             }
         }
         deltaItems = dirListToTreeNode(dirList, parent_item);
-        // // 将多出的记录插入到树中,这儿使用的方法是，全部删除，再加入所有得到的数据。
-        // // 效率上会有所损失,是不是改为dirretriver.cpp中一样的机制呢。
         // copy to temp node, for pass as params
         NetDirNode *newNodes = new NetDirNode();
         for (int i = 0 ; i < deltaItems.count(); i ++) {
-            // deltaItems.at(i)->onRow = parent_item->childCount();
-            // parent_item->child_items.insert(std::make_pair(parent_item->childCount(), deltaItems.at(i)));
-            // parent_item->child_items.insert(parent_item->childCount(), deltaItems.at(i));
-            // parent_item->childNodes.insert(deltaItems.at(i)->onRow, deltaItems.at(i));
             newNodes->childNodes.insert(i, deltaItems.at(i));
         }
 
@@ -246,9 +236,7 @@ int FTPDirRetriver::retrive_dir()
         //         //////
         this->dir_node_process_queue.erase(parent_item);
         emit this->remote_dir_node_retrived(parent_item, parent_persistent_index, newNodes);
-
-        // if (ssh2_sftp_handle != 0) //TODO 应该在循环上面检测到为0就continue才对啊。
-        //     libssh2_sftp_closedir(ssh2_sftp_handle);
+        exec_ret = 0; // for return the properly value
     }
 
     return exec_ret;
@@ -305,9 +293,10 @@ int  FTPDirRetriver::rm_file_or_directory_recursively()
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
     int exec_ret = -1;
-    QStringList  sys_dirs;
+    QStringList sys_dirs;
     sys_dirs<<"/usr"<<"/bin"<<"/sbin"<<"/lib"<<"/etc"<<"/dev"<<"/proc"
-            <<"/mnt"<<"/sys"<<"/var";
+            <<"/mnt"<<"/sys"<<"/var"<<"/media"<<"/lost+found"<<"/tmp"<<"/opt"
+            <<"/lib32"<<"/lib64"<<"/home";
     
     NetDirNode *child_item = 0;
     NetDirNode *parent_item = 0;
@@ -321,7 +310,7 @@ int  FTPDirRetriver::rm_file_or_directory_recursively()
         qDebug()<<"rm system directory recusively, this is danger.";
     } else {
         //找到这个要删除的结点并删除
-        for (unsigned int i = 0 ; i < parent_item->childNodes.count(); i ++) {
+        for (int i = 0 ; i < parent_item->childNodes.count(); i ++) {
             child_item = parent_item->childNodes.value(i);
             if (child_item->_fileName.compare(cmd_item->params) == 0) {
                 qDebug()<<"found will remove file:"<<child_item->fullPath;
@@ -436,8 +425,8 @@ int  FTPDirRetriver::rename()
 int FTPDirRetriver::keep_alive()
 {
     int exec_ret;
-    char full_path[PATH_MAX + 1] = {0};
-    char strip_path[PATH_MAX + 1] = {0};
+    // char full_path[PATH_MAX + 1] = {0};
+    // char strip_path[PATH_MAX + 1] = {0};
 
     //TODO 在网络失去连接的时候如何向上层类通知，并进行重新连接
     assert(this->conn);
@@ -452,7 +441,7 @@ int FTPDirRetriver::fxp_do_ls_dir(QString path, QVector<QMap<char, QString> > &f
     return 0;
 }
 
-int FTPDirRetriver::fxp_do_ls_dir(QString path, QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > & fileinfos)
+int FTPDirRetriver::fxp_do_ls_dir(QString path, QVector<QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> > &fileinfos)
 {
     return 0;
 }

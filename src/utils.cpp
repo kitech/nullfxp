@@ -191,8 +191,7 @@ void  fxp_local_do_ls( QString args , QVector<QMap<char, QString> > & fileinfos 
 
 	fileinfos.clear();
 	entries = dh.entryList();
-	for (int i = 0 ; i < entries.count(); i++)
-	{
+	for (int i = 0 ; i < entries.count(); i++) {
         thefile.clear();
 		the_path = entries.at(i);
 		if (the_path == "." || the_path == "..") {
@@ -202,28 +201,28 @@ void  fxp_local_do_ls( QString args , QVector<QMap<char, QString> > & fileinfos 
 		if (QFile::exists(the_path)) {
 			QFileInfo fi(the_path);
 			sprintf(file_size, "%llu", fi.size());
-			strcpy(file_type,"-rwxrwxrwx-");
+			strcpy(file_type, "-rwxrwxrwx-");
 			sprintf(file_date, "%s", fi.lastModified().toString("yyyy/MM/dd hh:mm:ss"));
 
-			thefile.insert( 'N',(entries.at(i)));
-		    thefile.insert( 'T',QString(file_type) );
-			thefile.insert( 'S',QString(file_size ) );
-	        thefile.insert( 'D',QString( file_date ) );
+			thefile.insert('N', (entries.at(i)));
+		    thefile.insert('T', QString(file_type) );
+			thefile.insert('S', QString(file_size ) );
+	        thefile.insert('D', QString( file_date ) );
         
 		    fileinfos.push_back(thefile);
 		}
-    out_point:	continue ;
+    out_point:	continue;
 	}
 }
 #else
-void  fxp_local_do_ls( QString args , QVector<QMap<char, QString> > & fileinfos )
+void fxp_local_do_ls( QString args , QVector<QMap<char, QString> > & fileinfos)
 {
-    int sz ;
+    int sz;
     QMap<char,QString> thefile;
     char file_size[32];
     char file_date[64];
     char file_type[32];
-    char fname[PATH_MAX+1];
+    char fname[PATH_MAX+1] = {0};
     //char the_path[PATH_MAX+1];
     QString the_path ;
     
@@ -234,18 +233,17 @@ void  fxp_local_do_ls( QString args , QVector<QMap<char, QString> > & fileinfos 
     struct dirent * entry = NULL ;
     fileinfos.clear();
     
-    while( ( entry = readdir(dh)) != NULL )
-    {
+    while ((entry = readdir(dh)) != NULL) {
         thefile.clear();
         memset(&thestat,0,sizeof(thestat));
         //strcpy(the_path,args);
         //strcat(the_path,"/");
         //strcat(the_path,entry->d_name);
         the_path = args + "/"  + GlobalOption::instance()->locale_codec->toUnicode(entry->d_name);
-        if(strcmp(entry->d_name,".") == 0) goto out_point;
-        if(strcmp(entry->d_name,"..") == 0) goto out_point ;
+        if (strcmp(entry->d_name, ".") == 0) goto out_point;
+        if (strcmp(entry->d_name, "..") == 0) goto out_point;
 
-        if(stat( GlobalOption::instance()->locale_codec->fromUnicode(the_path ) , &thestat) != 0 ) continue;
+        if (stat(GlobalOption::instance()->locale_codec->fromUnicode(the_path), &thestat) != 0) continue;
         ltime = localtime(&thestat.st_mtime);
         
         sprintf(file_size,"%llu", thestat.st_size);
@@ -272,7 +270,7 @@ void  fxp_local_do_ls( QString args , QVector<QMap<char, QString> > & fileinfos 
 
 long fxp_getpid()
 {
-    long pid = 0 ;
+    long pid = 0;
     
 #ifdef WIN32
     pid = ::GetCurrentProcessId();
@@ -280,7 +278,7 @@ long fxp_getpid()
     pid = ::getpid();
 #endif
     
-    return pid ;
+    return pid;
 }
 
 int set_nonblock (int sock)

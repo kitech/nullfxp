@@ -120,21 +120,16 @@ int  SSHDirRetriver::retrive_dir()
         parent_persistent_index = mit->second;
        
         fileinfos.clear();
-        // 状态初始化
-        // TODO, 这种方法不太好，像如果有一目录项，那么这个目录标记删除后，
-        // 子结点要全部删除。但新结点却要重新获取目录列表，非常低效率
-        for (int i = 0; i < parent_item->childCount(); i++) {
-            // parent_item->childAt(i)->deleted = true;
-        }
 
         LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
         LIBSSH2_SFTP_HANDLE *ssh2_sftp_handle = 0;
         ssh2_sftp_handle = libssh2_sftp_opendir(this->ssh2_sftp,
-                                                GlobalOption::instance()->remote_codec->fromUnicode(parent_item->fullPath+ ( "/" )).data());
+                                                GlobalOption::instance()->remote_codec
+                                                ->fromUnicode(parent_item->fullPath + ("/")).data());
 
         // ssh2_sftp_handle == 0 是怎么回事呢？ 返回值 应该是
         // 1 . 这个file_name 是一个链接，但这个链接指向的是一个普通文件而不是目录时libssh2_sftp_opendir返回0 , 而 libssh2_sftp_last_error 返回值为 2 == SSH2_FX_NO_SUCH_FILE
-        if( ssh2_sftp_handle == 0 ) {
+        if (ssh2_sftp_handle == 0) {
             qDebug()<<" sftp last error: "<< libssh2_sftp_last_error(this->ssh2_sftp)
                     <<(parent_item->fullPath+ ( "/" ))
                     <<GlobalOption::instance()->remote_codec
@@ -160,7 +155,6 @@ int  SSHDirRetriver::retrive_dir()
             } else {
                 new_item = new NetDirNode();
                 new_item->pNode = parent_item;
-                // new_item->fullPath = parent_item->fullPath + QString("/") + file_name ;
                 new_item->fullPath = parent_item->fullPath + QString("/") + tmp ; // this is unicode
                 new_item->_fileName = tmp;
                 new_item->attrib = ssh2_sftp_attrib;
@@ -175,9 +169,6 @@ int  SSHDirRetriver::retrive_dir()
         // copy to temp node, for pass as params
         NetDirNode *newNodes = new NetDirNode();
         for (int i = 0 ;i < deltaItems.count(); i ++) {
-            // deltaItems.at(i)->onRow = parent_item->childCount();
-            // parent_item->child_items.insert(parent_item->childCount(), deltaItems.at(i));
-            // parent_item->childNodes.insert(deltaItems.at(i)->onRow, deltaItems.at(i));
             newNodes->childNodes.insert(i, deltaItems.at(i));
         }
 
@@ -188,6 +179,7 @@ int  SSHDirRetriver::retrive_dir()
         //         //////
         this->dir_node_process_queue.erase(parent_item);
         emit this->remote_dir_node_retrived(parent_item, parent_persistent_index, newNodes);
+        exec_ret = 0; // for return
 
         if (ssh2_sftp_handle != 0) //TODO 应该在循环上面检测到为0就continue才对啊。
             libssh2_sftp_closedir(ssh2_sftp_handle);
@@ -205,9 +197,10 @@ int  SSHDirRetriver::mkdir()
     
     QString abs_path = cmd_item->parent_item->fullPath + QString("/") + cmd_item->params;
     
-    qDebug()<<"abs  path :"<< abs_path;
+    qDebug()<<"Absolute path:"<<abs_path;
     
-    exec_ret = libssh2_sftp_mkdir(ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(abs_path).data(), 0777);
+    exec_ret = libssh2_sftp_mkdir(ssh2_sftp, GlobalOption::instance()->
+                                  remote_codec->fromUnicode(abs_path).data(), 0777);
 
     this->add_node(cmd_item->parent_item, cmd_item->parent_persistent_index);
     
@@ -219,7 +212,7 @@ int  SSHDirRetriver::rmdir()
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
     int exec_ret = -1;
-    QStringList  sys_dirs;
+    QStringList sys_dirs;
     sys_dirs<<"/usr"<<"/bin"<<"/sbin"<<"/lib"<<"/etc"<<"/dev"<<"/proc"
             <<"/mnt"<<"/sys"<<"/var";
     
@@ -247,7 +240,8 @@ int  SSHDirRetriver::rm_file_or_directory_recursively()
     int exec_ret = -1;
     QStringList  sys_dirs;
     sys_dirs<<"/usr"<<"/bin"<<"/sbin"<<"/lib"<<"/etc"<<"/dev"<<"/proc"
-            <<"/mnt"<<"/sys"<<"/var";
+            <<"/mnt"<<"/sys"<<"/var"<<"/media"<<"/lost+found"<<"/tmp"<<"/opt"
+            <<"/lib32"<<"/lib64"<<"/home";
     
     NetDirNode *child_item = 0;
     NetDirNode *parent_item = 0;
@@ -255,13 +249,13 @@ int  SSHDirRetriver::rm_file_or_directory_recursively()
     parent_item = cmd_item->parent_item;
     
     QString abs_path = cmd_item->parent_item->fullPath + "/" +  cmd_item->params;
-    qDebug()<<"abs path: "<<abs_path;
+    qDebug()<<"Absolute path: "<<abs_path;
     
     if (sys_dirs.contains(abs_path)) {
-        qDebug()<<"rm  system directory recusively , this is danger.";
+        qDebug()<<"rm system directory recusively, this is danger.";
     } else {
         //找到这个要删除的结点并删除
-        for (unsigned int  i = 0 ; i < parent_item->childNodes.count(); i ++) {
+        for (int  i = 0 ; i < parent_item->childNodes.count(); i ++) {
             child_item = parent_item->childNodes.value(i);
             if (child_item->_fileName.compare( cmd_item->params ) == 0) {
                 qDebug()<<"found will remove file:"<<child_item->fullPath;
@@ -296,7 +290,7 @@ int SSHDirRetriver::rm_file_or_directory_recursively_ex(QString parent_path)  //
     int file_count = fileinfos.size();
     //qDebug()<<" rm ex :" << file_count;
     
-    for (int i = file_count -1 ; i >= 0 ; i --) {
+    for (int i = file_count - 1 ; i >= 0 ; i --) {
         //qDebug()<<" lsed file:"<< fileinfos.at(i)['N'] ;
         if (fileinfos.at(i)['T'].at(0) == 'd') {
             if (fileinfos.at(i)['N'].compare(".") == 0 
@@ -313,19 +307,18 @@ int SSHDirRetriver::rm_file_or_directory_recursively_ex(QString parent_path)  //
             //qDebug()<<QString(tr("Removing %1")).arg( remote_path );
             exec_ret = libssh2_sftp_unlink( ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(abs_path));
         } else {
-            qDebug()<<" unknow file type ,don't know how to remove it";
+            qDebug()<<"Unknow file type, don't know how to remove it";
         }
     }
     
-    //删除这个目录
+    // remove this directory, only directory
     abs_path = GlobalOption::instance()->remote_codec->fromUnicode(parent_path);//+ "/" + parent_item->file_name ;
     //qDebug()<<"rmdir: "<< abs_path;
     exec_ret = libssh2_sftp_rmdir(ssh2_sftp, abs_path.toAscii().data());
-    if (exec_ret != 0) //可能这是一个文件，不是目录，那么使用删除文件的指令
-    {
+    if (exec_ret != 0) { // 可能这是一个文件，不是目录，那么使用删除文件的指令
         exec_ret = libssh2_sftp_unlink(ssh2_sftp, abs_path.toAscii().data());
         if (exec_ret != 0) {
-            qDebug()<< "Can't remove file or directory ("<< libssh2_sftp_last_error(ssh2_sftp) <<"): "<< abs_path;
+            qDebug()<<"Can't remove file or directory ("<< libssh2_sftp_last_error(ssh2_sftp) <<"): "<<abs_path;
         }
     }
     
@@ -338,9 +331,10 @@ int  SSHDirRetriver::rename()
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
     int exec_ret = -1;
-    QStringList  sys_dirs;
+    QStringList sys_dirs;
     sys_dirs<<"/usr"<<"/bin"<<"/sbin"<<"/lib"<<"/etc"<<"/dev"<<"/proc"
-            <<"/mnt"<<"/sys"<<"/var";
+            <<"/mnt"<<"/sys"<<"/var"<<"/media"<<"/lost+found"<<"/tmp"<<"/opt"
+            <<"/lib32"<<"/lib64"<<"/home";
     sys_dirs<<"c:"<<"d:"<<"e:"<<"f:"<<"g:";
     
     command_queue_elem *cmd_item = this->command_queue.at(0);
@@ -370,17 +364,19 @@ int SSHDirRetriver::keep_alive()
 {
     int exec_ret;
     char full_path[PATH_MAX + 1] = {0};
-    char fullPath[PATH_MAX + 1] = {0};
-
+    // char fullPath[PATH_MAX + 1] = {0};
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
     
     strcpy(full_path, "/nullfxp_keep_alive_dummy_directory");
-    strcpy(fullPath, "/");
+    // strcpy(fullPath, "/");
 
-    exec_ret = libssh2_sftp_stat(ssh2_sftp,full_path,&ssh2_sftp_attrib);
-    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<< " stat : "<< exec_ret
-            <<"sftp errno:"<< libssh2_sftp_last_error(ssh2_sftp);
-    //TODO 在网络失去连接的时候如何向上层类通知，并进行重新连接
+    exec_ret = libssh2_sftp_stat(ssh2_sftp, full_path, &ssh2_sftp_attrib);
+    if (libssh2_sftp_last_error(ssh2_sftp) == SSH2_FX_NO_SUCH_FILE) {
+        return 0;
+    }
+    // TODO notify top if disconnected
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<"stat: "<< exec_ret
+            <<"sftp errno:"<<libssh2_sftp_last_error(ssh2_sftp);
     return exec_ret;
 }
 
@@ -389,10 +385,10 @@ int SSHDirRetriver::fxp_do_ls_dir(QString path, QVector<QMap<char, QString> > & 
     LIBSSH2_SFTP_HANDLE *sftp_handle = 0;
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
     QMap<char, QString> thefile;
-    char file_name[PATH_MAX+1];
-    char file_size[PATH_MAX+1];
-    char file_type[PATH_MAX+1];
-    char file_date[PATH_MAX+1];
+    char file_name[PATH_MAX+1] = {0};
+    char file_size[PATH_MAX+1] = {0};
+    char file_type[PATH_MAX+1] = {0};
+    char file_date[PATH_MAX+1] = {0};
     
     sftp_handle = libssh2_sftp_opendir(ssh2_sftp, GlobalOption::instance()->remote_codec->fromUnicode(path).data());
     if (sftp_handle == 0) {
@@ -403,25 +399,26 @@ int SSHDirRetriver::fxp_do_ls_dir(QString path, QVector<QMap<char, QString> > & 
         while (libssh2_sftp_readdir(sftp_handle, file_name, PATH_MAX, &ssh2_sftp_attrib) > 0) {
             if (strlen(file_name) == 1 && file_name[0] == '.') continue ;
             if (strlen(file_name) == 2 && file_name[0] == '.' && file_name[1] == '.') continue;
-            //不处理隐藏文件? 处理隐藏文件
-            // if(file_name[0] == '.' ) continue;
-            
-            memset(file_size, 0, sizeof(file_size));
 
-#ifndef _MSC_VER
-            snprintf(file_size, sizeof(file_size) - 1, "%llu",ssh2_sftp_attrib.filesize);
+            memset(file_size, 0, sizeof(file_size));
+            memset(file_date, 0, sizeof(file_date));
+            QDateTime theTime = QDateTime::fromTime_t(ssh2_sftp_attrib.mtime);
+            QString timeStr = theTime.toString("%Y/%m/%d %H:%M:%S");
+            strncpy(file_date, timeStr.toAscii().data(), sizeof(file_date) - 1);
+// #ifdef _MSC_VER
+// 			_snprintf(file_size, sizeof(file_size) - 1, "%llu", ssh2_sftp_attrib.filesize);
+// 			_snprintf(file_date, sizeof(file_date) - 1, "0000/00/00 00:00:00");
+// #else
+//             snprintf(file_size, sizeof(file_size) - 1, "%llu", ssh2_sftp_attrib.filesize);
             
-            struct tm *ltime = localtime((time_t*)&ssh2_sftp_attrib.mtime);
-            if (ltime != NULL) {
-                if (time(NULL) - ssh2_sftp_attrib.mtime < (365*24*60*60) / 2)
-                    strftime(file_date, sizeof file_date, "%Y/%m/%d %H:%M:%S", ltime);
-                else
-                    strftime(file_date, sizeof file_date, "%Y/%m/%d %H:%M:%S", ltime);
-            }
-#else
-			_snprintf(file_size, sizeof(file_size) - 1 , "%llu",ssh2_sftp_attrib.filesize);
-			_snprintf(file_date, sizeof(file_date) - 1, "0000/00/00 00:00:00");
-#endif
+//             struct tm *ltime = localtime((time_t*)&ssh2_sftp_attrib.mtime);
+//             if (ltime != NULL) {
+//                 if (time(NULL) - ssh2_sftp_attrib.mtime < (365*24*60*60) / 2)
+//                     strftime(file_date, sizeof file_date, "%Y/%m/%d %H:%M:%S", ltime);
+//                 else
+//                     strftime(file_date, sizeof file_date, "%Y/%m/%d %H:%M:%S", ltime);
+//             }
+// #endif
 
             strmode(ssh2_sftp_attrib.permissions, file_type);
             //printf(" ls dir : %s %s , date=%s , type=%s \n" , file_name , file_size , file_date , file_type );
