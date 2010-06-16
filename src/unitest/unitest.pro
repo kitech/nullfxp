@@ -37,8 +37,7 @@ win32 {
          CONFIG -= embed_manifest_dll
     }
     RC_FILE = unitest.rc
-} macx-g++ {
-    
+} else: macx-g++ {
 } else {
     GCC_VERSION = $$system(gcc -dumpversion)
     ## TODO gcc > 4.4.0 has -std=c++0x arguments
