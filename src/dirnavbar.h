@@ -57,11 +57,12 @@ protected:
 private:
     Ui::DirNavBar uiw;
     QString homePath;
-    QVector<QString> dirConfirmHistory;
+    // QVector<QString> dirConfirmHistory;
     unsigned char dirHistoryCurrentPos;
     unsigned char maxHistoryCount;
     QCompleter *comer;
     QStringListModel *comModel;
+    QStringListModel *dropModel;
 
     QSlider *zoonSlider;
 };

@@ -30,6 +30,20 @@ DirNavBar::DirNavBar(QWidget *parent)
     this->comModel = new QStringListModel();
     // this->comModel = this->comer->completionModel(); // it is static , can not add more item
     this->comer->setModel(this->comModel);
+    
+    this->dropModel = new QStringListModel();
+    this->uiw.comboBox->setModel(this->dropModel);
+    bool bok = this->dropModel->insertRows(0, 1, QModelIndex());
+    Q_ASSERT(bok);
+    QModelIndex clearIndex = this->dropModel->index(0, 0, QModelIndex());
+    QString clearItemString = tr("Clear...");
+    this->dropModel->setData(clearIndex, QVariant(clearItemString));
+
+    // QStringListModel can not set Qt::DecorationRole data
+    // QIcon icon = QIcon(":/icons/edit-delete.png");
+    // qDebug()<<icon.isNull();
+    // bok = this->dropModel->setData(clearIndex, icon, Qt::DecorationRole);
+
 
     // on emit signal by key, not program setting
     // QObject::connect(this->uiw.comboBox, SIGNAL(currentIndexChanged(const QString &)),
@@ -64,11 +78,20 @@ void DirNavBar::onSetHome(QString path)
     Q_ASSERT(!path.isEmpty());
     this->homePath = path;
     this->uiw.comboBox->setEditText(path);
-    this->dirConfirmHistory.append(path);
-    if (this->dirConfirmHistory.count() > 100) {
-        this->dirConfirmHistory.remove(0);
-    }
-    this->dirHistoryCurrentPos = this->dirConfirmHistory.count() - 1;
+
+    // this->dirConfirmHistory.append(path);
+    // if (this->dirConfirmHistory.count() > 100) {
+    //     this->dirConfirmHistory.remove(0);
+    // }
+    // this->dirHistoryCurrentPos = this->dirConfirmHistory.count() - 1;
+
+    int insertOffset = this->dropModel->rowCount() - 1;
+    Q_ASSERT(insertOffset >= 0);
+    this->dropModel->insertRows(insertOffset, 1, QModelIndex());
+    QModelIndex newIndex = this->dropModel->index(insertOffset, 0, QModelIndex());
+    this->dropModel->setData(newIndex, QVariant(path));
+
+    this->dirHistoryCurrentPos = this->dropModel->rowCount() - 1;
 }
 void DirNavBar::onNavToPath(QString path)
 {
@@ -78,11 +101,19 @@ void DirNavBar::onNavToPath(QString path)
     }
 
     this->uiw.comboBox->setEditText(path);
-    this->dirConfirmHistory.append(path);
-    if (this->dirConfirmHistory.count() > 100) {
-        this->dirConfirmHistory.remove(0);
-    }
-    this->dirHistoryCurrentPos = this->dirConfirmHistory.count() - 1;
+
+    // this->dirConfirmHistory.append(path);
+    // if (this->dirConfirmHistory.count() > 100) {
+    //     this->dirConfirmHistory.remove(0);
+    // }
+    // this->dirHistoryCurrentPos = this->dirConfirmHistory.count() - 1;
+
+    int insertOffset = this->dropModel->rowCount() - 1;
+    Q_ASSERT(insertOffset >= 0);
+    this->dropModel->insertRows(insertOffset, 1, QModelIndex());
+    QModelIndex newIndex = this->dropModel->index(insertOffset, 0, QModelIndex());
+    this->dropModel->setData(newIndex, QVariant(path));
+    this->dirHistoryCurrentPos = this->dropModel->rowCount() - 1;
 }
 
 void DirNavBar::onSetCompleteList(QString dirPrefix, QStringList paths)
@@ -108,13 +139,13 @@ void DirNavBar::onGoPrevious()
 {
     // pos - 1, hicnt, 0
     int p1 = this->dirHistoryCurrentPos - 1;
-    int p2 = this->dirConfirmHistory.count() - 1;
+    int p2 = this->dropModel->rowCount() - 1;
 
-    q_debug()<<this->dirConfirmHistory;
+    // q_debug()<<this->dirConfirmHistory;
 
-    if (this->dirConfirmHistory.isEmpty()) {
-        return;
-    }
+    // if (this->dirConfirmHistory.isEmpty()) {
+    //     return;
+    // }
 
     if (p1 < 0) {
         p1 = p2;
@@ -125,10 +156,16 @@ void DirNavBar::onGoPrevious()
     } else if (p1 == 0 && p2 == 0) {
         // only 1 item, no previous and next item, no op
     } else {
-        Q_ASSERT(p1 >= 0 && p1 < this->dirConfirmHistory.count());
-        QString path = this->dirConfirmHistory.at(p1);
-        this->dirHistoryCurrentPos = p1;
+        // Q_ASSERT(p1 >= 0 && p1 < this->dirConfirmHistory.count());
+        // QString path = this->dirConfirmHistory.at(p1);
+        // this->dirHistoryCurrentPos = p1;
+        // this->uiw.comboBox->setEditText(path);
+
+        Q_ASSERT(p1 >= 0 && p1 < this->dropModel->rowCount());
+        QModelIndex nowIndex = this->dropModel->index(p1, 0, QModelIndex());
+        QString path = this->dropModel->data(nowIndex, Qt::DisplayRole).toString();
         this->uiw.comboBox->setEditText(path);
+
         emit dirInputConfirmed(path);
     }
 }
@@ -136,12 +173,12 @@ void DirNavBar::onGoPrevious()
 void DirNavBar::onGoNext()
 {
     int p1 = this->dirHistoryCurrentPos + 1;
-    int p2 = this->dirConfirmHistory.count() - 1;
+    int p2 = this->dropModel->rowCount() - 1;
 
-    q_debug()<<this->dirConfirmHistory;
-    if (this->dirConfirmHistory.isEmpty()) {
-        return;
-    }
+    // q_debug()<<this->dirConfirmHistory;
+    // if (this->dirConfirmHistory.isEmpty()) {
+    //     return;
+    // }
 
     if (p1 > p2) {
         p1 = 0;
@@ -150,10 +187,16 @@ void DirNavBar::onGoNext()
     if (p1 == 0 && p2 == 0) {
         // only 1 item, no previous and next item, no op
     } else {
-        Q_ASSERT(p1 >= 0 && p1 < this->dirConfirmHistory.count());
-        QString path = this->dirConfirmHistory.at(p1);
-        this->dirHistoryCurrentPos = p1;
+        // Q_ASSERT(p1 >= 0 && p1 < this->dirConfirmHistory.count());
+        // QString path = this->dirConfirmHistory.at(p1);
+        // this->dirHistoryCurrentPos = p1;
+        // this->uiw.comboBox->setEditText(path);
+
+        Q_ASSERT(p1 >= 0 && p1 < this->dropModel->rowCount());
+        QModelIndex nowIndex = this->dropModel->index(p1, 0, QModelIndex());
+        QString path = this->dropModel->data(nowIndex, Qt::DisplayRole).toString();
         this->uiw.comboBox->setEditText(path);
+
         emit dirInputConfirmed(path);
     }
 }
@@ -192,11 +235,20 @@ void DirNavBar::onGoUp()
     }
     
     this->uiw.comboBox->setEditText(currPath);
-    this->dirConfirmHistory.append(currPath);
-    if (this->dirConfirmHistory.count() > 100) {
-        this->dirConfirmHistory.remove(0);
-    }
-    this->dirHistoryCurrentPos = this->dirConfirmHistory.count() - 1;
+
+    // this->dirConfirmHistory.append(currPath);
+    // if (this->dirConfirmHistory.count() > 100) {
+    //     this->dirConfirmHistory.remove(0);
+    // }
+    // this->dirHistoryCurrentPos = this->dirConfirmHistory.count() - 1;
+
+    int insertOffset = this->dropModel->rowCount() - 1;
+    Q_ASSERT(insertOffset >= 0);
+    this->dropModel->insertRows(insertOffset, 1, QModelIndex());
+    QModelIndex newIndex = this->dropModel->index(insertOffset, 0, QModelIndex());
+    this->dropModel->setData(newIndex, QVariant(currPath));
+    this->dirHistoryCurrentPos = this->dropModel->rowCount() - 1;
+
     emit this->dirInputConfirmed(currPath);
 }
 
