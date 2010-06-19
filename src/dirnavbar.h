@@ -62,7 +62,7 @@ private:
     unsigned char maxHistoryCount;
     QCompleter *comer;
     QStringListModel *comModel;
-    QStringListModel *dropModel;
+    // QStringListModel *dropModel;
 
     QSlider *zoonSlider;
 };

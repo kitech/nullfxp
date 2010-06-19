@@ -12,7 +12,7 @@ CONFIG += qt thread console warn_on ordered
 TARGET = nullfxp
 DESTDIR = ../bin
 
-VERSION=2.0.2.93  # using in nullfxp-version.h
+VERSION=2.0.2.94  # using in nullfxp-version.h
 
 # get compiling qt version
 

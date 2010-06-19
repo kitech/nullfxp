@@ -34,7 +34,7 @@ bool BaseStorage::init()
 #ifdef Q_OS_MAC
     this->storagePath = QDir::homePath()+QString("/.nullfxp/sessions");
 #else
-# ifdef Q_OS_WIN32
+# ifdef Q_OS_WIN
     this->storagePath = QCoreApplication::applicationDirPath() + QString("/.nullfxp/sessions");
 #else
     // qDebug()<<"else????";
