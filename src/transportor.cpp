@@ -59,11 +59,21 @@ Transportor::~Transportor()
 int Transportor::remote_is_dir(LIBSSH2_SFTP *ssh2_sftp, QString path)
 {
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
-    LIBSSH2_SFTP_HANDLE *sftp_handle ;
+    LIBSSH2_SFTP_HANDLE *sftp_handle;
+    int ret = 0;
     QByteArray bpath = GlobalOption::instance()->remote_codec->fromUnicode(path);
 
     memset(&ssh2_sftp_attrib, 0, sizeof(ssh2_sftp_attrib));
-    
+
+    ret = libssh2_sftp_stat(ssh2_sftp, bpath.data(), &ssh2_sftp_attrib);
+    if (ret != 0) {
+        Q_ASSERT(ret == 0);
+        return 0;
+    } else {
+        return LIBSSH2_SFTP_S_ISDIR(ssh2_sftp_attrib.permissions);
+    }
+
+    // depcreated
     sftp_handle = libssh2_sftp_opendir(ssh2_sftp, bpath.data());
     
     if (sftp_handle != NULL) {
@@ -71,6 +81,8 @@ int Transportor::remote_is_dir(LIBSSH2_SFTP *ssh2_sftp, QString path)
         return 1 ;
     } else {   // == NULL 
         //TODO 可能是一个没有打开权限的目录，这里没有处理这种情况。
+        q_debug()<<"Error code: "<<libssh2_sftp_last_error(ssh2_sftp)
+                 <<path;
         return 0;
     }
     return 0;
@@ -88,7 +100,16 @@ int Transportor::remote_is_reg(LIBSSH2_SFTP *ssh2_sftp, QString path)
     memset(&ssh2_sftp_attrib, 0, sizeof(ssh2_sftp_attrib));
     flags = LIBSSH2_FXF_READ;
     mode = 022;
-    
+
+    ret = libssh2_sftp_stat(ssh2_sftp, bpath.data(), &ssh2_sftp_attrib);
+    if (ret != 0) {
+        Q_ASSERT(ret == 0);
+        return 0;
+    } else {
+        return LIBSSH2_SFTP_S_ISREG(ssh2_sftp_attrib.permissions);
+    }
+
+    // depcreated
     sftp_handle = libssh2_sftp_open(ssh2_sftp, bpath.data(), flags, mode);
     
     if (sftp_handle != NULL) {
@@ -599,7 +620,16 @@ int Transportor::run_SFTP_to_FILE()
             this->src_ssh2_sess = this->sconn->sess;
             this->src_ssh2_sftp = libssh2_sftp_init(this->src_ssh2_sess);
         }
-
+        q_debug()<<remote_is_reg(this->src_ssh2_sftp, this->current_src_file_name) 
+                 <<QFileInfo(this->current_dest_file_name).isDir();
+        {
+            char *emsg = 0;
+            int  emsg_len = 0;
+            libssh2_session_last_error(this->src_ssh2_sess, &emsg, &emsg_len, 1);
+            qDebug()<<"PublicKey auth error: "<<emsg
+                    <<libssh2_session_last_errno(this->src_ssh2_sess);
+            if (emsg != 0) free(emsg);
+        }
         //将文件下载到目录
         if (remote_is_reg(this->src_ssh2_sftp, this->current_src_file_name) 
             && QFileInfo(this->current_dest_file_name).isDir()) {
