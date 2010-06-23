@@ -80,6 +80,7 @@
 #define SSH2_FXF_EXCL			0x00000020
 
 /* status messages */
+/* SFTP Status Codes (returned by libssh2_sftp_last_error() ) */
 #define SSH2_FX_OK			0
 #define SSH2_FX_EOF			1
 #define SSH2_FX_NO_SUCH_FILE		2
@@ -89,4 +90,16 @@
 #define SSH2_FX_NO_CONNECTION		6
 #define SSH2_FX_CONNECTION_LOST		7
 #define SSH2_FX_OP_UNSUPPORTED		8
-#define SSH2_FX_MAX			8
+#define SSH2_FX_INVALID_HANDLE           9
+#define SSH2_FX_NO_SUCH_PATH             10
+#define SSH2_FX_FILE_ALREADY_EXISTS      11
+#define SSH2_FX_WRITE_PROTECT            12
+#define SSH2_FX_NO_MEDIA                 13
+#define SSH2_FX_NO_SPACE_ON_FILESYSTEM   14
+#define SSH2_FX_QUOTA_EXCEEDED           15
+#define SSH2_FX_UNKNOWN_PRINCIPAL        16
+#define SSH2_FX_LOCK_CONFLICT            17
+#define SSH2_FX_DIR_NOT_EMPTY            18
+#define SSH2_FX_NOT_A_DIRECTORY          19
+#define SSH2_FX_INVALID_FILENAME         20
+#define SSH2_FX_LINK_LOOP                21

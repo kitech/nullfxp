@@ -24,9 +24,8 @@
 class Connection;
 
 /**
- * @author liuguangzhao <liuguangzhao@users.sf.net>
- * 
  * 此类实现不同主机之间的文件传输功能
+ *
  * 由于libssh2协议库的限制，程序无法在一个ssh连接上打开两个或者以上SFTP传输，在此类中选择每次传输
  * 都会创建一个新的SSH连接会话（注：并不是每个文件创建一个连接），这样就不会与目录操作冲突了。
  * 引起的问题是连接速度不容乐观，对于小文件及少量文件传输很不合适，大多数时间都用在了创建新的
@@ -42,17 +41,18 @@ class Transportor : public QThread
 {
     Q_OBJECT;
 public:    
-    enum {TRANSFER_MIN, TRANSFER_GET,TRANSFER_PUT,TRANSFER_EXCHANGE,TRANSFER_RETRIVE_TO_LOCAL,TRANSFER_RETRIVE_TO_REMOTE ,TRANSFER_MAX };
-    enum {OW_UNKNOWN,OW_CANCEL, OW_YES,OW_YES_ALL,OW_RESUME,OW_NO, OW_NO_ALL};
-    enum {ERRNO_BASE=100};
+    enum {TRANSFER_MIN, TRANSFER_GET, TRANSFER_PUT, TRANSFER_EXCHANGE, TRANSFER_RETRIVE_TO_LOCAL,
+          TRANSFER_RETRIVE_TO_REMOTE, TRANSFER_MAX};
+    enum {OW_UNKNOWN, OW_CANCEL, OW_YES, OW_YES_ALL, OW_RESUME, OW_NO, OW_NO_ALL};
+    enum {ERRNO_BASE = 50, ERRNO_UNKNOWN, ERRNO_CANCEL, ERRNO_TASK_INVALID};
     
     Transportor(QObject *parent = 0);
     virtual ~Transportor();
 
     void run();
     
-    //说明，在上传的时候local_file_names.count()可以大于1个，而remote_file_names.count()必须等于1
-    //在下载的时候：local_file_names.count()必须等于1,而remote_file_names.count()可以大于1个
+    // 说明，在上传的时候local_file_names.count()可以大于1个，而remote_file_names.count()必须等于1
+    // 在下载的时候：local_file_names.count()必须等于1,而remote_file_names.count()可以大于1个
     virtual void set_transport_info(TaskPackage src_pkg, TaskPackage dest_pkg);
     
     // depcreated

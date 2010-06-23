@@ -32,7 +32,7 @@
 
 #include "globaloption.h"
 #include "transportor.h"
-// #include "remotehostconnectthread.h"
+#include "sftp-const.h"
 #include "utils.h"
 #include "sshfileinfo.h"
 #include "sshconnection.h"
@@ -350,7 +350,7 @@ int Transportor::run_FILE_to_SFTP()
         } else {
             //其他的情况暂时不考虑处理。跳过
             //TODO return a error value , not only error code
-            this->error_code = 1;
+            this->error_code = ERRNO_TASK_INVALID;
             //assert(1 == 2);
             qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in "<< __LINE__;
         }
@@ -378,7 +378,7 @@ int Transportor::run_FILE_to_SFTP()
         this->dest_ssh2_sess = 0 ;
     }
     if (this->user_canceled == true) {
-        this->error_code = 3;
+        this->error_code = ERRNO_CANCEL;
     }
     return 0;
 }
@@ -454,13 +454,14 @@ int Transportor::run_FILE_to_SFTP(QString srcFile, QString destFile)
                                     openFlag,
                                     sfi.mode());
     if (sftp_handle == NULL) {
-        //TODO 错误消息通知用户。
+        // TODO 错误消息通知用户。
         qDebug()<<"open sftp file error :"<< libssh2_sftp_last_error(this->dest_ssh2_sftp);
         if (libssh2_sftp_last_error(this->dest_ssh2_sftp) == LIBSSH2_FX_PERMISSION_DENIED) {
             this->errorString = QString(tr("Open file faild, Permission denied"));
-            qDebug()<<this->errorString;
+            this->error_code = SSH2_FX_PERMISSION_DENIED;
+        } else {
+            this->error_code = libssh2_sftp_last_error(this->dest_ssh2_sftp);
         }
-        this->error_code = ERRNO_BASE + libssh2_sftp_last_error(this->dest_ssh2_sftp);
 	
         return -1;
     }
@@ -561,12 +562,11 @@ int Transportor::run_SFTP_to_FILE()
         
     QVector<QMap<char, QString> >  fileinfos;
     
-    this->error_code = 0 ;
+    this->error_code = 0;
     this->errorString = QString(tr("No error."));
     
     this->dest_ssh2_sess = 0;
     this->dest_ssh2_sftp = 0;
-    // this->dest_ssh2_sock = 0;
         
     this->src_ssh2_sess = 0;
     this->src_ssh2_sftp = 0;
@@ -673,7 +673,7 @@ int Transportor::run_SFTP_to_FILE()
         } else {
             //其他的情况暂时不考虑处理。跳过。
             //TODO return a error value , not only error code 
-            this->error_code = 1;
+            this->error_code = ERRNO_TASK_INVALID;
             //assert( 1 == 2 );
             qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in " << __LINE__;
         }
@@ -701,7 +701,7 @@ int Transportor::run_SFTP_to_FILE()
         this->dest_ssh2_sess = 0 ;
     }
     if (this->user_canceled == true) {
-        this->error_code = 3;
+        this->error_code = ERRNO_CANCEL;
     }
     return 0;
 }
@@ -719,8 +719,15 @@ int Transportor::run_SFTP_to_FILE(QString srcFile, QString destFile)
     
     sftp_handle = libssh2_sftp_open(this->src_ssh2_sftp, gOpt->remote_codec->fromUnicode(srcFile), LIBSSH2_FXF_READ, 0);
     if (sftp_handle == NULL) {
-        //TODO 错误消息通知用户。
+        // TODO 错误消息通知用户。
         qDebug()<<"open sftp file error :"<<libssh2_sftp_last_error(this->src_ssh2_sftp);
+        
+        if (libssh2_sftp_last_error(this->src_ssh2_sftp) == LIBSSH2_FX_PERMISSION_DENIED) {
+            this->error_code = SSH2_FX_PERMISSION_DENIED;
+            this->errorString = tr("Permission denied.");
+        } else {
+
+        }
         return -1;
     }
     
@@ -951,7 +958,7 @@ int Transportor::run_SFTP_to_SFTP()
             //其他的情况暂时不考虑处理。跳过
             //TODO return a error value , not only error code
             q_debug()<<"src: "<< src_atom_pkg<<" dest:"<< dest_atom_pkg;
-            this->error_code = 1;
+            this->error_code = ERRNO_TASK_INVALID;
             //assert ( 1 == 2 );
             qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in "<< __LINE__;
         }
@@ -979,7 +986,7 @@ int Transportor::run_SFTP_to_SFTP()
         this->dest_ssh2_sess = 0 ;
     }
     if (this->user_canceled == true) {
-        this->error_code = 3;
+        this->error_code = ERRNO_CANCEL;
     }
     q_debug()<<"";
     return 0;
@@ -1004,7 +1011,14 @@ int Transportor::run_SFTP_to_SFTP(QString srcFile, QString destFile)
                                         LIBSSH2_FXF_READ, 0666);
     if (src_sftp_handle == 0) {
         qDebug()<<"sftp open error: "<<libssh2_session_last_error((LIBSSH2_SESSION*)(src_ssh2_sess), 0, 0, 0); 
-        assert(src_sftp_handle != 0);
+        if (libssh2_sftp_last_error(this->src_ssh2_sftp) == LIBSSH2_FX_PERMISSION_DENIED) {
+            this->error_code = SSH2_FX_PERMISSION_DENIED;
+        } else {
+            this->error_code = libssh2_sftp_last_error(this->src_ssh2_sftp);
+        }
+        this->errorString = tr("Open src file error.");
+        Q_ASSERT(src_sftp_handle != 0);
+        return -1;
     }
     
     libssh2_sftp_fstat(src_sftp_handle, &ssh2_sftp_attrib);
@@ -1020,7 +1034,15 @@ int Transportor::run_SFTP_to_SFTP(QString srcFile, QString destFile)
                                          LIBSSH2_FXF_WRITE | LIBSSH2_FXF_CREAT | LIBSSH2_FXF_TRUNC, 0666 );
     if (src_sftp_handle == 0 ) {
         qDebug()<<"sftp open error: "<<libssh2_session_last_error((LIBSSH2_SESSION*)(dest_ssh2_sess), 0, 0, 0); 
-        assert(dest_sftp_handle != 0);
+        if (libssh2_sftp_last_error(this->src_ssh2_sftp) == LIBSSH2_FX_PERMISSION_DENIED) {
+            this->error_code = SSH2_FX_PERMISSION_DENIED;
+        } else {
+            this->error_code = libssh2_sftp_last_error(this->src_ssh2_sftp);
+        }
+        this->errorString = tr("Open dest file error.");
+        Q_ASSERT(dest_sftp_handle != 0);
+        return -1;
+
     }
     
     //TODO 如果是同一台SSH服务器，可以用libssh2_sftp_copy,不过现在还没这个函数
@@ -1169,7 +1191,7 @@ int Transportor::run_FILE_to_FTP()
         } else {
             //其他的情况暂时不考虑处理。跳过
             //TODO return a error value , not only error code
-            this->error_code = 1;
+            this->error_code = ERRNO_TASK_INVALID;
             //assert(1 == 2);
             qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in " << __LINE__;
         }
@@ -1181,7 +1203,7 @@ int Transportor::run_FILE_to_FTP()
     qDebug()<<"transfer_ret :"<<transfer_ret<<" ssh2 sftp shutdown:"<<this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
     //TODO 选择性关闭 ssh2 会话，有可能是 src  ,也有可能是dest 
     if (this->user_canceled == true) {
-        this->error_code = 3;
+        this->error_code = ERRNO_CANCEL;
     }
     return 0;
 }
@@ -1371,7 +1393,7 @@ int Transportor::run_FTP_to_FILE()
         } else {
             //其他的情况暂时不考虑处理。跳过。
             //TODO return a error value , not only error code 
-            this->error_code = 1;
+            this->error_code = ERRNO_TASK_INVALID;
             //assert( 1 == 2 ); 
             qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in "<<__LINE__;
         }
@@ -1383,7 +1405,7 @@ int Transportor::run_FTP_to_FILE()
     qDebug()<<"transfer_ret :"<<transfer_ret<<"ssh2 sftp shutdown:"<<this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
     //TODO 选择性关闭 ssh2 会话，有可能是 src  ,也有可能是dest 
     if (this->user_canceled == true) {
-        this->error_code = 3;
+        this->error_code = ERRNO_CANCEL;
     }
     return 0;
 }
@@ -1587,7 +1609,7 @@ int Transportor::run_FTP_to_FTP()        // 负责根据情况调用下面的两
             //其他的情况暂时不考虑处理。跳过
             //TODO return a error value , not only error code
             q_debug()<<"src: "<< src_atom_pkg<<" dest:"<<dest_atom_pkg;
-            this->error_code = 1;
+            this->error_code = ERRNO_TASK_INVALID;
             //assert(1 == 2);
             qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in "<<__LINE__;
         }
@@ -1599,7 +1621,7 @@ int Transportor::run_FTP_to_FTP()        // 负责根据情况调用下面的两
     qDebug()<<"transfer_ret :"<<transfer_ret<<"ssh2 sftp shutdown:"<< this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
     //TODO 选择性关闭 ssh2 会话，有可能是 src  ,也有可能是dest 
     if (this->user_canceled == true) {
-        this->error_code = 3;
+        this->error_code = ERRNO_CANCEL;
     }
     return 0;
 }
@@ -1890,7 +1912,7 @@ int Transportor::run_SFTP_to_FTP()
             //其他的情况暂时不考虑处理。跳过
             //TODO return a error value , not only error code
             q_debug()<<"src: "<< src_atom_pkg<<" dest:"<< dest_atom_pkg;
-            this->error_code = 1;
+            this->error_code = ERRNO_TASK_INVALID;
             //assert ( 1 == 2 );
             qDebug()<<"Unexpected transfer type: "<<__FILE__<<" in "<<__LINE__;
         }
@@ -1902,7 +1924,7 @@ int Transportor::run_SFTP_to_FTP()
     qDebug()<<"transfer_ret :"<<transfer_ret<<"ssh2 sftp shutdown:"<<this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
     //TODO 选择性关闭 ssh2 会话，有可能是 src  ,也有可能是dest 
     if (this->user_canceled == true) {
-        this->error_code = 3;
+        this->error_code = ERRNO_CANCEL;
     }
     return 0;
 }
@@ -2108,7 +2130,7 @@ int Transportor::run_FTP_to_SFTP()
         } else {
             //其他的情况暂时不考虑处理。跳过。
             //TODO return a error value , not only error code 
-            this->error_code = 1;
+            this->error_code = ERRNO_TASK_INVALID;
             //assert( 1 == 2 ); 
             qDebug()<<"Unexpected transfer type:"<<__FILE__<<" in "<<__LINE__;
         }
@@ -2120,7 +2142,7 @@ int Transportor::run_FTP_to_SFTP()
     qDebug()<<"transfer_ret :"<<transfer_ret<<"ssh2 sftp shutdown:"<<this->src_ssh2_sftp<<" "<<this->dest_ssh2_sftp;
     //TODO 选择性关闭 ssh2 会话，有可能是 src  ,也有可能是dest 
     if (user_canceled == true) {
-        this->error_code = 3;
+        this->error_code = ERRNO_CANCEL;
     }
     return 0;    
 }
