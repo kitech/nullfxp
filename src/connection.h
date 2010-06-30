@@ -61,7 +61,7 @@ public:
     QString protocol;
     QString userName;
     QString password;   //存储的密码为url编码过的
-    QString decodedPassword; // 没用了？
+    // QString decodedPassword; // 没用了？
     QString hostName;
     unsigned short   port;
     QString pubkey;

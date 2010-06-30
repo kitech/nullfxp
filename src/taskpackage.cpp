@@ -172,7 +172,7 @@ QMap<QString, QString> TaskPackage::hostInfo()
     host["host_name"] = this->host;
     host["user_name"] = this->username;
     host["password"] = this->password;
-    host["password"] = QUrl::toPercentEncoding(host["password"]);
+    // host["password"] = QUrl::toPercentEncoding(host["password"]);
     host["port"] = this->port;
     if (this->pubkey != QString::null && this->pubkey.length() > 0) {
         host["pubkey"] = this->pubkey;
