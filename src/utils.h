@@ -19,7 +19,7 @@
 #include <dirent.h>
 #else
 #include <sys/stat.h>
-#define PATH_MAX 512
+#define PATH_MAX 4096
 #endif
 
 #ifdef WIN32
