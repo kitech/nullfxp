@@ -289,16 +289,23 @@ void FileProperties::slot_prop_thread_finished()
 }
 void FileProperties::slot_file_attr_abtained(QString file_name, void *attr)
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    this->ui_file_prop_dialog.label_13->setPixmap(this->fileIcon(file_name).pixmap(50, 50).scaledToHeight(50));
+    // qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
 	char file_perm[60] = {0};
     QString file_size ;
 	LIBSSH2_SFTP_ATTRIBUTES *sftp_attrib = (LIBSSH2_SFTP_ATTRIBUTES *)attr;
     SSHFileInfo fi(sftp_attrib);
+
+    if (fi.isDir()) {
+        QIcon icon = qApp->style()->standardIcon(QStyle::SP_DirIcon);
+        this->ui_file_prop_dialog.label_13->setPixmap(icon.pixmap(50, 50).scaledToHeight(50));
+    } else {
+        this->ui_file_prop_dialog.label_13->setPixmap(this->fileIcon(file_name).pixmap(50, 50).scaledToHeight(50));
+    }
     
     this->ui_file_prop_dialog.label_15->setText(QString("%1").arg(sftp_attrib->uid));
 	this->ui_file_prop_dialog.label_16->setText(QString("%1").arg(sftp_attrib->gid));
+
 	QString mode = digit_mode(sftp_attrib->permissions);
 	this->ui_file_prop_dialog.lineEdit_7->setText(mode);
 	
@@ -409,6 +416,7 @@ QIcon FileProperties::fileIcon(QString file_name)
     if (lastDotPos > lastSplashPos) {
         suffix = file_name.right(file_name.length() - lastDotPos - 1);
     }
+
     if (suffix.isEmpty()) {
         return qApp->style()->standardIcon(QStyle::SP_FileIcon);
     } else {
@@ -591,7 +599,10 @@ QIcon LocalFileProperties::fileIcon(QString file_name)
     if (lastDotPos > lastSplashPos) {
         suffix = file_name.right(file_name.length() - lastDotPos - 1);
     }
-    if (suffix.isEmpty()) {
+
+    if (QFileInfo(file_name).isDir()) {
+        return qApp->style()->standardIcon(QStyle::SP_DirIcon);
+    } else if (suffix.isEmpty()) {
         return qApp->style()->standardIcon(QStyle::SP_FileIcon);
     } else {
         if (suffix.right(1) == "~" || suffix.right(1) == "#") {
