@@ -57,7 +57,6 @@ DirNavBar::~DirNavBar()
 {
 }
 
-
 void DirNavBar::onSetHome(QString path)
 {
     Q_ASSERT(!path.isEmpty());
@@ -70,7 +69,8 @@ void DirNavBar::onSetHome(QString path)
     if (this->uiw.comboBox->count() > this->maxHistoryCount) {
         this->uiw.comboBox->removeItem(0);
     }
-    this->dirHistoryCurrentPos = this->uiw.comboBox->count() - 1;
+    this->dirHistoryCurrentPos = this->uiw.comboBox->count() - 2;
+    // why -2? because has a Clear... item at last
 }
 void DirNavBar::onNavToPath(QString path)
 {
@@ -87,7 +87,7 @@ void DirNavBar::onNavToPath(QString path)
     if (this->uiw.comboBox->count() > this->maxHistoryCount) {
         this->uiw.comboBox->removeItem(0);
     }
-    this->dirHistoryCurrentPos = this->uiw.comboBox->count() - 1;
+    this->dirHistoryCurrentPos = this->uiw.comboBox->count() - 2;
 }
 
 void DirNavBar::onSetCompleteList(QString dirPrefix, QStringList paths)
@@ -115,7 +115,7 @@ void DirNavBar::onGoPrevious()
 {
     // pos - 1, hicnt, 0
     int p1 = this->dirHistoryCurrentPos - 1;
-    int p2 = this->uiw.comboBox->count() - 1;
+    int p2 = this->uiw.comboBox->count() - 2;
 
     if (p1 < 0) {
         p1 = p2;
@@ -129,7 +129,7 @@ void DirNavBar::onGoPrevious()
         Q_ASSERT(p1 >= 0 && p1 < this->uiw.comboBox->count());
         QString path = this->uiw.comboBox->itemText(p1);
         this->dirHistoryCurrentPos = p1;
-        
+
         this->uiw.comboBox->setEditText(path);        
         emit dirInputConfirmed(path);
     }
@@ -138,7 +138,7 @@ void DirNavBar::onGoPrevious()
 void DirNavBar::onGoNext()
 {
     int p1 = this->dirHistoryCurrentPos + 1;
-    int p2 = this->uiw.comboBox->count() - 1;
+    int p2 = this->uiw.comboBox->count() - 2;
 
     if (p1 > p2) {
         p1 = 0;
@@ -197,7 +197,7 @@ void DirNavBar::onGoUp()
     if (this->uiw.comboBox->count() > this->maxHistoryCount) {
         this->uiw.comboBox->removeItem(0);
     }
-    this->dirHistoryCurrentPos = this->uiw.comboBox->count() - 1;
+    this->dirHistoryCurrentPos = this->uiw.comboBox->count() - 2;
 
     emit this->dirInputConfirmed(currPath);
 }

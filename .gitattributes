@@ -1,5 +1,6 @@
 * text=auto !eol
 /AUTHORS -text
+/BUGS -text
 /CMakeLists.txt -text
 /COPYING -text
 /ChangeLog -text
