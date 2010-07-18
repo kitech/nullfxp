@@ -110,6 +110,7 @@ SOURCES += main.cpp \
  ftpdirretriver.cpp \
  sshdirretriver.cpp \
  libftp/libftp.cpp \
+# libftp/curlftp.cpp \
  updatedialog.cpp \
  systeminfodialog.cpp \
  ftphostinfodialog.cpp \
@@ -163,6 +164,7 @@ HEADERS += nullfxp.h \
  ftpdirretriver.h \
  sshdirretriver.h \
  libftp/libftp.h \
+# libftp/curlftp.h \
  updatedialog.h \
  systeminfodialog.h \
  ftphostinfodialog.h \
@@ -208,6 +210,7 @@ win32 {
     #-lgcrypt -lgpg-error 
 } else {
     LIBS += libssh2/src/libssh2.a -lssl -lcrypto -lz
+#    LIBS += -lcurl
     TARGETDEPS += libssh2/src/libssh2.a            # depcreated
     POST_TARGETDEPS += libssh2/src/libssh2.a
 # WARNING: /home/gzleo/nullfxp-svn/src/src.pro:204: Variable TARGETDEPS is deprecated; use POST_TARGETDEPS instead.
