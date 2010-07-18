@@ -508,6 +508,7 @@ src/plink/sshcrcda.c -text
 src/plink/sshdes.c -text
 src/plink/sshdh.c -text
 src/plink/sshdss.c -text
+src/plink/sshgss.h -text
 src/plink/sshmd5.c -text
 src/plink/sshprime.c -text
 src/plink/sshpubk.c -text
@@ -532,6 +533,7 @@ src/plink/unix/uxagentc.c -text
 src/plink/unix/uxconfig.h -text
 src/plink/unix/uxconfig.in -text
 src/plink/unix/uxcons.c -text
+src/plink/unix/uxgss.c -text
 src/plink/unix/uxmisc.c -text
 src/plink/unix/uxnet.c -text
 src/plink/unix/uxnoise.c -text

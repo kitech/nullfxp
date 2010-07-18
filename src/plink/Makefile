@@ -99,8 +99,8 @@ CC = gcc
 
 CFLAGS = -g -O2 -Wall -Werror  -DHAVE_CONFIG_H  -I./ -I./charset/ \
 		-I./windows/ -I./unix/ -I./mac/ -I./macosx/
-XLDFLAGS =   
-ULDFLAGS =  
+XLDFLAGS =  
+ULDFLAGS = -lgssapi_krb5 
 INSTALL=/usr/bin/install -c
 INSTALL_PROGRAM=$(INSTALL)
 INSTALL_DATA=$(INSTALL)
@@ -123,7 +123,7 @@ plink: be_all_s.o cmdline.o cproxy.o ldisc.o logging.o misc.o pinger.o \
 		ssharcf.o sshblowf.o sshbn.o sshcrc.o sshcrcda.o sshdes.o \
 		sshdh.o sshdss.o sshmd5.o sshpubk.o sshrand.o sshrsa.o \
 		sshsh256.o sshsh512.o sshsha.o sshzlib.o telnet.o time.o \
-		timing.o tree234.o ux_x11.o uxagentc.o uxcons.o uxmisc.o \
+		timing.o tree234.o uxgss.o ux_x11.o uxagentc.o uxcons.o uxmisc.o \
 		uxnet.o uxnoise.o uxplink.o uxproxy.o uxsel.o uxser.o \
 		uxsignal.o uxstore.o version.o wildcard.o x11fwd.o
 	$(CC) -o $@ be_all_s.o cmdline.o cproxy.o ldisc.o logging.o misc.o \
@@ -131,17 +131,17 @@ plink: be_all_s.o cmdline.o cproxy.o ldisc.o logging.o misc.o pinger.o \
 		sshaes.o ssharcf.o sshblowf.o sshbn.o sshcrc.o sshcrcda.o \
 		sshdes.o sshdh.o sshdss.o sshmd5.o sshpubk.o sshrand.o \
 		sshrsa.o sshsh256.o sshsh512.o sshsha.o sshzlib.o telnet.o \
-		time.o timing.o tree234.o ux_x11.o uxagentc.o uxcons.o \
+		time.o timing.o tree234.o uxgss.o ux_x11.o uxagentc.o uxcons.o \
 		uxmisc.o uxnet.o uxnoise.o uxplink.o uxproxy.o uxsel.o \
 		uxser.o uxsignal.o uxstore.o version.o wildcard.o x11fwd.o \
 		$(ULDFLAGS) 
-		
+
 pscp: be_none.o cmdline.o cproxy.o int64.o logging.o misc.o pinger.o \
 		portfwd.o proxy.o pscp.o settings.o sftp.o ssh.o sshaes.o \
 		ssharcf.o sshblowf.o sshbn.o sshcrc.o sshcrcda.o sshdes.o \
 		sshdh.o sshdss.o sshmd5.o sshpubk.o sshrand.o sshrsa.o \
 		sshsh256.o sshsh512.o sshsha.o sshzlib.o time.o timing.o \
-		tree234.o uxagentc.o uxcons.o uxmisc.o uxnet.o uxnoise.o \
+		tree234.o uxgss.o uxagentc.o uxcons.o uxmisc.o uxnet.o uxnoise.o \
 		uxproxy.o uxsel.o uxsftp.o uxstore.o version.o wildcard.o \
 		x11fwd.o
 	$(CC) -o $@ be_none.o cmdline.o cproxy.o int64.o logging.o misc.o \
@@ -149,10 +149,10 @@ pscp: be_none.o cmdline.o cproxy.o int64.o logging.o misc.o pinger.o \
 		sshaes.o ssharcf.o sshblowf.o sshbn.o sshcrc.o sshcrcda.o \
 		sshdes.o sshdh.o sshdss.o sshmd5.o sshpubk.o sshrand.o \
 		sshrsa.o sshsh256.o sshsh512.o sshsha.o sshzlib.o time.o \
-		timing.o tree234.o uxagentc.o uxcons.o uxmisc.o uxnet.o \
+		timing.o tree234.o uxgss.o uxagentc.o uxcons.o uxmisc.o uxnet.o \
 		uxnoise.o uxproxy.o uxsel.o uxsftp.o uxstore.o version.o \
 		wildcard.o x11fwd.o $(ULDFLAGS) 
-		
+
 version.o: FORCE
 	if test -z "$(VER)" && (cd .; md5sum -c manifest); then \
 		$(CC) $(COMPAT) $(XFLAGS) $(CFLAGS) `cat ./version.def` -c ./version.c; \
@@ -161,6 +161,8 @@ version.o: FORCE
 	fi
 
 .c.o:
+	$(CC) $(COMPAT) $(XFLAGS) $(CFLAGS) $(VER) -c $^
+uxgss.o: unix/uxgss.c
 	$(CC) $(COMPAT) $(XFLAGS) $(CFLAGS) $(VER) -c $^
 ux_x11.o: unix/ux_x11.c
 	$(CC) $(COMPAT) $(XFLAGS) $(CFLAGS) $(VER) -c $^

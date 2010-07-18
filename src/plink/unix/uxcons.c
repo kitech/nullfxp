@@ -18,6 +18,31 @@ int console_batch_mode = FALSE;
 
 static void *console_logctx = NULL;
 
+static struct termios orig_termios_stderr;
+static int stderr_is_a_tty;
+
+void stderr_tty_init()
+{
+    /* Ensure that if stderr is a tty, we can get it back to a sane state. */
+    if ((flags & FLAG_STDERR_TTY) && isatty(STDERR_FILENO)) {
+	stderr_is_a_tty = TRUE;
+	tcgetattr(STDERR_FILENO, &orig_termios_stderr);
+    }
+}
+
+void premsg(struct termios *cf)
+{
+    if (stderr_is_a_tty) {
+	tcgetattr(STDERR_FILENO, cf);
+	tcsetattr(STDERR_FILENO, TCSADRAIN, &orig_termios_stderr);
+    }
+}
+void postmsg(struct termios *cf)
+{
+    if (stderr_is_a_tty)
+	tcsetattr(STDERR_FILENO, TCSADRAIN, cf);
+}
+
 /*
  * Clean up and exit.
  */
@@ -101,6 +126,7 @@ int verify_ssh_host_key(void *frontend, char *host, int port, char *keytype,
     static const char abandoned[] = "Connection abandoned.\n";
 
     char line[32];
+    struct termios cf;
 
     /*
      * Verify the key.
@@ -110,6 +136,7 @@ int verify_ssh_host_key(void *frontend, char *host, int port, char *keytype,
     if (ret == 0)		       /* success - key matched OK */
 	return 1;
 
+    premsg(&cf);
     if (ret == 2) {		       /* key was different */
 	if (console_batch_mode) {
 	    fprintf(stderr, wrongmsg_batch, keytype, fingerprint);
@@ -134,16 +161,19 @@ int verify_ssh_host_key(void *frontend, char *host, int port, char *keytype,
 	newmode.c_lflag |= ECHO | ISIG | ICANON;
 	tcsetattr(0, TCSANOW, &newmode);
 	line[0] = '\0';
-	read(0, line, sizeof(line) - 1);
+	if (read(0, line, sizeof(line) - 1) <= 0)
+	    /* handled below */;
 	tcsetattr(0, TCSANOW, &oldmode);
     }
 
     if (line[0] != '\0' && line[0] != '\r' && line[0] != '\n') {
 	if (line[0] == 'y' || line[0] == 'Y')
 	    store_host_key(host, port, keytype, keystr);
+	postmsg(&cf);
         return 1;
     } else {
 	fprintf(stderr, abandoned);
+	postmsg(&cf);
         return 0;
     }
 }
@@ -166,7 +196,9 @@ int askalg(void *frontend, const char *algtype, const char *algname,
     static const char abandoned[] = "Connection abandoned.\n";
 
     char line[32];
+    struct termios cf;
 
+    premsg(&cf);
     if (console_batch_mode) {
 	fprintf(stderr, msg_batch, algtype, algname);
 	return 0;
@@ -182,14 +214,17 @@ int askalg(void *frontend, const char *algtype, const char *algname,
 	newmode.c_lflag |= ECHO | ISIG | ICANON;
 	tcsetattr(0, TCSANOW, &newmode);
 	line[0] = '\0';
-	read(0, line, sizeof(line) - 1);
+	if (read(0, line, sizeof(line) - 1) <= 0)
+	    /* handled below */;
 	tcsetattr(0, TCSANOW, &oldmode);
     }
 
     if (line[0] == 'y' || line[0] == 'Y') {
+	postmsg(&cf);
 	return 1;
     } else {
 	fprintf(stderr, abandoned);
+	postmsg(&cf);
 	return 0;
     }
 }
@@ -215,7 +250,9 @@ int askappend(void *frontend, Filename filename,
 	"Logging will not be enabled.\n";
 
     char line[32];
+    struct termios cf;
 
+    premsg(&cf);
     if (console_batch_mode) {
 	fprintf(stderr, msgtemplate_batch, FILENAME_MAX, filename.path);
 	fflush(stderr);
@@ -231,10 +268,12 @@ int askappend(void *frontend, Filename filename,
 	newmode.c_lflag |= ECHO | ISIG | ICANON;
 	tcsetattr(0, TCSANOW, &newmode);
 	line[0] = '\0';
-	read(0, line, sizeof(line) - 1);
+	if (read(0, line, sizeof(line) - 1) <= 0)
+	    /* handled below */;
 	tcsetattr(0, TCSANOW, &oldmode);
     }
 
+    postmsg(&cf);
     if (line[0] == 'y' || line[0] == 'Y')
 	return 2;
     else if (line[0] == 'n' || line[0] == 'N')
@@ -266,7 +305,10 @@ void old_keyfile_warning(void)
 	"Once the key is loaded into PuTTYgen, you can perform\n"
 	"this conversion simply by saving it again.\n";
 
+    struct termios cf;
+    premsg(&cf);
     fputs(message, stderr);
+    postmsg(&cf);
 }
 
 void console_provide_logctx(void *logctx)
@@ -276,8 +318,11 @@ void console_provide_logctx(void *logctx)
 
 void logevent(void *frontend, const char *string)
 {
+    struct termios cf;
+    premsg(&cf);
     if (console_logctx)
 	log_eventlog(console_logctx, string);
+    postmsg(&cf);
 }
 
 static void console_data_untrusted(const char *data, int len)
@@ -302,7 +347,7 @@ int console_get_userpass_input(prompts_t *p, unsigned char *in, int inlen)
 	    memset(p->prompts[i]->result, 0, p->prompts[i]->result_len);
     }
 
-    if (console_batch_mode)
+    if (p->n_prompts && console_batch_mode)
 	return 0;
 
     /*
@@ -373,8 +418,6 @@ int is_interactive(void)
 /*
  * X11-forwarding-related things suitable for console.
  */
-
-const char platform_x11_best_transport[] = "unix";
 
 char *platform_get_x_display(void) {
     return dupstr(getenv("DISPLAY"));
