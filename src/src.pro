@@ -12,10 +12,9 @@ CONFIG += qt thread console warn_on ordered
 TARGET = nullfxp
 DESTDIR = ../bin
 
-VERSION=2.0.2.95  # using in nullfxp-version.h
+VERSION=2.0.2.96  # using in nullfxp-version.h
 
-# get compiling qt version
-
+# install vars, unix xdg
 include(../install.pri)
 
 win32 {
@@ -179,12 +178,14 @@ DISTFILES += ../CMakeLists.txt \
 win32 {
     win32-g++ {
 	    debug {
-		LIBPATH += ./libssh2/src/debug
-		LIBPATH += Z:/librarys/mw-ssl/lib
+            LIBPATH += ./libssh2/src/debug          # depcreated
+            LIBPATH += Z:/librarys/mw-ssl/lib       # depcreated
+            QMAKE_LIBDIR += ./libssh2/src/debug Z:/librarys/mw-ssl/lib
 	    }
 	    release {
-		LIBPATH += ./libssh2/src/release 
-		LIBPATH += Z:/librarys/mw-ssl/lib
+            LIBPATH += ./libssh2/src/release        # depcreated
+            LIBPATH += Z:/librarys/mw-ssl/lib       # depcreated
+            QMAKE_LIBDIR += ./libssh2/src/release Z:/librarys/mw-ssl/lib
 	    }
 	    LIBS += -lssl -lcrypto -lws2_32  -lgdi32 
     } else {
@@ -192,13 +193,13 @@ win32 {
         CLARCH=$$system(path)
         VAMD64=$$find(CLARCH,amd64)
         isEmpty(VAMD64) {
-             LIBPATH += Z:/librarys/vc-ssl-x86/lib Z:/librarys/vc-zlib/static32
+             LIBPATH += Z:/librarys/vc-ssl-x86/lib Z:/librarys/vc-zlib/static32   # depcreated
              QMAKE_LIBDIR += Z:/librarys/vc-ssl-x86/lib Z:/librarys/vc-zlib/static32
         } else {
-             LIBPATH += Z:/librarys/vc-ssl-x64/lib Z:/librarys/vc-zlib/staticx64
+             LIBPATH += Z:/librarys/vc-ssl-x64/lib Z:/librarys/vc-zlib/staticx64 # depcreated
              QMAKE_LIBDIR += Z:/librarys/vc-ssl-x64/lib Z:/librarys/vc-zlib/staticx64
         }
-        LIBPATH += ./libssh2/src/release 
+        LIBPATH += ./libssh2/src/release             # depcreated
         QMAKE_LIBDIR += ./libssh2/src/release 
 
         LIBS += -lqtmain -lzlibstat -llibeay32 -lssleay32 -ladvapi32 -luser32 -lws2_32
@@ -207,7 +208,7 @@ win32 {
     #-lgcrypt -lgpg-error 
 } else {
     LIBS += libssh2/src/libssh2.a -lssl -lcrypto -lz
-    TARGETDEPS += libssh2/src/libssh2.a
+    TARGETDEPS += libssh2/src/libssh2.a            # depcreated
     POST_TARGETDEPS += libssh2/src/libssh2.a
 # WARNING: /home/gzleo/nullfxp-svn/src/src.pro:204: Variable TARGETDEPS is deprecated; use POST_TARGETDEPS instead.
 }
@@ -219,7 +220,7 @@ CONFIG(release, debug|release) {
 CONFIG(debug, debug|release) {
     DEFINES += DEBUG 
 }
-DEFINES -= NDEBUG QT_NO_DEBUG_OUTPUT
+DEFINES -= NDEBUG QT_NO_DEBUG_OUTPUT         # ???
 
 win32-g++ {     
 } else:win32 {
@@ -244,9 +245,8 @@ INCLUDEPATH += . ./libssh2/include
 RESOURCES = nullfxp.qrc
 
 # install settings
-# DISTFILES += ./bin/nullfxp ./bin/unitest
 document.path = $$PKGDATADIR/docs
-document.files = ../INSTALL ../README ../AUTHORS ../ChangeLog ../TODO ../NEWS
+document.files = ../INSTALL ../README ../AUTHORS ../ChangeLog ../TODO ../NEWS ../BUGS
 
 mimes.path = $$PKGDATADIR/icons/mimetypes
 mimes.files = ./icons/mimetypes/*.png
@@ -262,6 +262,8 @@ menus.files = ./data/nullfxp.desktop
 
 tools.path = $$BINDIR
 tools.files = ./../bin/touch.exe
+tools.files += ../bin/unitest
+tools.files += ./plink/plink
 
 mylib.path = $$LIBDIR
 mylib.files = ./libssh2/src/libssh2.a
