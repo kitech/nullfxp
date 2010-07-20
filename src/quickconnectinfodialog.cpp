@@ -33,6 +33,26 @@ QuickConnectInfoDialog::~QuickConnectInfoDialog()
 
 QString QuickConnectInfoDialog::get_protocol()
 {
+    QString protocol;
+    switch (this->quick_connect_info_dialog.comboBox->currentIndex()) {
+    case 0:
+        protocol = "SFTP";
+        break;
+    case 1:
+        protocol = "FTP";
+        break;
+    case 2:
+        protocol = "FTPES";
+        break;
+    case 3:
+        protocol = "FTPS";
+        break;
+    default:
+        protocol = "UNKNOWN";
+        Q_ASSERT(1 == 2);
+        break;
+    }
+    return protocol;
     return this->quick_connect_info_dialog.comboBox->currentText().trimmed();
 }
 QString QuickConnectInfoDialog::get_user_name ()
@@ -77,11 +97,16 @@ void QuickConnectInfoDialog::set_active_host(QMap<QString,QString> host)
     }
 
     if (protocol == QString("FTPS")) {
+        this->quick_connect_info_dialog.comboBox->setCurrentIndex(3);
+    } else if (protocol == QString("FTPES")) {
         this->quick_connect_info_dialog.comboBox->setCurrentIndex(2);
     } else if (protocol == QString("FTP")) {
         this->quick_connect_info_dialog.comboBox->setCurrentIndex(1);
-    } else {
+    } if (protocol == QString("SFTP")) {
         this->quick_connect_info_dialog.comboBox->setCurrentIndex(0);
+    } else {
+        Q_ASSERT(1 == 2);
+        // this->quick_connect_info_dialog.comboBox->setCurrentIndex(0);
     }
 
     this->quick_connect_info_dialog.lineEdit->setText(host_name);
@@ -107,8 +132,25 @@ QMap<QString,QString> QuickConnectInfoDialog::get_host_map()
 {
     QMap<QString,QString> host;
 
+    // switch (this->quick_connect_info_dialog.comboBox->currentIndex()) {
+    // case 0:
+    //     host["protocol"] = "SFTP";
+    //     break;
+    // case 1:
+    //     host["protocol"] = "FTP";
+    //     break;
+    // case 2:
+    //     host["protocol"] = "FTPES";
+    //     break;
+    // case 3:
+    //     host["protocol"] = "FTPS";
+    //     break;
+    // default:
+    //     Q_ASSERT(1 == 2);
+    //     break;
+    // }
     host["show_name"] = this->show_name;
-    host["protocol"] = this->quick_connect_info_dialog.comboBox->currentText().trimmed();
+    host["protocol"] = this->get_protocol();
     host["host_name"] = this->quick_connect_info_dialog.lineEdit->text().trimmed();
     host["user_name"] = this->quick_connect_info_dialog.lineEdit_3->text().trimmed();
     host["password"] = this->quick_connect_info_dialog.lineEdit_4->text();
@@ -172,6 +214,9 @@ void QuickConnectInfoDialog::slot_protocol_changed(int index)
         this->quick_connect_info_dialog.lineEdit_2->setText("21");
         break;
     case 2:
+        this->quick_connect_info_dialog.lineEdit_2->setText("21");
+        break;
+    case 3:
         // ctrl 990, data 989
         this->quick_connect_info_dialog.lineEdit_2->setText("990");
         break;

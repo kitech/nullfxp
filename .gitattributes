@@ -335,6 +335,8 @@ src/icons/user-home.png -text
 src/icons/zoom-in.png -text
 src/libftp/curlftp.cpp -text
 src/libftp/curlftp.h -text
+src/libftp/curlftp_callback.cpp -text
+src/libftp/curlftp_callback.h -text
 src/libssh/libssh.pro -text
 src/libssh/libssh/config.h -text
 src/libssh/libssh/libssh.pro -text

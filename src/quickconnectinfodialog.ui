@@ -27,12 +27,22 @@
       <widget class="QComboBox" name="comboBox">
        <item>
         <property name="text">
-         <string>SFTP</string>
+         <string>SFTP - SSH File Transfer Protocol</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>FTP</string>
+         <string>FTP - File Transfer Protocol</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>FTPES - FTP Over explicit TLS/SSL</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>FTPS - FTP Over implicit TLS/SSL</string>
         </property>
        </item>
       </widget>
