@@ -6,6 +6,7 @@ Homepage:
 Requirement:
 1. >= Qt 4.4.3
 2. OpenSSL
+3. libcurl
 
 代码格式： emacs
 (setq c-default-style "bsd"  c-basic-offset 4)

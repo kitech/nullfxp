@@ -37,6 +37,34 @@ public:
     int connect(const QString host, unsigned short port = 21);
     int login(const QString &user = QString(), const QString &password = QString());
     int get();
+    int put();
+
+    int connectDataChannel();
+    int closeDataChannel();
+    int list(QString path);
+    int lista(QString path);
+    int nlist(QString path);
+    int mlst(QString path);
+    int pwd(QString &path); // returned path
+    int mkdir(QString path);
+    int rmdir(QString path);
+    int chdir(QString path);
+    int put(const QString fileName);
+    int putNoWaitResponse(const QString fileName);
+    int get(const QString fileName);
+    int getNoWaitResponse(const QString fileName);
+    int remove(const QString path);
+    int rename(const QString src, const QString dest);
+    int passive();
+    int rein(const QString &user = QString(), const QString &password = QString()); // 重新登陆
+    int type(int type);
+    int noop();
+    int system(QString &type);
+    int stat(QString path);
+    int port(const QString hostip, const unsigned short port); // fxp
+    int portNoWaitResponse(const QString hostip, const unsigned short port);
+    int size(QString path, quint64 &siz);
+
     QLocalSocket *getDataSock();
     QLocalSocket *getDataSock2();
 

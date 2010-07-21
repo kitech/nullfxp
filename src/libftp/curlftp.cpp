@@ -43,7 +43,7 @@ CurlFtp::CurlFtp(QObject *parent)
 
     rc = curl_easy_setopt(this->curl, CURLOPT_NOSIGNAL, 1);  // this app should used in multithread envirement
     rc = curl_easy_setopt(this->curl, CURLOPT_FTP_FILEMETHOD, CURLFTPMETHOD_SINGLECWD);
-    rc = curl_easy_setopt(this->curl, CURLOPT_FILETIME, 1);
+    rc = curl_easy_setopt(this->curl, CURLOPT_FILETIME, 0); // if ftp put, this cmd error, the put will not exec
     rc = curl_easy_setopt(this->curl, CURLOPT_WILDCARDMATCH, 0);
     // rc = curl_easy_setopt(this->curl, CURLOPT_DNS_USE_GLOBAL_CACHE, 0); // obslate OPT
     
@@ -109,7 +109,7 @@ int CurlFtp::login(const QString &user, const QString &password)
     CURLcode res;
 
     res = curl_easy_setopt(this->curl, CURLOPT_USERNAME, user.toAscii().data());
-
+    
     res = curl_easy_setopt(this->curl, CURLOPT_PASSWORD, password.toAscii().data());
 
     // res = curl_easy_setopt(this->curl, CURLOPT_URL, "ftp://localhost");
@@ -196,13 +196,74 @@ void CurlFtp::asynRunRetrDone()
     this->curlWriteDataRouteServer = NULL;
 }
 
+int CurlFtp::type(int type)
+{
+    CURLcode res;
+    struct curl_slist *headers = NULL;
+    
+    QString cmd;
+    QString tname;
+    
+    switch (type) {
+    case TYPE_ASCII:
+        tname = "A";
+        break;
+    case TYPE_EBCID:
+    case TYPE_BIN:
+    case TYPE_IMAGE:
+    case TYPE_LOCAL_BYTE:
+    default:
+        tname = "I";
+        break;
+    }
+
+    cmd = QString("TYPE %1").arg(tname);
+    headers = curl_slist_append(headers, cmd.toAscii().data());
+
+    res = curl_easy_setopt(this->curl, CURLOPT_POSTQUOTE, headers);
+    res = curl_easy_perform(this->curl);
+    res = curl_easy_setopt(this->curl, CURLOPT_POSTQUOTE, NULL);
+
+    curl_slist_free_all(headers);
+
+    long respCode = 0;
+    res = curl_easy_getinfo(this->curl, CURLINFO_RESPONSE_CODE, &respCode);
+    qDebug()<<"type response code:"<<res;
+
+    return 0;
+}
+
+int CurlFtp::noop()
+{
+    CURLcode res;
+    struct curl_slist *headers = NULL;
+    
+    QString cmd;
+
+    cmd = QString("NOOP");
+    headers = curl_slist_append(headers, cmd.toAscii().data());
+
+    // res = curl_easy_setopt(this->curl, CURLOPT_CUSTOMREQUEST, "NOOP");
+    res = curl_easy_setopt(this->curl, CURLOPT_POSTQUOTE, headers);
+    res = curl_easy_perform(this->curl);
+    res = curl_easy_setopt(this->curl, CURLOPT_POSTQUOTE, NULL);
+    // res = curl_easy_setopt(this->curl, CURLOPT_CUSTOMREQUEST, NULL);
+
+    curl_slist_free_all(headers);
+
+    long respCode = 0;
+    res = curl_easy_getinfo(this->curl, CURLINFO_RESPONSE_CODE, &respCode);
+    qDebug()<<"type response code:"<<res;
+
+    return 0;
+}
+
+
 // 为什么信号都不好使了？？？
 int CurlFtp::get()
 {
     qDebug()<<"Enter get.....";
     CURLcode res;
-    CURLMcode mres;
-    int run_handle = 123456789;
 
     QDir().remove(QDir::tempPath() + "/" + this->proxyName());
     this->curlWriteDataRouteServer = new QLocalServer();
@@ -231,7 +292,7 @@ int CurlFtp::get()
 
     // res = curl_easy_perform(this->curl);
 
-    qDebug()<<"after call perform long time"<<this<<run_handle<<mres;
+    qDebug()<<"after call perform long time"<<this;
     
     // this->getInfoDemo();
 
@@ -243,6 +304,45 @@ int CurlFtp::get()
     // delete this->curlWriteDataRouteServer;
     // this->curlWriteDataRouteServer = NULL;
     
+    return 0;
+}
+
+int CurlFtp::put()
+{
+    qDebug()<<"Enter put.....";
+    CURLcode res;
+
+    QDir().remove(QDir::tempPath() + "/" + this->proxyName());
+    this->curlWriteDataRouteServer = new QLocalServer();
+    this->curlWriteDataRouteServer->listen(this->proxyName());
+
+    this->qdsock2 = new QLocalSocket();
+    this->qdsock2->connectToServer(this->proxyName());
+    
+    this->qdsock = NULL;
+    if (this->curlWriteDataRouteServer->waitForNewConnection(5)) {
+        this->qdsock = this->curlWriteDataRouteServer->nextPendingConnection();
+    }
+    this->qdsock2->waitForConnected();
+    qDebug()<<"can rw:"<<this->qdsock->isReadable()<<this->qdsock->isWritable()
+            <<this->qdsock<<this->qdsock2;
+    // res = curl_easy_setopt(this->curl, CURLOPT_URL, "ftp://ftp.gnu.org/gnu/webstump.README");
+    // res = curl_easy_setopt(this->curl, CURLOPT_URL, "ftp://ftp.gnu.org/gnu/bash/readline-5.1.tar.gz");
+    // res = curl_easy_setopt(this->curl, CURLOPT_URL, "ftp://ftp.gnu.org/gnu/bash/bash-1.14.4-1.14.5.diffs");
+    res = curl_easy_setopt(this->curl, CURLOPT_URL, "ftp://localhost/ttttttttt.txt");
+    res = curl_easy_setopt(this->curl, CURLOPT_UPLOAD, 1L);
+    res = curl_easy_setopt(this->curl, CURLOPT_INFILESIZE_LARGE, 1236);
+    res = curl_easy_setopt(this->curl, CURLOPT_READDATA, this);
+    res = curl_easy_setopt(this->curl, CURLOPT_READFUNCTION, callback_write_file);
+
+    qDebug()<<"normal ftp thread:"<<this->thread();
+    Q_ASSERT(!this->isRunning());
+    // this->start();
+
+    res = curl_easy_perform(this->curl);
+
+    qDebug()<<"after call perform long time"<<this;
+
     return 0;
 }
 

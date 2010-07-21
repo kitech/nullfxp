@@ -80,3 +80,22 @@ size_t callback_read_file(void *ptr, size_t size, size_t nmemb, void *userp)
     return 0;
 }
 
+int gn = 0;
+size_t callback_write_file(void *ptr, size_t size, size_t nmemb, void *userp)
+{
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<size<<nmemb<<userp;
+
+    int tlen = size * nmemb;
+    char *s = (char*)ptr;
+
+    if (gn == 0) {
+        gn ++;
+    } else {
+        return 0;
+    }
+    for (int i = 0 ; i < tlen ; i ++) {
+        s[i] = 'v';
+    }
+
+    return tlen;
+}

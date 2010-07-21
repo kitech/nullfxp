@@ -17,6 +17,8 @@ extern "C" {
 
     size_t callback_read_file(void *ptr, size_t size, size_t nmemb, void *userp);
 
+    size_t callback_write_file(void *ptr, size_t size, size_t nmemb, void *userp);
+
 #ifdef __cplusplus
     };
 #endif

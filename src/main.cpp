@@ -24,33 +24,41 @@ public:
     {
         // test curlftp
         CurlFtp *ftp = new CurlFtp();
-        ftp->connect("ftp.gnu.org", 21);
-        ftp->login("ftp", "ftp@ftp.org");
-        ftp->get();
+        // ftp->connect("ftp.gnu.org", 21);
+        ftp->connect("localhost", 21);
+        // ftp->login("ftp", "ftp@ftp.org");
+        ftp->login("kitsoft", "2113");
+        // ftp->type(CurlFtp::TYPE_BIN);
+        // ftp->noop();
 
-        QByteArray line;
-        QLocalSocket *dsock = ftp->getDataSock();
-        qDebug()<<"local socet:"<<dsock<<dsock->bytesAvailable()<<dsock->isOpen();
-        for (;;) {
-            if (dsock->bytesAvailable() > 0) {
-            } else {
-                dsock->waitForReadyRead(3000);
-                qDebug()<<"wait for ready read..."<<dsock->errorString()<<dsock->isOpen()<<ftp->isFinished()<<ftp->isRunning();
-                if (ftp->isFinished()) {
-                    ftp->asynRunRetrDone();
-                    break;
-                }
-            }
-            while (dsock->bytesAvailable() > 0) {
-                if (dsock->canReadLine()) {
-                    line = dsock->readLine();
-                } else {
-                    line = dsock->read(123);
-                }
-                // qDebug()<<"main read file data:"<<line.length()
-                //         <<dsock->bytesAvailable()<<dsock->errorString()<<line;
-            }
-        }
+        ftp->put();
+
+        // ftp->get();
+        
+
+        // QByteArray line;
+        // QLocalSocket *dsock = ftp->getDataSock();
+        // qDebug()<<"local socet:"<<dsock<<dsock->bytesAvailable()<<dsock->isOpen();
+        // for (;;) {
+        //     if (dsock->bytesAvailable() > 0) {
+        //     } else {
+        //         dsock->waitForReadyRead(3000);
+        //         qDebug()<<"wait for ready read..."<<dsock->errorString()<<dsock->isOpen()<<ftp->isFinished()<<ftp->isRunning();
+        //         if (ftp->isFinished()) {
+        //             ftp->asynRunRetrDone();
+        //             break;
+        //         }
+        //     }
+        //     while (dsock->bytesAvailable() > 0) {
+        //         if (dsock->canReadLine()) {
+        //             line = dsock->readLine();
+        //         } else {
+        //             line = dsock->read(123);
+        //         }
+        //         qDebug()<<"main read file data:"<<line.length()
+        //                 <<dsock->bytesAvailable()<<dsock->errorString()<<line;
+        //     }
+        // }
 
         // delete ftp;
         qDebug()<<"TestThread out";
@@ -72,10 +80,10 @@ int main(int argc, char *argv[])
     app.addLibraryPath(app.applicationDirPath() + "../lib/plugins");
 
 
-    TestThread *t = new TestThread();
-    t->start();
+    // TestThread *t = new TestThread();
+    // t->start();
     
-    qDebug()<<"entering qt loop.";
+    // qDebug()<<"entering qt loop.";
     // return app.exec();
     NullFXP nfxp;
     nfxp.showNormal();
