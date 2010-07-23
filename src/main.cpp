@@ -55,8 +55,15 @@ public:
         // ftp->rename("/110n.mp3", "/110.mp3");
         // ftp->rename("/新建文件夹.tar.gz", "/_淘宝shangping_.tar.gz");
         // ftp->rename("/_淘宝shangping_.tar.gz", "/新建文件夹.tar.gz");
-        ftp->system(str);
-        qDebug()<<"system type:   "<<str;
+        // ftp->system(str);
+        // qDebug()<<"system type:   "<<str;
+
+        // ftp->stat("/110.mp3");
+        // ftp->stat("/firefox");
+
+        quint64 num;
+        ftp->size("/110.mp3", num);
+        ftp->size("/firefox", num);
 
         // ftp->put();
 

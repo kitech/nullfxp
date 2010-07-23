@@ -73,6 +73,10 @@ public:
 protected:
     virtual void run();
 
+    int customCommand(QString cmdLine, long &respCode);
+    int customCommandWithResponseText(QString cmdLine, long &respCode, QByteArray &respText);
+    int customCommandWithoutResponseText(QString cmdLine, long &respCode);
+
 signals:
     void runHere();
 

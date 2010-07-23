@@ -670,6 +670,179 @@ int CurlFtp::system(QString &type)
     return 0;
 }
 
+int CurlFtp::stat(QString path)
+{
+    CURLcode res;
+    QString uri;
+    QString cmd;
+    curl_slist *headers = NULL;
+
+    // qDebug()<<"enter list......";
+    uri = this->baseUrl;
+    cmd = QString("STAT %1").arg(path);
+    headers = curl_slist_append(headers, cmd.toAscii().data());
+    // cmd = QString("PWD");
+    // curl_easy_setopt(this->curl, CURLOPT_CUSTOMREQUEST, cmd.toAscii().data());
+    // curl_easy_setopt(this->curl, CURLOPT_DIRLISTONLY, 1);
+    curl_easy_setopt(this->curl, CURLOPT_NOBODY, 1);
+    curl_easy_setopt(this->curl, CURLOPT_POSTQUOTE, headers);
+    curl_easy_setopt(this->curl, CURLOPT_URL, uri.toAscii().data());
+
+    curl_easy_setopt(this->curl, CURLOPT_DEBUGDATA, this);
+    curl_easy_setopt(this->curl, CURLOPT_DEBUGFUNCTION, callback_debug);
+    Q_ASSERT(!this->rawRespBuff.isOpen());
+    this->rawRespBuff.open(QIODevice::ReadWrite | QIODevice::Unbuffered);
+
+    res = curl_easy_perform(this->curl);
+
+    long rcode = 0;
+    curl_easy_getinfo(this->curl, CURLINFO_RESPONSE_CODE, &rcode);
+    qDebug()<<cmd<<" code:"<<rcode;
+    Q_ASSERT(rcode == 213);
+
+    // curl_easy_setopt(this->curl, CURLOPT_DIRLISTONLY, 0);
+    // curl_easy_setopt(this->curl, CURLOPT_CUSTOMREQUEST, NULL);
+    curl_easy_setopt(this->curl, CURLOPT_POSTQUOTE, NULL);
+    curl_easy_setopt(this->curl, CURLOPT_NOBODY, 0);
+
+    curl_easy_setopt(this->curl, CURLOPT_DEBUGDATA, stdout);
+    curl_easy_setopt(this->curl, CURLOPT_DEBUGFUNCTION, NULL);
+
+    curl_slist_free_all(headers);
+
+    // 
+    qDebug()<<"abtained:"<<this->rawRespBuff.data();
+    this->rawRespBuff.close();
+
+    return 0;
+}
+
+int CurlFtp::size(QString path, quint64 &siz)
+{
+    QString cmd;
+    QByteArray respText;
+    long respCode;
+
+    cmd = QString("SIZE %1").arg(path);
+
+    int rc = this->customCommandWithResponseText(cmd, respCode, respText);
+
+    if (respCode == 213) {
+        // parse respText here
+    }
+
+    return rc;
+
+    // CURLcode res;
+    // QString uri;
+    // QString cmd;
+    // curl_slist *headers = NULL;
+
+    // // qDebug()<<"enter list......";
+    // uri = this->baseUrl;
+    // cmd = QString("SIZE %1").arg(path);
+    // headers = curl_slist_append(headers, cmd.toAscii().data());
+    // // cmd = QString("PWD");
+    // // curl_easy_setopt(this->curl, CURLOPT_CUSTOMREQUEST, cmd.toAscii().data());
+    // // curl_easy_setopt(this->curl, CURLOPT_DIRLISTONLY, 1);
+    // curl_easy_setopt(this->curl, CURLOPT_NOBODY, 1);
+    // curl_easy_setopt(this->curl, CURLOPT_POSTQUOTE, headers);
+    // curl_easy_setopt(this->curl, CURLOPT_URL, uri.toAscii().data());
+
+    // curl_easy_setopt(this->curl, CURLOPT_DEBUGDATA, this);
+    // curl_easy_setopt(this->curl, CURLOPT_DEBUGFUNCTION, callback_debug);
+    // Q_ASSERT(!this->rawRespBuff.isOpen());
+    // this->rawRespBuff.open(QIODevice::ReadWrite | QIODevice::Unbuffered);
+
+    // res = curl_easy_perform(this->curl);
+
+    // long rcode = 0;
+    // curl_easy_getinfo(this->curl, CURLINFO_RESPONSE_CODE, &rcode);
+    // qDebug()<<cmd<<" code:"<<rcode;
+    // Q_ASSERT(rcode == 213);
+
+    // // curl_easy_setopt(this->curl, CURLOPT_DIRLISTONLY, 0);
+    // // curl_easy_setopt(this->curl, CURLOPT_CUSTOMREQUEST, NULL);
+    // curl_easy_setopt(this->curl, CURLOPT_POSTQUOTE, NULL);
+    // curl_easy_setopt(this->curl, CURLOPT_NOBODY, 0);
+
+    // curl_easy_setopt(this->curl, CURLOPT_DEBUGDATA, stdout);
+    // curl_easy_setopt(this->curl, CURLOPT_DEBUGFUNCTION, NULL);
+
+    // curl_slist_free_all(headers);
+
+    // // 
+    // qDebug()<<"abtained:"<<this->rawRespBuff.data();
+    // this->rawRespBuff.close();
+
+    return 0;
+}
+
+int CurlFtp::customCommand(QString cmdLine, long &respCode)
+{
+    CURLcode res;
+    QString uri;
+    QString cmd;
+    curl_slist *headers = NULL;
+
+    // qDebug()<<"enter list......";
+    uri = this->baseUrl;
+    cmd = cmdLine; // QString("SIZE %1").arg(path);
+    headers = curl_slist_append(headers, cmd.toAscii().data());
+    // cmd = QString("PWD");
+    // curl_easy_setopt(this->curl, CURLOPT_CUSTOMREQUEST, cmd.toAscii().data());
+    // curl_easy_setopt(this->curl, CURLOPT_DIRLISTONLY, 1);
+    curl_easy_setopt(this->curl, CURLOPT_NOBODY, 1);
+    curl_easy_setopt(this->curl, CURLOPT_POSTQUOTE, headers);
+    curl_easy_setopt(this->curl, CURLOPT_URL, uri.toAscii().data());
+
+    curl_easy_setopt(this->curl, CURLOPT_DEBUGDATA, this);
+    curl_easy_setopt(this->curl, CURLOPT_DEBUGFUNCTION, callback_debug);
+    Q_ASSERT(!this->rawRespBuff.isOpen());
+    this->rawRespBuff.open(QIODevice::ReadWrite | QIODevice::Unbuffered);
+
+    res = curl_easy_perform(this->curl);
+
+    long rcode = 0;
+    curl_easy_getinfo(this->curl, CURLINFO_RESPONSE_CODE, &rcode);
+    qDebug()<<cmd<<" code:"<<rcode;
+    respCode = rcode;
+    // Q_ASSERT(rcode == 213);
+
+    // curl_easy_setopt(this->curl, CURLOPT_DIRLISTONLY, 0);
+    // curl_easy_setopt(this->curl, CURLOPT_CUSTOMREQUEST, NULL);
+    curl_easy_setopt(this->curl, CURLOPT_POSTQUOTE, NULL);
+    curl_easy_setopt(this->curl, CURLOPT_NOBODY, 0);
+
+    curl_easy_setopt(this->curl, CURLOPT_DEBUGDATA, stdout);
+    curl_easy_setopt(this->curl, CURLOPT_DEBUGFUNCTION, NULL);
+
+    curl_slist_free_all(headers);
+
+    // 
+    qDebug()<<"abtained:"<<this->rawRespBuff.data();
+    this->rawRespBuff.close();
+
+    return 0;
+}
+int CurlFtp::customCommandWithResponseText(QString cmdLine, long &respCode, QByteArray &respText)
+{
+    int rc = customCommand(cmdLine, respCode);
+    
+    respText = this->rawRespBuff.data();
+    this->rawRespBuff.setData(NULL, 0);
+    qDebug()<<"abtained22222:"<<this->rawRespBuff.data()<<respText;
+    return rc;
+}
+int CurlFtp::customCommandWithoutResponseText(QString cmdLine, long &respCode)
+{
+    int rc = customCommand(cmdLine, respCode);
+    Q_ASSERT(!this->rawRespBuff.isOpen());    
+    this->rawRespBuff.setData(NULL, 0);
+    return rc;
+}
+
+
 // 为什么信号都不好使了？？？
 int CurlFtp::get()
 {
