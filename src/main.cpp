@@ -31,11 +31,37 @@ public:
         // ftp->type(CurlFtp::TYPE_BIN);
         // ftp->noop();
 
-        ftp->put();
+        // ftp->list("/opera.pac.js");
+        // ftp->lista("/opera.pac.js");
+        // ftp->mlst("/opera.pac.js");
+
+        // ftp->list("/firefox");
+        // ftp->lista("/firefox");
+        // ftp->mlst("/firefox");
+
+        // ftp->chdir("/firefox");
+
+        QString str;
+        // ftp->pwd(str);
+        // qDebug()<<"PWD:   "<<str;
+
+        // ftp->rmdir("/hahaha");
+        // ftp->mkdir("/hahaha");
+        // ftp->rmdir("/hahaha");
+
+        // ftp->remove("/aa.txt");
+
+        // ftp->rename("/110.mp3", "/110n.mp3");
+        // ftp->rename("/110n.mp3", "/110.mp3");
+        // ftp->rename("/新建文件夹.tar.gz", "/_淘宝shangping_.tar.gz");
+        // ftp->rename("/_淘宝shangping_.tar.gz", "/新建文件夹.tar.gz");
+        ftp->system(str);
+        qDebug()<<"system type:   "<<str;
+
+        // ftp->put();
 
         // ftp->get();
         
-
         // QByteArray line;
         // QLocalSocket *dsock = ftp->getDataSock();
         // qDebug()<<"local socet:"<<dsock<<dsock->bytesAvailable()<<dsock->isOpen();
@@ -79,12 +105,13 @@ int main(int argc, char *argv[])
     app.addLibraryPath(app.applicationDirPath() + "../lib64/plugins");
     app.addLibraryPath(app.applicationDirPath() + "../lib/plugins");
 
-
-    // TestThread *t = new TestThread();
-    // t->start();
+    ///// test curl ftp functions
+    TestThread *t = new TestThread();
+    t->start();
     
-    // qDebug()<<"entering qt loop.";
-    // return app.exec();
+    qDebug()<<"entering qt loop.";
+    return app.exec();
+
     NullFXP nfxp;
     nfxp.showNormal();
     

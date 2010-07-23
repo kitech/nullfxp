@@ -98,6 +98,9 @@ private:
     QLocalSocket *qdsock;
     QLocalSocket *qdsock2;
     static int seq;
+
+public:
+    QBuffer rawRespBuff;
 };
 
 #endif

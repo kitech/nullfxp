@@ -99,3 +99,19 @@ size_t callback_write_file(void *ptr, size_t size, size_t nmemb, void *userp)
 
     return tlen;
 }
+
+int callback_debug(CURL *curl, curl_infotype it, char *text, size_t size, void *userp)
+{
+    char *str = (char*)calloc(1, size + 1);
+    strncpy(str, text, size);
+    str[size] = '\0';
+    qDebug()<<"spy debug:"<<it<<str;
+
+    if (it == CURLINFO_HEADER_IN) {
+        CurlFtp *ftp = static_cast<CurlFtp*>(userp);
+        ftp->rawRespBuff.write(str, size);
+    }
+
+    free(str);
+    return 0;
+}
