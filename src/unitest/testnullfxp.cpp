@@ -7,6 +7,8 @@
 // Version: $Id$
 // 
 
+
+
 #include "testnullfxp.h"
 
 #include "basestorage.h"
@@ -14,6 +16,7 @@
 #include "libssh2.h"
 #include "libssh2_sftp.h"
 #include "sshfileinfo.h"
+#include "libftp/curlftp.h"
 
 void TestNullfxp::initTestCase()
 {
@@ -141,3 +144,109 @@ void TestNullfxp::testCXX0XSyntax()
 #endif
 #endif    
 }
+
+
+//////////////////////
+
+class TestThread : public QThread
+{
+public:
+    void run()
+    {
+        int ret;
+        // test curlftp
+        CurlFtp *ftp = new CurlFtp();
+        // ftp->connect("ftp.gnu.org", 21);
+        ftp->connect("localhost", 21);
+        // ftp->login("ftp", "ftp@ftp.org");
+        ftp->login("kitsoft", "2113");
+        // ftp->type(CurlFtp::TYPE_BIN);
+        // ftp->noop();
+
+        // ftp->list("/opera.pac.js");
+        // ftp->lista("/opera.pac.js");
+        // ftp->mlst("/opera.pac.js");
+
+        // ftp->list("/firefox");
+        // ftp->lista("/firefox");
+        // ftp->mlst("/firefox");
+
+        // ftp->chdir("/firefox");
+
+        QString str;
+        // ftp->pwd(str);
+        // qDebug()<<"PWD:   "<<str;
+
+        // ftp->rmdir("/hahaha");
+        // ftp->mkdir("/hahaha");
+        // ftp->rmdir("/hahaha");
+
+        // ftp->remove("/aa.txt");
+
+        // ftp->rename("/110.mp3", "/110n.mp3");
+        // ftp->rename("/110n.mp3", "/110.mp3");
+        // ftp->rename("/新建文件夹.tar.gz", "/_淘宝shangping_.tar.gz");
+        // ftp->rename("/_淘宝shangping_.tar.gz", "/新建文件夹.tar.gz");
+        // ftp->system(str);
+        // qDebug()<<"system type:   "<<str;
+
+        // ftp->stat("/110.mp3");
+        ftp->stat("/firefox");
+
+        quint64 num;
+        ret = ftp->size("/110.mp3", num);
+        QVERIFY(ret == 0);
+        ret = ftp->size("/firefox", num);
+        QVERIFY(ret == 0);
+        // ftp->put();
+
+        // ftp->get();
+        
+        // QByteArray line;
+        // QLocalSocket *dsock = ftp->getDataSock();
+        // qDebug()<<"local socet:"<<dsock<<dsock->bytesAvailable()<<dsock->isOpen();
+        // for (;;) {
+        //     if (dsock->bytesAvailable() > 0) {
+        //     } else {
+        //         dsock->waitForReadyRead(3000);
+        //         qDebug()<<"wait for ready read..."<<dsock->errorString()<<dsock->isOpen()<<ftp->isFinished()<<ftp->isRunning();
+        //         if (ftp->isFinished()) {
+        //             ftp->asynRunRetrDone();
+        //             break;
+        //         }
+        //     }
+        //     while (dsock->bytesAvailable() > 0) {
+        //         if (dsock->canReadLine()) {
+        //             line = dsock->readLine();
+        //         } else {
+        //             line = dsock->read(123);
+        //         }
+        //         qDebug()<<"main read file data:"<<line.length()
+        //                 <<dsock->bytesAvailable()<<dsock->errorString()<<line;
+        //     }
+        // }
+
+        // delete ftp;
+        qDebug()<<"TestThread out";
+    }
+};
+
+void TestNullfxp::testCurlFtp()
+{
+
+    ///// test curl ftp functions
+    // TestThread *t = new TestThread();
+    // t->start();
+    
+    // qDebug()<<"entering qt loop.";
+    // return app.exec();
+
+    ///// test curl ftp functions
+    TestThread *t = new TestThread();
+    t->start();
+
+    t->wait(-1);
+
+    
+}
+

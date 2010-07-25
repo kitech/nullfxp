@@ -16,7 +16,7 @@ INCLUDEPATH += .. ../libssh2/include/
 
 include(../../install.pri)
 
-QT += testlib
+QT += testlib network
 
 # Input
 HEADERS += testnullfxp.h
@@ -27,7 +27,10 @@ SOURCES += testmain.cpp testnullfxp.cpp
 }
 
 SOURCES += ../basestorage.cpp ../utils.cpp ../globaloption.cpp \
-  ../sshfileinfo.cpp
+          ../sshfileinfo.cpp \
+          ../libftp/curlftp.cpp ../libftp/curlftp_callback.cpp
+
+HEADERS += ../libftp/curlftp.h
 
 win32 {
     win32-g++ {
@@ -45,6 +48,7 @@ win32 {
 }
 
 win32:LIBS += -lQtTest -lws2_32  -lgdi32 
+unix:LIBS += -lcurl
 
 target.path = $$BINDIR
 INSTALLS += target

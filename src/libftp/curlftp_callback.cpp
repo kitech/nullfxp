@@ -88,6 +88,10 @@ size_t callback_write_file(void *ptr, size_t size, size_t nmemb, void *userp)
     int tlen = size * nmemb;
     char *s = (char*)ptr;
 
+    CurlFtp *ftp = static_cast<CurlFtp*>(userp);
+    QLocalSocket *router = ftp->getDataSock2();
+    Q_ASSERT(router != NULL);
+
     if (gn == 0) {
         gn ++;
     } else {

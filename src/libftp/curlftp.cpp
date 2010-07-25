@@ -45,7 +45,11 @@ CurlFtp::CurlFtp(QObject *parent)
     // rc = curl_easy_setopt(this->curl, CURLOPT_FTP_FILEMETHOD, CURLFTPMETHOD_SINGLECWD);
     rc = curl_easy_setopt(this->curl, CURLOPT_FTP_FILEMETHOD, CURLFTPMETHOD_NOCWD);
     rc = curl_easy_setopt(this->curl, CURLOPT_FILETIME, 0); // if ftp put, this cmd error, the put will not exec
+
+#ifdef CURLOPT_WILDCARDMATCH
+    // <= 7.19 problem
     rc = curl_easy_setopt(this->curl, CURLOPT_WILDCARDMATCH, 0);
+#endif
     // rc = curl_easy_setopt(this->curl, CURLOPT_DNS_USE_GLOBAL_CACHE, 0); // obslate OPT
     
     this->shareHandle = curl_share_init();
@@ -156,7 +160,50 @@ int CurlFtp::login(const QString &user, const QString &password)
     return 0;
 }
 
-QString CurlFtp::proxyName()
+int CurlFtp::logout()
+{
+    return 0;
+}
+
+int CurlFtp::connectDataChannel()
+{
+    QDir().remove(QDir::tempPath() + "/" + this->routerName());
+    this->curlWriteDataRouteServer = new QLocalServer();
+    this->curlWriteDataRouteServer->listen(this->routerName());
+
+    this->qdsock2 = new QLocalSocket();
+    this->qdsock2->connectToServer(this->routerName());
+    
+    this->qdsock = NULL;
+    if (this->curlWriteDataRouteServer->waitForNewConnection(5)) {
+        this->qdsock = this->curlWriteDataRouteServer->nextPendingConnection();
+    }
+    this->qdsock2->waitForConnected();
+    qDebug()<<"can rw:"<<this->qdsock->isReadable()<<this->qdsock->isWritable()
+            <<this->qdsock<<this->qdsock2;
+
+    return 0;
+}
+
+int CurlFtp::closeDataChannel()
+{
+    qDebug()<<"runn donevvvvvvvvvvvv8555555558888888 ";    
+    this->qdsock->flush();
+    this->qdsock->close();
+    delete this->qdsock;
+    this->qdsock = NULL;
+    this->qdsock2->close();
+    delete this->qdsock2;
+    this->qdsock2 = NULL;
+
+    this->curlWriteDataRouteServer->close();
+    delete this->curlWriteDataRouteServer;
+    this->curlWriteDataRouteServer = NULL;
+
+    return 0;
+}
+
+QString CurlFtp::routerName()
 {
     QString name;
     QDateTime nowTime = QDateTime::currentDateTime();
@@ -199,10 +246,11 @@ void CurlFtp::nowarnRunTask()
 void CurlFtp::nowarnRunDone()
 {
     // Q_ASSERT(1 == 2);
-    qDebug()<<"runn donevvvvvvvvvvvv ";    
+    qDebug()<<"runn donevvvvvvvvvvvv ";
 }
 
 // need call by caller, when caller checked that this thread task is finished
+// depcreated
 void CurlFtp::asynRunRetrDone()
 {
     qDebug()<<"runn donevvvvvvvvvvvv8555555558888888 ";    
@@ -450,6 +498,51 @@ int CurlFtp::chdir(QString path)
     this->rawRespBuff.close();
 }
 
+int CurlFtp::put(const QString fileName)
+{
+    qDebug()<<"Enter put.....";
+    CURLcode res;
+    QString uri;
+
+    // QDir().remove(QDir::tempPath() + "/" + this->routerName());
+    // this->curlWriteDataRouteServer = new QLocalServer();
+    // this->curlWriteDataRouteServer->listen(this->routerName());
+
+    // this->qdsock2 = new QLocalSocket();
+    // this->qdsock2->connectToServer(this->routerName());
+    
+    // this->qdsock = NULL;
+    // if (this->curlWriteDataRouteServer->waitForNewConnection(5)) {
+    //     this->qdsock = this->curlWriteDataRouteServer->nextPendingConnection();
+    // }
+    // this->qdsock2->waitForConnected();
+    // qDebug()<<"can rw:"<<this->qdsock->isReadable()<<this->qdsock->isWritable()
+    //         <<this->qdsock<<this->qdsock2;
+
+
+    uri = this->baseUrl + QString("%1").arg(fileName);
+
+    // res = curl_easy_setopt(this->curl, CURLOPT_URL, "ftp://ftp.gnu.org/gnu/webstump.README");
+    // res = curl_easy_setopt(this->curl, CURLOPT_URL, "ftp://ftp.gnu.org/gnu/bash/readline-5.1.tar.gz");
+    // res = curl_easy_setopt(this->curl, CURLOPT_URL, "ftp://ftp.gnu.org/gnu/bash/bash-1.14.4-1.14.5.diffs");
+    // res = curl_easy_setopt(this->curl, CURLOPT_URL, "ftp://localhost/ttttttttt.txt");
+    res = curl_easy_setopt(this->curl, CURLOPT_URL, uri.toAscii().data());
+    res = curl_easy_setopt(this->curl, CURLOPT_UPLOAD, 1L);
+    res = curl_easy_setopt(this->curl, CURLOPT_INFILESIZE_LARGE, 1236);
+    res = curl_easy_setopt(this->curl, CURLOPT_READDATA, this);
+    res = curl_easy_setopt(this->curl, CURLOPT_READFUNCTION, callback_write_file);
+
+    qDebug()<<"normal ftp thread:"<<this->thread();
+    Q_ASSERT(!this->isRunning());
+    this->start();
+
+    // res = curl_easy_perform(this->curl);
+
+    qDebug()<<"after call perform long time"<<this;
+
+    return 0;
+}
+
 int CurlFtp::remove(const QString path)
 {
     CURLcode res;
@@ -537,6 +630,10 @@ int CurlFtp::rename(const QString src, const QString dest)
     return 0;
 }
 
+int CurlFtp::passive()
+{
+    return 0;
+}
 
 int CurlFtp::type(int type)
 {
@@ -849,12 +946,12 @@ int CurlFtp::get()
     qDebug()<<"Enter get.....";
     CURLcode res;
 
-    QDir().remove(QDir::tempPath() + "/" + this->proxyName());
+    QDir().remove(QDir::tempPath() + "/" + this->routerName());
     this->curlWriteDataRouteServer = new QLocalServer();
-    this->curlWriteDataRouteServer->listen(this->proxyName());
+    this->curlWriteDataRouteServer->listen(this->routerName());
 
     this->qdsock2 = new QLocalSocket();
-    this->qdsock2->connectToServer(this->proxyName());
+    this->qdsock2->connectToServer(this->routerName());
     
     this->qdsock = NULL;
     if (this->curlWriteDataRouteServer->waitForNewConnection(5)) {
@@ -896,12 +993,12 @@ int CurlFtp::put()
     qDebug()<<"Enter put.....";
     CURLcode res;
 
-    QDir().remove(QDir::tempPath() + "/" + this->proxyName());
+    QDir().remove(QDir::tempPath() + "/" + this->routerName());
     this->curlWriteDataRouteServer = new QLocalServer();
-    this->curlWriteDataRouteServer->listen(this->proxyName());
+    this->curlWriteDataRouteServer->listen(this->routerName());
 
     this->qdsock2 = new QLocalSocket();
-    this->qdsock2->connectToServer(this->proxyName());
+    this->qdsock2->connectToServer(this->routerName());
     
     this->qdsock = NULL;
     if (this->curlWriteDataRouteServer->waitForNewConnection(5)) {

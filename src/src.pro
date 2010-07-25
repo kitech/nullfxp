@@ -204,8 +204,11 @@ win32 {
         }
         LIBPATH += ./libssh2/src/release             # depcreated
         QMAKE_LIBDIR += ./libssh2/src/release 
+        QMAKE_LIBDIR += Z:/librarys/libcurl/lib/release
+        INCLUDEPATH += Z:/librarys/libcurl/include
 
         LIBS += -lqtmain -lzlibstat -llibeay32 -lssleay32 -ladvapi32 -luser32 -lws2_32
+        LIBS += -lcurlib
     }
     LIBS += -lssh2 -lws2_32  -lgdi32 
     #-lgcrypt -lgpg-error 

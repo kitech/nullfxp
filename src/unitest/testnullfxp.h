@@ -29,5 +29,7 @@ private slots:
 
     void testCXXBaseSyntax();
     void testCXX0XSyntax();
+
+    void testCurlFtp();
 };
 

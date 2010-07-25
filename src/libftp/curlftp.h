@@ -36,6 +36,7 @@ public:
 
     int connect(const QString host, unsigned short port = 21);
     int login(const QString &user = QString(), const QString &password = QString());
+    int logout();
     int get();
     int put();
 
@@ -86,7 +87,7 @@ public slots:
     void asynRunRetrDone();
 
 private:
-    QString proxyName();
+    QString routerName();
 
 public:
     // QThread *retrTask;
