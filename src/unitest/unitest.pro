@@ -38,6 +38,11 @@ win32 {
         DEFINES += LIBSSH2_WIN32 _CRT_SECURE_NO_DEPRECATE
          CONFIG -= embed_manifest_exe
          CONFIG -= embed_manifest_dll
+
+         CMAKE_LIBDIR += Z:/librarys/libcurl/lib/Relase
+         INCLUDEPATH += Z:/librarys/libcurl/include
+         
+         LIBS += -lcurllib
     }
     RC_FILE = unitest.rc
 } else: macx-g++ {

@@ -83,14 +83,59 @@ size_t callback_read_file(void *ptr, size_t size, size_t nmemb, void *userp)
 int gn = 0;
 size_t callback_write_file(void *ptr, size_t size, size_t nmemb, void *userp)
 {
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<size<<nmemb<<userp;
+    // qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<size<<nmemb<<userp;
 
     int tlen = size * nmemb;
     char *s = (char*)ptr;
+    int rlen = 0;
 
     CurlFtp *ftp = static_cast<CurlFtp*>(userp);
     QLocalSocket *router = ftp->getDataSock2();
+    QLocalSocket *suppler = ftp->getDataSock();
+
+    // qDebug()<<"here";
     Q_ASSERT(router != NULL);
+    // qDebug()<<"here"<<router;
+    
+    for (;;) {
+        if (router->bytesAvailable() > 0) {
+        } else {
+            router->waitForReadyRead(1000);
+            // qDebug()<<"wait for ready read..."<<router->errorString()
+            //         <<router->isOpen();
+            if (router->bytesAvailable() == 0) {
+                suppler = ftp->getDataSock();
+                if (suppler == NULL) {
+                    // suppler is finished.
+                    // ftp->closeDataChannel2();
+                    return 0;
+                }
+                continue;
+            }
+        }
+        Q_ASSERT(router->bytesAvailable() > 0);
+        rlen = router->read(s, tlen);
+            
+        if (rlen < 0) {
+            Q_ASSERT(rlen >= 0);
+            return 0;
+        } else if (rlen == 0) {
+            qDebug()<<"no data left";
+            return 0;
+        } else {
+            return rlen;
+        }
+    }
+
+    // rlen = router->read(s, tlen);
+    // if (rlen < 0) {
+    //     Q_ASSERT(rlen >= 0);
+    //     return 0;
+    // } else if (rlen == 0) {
+    //     return 0;
+    // } else {
+    //     return rlen;
+    // }
 
     if (gn == 0) {
         gn ++;

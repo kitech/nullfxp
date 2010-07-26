@@ -208,7 +208,7 @@ win32 {
         INCLUDEPATH += Z:/librarys/libcurl/include
 
         LIBS += -lqtmain -lzlibstat -llibeay32 -lssleay32 -ladvapi32 -luser32 -lws2_32
-        LIBS += -lcurlib
+        LIBS += -lcurllib
     }
     LIBS += -lssh2 -lws2_32  -lgdi32 
     #-lgcrypt -lgpg-error 

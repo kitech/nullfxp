@@ -42,6 +42,7 @@ public:
 
     int connectDataChannel();
     int closeDataChannel();
+    int closeDataChannel2();
     int list(QString path);
     int lista(QString path);
     int nlist(QString path);

@@ -154,6 +154,7 @@ public:
     void run()
     {
         int ret;
+        int ret2;
         // test curlftp
         CurlFtp *ftp = new CurlFtp();
         // ftp->connect("ftp.gnu.org", 21);
@@ -198,6 +199,39 @@ public:
         QVERIFY(ret == 0);
         ret = ftp->size("/firefox", num);
         QVERIFY(ret == 0);
+
+        ftp->put("/mysql-5.5.5-m3.tar.gz");
+        
+        QString upfile = "/home/gzleo/NGDownload/mysql-5.5.5-m3.tar.gz";
+
+        ftp->passive();
+        ftp->connectDataChannel();
+
+        QLocalSocket *dsock = ftp->getDataSock();
+        char buf[16];
+        QFile upfp(upfile);
+        Q_ASSERT(upfp.open(QIODevice::ReadWrite) == true);
+        ret = upfp.open(QIODevice::ReadOnly);
+        Q_ASSERT(ret == true);
+
+        int totalPutSize = 0;
+        upfp.seek(0);
+        qDebug()<<"upfp atend???"<<upfp.atEnd();
+        while (!upfp.atEnd()) {
+            ret = upfp.read(buf, sizeof(upfp));
+            ret2 = dsock->write(buf, ret);
+            dsock->flush();
+            QVERIFY(ret2 == ret);
+            totalPutSize += ret2;
+            // qDebug()<<"put size:"<<ret;
+        }
+        upfp.close();
+
+        qDebug()<<"totalPutSize:"<<totalPutSize;
+        ftp->closeDataChannel();
+        ftp->wait();
+        qDebug()<<"FTP thread finished.";
+
         // ftp->put();
 
         // ftp->get();

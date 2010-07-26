@@ -192,6 +192,12 @@ int CurlFtp::closeDataChannel()
     this->qdsock->close();
     delete this->qdsock;
     this->qdsock = NULL;
+
+    return 0;
+}
+
+int CurlFtp::closeDataChannel2()
+{
     this->qdsock2->close();
     delete this->qdsock2;
     this->qdsock2 = NULL;
@@ -199,7 +205,7 @@ int CurlFtp::closeDataChannel()
     this->curlWriteDataRouteServer->close();
     delete this->curlWriteDataRouteServer;
     this->curlWriteDataRouteServer = NULL;
-
+    
     return 0;
 }
 
@@ -229,10 +235,13 @@ void CurlFtp::run()
 {
     CURLcode res;
 
-    qDebug()<<"runn donevvttttttttvrunrunrurnurnrunnnnnnnn ";
+    qDebug()<<"runn start vvttttttttvrunrunrurnurnrunnnnnnnn ";
 
     res = curl_easy_perform(this->curl);
     // emit this->runHere();
+    qDebug()<<"runn done vvttttttttvrunrunrurnurnrunnnnnnnn ";
+    
+    this->closeDataChannel2();
 }
 
 void CurlFtp::nowarnRunTask()
@@ -496,6 +505,8 @@ int CurlFtp::chdir(QString path)
     // 
     qDebug()<<"abtained:"<<this->rawRespBuff.data();
     this->rawRespBuff.close();
+
+    return 0;
 }
 
 int CurlFtp::put(const QString fileName)
@@ -531,6 +542,7 @@ int CurlFtp::put(const QString fileName)
     res = curl_easy_setopt(this->curl, CURLOPT_INFILESIZE_LARGE, 1236);
     res = curl_easy_setopt(this->curl, CURLOPT_READDATA, this);
     res = curl_easy_setopt(this->curl, CURLOPT_READFUNCTION, callback_write_file);
+    // res = curl_easy_setopt(this->curl, CURLOPT_TIMEOUT, 5);
 
     qDebug()<<"normal ftp thread:"<<this->thread();
     Q_ASSERT(!this->isRunning());
