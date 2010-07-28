@@ -17,6 +17,7 @@ INCLUDEPATH += .. ../libssh2/include/
 include(../../install.pri)
 
 QT += testlib network
+config += debug
 
 # Input
 HEADERS += testnullfxp.h

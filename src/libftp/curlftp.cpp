@@ -241,7 +241,7 @@ void CurlFtp::run()
     // emit this->runHere();
     qDebug()<<"runn done vvttttttttvrunrunrurnurnrunnnnnnnn ";
     
-    this->closeDataChannel2();
+    // this->closeDataChannel2();
 }
 
 void CurlFtp::nowarnRunTask()
@@ -552,6 +552,58 @@ int CurlFtp::put(const QString fileName)
 
     qDebug()<<"after call perform long time"<<this;
 
+    return 0;
+}
+
+int CurlFtp::get(const QString fileName)
+{
+    qDebug()<<"Enter get.....";
+    CURLcode res;
+    QString uri;
+
+    // QDir().remove(QDir::tempPath() + "/" + this->routerName());
+    // this->curlWriteDataRouteServer = new QLocalServer();
+    // this->curlWriteDataRouteServer->listen(this->routerName());
+
+    // this->qdsock2 = new QLocalSocket();
+    // this->qdsock2->connectToServer(this->routerName());
+    
+    // this->qdsock = NULL;
+    // if (this->curlWriteDataRouteServer->waitForNewConnection(5)) {
+    //     this->qdsock = this->curlWriteDataRouteServer->nextPendingConnection();
+    // }
+    // this->qdsock2->waitForConnected();
+    // qDebug()<<"can rw:"<<this->qdsock->isReadable()<<this->qdsock->isWritable()
+    //         <<this->qdsock<<this->qdsock2;
+
+
+    uri = this->baseUrl + fileName;
+    // res = curl_easy_setopt(this->curl, CURLOPT_URL, "ftp://ftp.gnu.org/gnu/webstump.README");
+    // res = curl_easy_setopt(this->curl, CURLOPT_URL, "ftp://ftp.gnu.org/gnu/bash/readline-5.1.tar.gz");
+    // res = curl_easy_setopt(this->curl, CURLOPT_URL, "ftp://ftp.gnu.org/gnu/bash/bash-1.14.4-1.14.5.diffs");
+    res = curl_easy_setopt(this->curl, CURLOPT_URL, uri.toAscii().data());
+    res = curl_easy_setopt(this->curl, CURLOPT_WRITEDATA, this);
+    res = curl_easy_setopt(this->curl, CURLOPT_WRITEFUNCTION, callback_read_file);
+
+    qDebug()<<"normal ftp thread:"<<this->thread();
+    Q_ASSERT(!this->isRunning());
+    this->start();
+    // emit this->runHere();
+
+    // res = curl_easy_perform(this->curl);
+
+    qDebug()<<"after call perform long time"<<this;
+    
+    // this->getInfoDemo();
+
+    // this->qdsock->flush();
+    // this->qdsock->close();
+    // delete this->qdsock;
+    // this->qdsock = NULL;
+    // this->curlWriteDataRouteServer->close();
+    // delete this->curlWriteDataRouteServer;
+    // this->curlWriteDataRouteServer = NULL;
+    
     return 0;
 }
 

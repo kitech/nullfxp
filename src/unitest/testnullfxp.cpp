@@ -151,12 +151,97 @@ void TestNullfxp::testCXX0XSyntax()
 class TestThread : public QThread
 {
 public:
+    CurlFtp *ftp;
+    void uploadFile()
+    {
+        int ret;
+        int ret2;
+        this->ftp->put("/mysql-5.5.5-m3.tar.gz");
+        
+        QString upfile = "/home/gzleo/NGDownload/mysql-5.5.5-m3.tar.gz";
+
+        ftp->passive();
+        ftp->connectDataChannel();
+
+        QLocalSocket *dsock = ftp->getDataSock();
+        char buf[160];
+        QFile upfp(upfile);
+        Q_ASSERT(upfp.open(QIODevice::ReadWrite) == true);
+        ret = upfp.open(QIODevice::ReadOnly);
+        Q_ASSERT(ret == true);
+
+        int totalPutSize = 0;
+        upfp.seek(0);
+        qDebug()<<"upfp atend???"<<upfp.atEnd();
+        while (!upfp.atEnd()) {
+            ret = upfp.read(buf, sizeof(upfp));
+            ret2 = dsock->write(buf, ret);
+            dsock->flush();
+            QVERIFY(ret2 == ret);
+            totalPutSize += ret2;
+            // qDebug()<<"put size:"<<ret;
+        }
+        upfp.close();
+
+        qDebug()<<"totalPutSize:"<<totalPutSize;
+        ftp->closeDataChannel();
+        ftp->closeDataChannel2();
+        ftp->wait();
+        qDebug()<<"FTP thread finished.";
+    }
+
+    void downloadFile()
+    {
+        int ret;
+        int ret2;
+
+        QString upfile = "/tmp/mysql-5.5.5-m3.tar.gz";
+        QFile upfp(upfile);
+        ret = upfp.open(QIODevice::ReadWrite);
+        Q_ASSERT(ret == true);
+        upfp.resize(0);
+      
+        QByteArray line;
+
+        ftp->passive();
+        ftp->connectDataChannel();
+
+        QLocalSocket *dsock = ftp->getDataSock();
+        qDebug()<<"local socet:"<<dsock<<dsock->bytesAvailable()<<dsock->isOpen();
+
+        ftp->get("/mysql-5.5.5-m3.tar.gz");
+        for (;;) {
+            if (dsock->bytesAvailable() > 0) {
+            } else {
+                dsock->waitForReadyRead(3000);
+                // qDebug()<<"wait for ready read..."<<dsock->errorString()<<dsock->isOpen()<<ftp->isFinished()<<ftp->isRunning();
+                if (ftp->isFinished()) {
+                    // ftp->asynRunRetrDone();
+                    ftp->closeDataChannel();
+                    ftp->closeDataChannel2();
+                    break;
+                }
+            }
+            while (dsock->bytesAvailable() > 0) {
+                if (dsock->canReadLine()) {
+                    line = dsock->readLine();
+                } else {
+                    line = dsock->read(123);
+                }
+                upfp.write(line);
+                // qDebug()<<"main read file data:"<<line.length()
+                //     <<dsock->bytesAvailable()<<dsock->errorString()<<line;
+            }
+        }
+        upfp.flush();
+        upfp.close();
+    }
     void run()
     {
         int ret;
         int ret2;
         // test curlftp
-        CurlFtp *ftp = new CurlFtp();
+        this->ftp = new CurlFtp();
         // ftp->connect("ftp.gnu.org", 21);
         ftp->connect("localhost", 21);
         // ftp->login("ftp", "ftp@ftp.org");
@@ -200,65 +285,8 @@ public:
         ret = ftp->size("/firefox", num);
         QVERIFY(ret == 0);
 
-        ftp->put("/mysql-5.5.5-m3.tar.gz");
-        
-        QString upfile = "/home/gzleo/NGDownload/mysql-5.5.5-m3.tar.gz";
-
-        ftp->passive();
-        ftp->connectDataChannel();
-
-        QLocalSocket *dsock = ftp->getDataSock();
-        char buf[16];
-        QFile upfp(upfile);
-        Q_ASSERT(upfp.open(QIODevice::ReadWrite) == true);
-        ret = upfp.open(QIODevice::ReadOnly);
-        Q_ASSERT(ret == true);
-
-        int totalPutSize = 0;
-        upfp.seek(0);
-        qDebug()<<"upfp atend???"<<upfp.atEnd();
-        while (!upfp.atEnd()) {
-            ret = upfp.read(buf, sizeof(upfp));
-            ret2 = dsock->write(buf, ret);
-            dsock->flush();
-            QVERIFY(ret2 == ret);
-            totalPutSize += ret2;
-            // qDebug()<<"put size:"<<ret;
-        }
-        upfp.close();
-
-        qDebug()<<"totalPutSize:"<<totalPutSize;
-        ftp->closeDataChannel();
-        ftp->wait();
-        qDebug()<<"FTP thread finished.";
-
-        // ftp->put();
-
-        // ftp->get();
-        
-        // QByteArray line;
-        // QLocalSocket *dsock = ftp->getDataSock();
-        // qDebug()<<"local socet:"<<dsock<<dsock->bytesAvailable()<<dsock->isOpen();
-        // for (;;) {
-        //     if (dsock->bytesAvailable() > 0) {
-        //     } else {
-        //         dsock->waitForReadyRead(3000);
-        //         qDebug()<<"wait for ready read..."<<dsock->errorString()<<dsock->isOpen()<<ftp->isFinished()<<ftp->isRunning();
-        //         if (ftp->isFinished()) {
-        //             ftp->asynRunRetrDone();
-        //             break;
-        //         }
-        //     }
-        //     while (dsock->bytesAvailable() > 0) {
-        //         if (dsock->canReadLine()) {
-        //             line = dsock->readLine();
-        //         } else {
-        //             line = dsock->read(123);
-        //         }
-        //         qDebug()<<"main read file data:"<<line.length()
-        //                 <<dsock->bytesAvailable()<<dsock->errorString()<<line;
-        //     }
-        // }
+        this->uploadFile();
+        this->downloadFile();
 
         // delete ftp;
         qDebug()<<"TestThread out";
@@ -281,6 +309,5 @@ void TestNullfxp::testCurlFtp()
 
     t->wait(-1);
 
-    
 }
 

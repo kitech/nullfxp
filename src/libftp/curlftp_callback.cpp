@@ -73,7 +73,7 @@ size_t callback_read_file(void *ptr, size_t size, size_t nmemb, void *userp)
     router->flush();
 
     // qDebug()<<"can rw:"<<router->isReadable()<<router->isWritable()<<router->isOpen();
-    fprintf(stdout, "route read file:. %p %d %s", router, router->bytesAvailable(), "\n");
+    // fprintf(stdout, "route read file:. %p %d %s", router, router->bytesAvailable(), "\n");
     fflush(stdout);
 
     return rlen;
