@@ -17,7 +17,6 @@ INCLUDEPATH += .. ../libssh2/include/
 include(../../install.pri)
 
 QT += testlib network
-config += debug
 
 # Input
 HEADERS += testnullfxp.h
@@ -51,6 +50,7 @@ win32 {
     GCC_VERSION = $$system(gcc -dumpversion)
     ## TODO gcc > 4.4.0 has -std=c++0x arguments
     QMAKE_CXXFLAGS += -std=c++0x
+    QMAKE_CXXFLAGS += -g
 }
 
 win32:LIBS += -lQtTest -lws2_32  -lgdi32 

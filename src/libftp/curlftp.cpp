@@ -55,6 +55,9 @@ CurlFtp::CurlFtp(QObject *parent)
     this->shareHandle = curl_share_init();
     rc = curl_easy_setopt(this->curl, CURLOPT_SHARE, this->shareHandle);
 
+    int qtype1 = qRegisterMetaType<QAbstractSocket::SocketError>("SocketError" );
+    int qtype2 = qRegisterMetaType<QAbstractSocket::SocketState>("SocketState" );
+
     //// test
     QObject::connect(this, SIGNAL(runHere()), this, SLOT(nowarnRunDone()));
     QObject::connect(this, SIGNAL(finished()), this, SLOT(asynRunRetrDone()));
@@ -167,6 +170,9 @@ int CurlFtp::logout()
 
 int CurlFtp::connectDataChannel()
 {
+
+    this->putDataFinished = false;
+
     QDir().remove(QDir::tempPath() + "/" + this->routerName());
     this->curlWriteDataRouteServer = new QLocalServer();
     this->curlWriteDataRouteServer->listen(this->routerName());
@@ -198,14 +204,23 @@ int CurlFtp::closeDataChannel()
 
 int CurlFtp::closeDataChannel2()
 {
-    this->qdsock2->close();
-    delete this->qdsock2;
-    this->qdsock2 = NULL;
+    QLocalSocket *depSock = this->qdsock2;
+    qDebug()<<"sock2:"<<depSock<<depSock->isOpen()<<depSock->state();
+    // this->qdsock2->close();
+    // delete this->qdsock2;
+    // this->qdsock2 = NULL;
+    
+    // this->qdsock2 = NULL;
 
     this->curlWriteDataRouteServer->close();
     delete this->curlWriteDataRouteServer;
     this->curlWriteDataRouteServer = NULL;
-    
+
+    depSock->deleteLater();
+    // depSock->close();
+    // delete depSock;
+    // depSock = NULL;
+
     return 0;
 }
 
@@ -545,6 +560,7 @@ int CurlFtp::put(const QString fileName)
     // res = curl_easy_setopt(this->curl, CURLOPT_TIMEOUT, 5);
 
     qDebug()<<"normal ftp thread:"<<this->thread();
+
     Q_ASSERT(!this->isRunning());
     this->start();
 
@@ -584,6 +600,7 @@ int CurlFtp::get(const QString fileName)
     res = curl_easy_setopt(this->curl, CURLOPT_URL, uri.toAscii().data());
     res = curl_easy_setopt(this->curl, CURLOPT_WRITEDATA, this);
     res = curl_easy_setopt(this->curl, CURLOPT_WRITEFUNCTION, callback_read_file);
+    res = curl_easy_setopt(this->curl, CURLOPT_UPLOAD, 0L);
 
     qDebug()<<"normal ftp thread:"<<this->thread();
     Q_ASSERT(!this->isRunning());

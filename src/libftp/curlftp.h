@@ -71,6 +71,8 @@ public:
     QLocalSocket *getDataSock2();
 
     int getInfoDemo();
+    bool isPutDataFinished() { return this->putDataFinished ; };
+    void setPutDataFinished() { this->putDataFinished = true ;};
 
 protected:
     virtual void run();
@@ -104,6 +106,8 @@ private:
     QLocalSocket *qdsock;
     QLocalSocket *qdsock2;
     static int seq;
+
+    bool putDataFinished;
 
 public:
     QBuffer rawRespBuff;

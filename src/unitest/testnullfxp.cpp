@@ -156,12 +156,13 @@ public:
     {
         int ret;
         int ret2;
-        this->ftp->put("/mysql-5.5.5-m3.tar.gz");
-        
+
         QString upfile = "/home/gzleo/NGDownload/mysql-5.5.5-m3.tar.gz";
 
         ftp->passive();
         ftp->connectDataChannel();
+
+        this->ftp->put("/mysql-5.5.5-m3.tar.gz");
 
         QLocalSocket *dsock = ftp->getDataSock();
         char buf[160];
@@ -184,6 +185,7 @@ public:
         upfp.close();
 
         qDebug()<<"totalPutSize:"<<totalPutSize;
+        ftp->setPutDataFinished();
         ftp->closeDataChannel();
         ftp->closeDataChannel2();
         ftp->wait();
@@ -285,6 +287,11 @@ public:
         ret = ftp->size("/firefox", num);
         QVERIFY(ret == 0);
 
+        this->uploadFile();
+        this->uploadFile();
+        this->uploadFile();
+        this->uploadFile();
+        this->uploadFile();
         this->uploadFile();
         this->downloadFile();
 

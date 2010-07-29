@@ -96,11 +96,13 @@ size_t callback_write_file(void *ptr, size_t size, size_t nmemb, void *userp)
     // qDebug()<<"here";
     Q_ASSERT(router != NULL);
     // qDebug()<<"here"<<router;
-    
-    for (;;) {
+
+ retry_read:
+    if (!ftp->isPutDataFinished() || router->bytesAvailable() > 0) {
         if (router->bytesAvailable() > 0) {
         } else {
             router->waitForReadyRead(1000);
+            router = ftp->getDataSock2();
             // qDebug()<<"wait for ready read..."<<router->errorString()
             //         <<router->isOpen();
             if (router->bytesAvailable() == 0) {
@@ -110,7 +112,8 @@ size_t callback_write_file(void *ptr, size_t size, size_t nmemb, void *userp)
                     // ftp->closeDataChannel2();
                     return 0;
                 }
-                continue;
+                // continue;
+                goto retry_read;
             }
         }
         Q_ASSERT(router->bytesAvailable() > 0);
@@ -125,7 +128,42 @@ size_t callback_write_file(void *ptr, size_t size, size_t nmemb, void *userp)
         } else {
             return rlen;
         }
+    } else {
+        return 0;
     }
+    return 0;
+
+    // for (;;) {
+    //     router = ftp->getDataSock2();
+    //     if (router->bytesAvailable() > 0) {
+    //     } else {
+    //         router->waitForReadyRead(1000);
+    //         router = ftp->getDataSock2();
+    //         // qDebug()<<"wait for ready read..."<<router->errorString()
+    //         //         <<router->isOpen();
+    //         if (router->bytesAvailable() == 0) {
+    //             suppler = ftp->getDataSock();
+    //             if (suppler == NULL) {
+    //                 // suppler is finished.
+    //                 // ftp->closeDataChannel2();
+    //                 return 0;
+    //             }
+    //             continue;
+    //         }
+    //     }
+    //     Q_ASSERT(router->bytesAvailable() > 0);
+    //     rlen = router->read(s, tlen);
+            
+    //     if (rlen < 0) {
+    //         Q_ASSERT(rlen >= 0);
+    //         return 0;
+    //     } else if (rlen == 0) {
+    //         qDebug()<<"no data left";
+    //         return 0;
+    //     } else {
+    //         return rlen;
+    //     }
+    // }
 
     // rlen = router->read(s, tlen);
     // if (rlen < 0) {
