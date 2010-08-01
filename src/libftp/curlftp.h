@@ -23,6 +23,7 @@ public:
     explicit CurlFtp(QObject *parent = 0);
     virtual ~CurlFtp();
 
+    enum {PROTO_FTP, PROTO_FTPS, PROTO_FTPES};
     enum {TYPE_MIN = 0, TYPE_ASCII, TYPE_EBCID, TYPE_BIN,
           TYPE_IMAGE, TYPE_LOCAL_BYTE,
           TYPE_MAX};
@@ -89,6 +90,8 @@ public slots:
     void nowarnRunDone(); 
     void asynRunRetrDone();
 
+    void setProtoType(int protoType);
+
 private:
     QString routerName();
 
@@ -108,6 +111,7 @@ private:
     static int seq;
 
     bool putDataFinished;
+    bool protoType;
 
 public:
     QBuffer rawRespBuff;

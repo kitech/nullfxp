@@ -244,6 +244,7 @@ public:
         int ret2;
         // test curlftp
         this->ftp = new CurlFtp();
+        this->ftp->setProtoType(CurlFtp::PROTO_FTPES);
         // ftp->connect("ftp.gnu.org", 21);
         ftp->connect("localhost", 21);
         // ftp->login("ftp", "ftp@ftp.org");
@@ -287,13 +288,13 @@ public:
         ret = ftp->size("/firefox", num);
         QVERIFY(ret == 0);
 
-        this->uploadFile();
-        this->uploadFile();
-        this->uploadFile();
-        this->uploadFile();
-        this->uploadFile();
-        this->uploadFile();
-        this->downloadFile();
+        // this->uploadFile();
+        // this->uploadFile();
+        // this->uploadFile();
+        // this->uploadFile();
+        // this->uploadFile();
+        // this->uploadFile();
+        // this->downloadFile();
 
         // delete ftp;
         qDebug()<<"TestThread out";

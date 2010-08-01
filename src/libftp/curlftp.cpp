@@ -21,7 +21,7 @@ CurlFtp::CurlFtp(QObject *parent)
 {
     CURLcode rc;
     CurlFtp::seq += 1;
-
+    
     Q_ASSERT(::curl_global_inited >= 0);
     ::curl_global_init_mutex.lock();
     if (::curl_global_inited == 0) {
@@ -54,6 +54,9 @@ CurlFtp::CurlFtp(QObject *parent)
     
     this->shareHandle = curl_share_init();
     rc = curl_easy_setopt(this->curl, CURLOPT_SHARE, this->shareHandle);
+
+    this->protoType = PROTO_FTP;
+    rc = curl_easy_setopt(this->curl, CURLOPT_USE_SSL, CURLUSESSL_NONE);
 
     int qtype1 = qRegisterMetaType<QAbstractSocket::SocketError>("SocketError" );
     int qtype2 = qRegisterMetaType<QAbstractSocket::SocketState>("SocketState" );
@@ -380,6 +383,7 @@ int CurlFtp::pwd(QString &path) // returned path
     curl_easy_setopt(this->curl, CURLOPT_DEBUGDATA, this);
     curl_easy_setopt(this->curl, CURLOPT_DEBUGFUNCTION, callback_debug);
     Q_ASSERT(!this->rawRespBuff.isOpen());
+    this->rawRespBuff.setData(0, 0);
     this->rawRespBuff.open(QIODevice::ReadWrite | QIODevice::Unbuffered);
 
     res = curl_easy_perform(this->curl);
@@ -498,6 +502,7 @@ int CurlFtp::chdir(QString path)
     curl_easy_setopt(this->curl, CURLOPT_DEBUGDATA, this);
     curl_easy_setopt(this->curl, CURLOPT_DEBUGFUNCTION, callback_debug);
     Q_ASSERT(!this->rawRespBuff.isOpen());
+    this->rawRespBuff.setData(0, 0);
     this->rawRespBuff.open(QIODevice::ReadWrite | QIODevice::Unbuffered);
 
     res = curl_easy_perform(this->curl);
@@ -822,6 +827,7 @@ int CurlFtp::system(QString &type)
     curl_easy_setopt(this->curl, CURLOPT_DEBUGDATA, this);
     curl_easy_setopt(this->curl, CURLOPT_DEBUGFUNCTION, callback_debug);
     Q_ASSERT(!this->rawRespBuff.isOpen());
+    this->rawRespBuff.setData(0, 0);
     this->rawRespBuff.open(QIODevice::ReadWrite | QIODevice::Unbuffered);
 
     res = curl_easy_perform(this->curl);
@@ -869,6 +875,7 @@ int CurlFtp::stat(QString path)
     curl_easy_setopt(this->curl, CURLOPT_DEBUGDATA, this);
     curl_easy_setopt(this->curl, CURLOPT_DEBUGFUNCTION, callback_debug);
     Q_ASSERT(!this->rawRespBuff.isOpen());
+    this->rawRespBuff.setData(0, 0);
     this->rawRespBuff.open(QIODevice::ReadWrite | QIODevice::Unbuffered);
 
     res = curl_easy_perform(this->curl);
@@ -930,6 +937,7 @@ int CurlFtp::size(QString path, quint64 &siz)
     // curl_easy_setopt(this->curl, CURLOPT_DEBUGDATA, this);
     // curl_easy_setopt(this->curl, CURLOPT_DEBUGFUNCTION, callback_debug);
     // Q_ASSERT(!this->rawRespBuff.isOpen());
+    // this->rawRespBuff.setData(0, 0);
     // this->rawRespBuff.open(QIODevice::ReadWrite | QIODevice::Unbuffered);
 
     // res = curl_easy_perform(this->curl);
@@ -977,6 +985,7 @@ int CurlFtp::customCommand(QString cmdLine, long &respCode)
     curl_easy_setopt(this->curl, CURLOPT_DEBUGDATA, this);
     curl_easy_setopt(this->curl, CURLOPT_DEBUGFUNCTION, callback_debug);
     Q_ASSERT(!this->rawRespBuff.isOpen());
+    this->rawRespBuff.setData(0, 0);
     this->rawRespBuff.open(QIODevice::ReadWrite | QIODevice::Unbuffered);
 
     res = curl_easy_perform(this->curl);
@@ -1018,6 +1027,40 @@ int CurlFtp::customCommandWithoutResponseText(QString cmdLine, long &respCode)
     Q_ASSERT(!this->rawRespBuff.isOpen());    
     this->rawRespBuff.setData(NULL, 0);
     return rc;
+}
+
+void CurlFtp::setProtoType(int protoType)
+{
+    Q_ASSERT(protoType >= PROTO_FTP && protoType <= PROTO_FTPES);
+    int rc;
+
+    this->protoType = protoType;
+    switch (protoType) {
+    case PROTO_FTPS:
+        this->protoType = PROTO_FTPS;
+        rc = curl_easy_setopt(this->curl, CURLOPT_USE_SSL, CURLUSESSL_CONTROL);
+        rc = curl_easy_setopt(this->curl, CURLOPT_FTPSSLAUTH, CURLFTPAUTH_SSL);
+        rc = curl_easy_setopt(this->curl, CURLOPT_SSL_VERIFYPEER, 0);
+        rc = curl_easy_setopt(this->curl, CURLOPT_SSL_VERIFYHOST, 0);
+        break;
+    case PROTO_FTPES:
+        this->protoType = PROTO_FTPES;
+        rc = curl_easy_setopt(this->curl, CURLOPT_USE_SSL, CURLUSESSL_ALL);  
+        rc = curl_easy_setopt(this->curl, CURLOPT_FTPSSLAUTH, CURLFTPAUTH_TLS);
+        rc = curl_easy_setopt(this->curl, CURLOPT_SSL_VERIFYPEER, 0);
+        rc = curl_easy_setopt(this->curl, CURLOPT_SSL_VERIFYHOST, 0);
+        break;
+    case PROTO_FTP:
+    default:
+        if (protoType != PROTO_FTP) {
+            qDebug()<<"Warning: Invalid proto type, use default PROTO_FTP";
+        }
+        this->protoType = PROTO_FTP;
+        rc = curl_easy_setopt(this->curl, CURLOPT_USE_SSL, CURLUSESSL_NONE);    
+        rc = curl_easy_setopt(this->curl, CURLOPT_FTPSSLAUTH, CURLFTPAUTH_DEFAULT);
+        // Q_ASSERT(1 == 2);
+        break;
+    };
 }
 
 
@@ -1163,3 +1206,5 @@ int CurlFtp::getInfoDemo()
 
     return 0;
 }
+
+

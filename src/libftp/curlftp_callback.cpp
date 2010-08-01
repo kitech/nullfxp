@@ -190,15 +190,38 @@ size_t callback_write_file(void *ptr, size_t size, size_t nmemb, void *userp)
 int callback_debug(CURL *curl, curl_infotype it, char *text, size_t size, void *userp)
 {
     char *str = (char*)calloc(1, size + 1);
-    strncpy(str, text, size);
+    memset(str, 0, size + 1);
+    // strncpy(str, text, size);
+    memcpy(str, text, size);
     str[size] = '\0';
+    
+    QString tmp(str);
+    tmp = tmp.trimmed() + '\n';      // str has \r\n, replace with \n
+    strcpy(str, tmp.toAscii().data());
     qDebug()<<"spy debug:"<<it<<str;
+    
+    // if (QString(str).startsWith("drwxr-xr-x")) {
+    //     for (int i = 0 ; i < strlen(str) ; ++ i) {
+    //         printf("%c %d \n", str[i], str[i]);
+    //     }
+    //     exit(0);
+    // }
 
     if (it == CURLINFO_HEADER_IN) {
         CurlFtp *ftp = static_cast<CurlFtp*>(userp);
-        ftp->rawRespBuff.write(str, size);
+        ftp->rawRespBuff.write(str, strlen(str));
     }
 
     free(str);
     return 0;
 }
+
+CURLcode callback_sslctxfun(CURL *curl, void *sslctx, void *parm)
+{
+    CURLcode res;
+
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<curl<<sslctx<<parm;    
+
+    return res;
+}
+
