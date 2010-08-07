@@ -576,6 +576,34 @@ int CurlFtp::put(const QString fileName)
     return 0;
 }
 
+int CurlFtp::putViaProxy(const QString fileName)
+{
+    qDebug()<<"Enter putViaProxy.....";
+    CURLcode res;
+    QString uri;
+
+    uri = this->baseUrl + QString("%1").arg(fileName);
+
+    res = curl_easy_setopt(this->curl, CURLOPT_URL, uri.toAscii().data());
+    res = curl_easy_setopt(this->curl, CURLOPT_UPLOAD, 1L);
+    res = curl_easy_setopt(this->curl, CURLOPT_INFILESIZE_LARGE, 1236);
+    res = curl_easy_setopt(this->curl, CURLOPT_READDATA, this);
+    res = curl_easy_setopt(this->curl, CURLOPT_READFUNCTION, callback_write_file_via_proxy);
+    // res = curl_easy_setopt(this->curl, CURLOPT_TIMEOUT, 5);
+
+    qDebug()<<"normal ftp thread:"<<this->thread();
+
+    Q_ASSERT(!this->isRunning());
+    this->start();
+
+    // res = curl_easy_perform(this->curl);
+
+    qDebug()<<"after call perform long time"<<this;
+
+    return 0;
+}
+
+
 int CurlFtp::get(const QString fileName)
 {
     qDebug()<<"Enter get.....";
@@ -1063,6 +1091,61 @@ void CurlFtp::setProtoType(int protoType)
     };
 }
 
+qint64 	CurlFtp::putRead ( char * data, qint64 maxSize )
+{
+    // Q_ASSERT(this->putBuff.isOpen() == true);
+    int rc = 0;
+
+    if (!this->proxyBuff.isOpen()) {
+        return 0;  // finished
+    }
+ retry:
+    // this->proxyMutex.lock();
+    if (this->proxyBuff.size() > 0) {
+        rc = this->proxyBuff.read(data, maxSize);
+        if (rc == 0) {
+            // this->proxyMutex.unlock();
+            qDebug()<<__FUNCTION__<<__LINE__<<"Goto retry 1....";
+            this->sleep(1);
+            goto retry;
+        } else {
+            this->proxyCond.wakeOne();
+        }
+    } else {
+        // this->proxyMutex.unlock();
+        qDebug()<<__FUNCTION__<<__LINE__<<"Goto retry 2....";
+        this->sleep(1);
+        goto retry;
+    }
+    // this->proxyMutex.unlock();
+
+    return rc;
+}
+qint64 	CurlFtp::getRead ( char * data, qint64 maxSize )
+{
+
+
+    return 0;
+}
+qint64 	CurlFtp::putWrite ( const char * data, qint64 maxSize )
+{
+    Q_ASSERT(this->proxyBuff.isOpen() == true);
+    int buffMax = CURL_MAX_WRITE_SIZE * 10;
+    int rc = 0;
+
+    this->proxyMutex.lock();
+    while (this->proxyBuff.size() > buffMax) {
+        this->proxyCond.wait(&this->proxyMutex);
+    }
+    rc = this->proxyBuff.write(data, maxSize);
+    this->proxyMutex.unlock();
+
+    return rc;
+}
+qint64 	CurlFtp::getWrite ( const char * data, qint64 maxSize )
+{
+    return 0;
+}
 
 // 为什么信号都不好使了？？？
 int CurlFtp::get()
@@ -1205,6 +1288,18 @@ int CurlFtp::getInfoDemo()
 
 
     return 0;
+}
+
+
+CurlDataProxy::CurlDataProxy(QObject *parent)
+    : QBuffer(parent)
+    , ftp(NULL)
+{
+    
+}
+
+CurlDataProxy::~CurlDataProxy()
+{
 }
 
 

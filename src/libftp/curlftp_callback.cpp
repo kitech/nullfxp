@@ -187,6 +187,36 @@ size_t callback_write_file(void *ptr, size_t size, size_t nmemb, void *userp)
     return tlen;
 }
 
+size_t callback_write_file_via_proxy(void *ptr, size_t size, size_t nmemb, void *userp)
+{
+    // qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<size<<nmemb<<userp;
+
+    int tlen = size * nmemb;
+    char *s = (char*)ptr;
+    int rlen = 0;
+
+    CurlFtp *ftp = static_cast<CurlFtp*>(userp);
+    QLocalSocket *router = ftp->getDataSock2();
+    QLocalSocket *suppler = ftp->getDataSock();
+    
+    // qDebug()<<"here";
+    Q_ASSERT(router != NULL);
+    // qDebug()<<"here"<<router;
+
+    return 0;
+
+    if (gn == 0) {
+        gn ++;
+    } else {
+        return 0;
+    }
+    for (int i = 0 ; i < tlen ; i ++) {
+        s[i] = 'v';
+    }
+
+    return tlen;
+}
+
 int callback_debug(CURL *curl, curl_infotype it, char *text, size_t size, void *userp)
 {
     char *str = (char*)calloc(1, size + 1);

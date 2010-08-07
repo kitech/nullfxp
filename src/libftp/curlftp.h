@@ -16,6 +16,19 @@
 
 #include "curl/curl.h"
 
+class CurlFtp;
+
+class CurlDataProxy : public QBuffer
+{
+    Q_OBJECT;
+public:
+    CurlDataProxy(QObject *parent = 0);
+    virtual ~CurlDataProxy();
+
+private:
+    CurlFtp *ftp;
+};
+
 class CurlFtp : public QThread
 {
     Q_OBJECT;
@@ -75,6 +88,12 @@ public:
     bool isPutDataFinished() { return this->putDataFinished ; };
     void setPutDataFinished() { this->putDataFinished = true ;};
 
+    int putViaProxy(const QString fileName);
+    qint64 	putRead ( char * data, qint64 maxSize );
+    qint64 	getRead ( char * data, qint64 maxSize );
+    qint64 	putWrite ( const char * data, qint64 maxSize );
+    qint64 	getWrite ( const char * data, qint64 maxSize );
+
 protected:
     virtual void run();
 
@@ -113,8 +132,13 @@ private:
     bool putDataFinished;
     bool protoType;
 
+    friend class CurlDataProxy;
+
 public:
     QBuffer rawRespBuff;
+    QBuffer proxyBuff;
+    QWaitCondition proxyCond;
+    QMutex  proxyMutex;
 };
 
 #endif

@@ -21,6 +21,8 @@ extern "C" {
 
     size_t callback_write_file(void *ptr, size_t size, size_t nmemb, void *userp);
 
+    size_t callback_write_file_via_proxy(void *ptr, size_t size, size_t nmemb, void *userp);
+
     int callback_debug(CURL *curl, curl_infotype it, char *text, size_t size, void *userp);
 
     CURLcode callback_sslctxfun(CURL *curl, void *sslctx, void *parm);
