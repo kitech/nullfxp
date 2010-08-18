@@ -543,6 +543,12 @@ int _libssh2_wait_socket(LIBSSH2_SESSION *session)
     int seconds_to_next;
     int dir;
 
+    /* since libssh2 often sets EAGAIN internally before this function is
+       called, we can decrease some amount of confusion in user programs by
+       resetting the error code in this function to reduce the risk of EAGAIN
+       being stored as error when a blocking function has returned */
+    session->err_code = LIBSSH2_ERROR_NONE;
+
     rc = libssh2_keepalive_send (session, &seconds_to_next);
     if (rc < 0)
         return rc;
@@ -564,7 +570,8 @@ int _libssh2_wait_socket(LIBSSH2_SESSION *session)
             if(dir & LIBSSH2_SESSION_BLOCK_OUTBOUND)
                 sockets[0].events |= POLLOUT;
 
-            rc = poll(sockets, 1, seconds_to_next ? seconds_to_next / 1000 : -1);
+            rc = poll(sockets, 1, seconds_to_next ?
+                      seconds_to_next * 1000 : -1);
 #else
             fd_set rfd;
             fd_set wfd;
@@ -836,6 +843,9 @@ session_free(LIBSSH2_SESSION *session)
         LIBSSH2_FREE(session, session->hostkey_prefs);
     }
 
+    if (session->local.kexinit) {
+        LIBSSH2_FREE(session, session->local.kexinit);
+    }
     if (session->local.crypt_prefs) {
         LIBSSH2_FREE(session, session->local.crypt_prefs);
     }
@@ -849,6 +859,9 @@ session_free(LIBSSH2_SESSION *session)
         LIBSSH2_FREE(session, session->local.lang_prefs);
     }
 
+    if (session->remote.kexinit) {
+        LIBSSH2_FREE(session, session->remote.kexinit);
+    }
     if (session->remote.crypt_prefs) {
         LIBSSH2_FREE(session, session->remote.crypt_prefs);
     }
@@ -865,6 +878,9 @@ session_free(LIBSSH2_SESSION *session)
     /*
      * Make sure all memory used in the state variables are free
      */
+    if (session->kexinit_data) {
+        LIBSSH2_FREE(session, session->kexinit_data);
+    }
     if (session->startup_data) {
         LIBSSH2_FREE(session, session->startup_data);
     }
@@ -1252,10 +1268,16 @@ libssh2_session_get_blocking(LIBSSH2_SESSION * session)
  * non-0 if data is available
  */
 LIBSSH2_API int
-libssh2_poll_channel_read(LIBSSH2_CHANNEL * channel, int extended)
+libssh2_poll_channel_read(LIBSSH2_CHANNEL *channel, int extended)
 {
-    LIBSSH2_SESSION *session = channel->session;
-    LIBSSH2_PACKET *packet = _libssh2_list_first(&session->packets);
+    LIBSSH2_SESSION *session;
+    LIBSSH2_PACKET *packet;
+
+    if(!channel)
+        return LIBSSH2_ERROR_BAD_USE;
+
+    session = channel->session;
+    packet = _libssh2_list_first(&session->packets);
 
     while (packet) {
         if ( channel->local.id == _libssh2_ntohu32(packet->data + 1)) {

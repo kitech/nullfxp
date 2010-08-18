@@ -47,6 +47,7 @@
 #include <sys/time.h>
 #endif
 
+#include <stdio.h>
 #include <errno.h>
 
 int _libssh2_error(LIBSSH2_SESSION* session, int errcode, const char* errmsg)
@@ -114,7 +115,8 @@ _libssh2_recv(libssh2_socket_t socket, void *buffer, size_t length, int flags)
  * to set errno
  */
 ssize_t
-_libssh2_send(libssh2_socket_t socket, const void *buffer, size_t length, int flags)
+_libssh2_send(libssh2_socket_t socket, const void *buffer, size_t length,
+              int flags)
 {
     ssize_t rc = send(socket, buffer, length, flags);
 #ifdef WIN32
@@ -259,8 +261,7 @@ libssh2_base64_decode(LIBSSH2_SESSION *session, char **data,
         /* Invalid -- We have a byte which belongs exclusively to a partial
            octet */
         LIBSSH2_FREE(session, *data);
-        return _libssh2_error(session, LIBSSH2_ERROR_INVAL,
-                              "Invalid data (byte belonging to partial octet)");
+        return _libssh2_error(session, LIBSSH2_ERROR_INVAL, "Invalid base64");
     }
 
     *datalen = len;
@@ -356,7 +357,8 @@ libssh2_trace(LIBSSH2_SESSION * session, int bitmask)
 }
 
 LIBSSH2_API int
-libssh2_trace_sethandler(LIBSSH2_SESSION *session, void* handler_context, libssh2_trace_handler_func callback)
+libssh2_trace_sethandler(LIBSSH2_SESSION *session, void* handler_context,
+                         libssh2_trace_handler_func callback)
 {
     session->tracehandler = callback;
     session->tracehandler_context = handler_context;
@@ -367,7 +369,7 @@ void
 _libssh2_debug(LIBSSH2_SESSION * session, int context, const char *format, ...)
 {
     char buffer[1536];
-    int len;
+    int len, msglen, buflen = sizeof(buffer);
     va_list vargs;
     struct timeval now;
     static int firstsec;
@@ -392,7 +394,8 @@ _libssh2_debug(LIBSSH2_SESSION * session, int context, const char *format, ...)
     }
 
     /* Find the first matching context string for this message */
-    for (contextindex = 0; contextindex < ARRAY_SIZE(contexts); contextindex++) {
+    for (contextindex = 0; contextindex < ARRAY_SIZE(contexts);
+         contextindex++) {
         if ((context & (1 << contextindex)) != 0) {
             contexttext = contexts[contextindex];
             break;
@@ -405,19 +408,25 @@ _libssh2_debug(LIBSSH2_SESSION * session, int context, const char *format, ...)
     }
     now.tv_sec -= firstsec;
 
-    len = snprintf(buffer, sizeof(buffer), "[libssh2] %d.%06d %s: ",
+    len = snprintf(buffer, buflen, "[libssh2] %d.%06d %s: ",
                    (int)now.tv_sec, (int)now.tv_usec, contexttext);
 
-    va_start(vargs, format);
-    len += vsnprintf(buffer + len, 1535 - len, format, vargs);
-    buffer[len] = '\n';
-    va_end(vargs);
-
-    if (session->tracehandler) {
-        (session->tracehandler)(session, session->tracehandler_context, buffer, len + 1);
-    } else {
-        write(2, buffer, len + 1);
+    if (len >= buflen)
+        msglen = buflen - 1;
+    else {
+        buflen -= len;
+        msglen = len;
+        va_start(vargs, format);
+        len = vsnprintf(buffer + msglen, buflen, format, vargs);
+        va_end(vargs);
+        msglen += len < buflen ? len : buflen - 1;
     }
+
+    if (session->tracehandler)
+        (session->tracehandler)(session, session->tracehandler_context, buffer,
+                                msglen);
+    else
+        fprintf(stderr, "%s\n", buffer);
 }
 
 #else
@@ -430,7 +439,8 @@ libssh2_trace(LIBSSH2_SESSION * session, int bitmask)
 }
 
 LIBSSH2_API int
-libssh2_trace_sethandler(LIBSSH2_SESSION *session, void* handler_context, libssh2_trace_handler_func callback)
+libssh2_trace_sethandler(LIBSSH2_SESSION *session, void* handler_context,
+                         libssh2_trace_handler_func callback)
 {
     (void) session;
     (void) handler_context;

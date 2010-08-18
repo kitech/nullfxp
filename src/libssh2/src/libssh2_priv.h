@@ -172,9 +172,9 @@ typedef int libssh2_socket_t;
  session->ssh_msg_ignore((session), (data), (datalen), &(session)->abstract)
 #define LIBSSH2_DEBUG(session, always_display, message, message_len, \
                       language, language_len)    \
-    session->ssh_msg_disconnect((session), (always_display), (message), \
-                                (message_len), (language), (language_len), \
-                                &(session)->abstract)
+    session->ssh_msg_debug((session), (always_display), (message), \
+                           (message_len), (language), (language_len), \
+                           &(session)->abstract)
 #define LIBSSH2_DISCONNECT(session, reason, message, message_len, language, language_len)   \
                 session->ssh_msg_disconnect((session), (reason), (message), (message_len), (language), (language_len), &(session)->abstract)
 
@@ -583,7 +583,7 @@ struct _LIBSSH2_SFTP
     /* a list of _LIBSSH2_SFTP_HANDLE structs */
     struct list_head sftp_handles;
 
-    unsigned long last_errno;
+    uint32_t last_errno;
 
     /* Holder for partial packet, use in libssh2_sftp_packet_read() */
     unsigned char *partial_packet;      /* The data                */
@@ -1148,5 +1148,12 @@ void _libssh2_init_if_needed (void);
 
 
 #define ARRAY_SIZE(a) (sizeof ((a)) / sizeof ((a)[0]))
+
+/* define to output the libssh2_int64_t type in a *printf() */
+#if defined( __BORLANDC__ ) || defined( _MSC_VER ) || defined( __MINGW32__ )
+#define LIBSSH2_INT64_T_FORMAT "I64"
+#else
+#define LIBSSH2_INT64_T_FORMAT "ll"
+#endif
 
 #endif /* LIBSSH2_H */

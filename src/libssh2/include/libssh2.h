@@ -40,6 +40,50 @@
 #ifndef LIBSSH2_H
 #define LIBSSH2_H 1
 
+#define LIBSSH2_COPYRIGHT "2004-2010 The libssh2 project and its contributors."
+
+/* We use underscore instead of dash when appending DEV in dev versions just
+   to make the BANNER define (used by src/session.c) be a valid SSH
+   banner. Release versions have no appended strings and may of course not
+   have dashes either. */
+#define LIBSSH2_VERSION "1.2.7"
+
+/* The numeric version number is also available "in parts" by using these
+   defines: */
+#define LIBSSH2_VERSION_MAJOR 1
+#define LIBSSH2_VERSION_MINOR 2
+#define LIBSSH2_VERSION_PATCH 7
+
+/* This is the numeric version of the libssh2 version number, meant for easier
+   parsing and comparions by programs. The LIBSSH2_VERSION_NUM define will
+   always follow this syntax:
+
+         0xXXYYZZ
+
+   Where XX, YY and ZZ are the main version, release and patch numbers in
+   hexadecimal (using 8 bits each). All three numbers are always represented
+   using two digits.  1.2 would appear as "0x010200" while version 9.11.7
+   appears as "0x090b07".
+
+   This 6-digit (24 bits) hexadecimal number does not show pre-release number,
+   and it is always a greater number in a more recent release. It makes
+   comparisons with greater than and less than work.
+*/
+#define LIBSSH2_VERSION_NUM 0x010207
+
+/*
+ * This is the date and time when the full source package was created. The
+ * timestamp is not stored in the source code repo, as the timestamp is
+ * properly set in the tarballs by the maketgz script.
+ *
+ * The format of the date should follow this template:
+ *
+ * "Mon Feb 12 11:35:33 UTC 2007"
+ */
+#define LIBSSH2_TIMESTAMP "Tue Aug 17 21:11:33 UTC 2010"
+
+#ifndef LIBSSH2_VERSION_ONLY
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -80,7 +124,7 @@ typedef unsigned char uint8_t;
 typedef unsigned int uint32_t;
 #endif
 
-#if defined(LIBSSH2_WIN32) && defined(_MSC_VER)
+#ifdef _MSC_VER
 typedef unsigned char uint8_t;
 typedef unsigned int uint32_t;
 typedef unsigned __int64 libssh2_uint64_t;
@@ -93,46 +137,6 @@ typedef int ssize_t;
 typedef unsigned long long libssh2_uint64_t;
 typedef long long libssh2_int64_t;
 #endif
-
-/* We use underscore instead of dash when appending DEV in dev versions just
-   to make the BANNER define (used by src/session.c) be a valid SSH
-   banner. Release versions have no appended strings and may of course not
-   have dashes either. */
-#define LIBSSH2_VERSION "1.2.6"
-
-/* The numeric version number is also available "in parts" by using these
-   defines: */
-#define LIBSSH2_VERSION_MAJOR 1
-#define LIBSSH2_VERSION_MINOR 2
-#define LIBSSH2_VERSION_PATCH 6
-
-/* This is the numeric version of the libssh2 version number, meant for easier
-   parsing and comparions by programs. The LIBSSH2_VERSION_NUM define will
-   always follow this syntax:
-
-         0xXXYYZZ
-
-   Where XX, YY and ZZ are the main version, release and patch numbers in
-   hexadecimal (using 8 bits each). All three numbers are always represented
-   using two digits.  1.2 would appear as "0x010200" while version 9.11.7
-   appears as "0x090b07".
-
-   This 6-digit (24 bits) hexadecimal number does not show pre-release number,
-   and it is always a greater number in a more recent release. It makes
-   comparisons with greater than and less than work.
-*/
-#define LIBSSH2_VERSION_NUM 0x010206
-
-/*
- * This is the date and time when the full source package was created. The
- * timestamp is not stored in the source code repo, as the timestamp is
- * properly set in the tarballs by the maketgz script.
- *
- * The format of the date should follow this template:
- *
- * "Mon Feb 12 11:35:33 UTC 2007"
- */
-#define LIBSSH2_TIMESTAMP "Thu Jun 10 08:19:51 UTC 2010"
 
 /* Part of every banner, user specified or not */
 #define LIBSSH2_SSH_BANNER                  "SSH-2.0-libssh2_" LIBSSH2_VERSION
@@ -1114,5 +1118,7 @@ LIBSSH2_API int libssh2_trace_sethandler(LIBSSH2_SESSION *session,
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
+
+#endif /* LIBSSH2_VERSION_ONLY */
 
 #endif /* LIBSSH2_H */
