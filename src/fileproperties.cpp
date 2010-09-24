@@ -121,7 +121,9 @@ void FilePropertiesRetriver::run_sftp()
         qDebug()<<this->file_path;
         qDebug()<<"sftp stat error:"<<libssh2_sftp_last_error(ssh2_sftp);
     }
-    emit file_attr_abtained(this->file_path, sftp_attrib);    
+    emit file_attr_abtained(this->file_path, sftp_attrib);
+    // QString u8_file_path = GlobalOption::instance()->remote_codec->toUnicode(this->file_path.toAscii());
+    // emit file_attr_abtained(u8_file_path, sftp_attrib);
 }
 void FilePropertiesRetriver::run_ftp()
 {
@@ -232,7 +234,8 @@ void FileProperties::set_file_info_model_list(QModelIndexList &mil)
 	QString file_size = mil.at(1).data().toString();
 	QString file_modify_time = mil.at(3).data().toString();
 	QString file_perm = mil.at(2).data().toString() ;
-    QString file_location = GlobalOption::instance()->remote_codec->toUnicode(item_node->filePath().toAscii());
+    // QString file_location = GlobalOption::instance()->remote_codec->toUnicode(item_node->filePath().toAscii());
+    QString file_location = item_node->filePath(); //GlobalOption::instance()->remote_codec->toUnicode(item_node->filePath().toAscii());
     file_location = file_location.left(file_location.length() - file_name.length() -1);
     if (file_location.length() == 0) {
         // it is in / path

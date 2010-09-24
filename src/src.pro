@@ -12,7 +12,7 @@ CONFIG += qt thread console warn_on ordered
 TARGET = nullfxp
 DESTDIR = ../bin
 
-VERSION=2.0.2.98  # using in nullfxp-version.h
+VERSION=2.0.2.99  # using in nullfxp-version.h
 
 # install vars, unix xdg
 include(../install.pri)
@@ -196,6 +196,7 @@ win32 {
         CLARCH=$$system(path)
         VAMD64=$$find(CLARCH,amd64)
         isEmpty(VAMD64) {
+             # from qt 4.7, use QMAKE_LIBDIR instead of LIBPATH
              LIBPATH += Z:/librarys/vc-ssl-x86/lib Z:/librarys/vc-zlib/static32   # depcreated
              QMAKE_LIBDIR += Z:/librarys/vc-ssl-x86/lib Z:/librarys/vc-zlib/static32
         } else {

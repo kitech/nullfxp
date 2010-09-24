@@ -39,6 +39,7 @@ win32 {
          CONFIG -= embed_manifest_exe
          CONFIG -= embed_manifest_dll
 
+         LIBPATH += Z:/librarys/libcurl/lib/Release
          CMAKE_LIBDIR += Z:/librarys/libcurl/lib/Release
          INCLUDEPATH += Z:/librarys/libcurl/include
          
