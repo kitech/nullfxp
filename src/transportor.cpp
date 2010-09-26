@@ -460,6 +460,7 @@ int Transportor::run_FILE_to_SFTP(QString srcFile, QString destFile)
             this->errorString = QString(tr("Open file faild, Permission denied"));
             this->error_code = SSH2_FX_PERMISSION_DENIED;
         } else {
+            this->errorString = QString(tr("Open file faild."));
             this->error_code = libssh2_sftp_last_error(this->dest_ssh2_sftp);
         }
 	
@@ -720,14 +721,17 @@ int Transportor::run_SFTP_to_FILE(QString srcFile, QString destFile)
     sftp_handle = libssh2_sftp_open(this->src_ssh2_sftp, gOpt->remote_codec->fromUnicode(srcFile), LIBSSH2_FXF_READ, 0);
     if (sftp_handle == NULL) {
         // TODO 错误消息通知用户。
-        qDebug()<<"open sftp file error :"<<libssh2_sftp_last_error(this->src_ssh2_sftp);
+        q_debug()<<"open sftp file error :"<<libssh2_sftp_last_error(this->src_ssh2_sftp);
         
         if (libssh2_sftp_last_error(this->src_ssh2_sftp) == LIBSSH2_FX_PERMISSION_DENIED) {
             this->error_code = SSH2_FX_PERMISSION_DENIED;
             this->errorString = tr("Permission denied.");
+            this->errorString = QString(tr("Open file faild, Permission denied"));
         } else {
-
+            this->errorString = QString(tr("Open file faild."));
+            this->error_code = ERRNO_BASE + libssh2_sftp_last_error(this->dest_ssh2_sftp);
         }
+
         return -1;
     }
     
@@ -1944,8 +1948,16 @@ int Transportor::run_SFTP_to_FTP(QString srcFile, QString destFile)
     
     sftp_handle = libssh2_sftp_open(this->src_ssh2_sftp, gOpt->remote_codec->fromUnicode(srcFile), LIBSSH2_FXF_READ, 0);
     if (sftp_handle == NULL) {
-        //TODO 错误消息通知用户。
-        qDebug()<<"open sftp file error :"<<libssh2_sftp_last_error(this->src_ssh2_sftp);
+        // TODO 错误消息通知用户。
+        q_debug()<<"open sftp file error :"<<libssh2_sftp_last_error(this->src_ssh2_sftp);
+        if (libssh2_sftp_last_error(this->dest_ssh2_sftp) == LIBSSH2_FX_PERMISSION_DENIED) {
+            this->errorString = QString(tr("Open file faild, Permission denied"));
+            qDebug()<<this->errorString;
+        } else {
+            this->errorString = QString(tr("Open file faild."));
+            this->error_code = ERRNO_BASE + libssh2_sftp_last_error(this->dest_ssh2_sftp);
+        }
+
         return -1;
     }
     
@@ -2198,9 +2210,12 @@ int Transportor::run_FTP_to_SFTP(QString srcFile, QString destFile)
         qDebug()<<"open sftp file error :"<< libssh2_sftp_last_error(this->dest_ssh2_sftp);
         if (libssh2_sftp_last_error(this->dest_ssh2_sftp) == LIBSSH2_FX_PERMISSION_DENIED) {
             this->errorString = QString(tr("Open file faild, Permission denied"));
-            qDebug()<<this->errorString;
+            q_debug()<<this->errorString;
+            this->error_code = LIBSSH2_FX_PERMISSION_DENIED;
+        } else {
+            this->errorString = QString(tr("Open file faild."));
+            this->error_code = ERRNO_BASE + libssh2_sftp_last_error(this->dest_ssh2_sftp);
         }
-        this->error_code = ERRNO_BASE + libssh2_sftp_last_error(this->dest_ssh2_sftp);
 	
         return -1;
     }
@@ -2306,6 +2321,15 @@ int Transportor::do_download(QString remote_path, QString local_path, int pflag)
     if (sftp_handle == NULL) {
         //TODO 错误消息通知用户。
         qDebug()<<"open sftp file error :"<<libssh2_sftp_last_error(this->src_ssh2_sftp);
+        if (libssh2_sftp_last_error(this->dest_ssh2_sftp) == LIBSSH2_FX_PERMISSION_DENIED) {
+            this->errorString = QString(tr("Open file faild, Permission denied"));
+            qDebug()<<this->errorString;
+            this->error_code = LIBSSH2_FX_PERMISSION_DENIED;
+        } else {
+            this->errorString = QString(tr("Open file faild."));
+            this->error_code = ERRNO_BASE + libssh2_sftp_last_error(this->dest_ssh2_sftp);
+        }
+
         return -1 ;
     }
     
@@ -2442,8 +2466,11 @@ int Transportor::do_upload(QString local_path, QString remote_path, int pflag)
         if (libssh2_sftp_last_error(this->dest_ssh2_sftp) == LIBSSH2_FX_PERMISSION_DENIED) {
             this->errorString = QString(tr("Open file faild, Permission denied"));
             qDebug()<<this->errorString;
+            this->error_code = LIBSSH2_FX_PERMISSION_DENIED;
+        } else {
+            this->errorString = QString(tr("Open file faild."));
+            this->error_code = ERRNO_BASE + libssh2_sftp_last_error(this->dest_ssh2_sftp);            
         }
-        this->error_code = ERRNO_BASE + libssh2_sftp_last_error(this->dest_ssh2_sftp);
 	
         return -1 ;
     }

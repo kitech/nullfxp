@@ -765,12 +765,13 @@ void SFTPView::slot_new_download_requested(TaskPackage remote_pkg)
 
 void SFTPView::slot_transfer_finished(int status, QString errorString)
 {
-    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<status; 
     SFTPView *remote_view = this ;
     
     ProgressDialog *pdlg = (ProgressDialog*)sender();
 
-    if (status == 0 || status ==3) {
+    if (status == 0 // || status == 3
+        ) {
         //TODO 通知UI更新目录结构,在某些情况下会导致左侧树目录变空。
         //int transfer_type = pdlg->get_transfer_type();
         //if ( transfer_type == TransferThread::TRANSFER_GET )
@@ -786,16 +787,19 @@ void SFTPView::slot_transfer_finished(int status, QString errorString)
             // xxxxx: 没有预期到的错误
             //assert ( 1== 2 );
         }
-    } else if (status != 0 && status != 3) {
-        QString errmsg = QString(errorString).arg(status);
+    } else if (status != 0 // && status != 3
+               ) {
+        QString errmsg = QString(errorString + " Code: %1").arg(status);
         if (errmsg.length() < 50) errmsg = errmsg.leftJustified(50);
         QMessageBox::critical(this, QString(tr("Error: ")), errmsg);
+    } else {
+        Q_ASSERT(1 == 2);
     }
     this->main_mdi_area->removeSubWindow(pdlg->parentWidget());
 
     delete pdlg;
     this->own_progress_dialog = 0;
-    //     remote_view->slot_leave_remote_dir_retrive_loop();
+    // remote_view->slot_leave_remote_dir_retrive_loop();
 }
 
 /**
