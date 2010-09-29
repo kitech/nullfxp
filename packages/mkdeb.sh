@@ -30,8 +30,8 @@ NXARCH=`arch`
 for ha in i686 i586 i486
 do
     if [ x"$NXARCH" = x"$ha" ] ; then
-	NXARCH=i386
-	break;
+	    NXARCH=i386
+	    break;
     fi
 done
 # exit;

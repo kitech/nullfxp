@@ -12,7 +12,7 @@ CONFIG += qt thread console warn_on ordered
 TARGET = nullfxp
 DESTDIR = ../bin
 
-VERSION=2.0.2.99  # using in nullfxp-version.h
+VERSION=2.1.0  # using in nullfxp-version.h
 
 # install vars, unix xdg
 include(../install.pri)
@@ -178,6 +178,18 @@ DISTFILES += ../CMakeLists.txt \
           CMakeLists.txt \
           libssh2/CMakeLists.txt
 
+# fix static compiled version cjk problem.
+exists($$[QT_INSTALL_PLUGINS]/codecs/libqcncodecs.a) {
+    DEFINES += STATIC QT_STATICPLUGIN 
+    SOURCES += nullfxp_static.cpp
+    QTPLUGIN += qcncodecs qtwcodecs qkrcodecs qjpcodecs
+#    LIBS += -L$$[QT_INSTALL_PLUGINS]/codecs -lqcncodecs -lqtwcodecs -lqkrcodecs -lqjpcodecs
+    LIBS += -Wl,-Bstatic -lcurl -lexpat -lgnutls -Wl,-Bdynamic -lssl -lcrypto -lidn  -lgcrypt -lgpg-error -ltasn1
+}
+exists($$[QT_INSTALL_PLUGINS]/imageformats/libqjpeg.a) {
+    QTPLUGIN += qgif qjpeg qico qmng qsvg qtiff
+}
+
 win32 {
     win32-g++ {
 	    debug {
@@ -215,7 +227,7 @@ win32 {
     #-lgcrypt -lgpg-error 
 } else {
     LIBS += libssh2/src/libssh2.a -lssl -lcrypto -lz
-    LIBS += -lcurl
+#    LIBS += -lcurl
     TARGETDEPS += libssh2/src/libssh2.a            # depcreated
     POST_TARGETDEPS += libssh2/src/libssh2.a
 # WARNING: /home/gzleo/nullfxp-svn/src/src.pro:204: Variable TARGETDEPS is deprecated; use POST_TARGETDEPS instead.
@@ -279,3 +291,9 @@ mylib.files = ./libssh2/src/libssh2.a
 target.path += $$BINDIR
 INSTALLS += target document icons osicons mimes tools menus mylib
 
+####### test
+message($$[QT_INSTALL_PLUGINS])
+
+static {
+       message("execute pure static build.")
+}

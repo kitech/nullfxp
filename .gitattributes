@@ -455,6 +455,7 @@ src/nullfxp.qrc -text
 src/nullfxp.rc -text
 src/nullfxp.ui -text
 src/nullfxp_config.h -text
+src/nullfxp_static.cpp -text
 src/nullfxpext.cpp -text
 src/plink/Makefile -text
 src/plink/be_all_s.c -text
