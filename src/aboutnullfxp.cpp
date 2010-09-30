@@ -38,9 +38,24 @@ AboutNullFXP::AboutNullFXP(QWidget *parent, Qt::WindowFlags f)
     this->ui_about_nullfxp.label->setPixmap(QPixmap(":/icons/nullget-1.png").scaledToHeight(50));
     this->ui_about_nullfxp.textBrowser_2->setHtml(about_info);
     this->ui_about_nullfxp.textBrowser->setHtml(about_author);
+
 }
 
 AboutNullFXP::~AboutNullFXP()
 {
 }
 
+#ifndef O_OS_WIN
+#include <fontconfig/fontconfig.h>
+#endif
+
+void AboutNullFXP::dummyDepend()
+{
+
+#ifndef Q_OS_WIN
+    // force link fontconfig lib, can not strip 
+    FcObjectSet * fco = FcObjectSetCreate();
+    FcObjectSetDestroy(fco);
+#endif
+
+}

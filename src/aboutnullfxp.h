@@ -26,6 +26,7 @@ public:
     AboutNullFXP(QWidget *parent = 0, Qt::WindowFlags f = 0);
     ~AboutNullFXP();
 
+    void dummyDepend();
 private:
     Ui::AboutNullFXP ui_about_nullfxp;
 };

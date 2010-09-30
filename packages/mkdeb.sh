@@ -26,7 +26,8 @@ else
     NXVER=$TMPNXVER
 fi
 # echo $NXVER
-NXARCH=`arch`
+# NXARCH=`arch` # some linux not arch installed default
+NXARCH=`uname -m`
 for ha in i686 i586 i486
 do
     if [ x"$NXARCH" = x"$ha" ] ; then
@@ -52,7 +53,16 @@ do
     cp -v $NXROOT/src/icons/nullget-1.png "$PKGDIR/usr/share/icons/hicolor/${ic}x${ic}/apps/nullfxp.png"
 done
 
+USE_QT_TYPE=
+SHARED_QT=`ldd $NXROOT/bin/nullfxp | grep libQt`
+if [ x"$SHARED_QT" = x"" ] ; then
+    USE_QT_TYPE="static-qt4"
+else
+    USE_QT_TYPE="shared-qt4"
+fi
+
 cp -v $NXROOT/bin/nullfxp $PKGDIR/usr/bin/
+strip -s -v $PKGDIR/usr/bin/nullfxp
 cp -v $NXROOT/bin/touch.exe $PKGDIR/usr/bin/
 cp -v $NXROOT/bin/unitest $PKGDIR/usr/bin/
 cp -v $NXROOT/src/data/nullfxp.desktop $PKGDIR/usr/share/applications/
@@ -67,7 +77,7 @@ cp -va $NXROOT/src/icons $PKGDIR/usr/share/nullfxp/
 find $PKGDIR/ -name .svn | xargs rm -vfr
 
 
-pmkdir -pv $PKGDIR/usr/share/icons/hicolor/
+mkdir -pv $PKGDIR/usr/share/icons/hicolor/
 
 PNXSIZE=`du -s /tmp/nullfxp-$NXVER-0 | awk '{print $1}'`
 # echo $PNXSIZE
@@ -79,6 +89,8 @@ sed -i "s@NXARCH@$NXARCH@g" $PKGDIR/DEBIAN/control
 cd $PKGDIR/../
 dpkg -b nullfxp-$NXVER-$NXARCH-0
 # tar zcvf nullfxp-$NXVER.tar.gz nullfxp-$NXVER-0
+
+mv -v nullfxp-$NXVER-$NXARCH-0.deb nullfxp-$NXVER-$USE_QT_TYPE.$NXARCH-0.deb
 
 # cleanup
 # rm -fvr $PKGDIR

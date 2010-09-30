@@ -178,18 +178,6 @@ DISTFILES += ../CMakeLists.txt \
           CMakeLists.txt \
           libssh2/CMakeLists.txt
 
-# fix static compiled version cjk problem.
-exists($$[QT_INSTALL_PLUGINS]/codecs/libqcncodecs.a) {
-    DEFINES += STATIC QT_STATICPLUGIN 
-    SOURCES += nullfxp_static.cpp
-    QTPLUGIN += qcncodecs qtwcodecs qkrcodecs qjpcodecs
-#    LIBS += -L$$[QT_INSTALL_PLUGINS]/codecs -lqcncodecs -lqtwcodecs -lqkrcodecs -lqjpcodecs
-    LIBS += -Wl,-Bstatic -lcurl -lexpat -lgnutls -Wl,-Bdynamic -lssl -lcrypto -lidn  -lgcrypt -lgpg-error -ltasn1
-}
-exists($$[QT_INSTALL_PLUGINS]/imageformats/libqjpeg.a) {
-    QTPLUGIN += qgif qjpeg qico qmng qsvg qtiff
-}
-
 win32 {
     win32-g++ {
 	    debug {
@@ -231,6 +219,20 @@ win32 {
     TARGETDEPS += libssh2/src/libssh2.a            # depcreated
     POST_TARGETDEPS += libssh2/src/libssh2.a
 # WARNING: /home/gzleo/nullfxp-svn/src/src.pro:204: Variable TARGETDEPS is deprecated; use POST_TARGETDEPS instead.
+LIBS += -Wl,-Bstatic -lcurl -lexpat -Wl,-Bdynamic -lssl -lcrypto -lfontconfig
+# fix static compiled version cjk problem.
+exists($$[QT_INSTALL_PLUGINS]/codecs/libqcncodecs.a) {
+    DEFINES += STATIC QT_STATICPLUGIN 
+    SOURCES += nullfxp_static.cpp
+    QTPLUGIN += qcncodecs qtwcodecs qkrcodecs qjpcodecs
+#    LIBS += -L$$[QT_INSTALL_PLUGINS]/codecs -lqcncodecs -lqtwcodecs -lqkrcodecs -lqjpcodecs
+} else {
+
+}
+exists($$[QT_INSTALL_PLUGINS]/imageformats/libqjpeg.a) {
+    QTPLUGIN += qgif qjpeg qico qmng qsvg qtiff
+}
+
 }
 
 CONFIG(release, debug|release) {

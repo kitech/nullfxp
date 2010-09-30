@@ -97,10 +97,10 @@
 
 CC = gcc
 
-CFLAGS = -g -O2 -Wall -Werror  -DHAVE_CONFIG_H  -I./ -I./charset/ \
+CFLAGS = -g -O2 -Wall -Werror  -DHAVE_CONFIG_H -DNO_GSSAPI  -I./ -I./charset/ \
 		-I./windows/ -I./unix/ -I./mac/ -I./macosx/
 XLDFLAGS =  
-ULDFLAGS = -lgssapi_krb5 
+# ULDFLAGS = -lgssapi_krb5 
 INSTALL=/usr/bin/install -c
 INSTALL_PROGRAM=$(INSTALL)
 INSTALL_DATA=$(INSTALL)
