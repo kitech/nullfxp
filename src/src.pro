@@ -220,6 +220,7 @@ win32 {
     POST_TARGETDEPS += libssh2/src/libssh2.a
 # WARNING: /home/gzleo/nullfxp-svn/src/src.pro:204: Variable TARGETDEPS is deprecated; use POST_TARGETDEPS instead.
 LIBS += -Wl,-Bstatic -lcurl -lexpat -Wl,-Bdynamic -lssl -lcrypto -lfontconfig
+LIBS += -lgnutls -lidn -ltasn1 -lgcrypt -lgpg-error
 # fix static compiled version cjk problem.
 exists($$[QT_INSTALL_PLUGINS]/codecs/libqcncodecs.a) {
     DEFINES += STATIC QT_STATICPLUGIN 
