@@ -75,7 +75,7 @@ void TaskQueue::finalize()
     Q_ASSERT(rv == SQLITE_OK);
 }
 
-void TaskQueue::slot_set_transfer_percent(int percent, int total_transfered, int transfer_delta)
+void TaskQueue::slot_set_transfer_percent(int percent, quint64 total_transfered, int transfer_delta)
 {
     
 }
@@ -158,7 +158,7 @@ void TaskQueue::slot_new_file_transfer_started(QString new_file_name)
     // rv = sqlite3_exec(this->pDB, "COMMIT TRANSACTION;", 0, 0, 0);
 }
 
-void TaskQueue::slot_transfer_got_file_size(int size)
+void TaskQueue::slot_transfer_got_file_size(quint64 size)
 {
 }
 

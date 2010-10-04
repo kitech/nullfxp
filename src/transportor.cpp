@@ -389,7 +389,7 @@ int Transportor::run_FILE_to_SFTP(QString srcFile, QString destFile)
 
     int pcnt = 0;
     int rlen, wlen;
-    int file_size, tran_len = 0;
+    quint64 file_size, tran_len = 0;
     LIBSSH2_SFTP_HANDLE *sftp_handle ;
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
     char buff[5120] = {0};
@@ -2410,7 +2410,7 @@ int Transportor::do_upload(QString local_path, QString remote_path, int pflag)
 
     int pcnt = 0 ;
     int rlen, wlen;
-    int file_size, tran_len = 0;
+    quint64 file_size, tran_len = 0;
     LIBSSH2_SFTP_HANDLE *sftp_handle ;
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
     char buff[5120] = {0};

@@ -24,11 +24,11 @@ public:
     static TaskQueue *instance();
 
 public slots:
-    void slot_set_transfer_percent(int percent, int total_transfered, int transfer_delta);
+    void slot_set_transfer_percent(int percent, quint64 total_transfered, int transfer_delta);
     void slot_transfer_thread_finished();
     void slot_new_file_transfer_started(QString new_file_name);
         
-    void slot_transfer_got_file_size(int size);
+    void slot_transfer_got_file_size(quint64 size);
  
 signals:
     void insertRow(int row);
@@ -59,6 +59,6 @@ private:
   start_time VARCHAR(16),
   finish_time VARCHAR(16)
 );
-
  */
+
 #endif /* _TASKQUEUE_H_ */

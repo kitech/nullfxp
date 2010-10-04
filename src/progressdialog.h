@@ -31,14 +31,14 @@ public:
     void set_transfer_info(TaskPackage local_pkg, TaskPackage remote_pkg);
     
 public slots:
-    void slot_set_transfer_percent(int percent, int total_transfered, int transfer_delta);
+    void slot_set_transfer_percent(int percent, quint64 total_transfered, int transfer_delta);
     void slot_transfer_thread_finished();
     void slot_new_file_transfer_started(QString new_file_name);
         
     void exec();
     void show();
     void slot_cancel_button_clicked();
-    void slot_transfer_got_file_size(int size);
+    void slot_transfer_got_file_size(quint64 size);
     void slot_transfer_log(QString log);
     void slot_dest_file_exists(QString src_path, QString src_file_size, 
                                QString src_file_date, QString dest_path,
@@ -52,7 +52,6 @@ signals:
     void transfer_finished(int status, QString errorString);
         
 private:
-
     TaskPackage local_pkg;
     TaskPackage remote_pkg;
 
@@ -64,7 +63,7 @@ private:
     quint64 total_files_size;
     quint64 abtained_files_size;
     int     total_files_count;
-    int     abtained_files_count;
+    quint64     abtained_files_count;
     int  transfer_speed;
     QDateTime start_time;
     QDateTime end_time;
