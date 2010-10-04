@@ -46,14 +46,14 @@ ProgressDialog::ProgressDialog(QWidget *parent)
     
     QObject::connect(this->transportor, SIGNAL(finished()),
                      this, SLOT(slot_transfer_thread_finished()));
-    QObject::connect(this->transportor, SIGNAL(transfer_percent_changed(int, int, int)),
-                     this, SLOT(slot_set_transfer_percent(int, int, int)));
+    QObject::connect(this->transportor, SIGNAL(transfer_percent_changed(int, quint64, int)),
+                     this, SLOT(slot_set_transfer_percent(int, quint64, int)));
     QObject::connect(this->transportor, SIGNAL(transfer_new_file_started(QString)),
                      this, SLOT(slot_new_file_transfer_started(QString)));
     QObject::connect(this->uiw.pushButton, SIGNAL(clicked()),
                      this, SLOT(slot_cancel_button_clicked()));
-    QObject::connect( this->transportor, SIGNAL(transfer_got_file_size(int)),
-                      this, SLOT(slot_transfer_got_file_size(int)));
+    QObject::connect( this->transportor, SIGNAL(transfer_got_file_size(quint64)),
+                      this, SLOT(slot_transfer_got_file_size(quint64)));
     QObject::connect(this->transportor, SIGNAL(transfer_log(QString)),
                      this, SLOT(slot_transfer_log(QString)));
 
@@ -334,6 +334,7 @@ void ProgressDialog::slot_speed_timer_timeout()
     float speed_value = 0.0;
     QString time_str;
     QString eclapsed_time_str, left_time_str;
+    char time_str_buf[16];
 
     total_seconds = this->start_time.secsTo(now_time);
 
@@ -342,10 +343,16 @@ void ProgressDialog::slot_speed_timer_timeout()
     minites = total_seconds%3600/60;
     seconds = total_seconds%60;    
     if (days > 0) {
-        time_str = QString("%1d%2:%3:%4").arg(days).arg( hours).arg(minites).arg(seconds);
+        snprintf(time_str_buf, sizeof(time_str_buf) - 1, "%dd:%.2d:%.2d:%.2d",
+                 days, hours, minites, seconds);
+        // time_str = QString("%1d:%2:%3:%4").arg(days).arg( hours).arg(minites).arg(seconds);
     } else {
-        time_str = QString("%1:%2:%3").arg( hours).arg(minites).arg(seconds);
+        snprintf(time_str_buf, sizeof(time_str_buf) - 1, "%.2d:%.2d:%.2d",
+                 hours, minites, seconds);
+        // time_str = QString("%1:%2:%3").arg( hours).arg(minites).arg(seconds);
     }
+    time_str = QString(time_str_buf);
+
     this->uiw.lineEdit_6->setText(time_str);
     eclapsed_time_str = time_str;
 
@@ -360,11 +367,18 @@ void ProgressDialog::slot_speed_timer_timeout()
     minites = total_seconds%3600/60;
     seconds = total_seconds%60;    
 
+    memset(time_str_buf, 0, sizeof(time_str_buf));
     if (days > 0) {
-        time_str = QString("%1d%2:%3:%4").arg(days).arg( hours).arg(minites).arg(seconds);
+        snprintf(time_str_buf, sizeof(time_str_buf) - 1, "%dd:%.2d:%.2d:%.2d",
+                 days, hours, minites, seconds);
+        // time_str = QString("%1d:%2:%3:%4").arg(days).arg(hours).arg(minites).arg(seconds);
     } else {
-        time_str = QString("%1:%2:%3").arg( hours).arg(minites).arg(seconds);
+        snprintf(time_str_buf, sizeof(time_str_buf) - 1, "%.2d:%.2d:%.2d",
+                 hours, minites, seconds);
+        // time_str = QString("%1:%2:%3").arg( hours).arg(minites).arg(seconds);
     }
+    time_str = QString(time_str_buf);
+
     this->uiw.lineEdit_7->setText(time_str);
     left_time_str = time_str;
     
