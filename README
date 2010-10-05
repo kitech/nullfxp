@@ -10,3 +10,6 @@ Requirement:
 
 代码格式： emacs
 (setq c-default-style "bsd"  c-basic-offset 4)
+
+Extra:
+        The code is not beautifuy, but it works fine.
