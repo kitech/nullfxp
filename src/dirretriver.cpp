@@ -416,21 +416,6 @@ int DirRetriver::fxp_do_ls_dir(QString path, QVector<QMap<char, QString> > & fil
             QString timeStr = theTime.toString("yyyy/MM/dd HH:mm:ss");
             strncpy(file_date, timeStr.toAscii().data(), sizeof(file_date) - 1);
 
-// #ifndef _MSC_VER
-//             snprintf(file_size, sizeof(file_size) - 1, "%llu",ssh2_sftp_attrib.filesize);
-            
-//             struct tm *ltime = localtime((time_t*)&ssh2_sftp_attrib.mtime);
-//             if (ltime != NULL) {
-//                 if (time(NULL) - ssh2_sftp_attrib.mtime < (365*24*60*60) / 2)
-//                     strftime(file_date, sizeof file_date, "%Y/%m/%d %H:%M:%S", ltime);
-//                 else
-//                     strftime(file_date, sizeof file_date, "%Y/%m/%d %H:%M:%S", ltime);
-//             }
-// #else
-// 			_snprintf(file_size, sizeof(file_size) - 1 , "%llu",ssh2_sftp_attrib.filesize);
-// 			_snprintf(file_date, sizeof(file_date) - 1, "0000/00/00 00:00:00");
-// #endif
-
             strmode(ssh2_sftp_attrib.permissions, file_type);
             //printf(" ls dir : %s %s , date=%s , type=%s \n" , file_name , file_size , file_date , file_type );
             thefile.insert('N', GlobalOption::instance()->remote_codec->toUnicode(file_name ));

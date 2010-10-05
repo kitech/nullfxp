@@ -32,6 +32,16 @@
 #include <QPair>
 #include <QtCore>
 
+#if defined(__WIN32__) || defined(_WIN32)
+#       include <winsock.h>
+        // Stuff for Visual C++ only
+#       if defined(_MSC_VER)
+#               define snprintf _snprintf
+#       endif
+#else
+#       include <stdlib.h>
+#endif
+
 
 #ifdef WIN32
 
