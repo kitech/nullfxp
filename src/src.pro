@@ -119,6 +119,7 @@ SOURCES += main.cpp \
  taskqueuemodel.cpp \
  taskqueueview.cpp \
  dirnavbar.cpp \
+ security.cpp \
  sqlite/sqlite3.c
 
 HEADERS += nullfxp.h \

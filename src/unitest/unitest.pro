@@ -28,7 +28,8 @@ SOURCES += testmain.cpp testnullfxp.cpp
 
 SOURCES += ../basestorage.cpp ../utils.cpp ../globaloption.cpp \
           ../sshfileinfo.cpp \
-          ../libftp/curlftp.cpp ../libftp/curlftp_callback.cpp
+          ../libftp/curlftp.cpp ../libftp/curlftp_callback.cpp \
+          ../security.cpp
 
 HEADERS += ../libftp/curlftp.h
 

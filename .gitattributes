@@ -572,6 +572,8 @@ src/remoteviewdirtableview.cpp -text
 src/remoteviewdirtableview.h -text
 src/rfsdirnode.cpp -text
 src/rfsdirnode.h -text
+src/security.cpp -text
+src/security.h -text
 src/sessiondialog.cpp -text
 src/sessiondialog.h -text
 src/sftp-const.h -text

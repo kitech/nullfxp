@@ -2,15 +2,15 @@
 #define PACKAGE "libssh"
 
 /* Version number of package */
-#define VERSION "0.4.4"
+#define VERSION "0.4.6"
 
 /* #undef LOCALEDIR */
-#define DATADIR "/serv/stow/libssh/share/libssh"
-#define LIBDIR "/serv/stow/libssh/lib"
-#define PLUGINDIR "/serv/stow/libssh/lib/libssh-4"
-#define SYSCONFDIR "/serv/stow/libssh/etc"
-#define BINARYDIR "/home/gzleo/temp/libssh-0.4.4/build"
-#define SOURCEDIR "/home/gzleo/temp/libssh-0.4.4"
+#define DATADIR "/usr/local/share/libssh"
+#define LIBDIR "/usr/local/lib"
+#define PLUGINDIR "/usr/local/lib/libssh-4"
+#define SYSCONFDIR "/usr/local/etc"
+#define BINARYDIR "/home/gzleo/temp/libssh-0.4.6/build"
+#define SOURCEDIR "/home/gzleo/temp/libssh-0.4.6"
 
 /************************** HEADER FILES *************************/
 
@@ -37,8 +37,17 @@
 
 /*************************** FUNCTIONS ***************************/
 
+/* Define to 1 if you have the `snprintf' function. */
+#define HAVE_SNPRINTF 1
+
+/* Define to 1 if you have the `_snprintf' function. */
+/* #undef HAVE__SNPRINTF */
+
+/* Define to 1 if you have the `_snprintf_s' function. */
+/* #undef HAVE__SNPRINTF_S */
+
 /* Define to 1 if you have the `vsnprintf' function. */
-/* #undef HAVE_VSNPRINTF */
+#define HAVE_VSNPRINTF 1
 
 /* Define to 1 if you have the `_vsnprintf' function. */
 /* #undef HAVE__VSNPRINTF */
@@ -47,7 +56,7 @@
 /* #undef HAVE__VSNPRINTF_S */
 
 /* Define to 1 if you have the `snprintf' function. */
-/* #undef HAVE_SNPRINTF */
+#define HAVE_SNPRINTF 1
 
 /* Define to 1 if you have the `_snprintf' function. */
 /* #undef HAVE__SNPRINTF */
@@ -57,7 +66,7 @@
 
 
 /* Define to 1 if you have the `strncpy' function. */
-/* #undef HAVE_STRNCPY */
+#define HAVE_STRNCPY 1
 
 /* Define to 1 if you have the `cfmakeraw' function. */
 #define HAVE_CFMAKERAW 1
@@ -116,17 +125,3 @@
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */
 /* #undef WORDS_BIGENDIAN */
-
-/************************* MS Windows ***************************/
-
-#ifdef _WIN32
-# ifdef _MSC_VER
-/* On Microsoft compilers define inline to __inline on all others use inline */
-#  undef inline
-#  define inline __inline
-
-#  undef strdup
-#  define strdup _strdup
-# endif // _MSC_VER
-#endif /* _WIN32 */
-

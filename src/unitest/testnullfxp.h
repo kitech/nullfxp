@@ -31,5 +31,7 @@ private slots:
     void testCXX0XSyntax();
 
     void testCurlFtp();
+
+    void testEncodeDecode();
 };
 

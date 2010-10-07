@@ -303,7 +303,7 @@ public:
 
 void TestNullfxp::testCurlFtp()
 {
-
+    return;
     ///// test curl ftp functions
     // TestThread *t = new TestThread();
     // t->start();
@@ -317,5 +317,33 @@ void TestNullfxp::testCurlFtp()
 
     t->wait(-1);
 
+}
+
+#include "security.h"
+void TestNullfxp::testEncodeDecode()
+{
+    std::string key = "gzleo192.168.1.101";
+    std::string password = "123456#2$#(*$#";
+    std::string enc_password;
+    std::string dec_password;
+    QString mystr;
+
+    enc_password = EncryptPassword(password, key);
+    mystr = QString(enc_password.c_str());
+    qDebug()<<"enc password:"<<enc_password.length()<<" "<<enc_password.c_str()
+            <<" "<<mystr;
+
+    dec_password = DecryptPassword(enc_password, key);
+    qDebug()<<"dec password:"<<dec_password.c_str();
+    
+    QVERIFY(dec_password == password);
+
+    // 
+    enc_password = std::string("35C4A55BB53B62BCA0D15D55E3B263039336D656E726D6A64726D726D6C6D6E6D6D6F452A9FAF343B5C5E912D56946B1FBDA");
+    dec_password = DecryptPassword(enc_password, key);
+    qDebug()<<"Adec2 password:"<<dec_password.c_str();
+    
+    QVERIFY(dec_password == password);
+    
 }
 
