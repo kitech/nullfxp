@@ -12,6 +12,7 @@
 // #pragma hdrstop
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 
 // #include "Common.h"
 #include "security.h"
@@ -70,17 +71,17 @@ std::string EncryptPassword(std::string Password, std::string Key, int /* Algori
     srand(time(NULL));
     Password = Key + Password;
     Shift = (Password.length() < PWALG_SIMPLE_MAXLEN) ?
-        (unsigned char)random() % (PWALG_SIMPLE_MAXLEN - Password.length()) : 0;
+        (unsigned char)rand() % (PWALG_SIMPLE_MAXLEN - Password.length()) : 0;
     Result += SimpleEncryptChar((char)PWALG_SIMPLE_FLAG); // Flag
     Result += SimpleEncryptChar((char)PWALG_SIMPLE_INTERNAL); // Dummy
     Result += SimpleEncryptChar((char)Password.length());
     Result += SimpleEncryptChar((char)Shift);
     for (Index = 0; Index < Shift; Index++)
-        Result += SimpleEncryptChar((unsigned char)random()%256);
+        Result += SimpleEncryptChar((unsigned char)rand()%256);
     for (Index = 0; Index < Password.length(); Index++)
         Result += SimpleEncryptChar(Password.c_str()[Index]);
     while (Result.length() < PWALG_SIMPLE_MAXLEN * 2)
-        Result += SimpleEncryptChar((unsigned char)random()%256);
+        Result += SimpleEncryptChar((unsigned char)rand()%256);
     return Result;
 }
 //---------------------------------------------------------------------------

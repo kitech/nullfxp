@@ -326,12 +326,11 @@ void TestNullfxp::testEncodeDecode()
     std::string password = "123456#2$#(*$#";
     std::string enc_password;
     std::string dec_password;
-    QString mystr;
+    // QString mystr;
 
     enc_password = EncryptPassword(password, key);
-    mystr = QString(enc_password.c_str());
-    qDebug()<<"enc password:"<<enc_password.length()<<" "<<enc_password.c_str()
-            <<" "<<mystr;
+    // mystr = QString(enc_password.c_str());
+    qDebug()<<"enc password:"<<enc_password.length()<<" "<<enc_password.c_str();
 
     dec_password = DecryptPassword(enc_password, key);
     qDebug()<<"dec password:"<<dec_password.c_str();
@@ -342,6 +341,20 @@ void TestNullfxp::testEncodeDecode()
     enc_password = std::string("35C4A55BB53B62BCA0D15D55E3B263039336D656E726D6A64726D726D6C6D6E6D6D6F452A9FAF343B5C5E912D56946B1FBDA");
     dec_password = DecryptPassword(enc_password, key);
     qDebug()<<"Adec2 password:"<<dec_password.c_str();
+    
+    // QVERIFY(dec_password == password);
+    
+
+    key = "gzleo@192.168.0.1哈为发经主人工经发";
+    password = "这是密码";
+
+    enc_password = EncryptPassword(password, key);
+    //     mystr = QString(enc_password.c_str());
+    qDebug()<<"enc password:"<<enc_password.length()<<" "<<enc_password.c_str();
+
+    dec_password = DecryptPassword(enc_password, key);
+    // qDebug()<<"dec password:"<<dec_password.c_str()<<"==中=="<<password.c_str();
+    fprintf(stderr, "dec password: %s ==中== %s\n", dec_password.c_str(), password.c_str());
     
     QVERIFY(dec_password == password);
     
