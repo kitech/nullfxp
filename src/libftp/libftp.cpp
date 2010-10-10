@@ -279,10 +279,14 @@ int LibFtp::logout()
 
 int LibFtp::connectDataChannel()
 {
+    int qtype1 = qRegisterMetaType<QAbstractSocket::SocketError>("QAbstractSocket::SocketError");
+    int qtype2 = qRegisterMetaType<QAbstractSocket::SocketState>("QAbstractSocket::SocketState");
+    Q_UNUSED(qtype1);
+    Q_UNUSED(qtype2);
+
     // this->qdsock = new QTcpSocket();
     this->qdsock = new QSslSocket();
-    int qtype1 = qRegisterMetaType<QAbstractSocket::SocketError>("SocketError" );
-    int qtype2 = qRegisterMetaType<QAbstractSocket::SocketState>("SocketState" );
+
     QObject::connect(this->qdsock, SIGNAL(connected()),
                      this, SLOT(onDataSockConnected()));
     QObject::connect(this->qdsock, SIGNAL(disconnected()),
