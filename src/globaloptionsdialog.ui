@@ -332,6 +332,11 @@ p, li { white-space: pre-wrap; }
                    <widget class="QComboBox" name="comboBox">
                     <item>
                      <property name="text">
+                      <string>Auto Detect</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
                       <string>UTF-8</string>
                      </property>
                     </item>
@@ -370,6 +375,11 @@ p, li { white-space: pre-wrap; }
                     </item>
                     <item>
                      <property name="text">
+                      <string>Auto Detect</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
                       <string>ISO-8859-1</string>
                      </property>
                     </item>
@@ -396,6 +406,11 @@ p, li { white-space: pre-wrap; }
                  <layout class="QHBoxLayout" name="horizontalLayout_7">
                   <item>
                    <widget class="QComboBox" name="comboBox_3">
+                    <item>
+                     <property name="text">
+                      <string>Auto Detect</string>
+                     </property>
+                    </item>
                     <item>
                      <property name="text">
                       <string>UTF-8</string>

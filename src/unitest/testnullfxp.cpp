@@ -130,15 +130,18 @@ void TestNullfxp::testCXX0XSyntax()
 {
 #ifndef _MSC_VER
 #if (__GNUC__ >= 4) && (__GNUC_MINOR__ >= 4)
-    std::tr1::array<int, 0> tr1arr;
+    std::tr1::array<int, 1> tr1arr;
     QVERIFY(tr1arr.size() == 0);
     tr1arr[0] = 5;
-    qDebug()<<"array size:"<<tr1arr.size();
+    qDebug()<<"array size:"<<tr1arr.size()<<tr1arr.max_size();
     QVERIFY(tr1arr.size() == 0);
-    tr1arr[1] = 6;
+    tr1arr[10] = 6;
     QVERIFY(tr1arr.size() == 0);
-    qDebug()<<"a[1]="<<tr1arr[1];
+    qDebug()<<"a[1]="<<tr1arr[10]<<tr1arr.max_size()<<tr1arr.empty();
+    qDebug()<<"a10="<<tr1arr.at(0);
     //这个数组模板个数很奇怪啊。
+
+    
 #else
     #warning "you gcc version is to lower. need gcc >= 4.4.0 for all feature."
 #endif
