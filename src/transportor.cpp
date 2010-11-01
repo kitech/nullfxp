@@ -1803,7 +1803,7 @@ int Transportor::run_FTP_to_FTP_fxp(QString srcFile, QString destFile)   // é€šè
 int Transportor::run_SFTP_to_FTP()
 {
     q_debug()<<"";
-    LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
+    // LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
     // RemoteHostConnectThread *rhct = 0;
 
     int rv = -1;

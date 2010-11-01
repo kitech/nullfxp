@@ -79,8 +79,10 @@ public:
     QTextCodec *codec;
 
 signals:
-    virtual void alivePong(int alive);
-    virtual void connect_state_changed(QString state_desc);
+    // virtual: fixed: Warning: Signals cannot be declared virtual
+    void alivePong(int alive);
+    // virtual 
+    void connect_state_changed(QString state_desc);
 };
 
 
