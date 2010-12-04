@@ -176,36 +176,89 @@ void SessionDialog::slot_conntect_selected_host()
     }
 }
 
+
 void SessionDialog::slot_edit_selected_host()
 {
+  qDebug()<<__FILE__<<__LINE__<<__FUNCTION__;
+
     QItemSelectionModel *ism = 0;
     QModelIndexList mil;
+    QuickConnectInfoDialog *info_dlg = 0;
+    int i=0;
+    int row_cnt=0;
+    QModelIndex idx,cidx;
 
     ism = this->ui_win.treeView->selectionModel();
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__;
+    
+    qDebug()<<this->ui_win.treeView->rootIndex()<<ism->currentIndex();
+    if (ism->hasSelection()) {
+      qDebug()<<__FILE__<<__LINE__<<__FUNCTION__;
+      row_cnt = ism->model()->rowCount();
+
+      qDebug()<<__FILE__<<__LINE__<<__FUNCTION__;
+      cidx = ism->currentIndex();
+      idx = ism->model()->index(i, 0, this->ui_win.treeView->rootIndex());
+      idx = ism->model()->index(cidx.row(), 0, cidx.parent());
+      if (this->sessTree->isDir(idx)) {
+	qDebug()<<__FILE__<<__LINE__<<__FUNCTION__;
+      } else {
+	qDebug()<<__FILE__<<__LINE__<<__FUNCTION__;
+	//qDebug()<<mil.at(0).data();
+	QString show_name = idx.data().toString();
+	//qDebug()<<show_name;
+	QMap<QString,QString> host = this->storage->getHost(show_name);
+	QMap<QString,QString> host_new;
+	//qDebug()<<host;
+	qDebug()<<__FILE__<<__LINE__<<__FUNCTION__;
+	info_dlg = new QuickConnectInfoDialog();
+	qDebug()<<__FILE__<<__LINE__<<__FUNCTION__;
+	info_dlg->set_active_host(host);
+	if (info_dlg->exec() == QDialog::Accepted) {
+	  host_new = info_dlg->get_host_map();
+	  if (host_new != host) {
+	    this->storage->updateHost(host_new);
+	  }
+	}
+	delete info_dlg;
+	// info_dlg->deleteLater();
+	qDebug()<<__FILE__<<__LINE__<<__FUNCTION__;
+      }
+    }
+  return;
     mil = ism->selectedIndexes();
-    //qDebug()<<mil;
+    qDebug()<<mil;
+
     if (mil.count() > 0) {
+        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__;
         if (this->sessTree->isDir(mil.at(0))) {
+	    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__;
         } else {
+	    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__;
             //qDebug()<<mil.at(0).data();
             QString show_name = mil.at(0).data().toString();
             //qDebug()<<show_name;
             QMap<QString,QString> host = this->storage->getHost(show_name);
             QMap<QString,QString> host_new;
             //qDebug()<<host;
-            QuickConnectInfoDialog *info_dlg = new QuickConnectInfoDialog(this);
-            info_dlg->set_active_host(host);
-            if (info_dlg->exec() == QDialog::Accepted) {
-                host_new = info_dlg->get_host_map();
-                if (host_new != host) {
-                    this->storage->updateHost(host_new);
-                }
-            }
-            delete info_dlg;
+	    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__;
+            // info_dlg = new QuickConnectInfoDialog(this);
+	    // qDebug()<<__FILE__<<__LINE__<<__FUNCTION__;
+            // info_dlg->set_active_host(host);
+            // if (info_dlg->exec() == QDialog::Accepted) {
+	    //   host_new = info_dlg->get_host_map();
+	    //   if (host_new != host) {
+	    //   this->storage->updateHost(host_new);
+	    //   }
+            // }
+	    // delete info_dlg;
+	    // info_dlg->deleteLater();
+	    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__;
         }
     } else {
         this->slot_show_no_item_tip();
     }
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__;
 }
 
 void SessionDialog::slot_rename_selected_host()
