@@ -282,73 +282,68 @@ void RemoteView::slot_new_transfer()
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
      
-    QString file_path;
-    TaskPackage remote_pkg(PROTO_SFTP);
+    // QString file_path;
+    // TaskPackage remote_pkg(PROTO_SFTP);
     
-    if (this->in_remote_dir_retrive_loop) {
-        QMessageBox::warning(this, tr("Notes:"), tr("Retriving remote directory tree,wait a minute please."));
-        return ;
-    }
+    // if (this->in_remote_dir_retrive_loop) {
+    //     QMessageBox::warning(this, tr("Notes:"), tr("Retriving remote directory tree,wait a minute please."));
+    //     return ;
+    // }
     
-    QItemSelectionModel *ism = this->curr_item_view->selectionModel();
-    
-    if (ism == 0) {
-        QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));
-        return ;
-    }
-    
-    QModelIndexList mil = ism->selectedIndexes();
-    
-    for(int i = 0 ; i < mil.size(); i +=4 ) {
-        QModelIndex midx = mil.at(i);
-        NetDirNode *dti = (NetDirNode*)
-            (this->curr_item_view!=this->uiw.treeView 
-             ? this->m_tableProxyModel->mapToSource(midx).internalPointer() 
-             : (this->m_treeProxyModel->mapToSource(midx ).internalPointer()));
-        qDebug()<<dti->fileName()<<" "<<" "<<dti->fullPath;
-        file_path = dti->fullPath;
-        remote_pkg.files<<file_path;
-    }
+    // QItemSelectionModel *ism = this->curr_item_view->selectionModel();
+    // QModelIndex cidx, idx;
 
-    // remote_pkg.host = this->host_name;
-    // remote_pkg.port = QString("%1").arg(this->port);
-    // remote_pkg.username = this->user_name;
-    // remote_pkg.password = this->password;
-    // remote_pkg.pubkey = this->pubkey;
+    // if (ism == 0) {
+    //     QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));
+    //     return;
+    // }
+    
+    // QModelIndexList mil = ism->selectedIndexes();
+    
+    // for(int i = 0 ; i < mil.size(); i +=4 ) {
+    //     QModelIndex midx = mil.at(i);
+    //     NetDirNode *dti = (NetDirNode*)
+    //         (this->curr_item_view!=this->uiw.treeView 
+    //          ? this->m_tableProxyModel->mapToSource(midx).internalPointer() 
+    //          : (this->m_treeProxyModel->mapToSource(midx ).internalPointer()));
+    //     qDebug()<<dti->fileName()<<" "<<" "<<dti->fullPath;
+    //     file_path = dti->fullPath;
+    //     remote_pkg.files<<file_path;
+    // }
 
-    remote_pkg.host = this->conn->hostName;
-    remote_pkg.port = QString("%1").arg(this->conn->port);
-    remote_pkg.username = this->conn->userName;
-    remote_pkg.password = this->conn->password;
-    remote_pkg.pubkey = this->conn->pubkey;
+    // remote_pkg.host = this->conn->hostName;
+    // remote_pkg.port = QString("%1").arg(this->conn->port);
+    // remote_pkg.username = this->conn->userName;
+    // remote_pkg.password = this->conn->password;
+    // remote_pkg.pubkey = this->conn->pubkey;
 
-    this->slot_new_download_requested(remote_pkg);
+    // this->slot_new_download_requested(remote_pkg);
 }
 
 QString RemoteView::get_selected_directory()
 {
     QString file_path;
     
-    QItemSelectionModel *ism = this->uiw.treeView->selectionModel();
+    // QItemSelectionModel *ism = this->uiw.treeView->selectionModel();
     
-    if (ism == 0) {
-        QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
-        return file_path;
-    }
+    // if (ism == 0) {
+    //     QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
+    //     return file_path;
+    // }
     
-    QModelIndexList mil = ism->selectedIndexes();
+    // QModelIndexList mil = ism->selectedIndexes();
 
-    for (int i = 0 ; i < mil.size(); i +=4) {
-        QModelIndex midx = mil.at(i);
-        QModelIndex aim_midx =  this->m_treeProxyModel->mapToSource(midx);
-        NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
-        qDebug()<<dti->fileName()<<" "<< dti->fullPath;
-        // if (this->m_treeProxyModel->isDir(midx)) {
-        // 	  file_path = dti->fullPath;
-        // } else {
-        // 	  file_path = "";
-        // }
-    }
+    // for (int i = 0 ; i < mil.size(); i +=4) {
+    //     QModelIndex midx = mil.at(i);
+    //     QModelIndex aim_midx =  this->m_treeProxyModel->mapToSource(midx);
+    //     NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
+    //     qDebug()<<dti->fileName()<<" "<< dti->fullPath;
+    //     // if (this->m_treeProxyModel->isDir(midx)) {
+    //     // 	  file_path = dti->fullPath;
+    //     // } else {
+    //     // 	  file_path = "";
+    //     // }
+    // }
     
     return file_path;
 }
@@ -432,35 +427,35 @@ void RemoteView::update_layout()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
-    QString file_path ;
+    // QString file_path ;
     
-    QItemSelectionModel *ism = this->uiw.treeView->selectionModel();
+    // QItemSelectionModel *ism = this->uiw.treeView->selectionModel();
     
-    if (ism == 0) {
-        //QMessageBox::critical(this,tr("waring..."),tr("maybe you haven't connected"));                
-        //return file_path ;
-        qDebug()<<" why???? no QItemSelectionModel??";        
-        return ;
-    }
+    // if (ism == 0) {
+    //     //QMessageBox::critical(this,tr("waring..."),tr("maybe you haven't connected"));                
+    //     //return file_path ;
+    //     qDebug()<<" why???? no QItemSelectionModel??";        
+    //     return ;
+    // }
     
-    QModelIndexList mil = ism->selectedIndexes();
+    // QModelIndexList mil = ism->selectedIndexes();
     
-    if (mil.count() == 0) {
-        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
-    }
+    // if (mil.count() == 0) {
+    //     qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+    // }
     
-    for (int i = 0 ; i < mil.size(); i += 4) {
-        QModelIndex midx = mil.at(i);
-        qDebug()<<midx ;
-        //这个地方为什么不使用mapToSource会崩溃呢？
-        NetDirNode *dti = static_cast<NetDirNode*>
-            (this->m_treeProxyModel->mapToSource(midx).internalPointer());
-        qDebug()<<dti->fileName()<<" "<< dti->fullPath;
-        file_path = dti->fullPath;
-        dti->retrFlag = 1;
-        dti->prevFlag=9;
-        this->remote_dir_model->slot_remote_dir_node_clicked(this->m_treeProxyModel->mapToSource(midx));
-    }
+    // for (int i = 0 ; i < mil.size(); i += 4) {
+    //     QModelIndex midx = mil.at(i);
+    //     qDebug()<<midx ;
+    //     //这个地方为什么不使用mapToSource会崩溃呢？
+    //     NetDirNode *dti = static_cast<NetDirNode*>
+    //         (this->m_treeProxyModel->mapToSource(midx).internalPointer());
+    //     qDebug()<<dti->fileName()<<" "<< dti->fullPath;
+    //     file_path = dti->fullPath;
+    //     dti->retrFlag = 1;
+    //     dti->prevFlag=9;
+    //     this->remote_dir_model->slot_remote_dir_node_clicked(this->m_treeProxyModel->mapToSource(midx));
+    // }
 }
 
 void RemoteView::slot_refresh_directory_tree()
@@ -470,83 +465,83 @@ void RemoteView::slot_refresh_directory_tree()
 
 void RemoteView::slot_show_properties()
 {
-    QItemSelectionModel *ism = this->curr_item_view->selectionModel();
+    // QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
-    if (ism == 0) {
-        qDebug()<<" why???? no QItemSelectionModel??";        
-        return;
-    }
+    // if (ism == 0) {
+    //     qDebug()<<" why???? no QItemSelectionModel??";        
+    //     return;
+    // }
     
-    QModelIndexList mil = ism->selectedIndexes();
-    QModelIndexList aim_mil;
-    if (this->curr_item_view == this->uiw.treeView) {
-        for (int i = 0 ; i < mil.count() ; i ++) {
-            aim_mil << this->m_treeProxyModel->mapToSource(mil.at(i));
-        }
-    } else {
-        for (int i = 0 ; i < mil.count() ; i ++) {
-            aim_mil << this->m_tableProxyModel->mapToSource(mil.at(i));
-        }
-    }
-    if (aim_mil.count() == 0) {
-        qDebug()<<" why???? no QItemSelectionModel??";
-        return;
-    }
-    //  文件类型，大小，几个时间，文件权限
-    //TODO 从模型中取到这些数据并显示在属性对话框中。
-    FileProperties *fp = new FileProperties(this);
-    fp->set_ssh2_sftp(this->ssh2_sftp);
-    fp->setConnection(this->conn);
-    fp->set_file_info_model_list(aim_mil);
-    fp->exec();
-    delete fp;
+    // QModelIndexList mil = ism->selectedIndexes();
+    // QModelIndexList aim_mil;
+    // if (this->curr_item_view == this->uiw.treeView) {
+    //     for (int i = 0 ; i < mil.count() ; i ++) {
+    //         aim_mil << this->m_treeProxyModel->mapToSource(mil.at(i));
+    //     }
+    // } else {
+    //     for (int i = 0 ; i < mil.count() ; i ++) {
+    //         aim_mil << this->m_tableProxyModel->mapToSource(mil.at(i));
+    //     }
+    // }
+    // if (aim_mil.count() == 0) {
+    //     qDebug()<<" why???? no QItemSelectionModel??";
+    //     return;
+    // }
+    // //  文件类型，大小，几个时间，文件权限
+    // //TODO 从模型中取到这些数据并显示在属性对话框中。
+    // FileProperties *fp = new FileProperties(this);
+    // fp->set_ssh2_sftp(this->ssh2_sftp);
+    // fp->setConnection(this->conn);
+    // fp->set_file_info_model_list(aim_mil);
+    // fp->exec();
+    // delete fp;
 }
 
 void RemoteView::slot_mkdir()
 {
-    QString dir_name;
+    // QString dir_name;
     
-    QItemSelectionModel *ism = this->curr_item_view->selectionModel();
+    // QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
-    if (ism == 0) {
-        qDebug()<<" why???? no QItemSelectionModel??";
-        QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
-        return ;
-    }
+    // if (ism == 0) {
+    //     qDebug()<<" why???? no QItemSelectionModel??";
+    //     QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
+    //     return ;
+    // }
     
-    QModelIndexList mil = ism->selectedIndexes();
+    // QModelIndexList mil = ism->selectedIndexes();
     
-    if (mil.count() == 0) {
-        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
-        QMessageBox::critical(this, tr("Waring..."), tr("No item selected"));
-        return ;
-    }
+    // if (mil.count() == 0) {
+    //     qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+    //     QMessageBox::critical(this, tr("Waring..."), tr("No item selected"));
+    //     return ;
+    // }
     
-    QModelIndex midx = mil.at(0);
-    QModelIndex aim_midx = (this->curr_item_view == this->uiw.treeView) ? this->m_treeProxyModel->mapToSource(midx): this->m_tableProxyModel->mapToSource(midx) ;
-    NetDirNode *dti = (NetDirNode*)(aim_midx.internalPointer());
+    // QModelIndex midx = mil.at(0);
+    // QModelIndex aim_midx = (this->curr_item_view == this->uiw.treeView) ? this->m_treeProxyModel->mapToSource(midx): this->m_tableProxyModel->mapToSource(midx) ;
+    // NetDirNode *dti = (NetDirNode*)(aim_midx.internalPointer());
     
-    //检查所选择的项是不是目录
-    if (!this->remote_dir_model->isDir(aim_midx)) {
-        QMessageBox::critical(this, tr("waring..."), tr("The selected item is not a directory."));
-        return ;
-    }
+    // //检查所选择的项是不是目录
+    // if (!this->remote_dir_model->isDir(aim_midx)) {
+    //     QMessageBox::critical(this, tr("waring..."), tr("The selected item is not a directory."));
+    //     return ;
+    // }
     
-    dir_name = QInputDialog::getText(this, tr("Create directory:"),
-                                     tr("Input directory name:").leftJustified(100, ' '),
-                                     QLineEdit::Normal,
-                                     tr("new_direcotry"));
-    if (dir_name == QString::null) {
-        return ;
-    } 
-    if (dir_name.length() == 0) {
-        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
-        QMessageBox::critical(this, tr("waring..."), tr("no directory name supplyed "));
-        return;
-    }
-    //TODO 将 file_path 转换编码再执行下面的操作
+    // dir_name = QInputDialog::getText(this, tr("Create directory:"),
+    //                                  tr("Input directory name:").leftJustified(100, ' '),
+    //                                  QLineEdit::Normal,
+    //                                  tr("new_direcotry"));
+    // if (dir_name == QString::null) {
+    //     return ;
+    // } 
+    // if (dir_name.length() == 0) {
+    //     qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+    //     QMessageBox::critical(this, tr("waring..."), tr("no directory name supplyed "));
+    //     return;
+    // }
+    // //TODO 将 file_path 转换编码再执行下面的操作
     
-    this->remote_dir_model->slot_execute_command(dti, aim_midx.internalPointer(), SSH2_FXP_MKDIR, dir_name);
+    // this->remote_dir_model->slot_execute_command(dti, aim_midx.internalPointer(), SSH2_FXP_MKDIR, dir_name);
     
 }
 
@@ -554,158 +549,158 @@ void RemoteView::slot_rmdir()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
-    QItemSelectionModel *ism = this->curr_item_view->selectionModel();
+    // QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
-    if (ism == 0) {
-        qDebug()<<" why???? no QItemSelectionModel??";
-        QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
-        return ;
-    }
+    // if (ism == 0) {
+    //     qDebug()<<" why???? no QItemSelectionModel??";
+    //     QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
+    //     return ;
+    // }
     
-    QModelIndexList mil = ism->selectedIndexes();
+    // QModelIndexList mil = ism->selectedIndexes();
     
-    if (mil.count() == 0) {
-        qDebug()<<"selectedIndexes count:"<<mil.count()<<"why no item selected????";
-        QMessageBox::critical(this, tr("Waring..."), tr("No item selected").leftJustified(50, ' '));
-        return;
-    }
+    // if (mil.count() == 0) {
+    //     qDebug()<<"selectedIndexes count:"<<mil.count()<<"why no item selected????";
+    //     QMessageBox::critical(this, tr("Waring..."), tr("No item selected").leftJustified(50, ' '));
+    //     return;
+    // }
     
-    QModelIndex midx = mil.at(0);
-    QModelIndex proxyIndex = midx;
-    QModelIndex sourceIndex = (this->curr_item_view == this->uiw.treeView) 
-        ? this->m_treeProxyModel->mapToSource(midx)
-        : this->m_tableProxyModel->mapToSource(midx);    
+    // QModelIndex midx = mil.at(0);
+    // QModelIndex proxyIndex = midx;
+    // QModelIndex sourceIndex = (this->curr_item_view == this->uiw.treeView) 
+    //     ? this->m_treeProxyModel->mapToSource(midx)
+    //     : this->m_tableProxyModel->mapToSource(midx);    
 
-    QModelIndex useIndex = sourceIndex;
-    QModelIndex parent_model = useIndex.parent();
-    NetDirNode *parent_item = (NetDirNode*)parent_model.internalPointer();
+    // QModelIndex useIndex = sourceIndex;
+    // QModelIndex parent_model = useIndex.parent();
+    // NetDirNode *parent_item = (NetDirNode*)parent_model.internalPointer();
     
-    // check if the selected item is a directory
-    if (this->remote_dir_model->isDir(useIndex)
-        || this->remote_dir_model->isSymLinkToDir(useIndex)) {
-        QPersistentModelIndex *persisIndex = new QPersistentModelIndex(parent_model);
-        this->remote_dir_model->slot_execute_command(parent_item, persisIndex, SSH2_FXP_RMDIR,
-                                                     this->remote_dir_model->fileName(useIndex));
-    } else {
-        q_debug()<<"selected item is not a directory";
-        QMessageBox::critical(this, tr("Waring..."), 
-                              tr("Selected item is not a directory.\n\t%1")
-                              .arg(this->remote_dir_model->filePath(useIndex))
-                              .leftJustified(50, ' '));
-    }
+    // // check if the selected item is a directory
+    // if (this->remote_dir_model->isDir(useIndex)
+    //     || this->remote_dir_model->isSymLinkToDir(useIndex)) {
+    //     QPersistentModelIndex *persisIndex = new QPersistentModelIndex(parent_model);
+    //     this->remote_dir_model->slot_execute_command(parent_item, persisIndex, SSH2_FXP_RMDIR,
+    //                                                  this->remote_dir_model->fileName(useIndex));
+    // } else {
+    //     q_debug()<<"selected item is not a directory";
+    //     QMessageBox::critical(this, tr("Waring..."), 
+    //                           tr("Selected item is not a directory.\n\t%1")
+    //                           .arg(this->remote_dir_model->filePath(useIndex))
+    //                           .leftJustified(50, ' '));
+    // }
 }
 
 void RemoteView::rm_file_or_directory_recursively()
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
-    QItemSelectionModel *ism = this->curr_item_view->selectionModel();
+    // QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
-    if (ism == 0) {
-        qDebug()<<"why???? no QItemSelectionModel??";
-        QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
-        return;
-    }
+    // if (ism == 0) {
+    //     qDebug()<<"why???? no QItemSelectionModel??";
+    //     QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
+    //     return;
+    // }
     
-    QModelIndexList mil = ism->selectedIndexes();
+    // QModelIndexList mil = ism->selectedIndexes();
     
-    if (mil.count() == 0) {
-        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
-        QMessageBox::critical(this, tr("Waring..."), tr("No item selected"));
-        return;
-    }
-    //TODO 处理多选的情况
-    QModelIndex midx = mil.at(0);
-    QModelIndex aim_midx = (this->curr_item_view == this->uiw.treeView) 
-        ? this->m_treeProxyModel->mapToSource(midx)
-        : this->m_tableProxyModel->mapToSource(midx);
-    NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
-    if (QMessageBox::warning(this, tr("Warning:"), 
-                             tr("Are you sure remove this directory and it's subnodes"),
-                             QMessageBox::Yes, QMessageBox::Cancel) == QMessageBox::Yes) {
-        QModelIndex parent_model =  aim_midx.parent() ;
-        NetDirNode *parent_item = (NetDirNode*)parent_model.internalPointer();
+    // if (mil.count() == 0) {
+    //     qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+    //     QMessageBox::critical(this, tr("Waring..."), tr("No item selected"));
+    //     return;
+    // }
+    // //TODO 处理多选的情况
+    // QModelIndex midx = mil.at(0);
+    // QModelIndex aim_midx = (this->curr_item_view == this->uiw.treeView) 
+    //     ? this->m_treeProxyModel->mapToSource(midx)
+    //     : this->m_tableProxyModel->mapToSource(midx);
+    // NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
+    // if (QMessageBox::warning(this, tr("Warning:"), 
+    //                          tr("Are you sure remove this directory and it's subnodes"),
+    //                          QMessageBox::Yes, QMessageBox::Cancel) == QMessageBox::Yes) {
+    //     QModelIndex parent_model =  aim_midx.parent() ;
+    //     NetDirNode *parent_item = (NetDirNode*)parent_model.internalPointer();
         
-        this->remote_dir_model->slot_execute_command(parent_item, parent_model.internalPointer(),
-                                                     SSH2_FXP_REMOVE, dti->_fileName);
-    }
+    //     this->remote_dir_model->slot_execute_command(parent_item, parent_model.internalPointer(),
+    //                                                  SSH2_FXP_REMOVE, dti->_fileName);
+    // }
 }
 
 void RemoteView::slot_rename()
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
-    QItemSelectionModel *ism = this->curr_item_view->selectionModel();
+    // QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
-    if (ism == 0) {
-        qDebug()<<" why???? no QItemSelectionModel??";
-        QMessageBox::critical(this, tr("waring..."), tr("maybe you haven't connected"));                
-        return;
-    }
+    // if (ism == 0) {
+    //     qDebug()<<" why???? no QItemSelectionModel??";
+    //     QMessageBox::critical(this, tr("waring..."), tr("maybe you haven't connected"));                
+    //     return;
+    // }
     
-    QModelIndexList mil = ism->selectedIndexes();
+    // QModelIndexList mil = ism->selectedIndexes();
     
-    if (mil.count() == 0 ) {
-        qDebug()<<"selectedIndexes count :"<< mil.count() << " why no item selected????";
-        QMessageBox::critical(this, tr("waring..."), tr("no item selected"));
-        return;
-    }
-    this->curr_item_view->edit(mil.at(0));
+    // if (mil.count() == 0 ) {
+    //     qDebug()<<"selectedIndexes count :"<< mil.count() << " why no item selected????";
+    //     QMessageBox::critical(this, tr("waring..."), tr("no item selected"));
+    //     return;
+    // }
+    // this->curr_item_view->edit(mil.at(0));
 }
 void RemoteView::slot_copy_path()
 {
-    QItemSelectionModel *ism = this->curr_item_view->selectionModel();
+    // QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
-    if (ism == 0) {
-        qDebug()<<"why???? no QItemSelectionModel??";
-        QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));
-        return;
-    }
+    // if (ism == 0) {
+    //     qDebug()<<"why???? no QItemSelectionModel??";
+    //     QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));
+    //     return;
+    // }
     
-    QModelIndexList mil = ism->selectedIndexes();
+    // QModelIndexList mil = ism->selectedIndexes();
     
-    if (mil.count() == 0) {
-        qDebug()<<"selectedIndexes count :"<< mil.count() << " why no item selected????";
-        QMessageBox::critical(this, tr("Waring..."), tr("No item selected").leftJustified(50, ' '));
-        return;
-    }
+    // if (mil.count() == 0) {
+    //     qDebug()<<"selectedIndexes count :"<< mil.count() << " why no item selected????";
+    //     QMessageBox::critical(this, tr("Waring..."), tr("No item selected").leftJustified(50, ' '));
+    //     return;
+    // }
     
-    QModelIndex midx = mil.at(0);
-    QModelIndex aim_midx = (this->curr_item_view == this->uiw.treeView) 
-        ? this->m_treeProxyModel->mapToSource(midx)
-        : this->m_tableProxyModel->mapToSource(midx);    
-    NetDirNode *dti = (NetDirNode*)aim_midx.internalPointer();
+    // QModelIndex midx = mil.at(0);
+    // QModelIndex aim_midx = (this->curr_item_view == this->uiw.treeView) 
+    //     ? this->m_treeProxyModel->mapToSource(midx)
+    //     : this->m_tableProxyModel->mapToSource(midx);    
+    // NetDirNode *dti = (NetDirNode*)aim_midx.internalPointer();
 
-    QApplication::clipboard()->setText(dti->fullPath);
+    // QApplication::clipboard()->setText(dti->fullPath);
 }
 
 void RemoteView::slot_copy_url()
 {
-    QItemSelectionModel *ism = this->curr_item_view->selectionModel();
+    // QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     
-    if (ism == 0) {
-        qDebug()<<"why???? no QItemSelectionModel??";
-        QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));
-        return;
-    }
+    // if (ism == 0) {
+    //     qDebug()<<"why???? no QItemSelectionModel??";
+    //     QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));
+    //     return;
+    // }
     
-    QModelIndexList mil = ism->selectedIndexes();
+    // QModelIndexList mil = ism->selectedIndexes();
     
-    if (mil.count() == 0) {
-        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
-        QMessageBox::critical(this, tr("Waring..."), tr("No item selected").leftJustified(50, ' '));
-        return;
-    }
+    // if (mil.count() == 0) {
+    //     qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+    //     QMessageBox::critical(this, tr("Waring..."), tr("No item selected").leftJustified(50, ' '));
+    //     return;
+    // }
     
-    QModelIndex midx = mil.at(0);
-    QModelIndex aim_midx = (this->curr_item_view == this->uiw.treeView) 
-        ? this->m_treeProxyModel->mapToSource(midx)
-        : this->m_tableProxyModel->mapToSource(midx);    
-    NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
+    // QModelIndex midx = mil.at(0);
+    // QModelIndex aim_midx = (this->curr_item_view == this->uiw.treeView) 
+    //     ? this->m_treeProxyModel->mapToSource(midx)
+    //     : this->m_tableProxyModel->mapToSource(midx);    
+    // NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
 
-    QString url = QString("sftp://%1@%2:%3%4").arg(this->conn->userName)
-        .arg(this->conn->hostName).arg(this->conn->port).arg(dti->fullPath);
-    QApplication::clipboard()->setText(url);
+    // QString url = QString("sftp://%1@%2:%3%4").arg(this->conn->userName)
+    //     .arg(this->conn->hostName).arg(this->conn->port).arg(dti->fullPath);
+    // QApplication::clipboard()->setText(url);
 }
 
 
@@ -883,43 +878,37 @@ void RemoteView::slot_drag_ready()
     QMimeData *mimeData = new QMimeData;
     
     //这个视图中所选择的目录优先，如果没有则查找左侧目录树是是否有选择的目录，如果再找不到，则使用右侧表视图的根
-    QItemSelectionModel *ism = this->uiw.tableView->selectionModel();
-    QModelIndexList mil = ism->selectedIndexes();
-    if (mil.count() == 0) {
-        ism = this->uiw.treeView->selectionModel();
-        mil = ism->selectedIndexes();
-    }
+    // QItemSelectionModel *ism = this->uiw.tableView->selectionModel();
+    // QModelIndexList mil = ism->selectedIndexes();
+    // if (mil.count() == 0) {
+    //     ism = this->uiw.treeView->selectionModel();
+    //     mil = ism->selectedIndexes();
+    // }
 
-    TaskPackage tpkg(PROTO_SFTP);
+    // TaskPackage tpkg(PROTO_SFTP);
     
-    // tpkg.host = this->host_name;
-    // tpkg.username = this->user_name;
-    // tpkg.password = this->password;
-    // tpkg.port = QString("%1").arg(this->port);
-    // tpkg.pubkey = this->pubkey;    
-
-    tpkg.host = this->conn->hostName;
-    tpkg.port = QString("%1").arg(this->conn->port);
-    tpkg.username = this->conn->userName;
-    tpkg.password = this->conn->password;
-    tpkg.pubkey = this->conn->pubkey;
+    // tpkg.host = this->conn->hostName;
+    // tpkg.port = QString("%1").arg(this->conn->port);
+    // tpkg.username = this->conn->userName;
+    // tpkg.password = this->conn->password;
+    // tpkg.pubkey = this->conn->pubkey;
 
 
-    for (int i = 0 ; i< mil.count() ;i += this->remote_dir_model->columnCount()) {
-        QModelIndex midx = mil.at(i);
-        temp_file_path = (qobject_cast<RemoteDirModel*>(this->remote_dir_model))
-            ->filePath(this->m_tableProxyModel->mapToSource(midx) );
-        tpkg.files<<temp_file_path;
-    }
+    // for (int i = 0 ; i< mil.count() ;i += this->remote_dir_model->columnCount()) {
+    //     QModelIndex midx = mil.at(i);
+    //     temp_file_path = (qobject_cast<RemoteDirModel*>(this->remote_dir_model))
+    //         ->filePath(this->m_tableProxyModel->mapToSource(midx) );
+    //     tpkg.files<<temp_file_path;
+    // }
     
-    mimeData->setData("application/task-package", tpkg.toRawData());
-    drag->setMimeData(mimeData);
+    // mimeData->setData("application/task-package", tpkg.toRawData());
+    // drag->setMimeData(mimeData);
     
-    if (mil.count() > 0) {
-        Qt::DropAction dropAction = drag->exec(Qt::CopyAction | Qt::MoveAction);
-        Q_UNUSED(dropAction);
-    }
-    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<"drag->exec returned";
+    // if (mil.count() > 0) {
+    //     Qt::DropAction dropAction = drag->exec(Qt::CopyAction | Qt::MoveAction);
+    //     Q_UNUSED(dropAction);
+    // }
+    // qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<"drag->exec returned";
 }
 
 bool RemoteView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction action,

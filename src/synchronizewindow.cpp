@@ -9,7 +9,6 @@
 
 #include "utils.h"
 #include "globaloption.h"
-// #include "remotehostconnectthread.h"
 #include "sshconnection.h"
 #include "basestorage.h"
 #include "sshfileinfo.h"
@@ -594,11 +593,23 @@ void SynchronizeWindow::initCtxMenu()
 QModelIndexList SynchronizeWindow::getSelectedModelIndexes()
 {
     QItemSelectionModel *ism = NULL;
+    QModelIndex cidx, idx, pidx;
     QModelIndexList mil;
 
     ism = this->ui_win.treeView->selectionModel();
     if (ism != NULL) {
-        mil = ism->selectedIndexes();
+        // mil = ism->selectedIndexes();
+        if (ism->hasSelection()) {
+            cidx = ism->currentIndex();
+            pidx = cidx.parent();
+
+            for (int i = 0 ; i < ism->model()->rowCount(pidx); i++) {
+                if (ism->isRowSelected(i, pidx)) {
+                    idx = ism->model()->index(i, 0, pidx);
+                    mil << idx;
+                }
+            }
+        }
     }
 
     return mil;
@@ -628,26 +639,30 @@ void SynchronizeWindow::showDiffFileInfo()
     QString info;
     QItemSelectionModel *ism = NULL;
     QModelIndexList mil;
-    QModelIndex idx ;
+    QModelIndex cidx, idx ;
     QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> file;
 
     ism = this->ui_win.treeView->selectionModel();
     if (ism != NULL) {
-        mil = ism->selectedIndexes();
-        idx = mil.at(0);
-        file = this->model->getFile(idx);
-        Q_ASSERT(file.second != NULL);
+        if (ism->hasSelection()) {
+            // mil = ism->selectedIndexes();
+            cidx = ism->currentIndex();
+            idx = ism->model()->index(cidx.row(), 0, cidx.parent());
+            // idx = mil.at(0);
+            file = this->model->getFile(idx);
+            Q_ASSERT(file.second != NULL);
 
-        QString ftype;
-        QString fname=this->local_dir + "/" + file.first;
-        ftype = (QFile::exists(fname) ? QFileInfo(fname).isDir() : SSHFileInfo(file.second).isDir()) 
+            QString ftype;
+            QString fname=this->local_dir + "/" + file.first;
+            ftype = (QFile::exists(fname) ? QFileInfo(fname).isDir() : SSHFileInfo(file.second).isDir()) 
         		? tr("Direcotry") : tr("File");
-        info = QString(tr("%1\nType: %2\nSize: %3\nLast modified: %4\nSync Status: %5"))
-            .arg(file.first, ftype,
-                 QString("%1").arg(file.second->filesize),
-                 QDateTime::fromTime_t(file.second->mtime).toString(),
-                 this->walker->diffDesciption(file.second->flags)
-                 );
+            info = QString(tr("%1\nType: %2\nSize: %3\nLast modified: %4\nSync Status: %5"))
+                .arg(file.first, ftype,
+                     QString("%1").arg(file.second->filesize),
+                     QDateTime::fromTime_t(file.second->mtime).toString(),
+                     this->walker->diffDesciption(file.second->flags)
+                     );
+        }
     }
 
     this->manualShowWhatsThis(info);
