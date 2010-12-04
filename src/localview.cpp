@@ -273,6 +273,7 @@ void LocalView::slot_local_dir_tree_context_menu_request(const QPoint & pos)
     
 }
 
+// can not support recursive selected now.
 void LocalView::slot_local_new_upload_requested()
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
@@ -281,19 +282,35 @@ void LocalView::slot_local_new_upload_requested()
     QByteArray ba;
 
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
-    
-    QModelIndexList mil = ism->selectedIndexes();
+    QModelIndex cidx, idx, pidx;
 
-    for (int i = 0 ; i < mil.count() ; i += this->curr_item_view->model()->columnCount(QModelIndex())) {
-        QModelIndex midx = mil.at(i);
-        if (this->curr_item_view==this->uiw.treeView) {
-            midx = this->dir_file_model->mapToSource(midx);
+    cidx = ism->currentIndex();
+    pidx = cidx.parent();
+    for (int i = ism->model()->rowCount() - 1 ; i >= 0 ; --i) {
+        if (ism->isRowSelected(i, pidx)) {
+            QModelIndex midx = idx = ism->model()->index(i, 0, pidx);
+            if (this->curr_item_view == this->uiw.treeView) {
+                midx = this->dir_file_model->mapToSource(midx);
+            }
+            qDebug()<<this->model->fileName(midx);
+            qDebug()<<this->model->filePath(midx);
+            local_file_name = this->model->filePath(midx);
+            pkg.files<<local_file_name;
         }
-        qDebug()<<this->model->fileName(midx);
-        qDebug()<<this->model->filePath(midx);
-        local_file_name = this->model->filePath(midx);
-        pkg.files<<local_file_name;
     }
+    
+    // QModelIndexList mil = ism->selectedIndexes(); // TODO should fix win x64
+
+    // for (int i = 0 ; i < mil.count() ; i += this->curr_item_view->model()->columnCount(QModelIndex())) {
+    //     QModelIndex midx = mil.at(i);
+    //     if (this->curr_item_view==this->uiw.treeView) {
+    //         midx = this->dir_file_model->mapToSource(midx);
+    //     }
+    //     qDebug()<<this->model->fileName(midx);
+    //     qDebug()<<this->model->filePath(midx);
+    //     local_file_name = this->model->filePath(midx);
+    //     pkg.files<<local_file_name;
+    // }
     emit new_upload_requested(pkg);
 }
 
@@ -301,28 +318,37 @@ QString LocalView::get_selected_directory()
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
-    QString local_path ;
+    QString local_path;
     QItemSelectionModel *ism = this->uiw.treeView->selectionModel();
+    QModelIndex cidx, idx;
 
     if (ism == 0) {        
         return QString();
     }
-    
-    QModelIndexList mil = ism->selectedIndexes();
 
-    if (mil.count() == 0) {
-        return QString();
+    if (!ism->hasSelection()) {
+          return QString();
     }
+
+    // QModelIndexList mil = ism->selectedIndexes();
+    // if (mil.count() == 0) {
+    //     return QString();
+    // }
     
     //qDebug() << mil ;
     //qDebug() << model->fileName ( mil.at ( 0 ) );
     //qDebug() << model->filePath ( mil.at ( 0 ) );
 
-    QString local_file = this->dir_file_model->filePath(mil.at(0));
+    cidx = ism->currentIndex();
+    idx = ism->model()->index(cidx.row(), 0, cidx.parent());
 
-    local_path = this->dir_file_model->filePath(mil.at(0));
+    // QString local_file = this->dir_file_model->filePath(mil.at(0));
+    // local_path = this->dir_file_model->filePath(mil.at(0));
 
-    return local_path ;
+    QString local_file = this->dir_file_model->filePath(idx);
+    local_path = this->dir_file_model->filePath(idx);
+
+    return local_path;
 }
 
 void LocalView::slot_refresh_directory_tree()
@@ -330,15 +356,22 @@ void LocalView::slot_refresh_directory_tree()
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
     QItemSelectionModel *ism = this->uiw.treeView->selectionModel();
+    QModelIndex cidx, idx;
 
-    if (ism !=0) {
-        QModelIndexList mil = ism->selectedIndexes();
-        if (mil.count() > 0) {
-            // model->refresh(mil.at(0));
-            QModelIndex origIndex = this->dir_file_model->mapToSource(mil.at(0));
-            q_debug()<<mil.at(0)<<origIndex;
-            // model->refresh(origIndex);
+    if (ism != 0) {
+        if (ism->hasSelection()) {
+            cidx = ism->currentIndex();
+            idx = ism->model()->index(cidx.row(), 0, cidx.parent());
+            // QModelIndex origIndex = this->dir_file_model->mapToSource(mil.at(0));
+            QModelIndex origIndex = this->dir_file_model->mapToSource(idx);
         }
+        // QModelIndexList mil = ism->selectedIndexes();
+        // if (mil.count() > 0) {
+        //     // model->refresh(mil.at(0));
+        //     QModelIndex origIndex = this->dir_file_model->mapToSource(mil.at(0));
+        //     q_debug()<<mil.at(0)<<origIndex;
+        //     // model->refresh(origIndex);
+        // }
     }
     this->dir_file_model->refresh(this->uiw.tableView->rootIndex());
 }
@@ -412,18 +445,24 @@ void LocalView::slot_show_hidden(bool show)
 
 void LocalView::slot_mkdir()
 {
-    QString dir_name ;
-    
+    QString dir_name;
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
-    QModelIndexList mil;
-    if (ism == 0 || ism->selectedIndexes().count() == 0) {
-        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
-        QMessageBox::critical(this, tr("Waring..."), tr("No item selected"));
-        return ;
-    }    
-    mil = ism->selectedIndexes() ;
+    QModelIndex cidx, idx;
 
-    QModelIndex midx = mil.at(0);
+    // QModelIndexList mil;
+    if (ism == 0 || !ism->hasSelection()) {
+        // qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+        qDebug()<<" selectedIndexes count :"<< ism->hasSelection() << " why no item selected????";
+        QMessageBox::critical(this, tr("Waring..."), tr("No item selected"));
+        return;
+    }
+
+    // mil = ism->selectedIndexes() ;
+    cidx = ism->currentIndex();
+    idx = ism->model()->index(cidx.row(), 0, cidx.parent());
+
+    // QModelIndex midx = mil.at(0);
+    QModelIndex midx = idx;
     QModelIndex aim_midx = (this->curr_item_view == this->uiw.treeView)
         ? this->dir_file_model->mapToSource(midx): midx ;
 
@@ -440,7 +479,8 @@ void LocalView::slot_mkdir()
         return ;
     } 
     if (dir_name.length () == 0) {
-        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+        // qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+        qDebug()<<" selectedIndexes count :"<< ism->hasSelection() << " why no item selected????";
         QMessageBox::critical(this, tr("Waring..."), tr("No directory name supplyed."));
         return;
     }
@@ -457,17 +497,24 @@ void LocalView::slot_rmdir()
     QString dir_name ;
     
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
-    QModelIndexList mil;
-    if (ism == 0 || ism->selectedIndexes().count() == 0) {
-        qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
+    // QModelIndexList mil;
+    QModelIndex cidx, idx;
+
+    if (ism == 0 || !ism->hasSelection()) {
+        qDebug()<<" selectedIndexes count :"<< ism->hasSelection() << " why no item selected????";
         QMessageBox::critical(this, tr("Waring..."), tr("No item selected"));
         return ;
     }    
-    mil = ism->selectedIndexes() ;
+    
+    // mil = ism->selectedIndexes() ;
 
-    QModelIndex midx = mil.at(0);
+    cidx = ism->currentIndex();
+    idx = ism->model()->index(cidx.row(), 0, cidx.parent());
+    
+    // QModelIndex midx = mil.at(0);
+    QModelIndex midx = idx;
     QModelIndex aim_midx = (this->curr_item_view == this->uiw.treeView) 
-        ? this->dir_file_model->mapToSource(midx): midx ;
+        ? this->dir_file_model->mapToSource(midx): midx;
 
     //检查所选择的项是不是目录
     if (!this->model->isDir(aim_midx)) {
@@ -492,16 +539,20 @@ void LocalView::slot_rmdir()
 
 void LocalView::slot_remove()
 {
-    QModelIndexList mil;
     QItemSelectionModel * ism = this->curr_item_view->selectionModel();
-    if (ism == 0 || ism->selectedIndexes().count() == 0) {
+    // QModelIndexList mil;
+    QModelIndex cidx, idx;
+
+    if (ism == 0 || !ism->hasSelection()) {
         QMessageBox::critical(this, tr("Waring..."), tr("No item selected").leftJustified(50, ' '));
         return ;
     }
-    mil = ism->selectedIndexes();
+    // mil = ism->selectedIndexes();
+    cidx = ism->currentIndex();
+    idx = ism->model()->index(cidx.row(), 0, cidx.parent());
 
     QString local_file = this->curr_item_view==this->uiw.treeView
-        ? this->dir_file_model->filePath(mil.at(0)) : this->model->filePath(mil.at(0));
+        ? this->dir_file_model->filePath(idx) : this->model->filePath(idx);
 
     if (QMessageBox::question(this, tr("Question..."), 
                              QString("%1\n\t%2").arg(QString(tr("Are you sure remove it?"))).arg(local_file),
@@ -517,19 +568,23 @@ void LocalView::slot_remove()
 void LocalView::slot_rename()
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    QModelIndexList mil;
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
-    if (ism == 0 || ism->selectedIndexes().count() == 0) {
+    // QModelIndexList mil;
+    QModelIndex cidx, idx;
+
+    if (ism == 0 || !ism->hasSelection()) {
         QMessageBox::critical(this, tr("Waring..."),
                               tr("No item selected").leftJustified(60, ' '));
         return;
     }
-    mil = ism->selectedIndexes();
+    // mil = ism->selectedIndexes();
+    cidx = ism->currentIndex();
+    idx = ism->model()->index(cidx.row(), 0, cidx.parent());
 
     QString local_file = this->curr_item_view==this->uiw.treeView
-        ? this->dir_file_model->filePath(mil.at(0)) : this->model->filePath(mil.at(0));
+        ? this->dir_file_model->filePath(idx) : this->model->filePath(idx);
     QString file_name = this->curr_item_view==this->uiw.treeView
-        ? this->dir_file_model->fileName(mil.at(0)) : this->model->fileName(mil.at(0));
+        ? this->dir_file_model->fileName(idx) : this->model->fileName(idx);
 
     QString rename_to;
     rename_to = QInputDialog::getText(this, tr("Rename to:"), 
@@ -561,19 +616,24 @@ void LocalView::slot_rename()
 void LocalView::slot_copy_path_url()
 {
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
-    
+    QModelIndex cidx, idx;
+
     if (ism == 0) {
         qDebug()<<"Why???? no QItemSelectionModel??";        
         return;
     }
     
-    QModelIndexList mil = ism->selectedIndexes();
-    if (mil.count() == 0) {
+    // QModelIndexList mil = ism->selectedIndexes();
+    if (!ism->hasSelection()) {
         qDebug()<<" why???? no QItemSelectionModel??";
         return;
     }
+
+    cidx = ism->currentIndex();
+    idx = ism->model()->index(cidx.row(), 0, cidx.parent());
+
     QString local_file = this->curr_item_view==this->uiw.treeView
-        ? this->dir_file_model->filePath(mil.at(0)) : this->model->filePath(mil.at(0));
+        ? this->dir_file_model->filePath(idx) : this->model->filePath(idx);
     
     QApplication::clipboard()->setText(local_file);
 }
@@ -582,19 +642,24 @@ void LocalView::slot_show_properties()
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
+    QModelIndex cidx, idx;
     
     if (ism == 0) {
         qDebug()<<"Why???? no QItemSelectionModel??";
         return;
     }
     
-    QModelIndexList mil = ism->selectedIndexes();
-    if (mil.count() == 0 ) {
+    // QModelIndexList mil = ism->selectedIndexes();
+    if (!ism->hasSelection()) {
         qDebug()<<"Why???? no QItemSelectionModel??";
         return;
     }
+
+    cidx = ism->currentIndex();
+    idx = ism->model()->index(cidx.row(), 0, cidx.parent());
+
     QString local_file = this->curr_item_view==this->uiw.treeView
-        ? this->dir_file_model->filePath(mil.at(0)) : this->model->filePath(mil.at(0));
+        ? this->dir_file_model->filePath(idx) : this->model->filePath(idx);
     //  文件类型，大小，几个时间，文件权限
     //TODO 从模型中取到这些数据并显示在属性对话框中。
     LocalFileProperties *fp = new LocalFileProperties(this);
