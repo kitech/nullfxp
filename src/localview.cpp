@@ -286,7 +286,8 @@ void LocalView::slot_local_new_upload_requested()
 
     cidx = ism->currentIndex();
     pidx = cidx.parent();
-    for (int i = ism->model()->rowCount() - 1 ; i >= 0 ; --i) {
+
+    for (int i = ism->model()->rowCount(pidx) - 1 ; i >= 0 ; --i) {
         if (ism->isRowSelected(i, pidx)) {
             QModelIndex midx = idx = ism->model()->index(i, 0, pidx);
             if (this->curr_item_view == this->uiw.treeView) {

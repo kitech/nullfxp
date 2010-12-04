@@ -261,7 +261,7 @@ void FTPView::slot_new_transfer()
     cidx = ism->currentIndex();
     pidx = cidx.parent();
 
-    for (int i = ism->model()->rowCount() - 1; i >= 0; --i) {
+    for (int i = ism->model()->rowCount(pidx) - 1; i >= 0; --i) {
         if (ism->isRowSelected(i, pidx)) {
             idx = ism->model()->index(i, 0, cidx.parent());
             QModelIndex midx = idx;

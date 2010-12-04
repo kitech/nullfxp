@@ -674,7 +674,10 @@ void SFTPView::rm_file_or_directory_recursively()
     pidx = cidx.parent();
 
     bool firstWarning = true;
-    for (int i = ism->model()->rowCount() - 1; i >= 0; --i) {
+    for (int i = ism->model()->rowCount(pidx) - 1; i >= 0; --i) {
+      if (!ism->isRowSelected(i, pidx)) {
+	continue;
+      }
         QModelIndex midx = ism->model()->index(i, 0, pidx);
         QModelIndex proxyIndex = midx;
         QModelIndex sourceIndex = (this->curr_item_view == this->uiw.treeView)
@@ -686,7 +689,7 @@ void SFTPView::rm_file_or_directory_recursively()
 
         if (firstWarning) { // 只有第一次提示用户操作，其他的不管
             QString hintMsg;
-            if (ism->model()->rowCount() > 0) {
+            if (ism->model()->rowCount(pidx) > 0) {
                 // select multi lines/files
                 hintMsg = QString(tr("Are you sure remove all of these files/directories?"));
             } else {
@@ -1105,7 +1108,7 @@ void SFTPView::slot_drag_ready()
     cidx = ism->currentIndex();
     pidx = cidx.parent();
 
-    for (int i = ism->model()->rowCount() - 1 ; i >= 0 ; --i) {
+    for (int i = ism->model()->rowCount(pidx) - 1 ; i >= 0 ; --i) {
         if (ism->isRowSelected(i, pidx)) {
             QModelIndex midx = ism->model()->index(i, 0, pidx);
             temp_file_path = (qobject_cast<RemoteDirModel*>(this->remote_dir_model))
