@@ -18,7 +18,7 @@ VERSION=2.1.0.82  # using in nullfxp-version.h
 include(../install.pri)
 
 win32 {
-    CONFIG += debug
+    CONFIG -= debug
     !win32-g++ {
          CONFIG -= embed_manifest_exe
          CONFIG -= embed_manifest_dll
@@ -200,9 +200,12 @@ win32 {
              # from qt 4.7, use QMAKE_LIBDIR instead of LIBPATH
              LIBPATH += Z:/librarys/vc-ssl-x86/lib Z:/librarys/vc-zlib/static32   # depcreated
              QMAKE_LIBDIR += Z:/librarys/vc-ssl-x86/lib Z:/librarys/vc-zlib/static32
+             LIBS += -lcurllib
         } else {
              LIBPATH += Z:/librarys/vc-ssl-x64/lib Z:/librarys/vc-zlib/staticx64 # depcreated
              QMAKE_LIBDIR += Z:/librarys/vc-ssl-x64/lib Z:/librarys/vc-zlib/staticx64
+             QMAKE_LIBDIR += Z:/librarys/libcurl/dllx64
+             LIBS += -llibcurl_imp
         }
         LIBPATH += ./libssh2/src/release             # depcreated
         QMAKE_LIBDIR += ./libssh2/src/release 
@@ -210,7 +213,7 @@ win32 {
         INCLUDEPATH += Z:/librarys/libcurl/include
 
         LIBS += -lqtmain -lzlibstat -llibeay32 -lssleay32 -ladvapi32 -luser32 -lws2_32
-        LIBS += -lcurllib
+        # LIBS += -lcurllib
     }
     LIBS += -lssh2 -lws2_32  -lgdi32 
     #-lgcrypt -lgpg-error 
