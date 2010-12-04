@@ -162,37 +162,37 @@ QMap<QString,QString> SessionDialog::get_host_map()
 void SessionDialog::slot_conntect_selected_host()
 {
     QItemSelectionModel *ism = 0;
-    QModelIndexList mil;
+    QModelIndex idx, cidx;
 
     ism = this->ui_win.treeView->selectionModel();
-    mil = ism->selectedIndexes();
-    //qDebug()<<mil;
-
-    if (mil.count() > 0) {
-        //qDebug()<<mil.at(0).data();
-        this->slot_conntect_selected_host(mil.at(0));
+    if (ism->hasSelection()) {
+        cidx = ism->currentIndex();
+        idx = ism->model()->index(cidx.row(), 0, cidx.parent());
+        
+        this->slot_conntect_selected_host(idx);
     } else {
         this->slot_show_no_item_tip();
     }
+
+    return;
 }
 
 void SessionDialog::slot_edit_selected_host()
 {
     QItemSelectionModel *ism = 0;
-    QModelIndexList mil;
+    QModelIndex idx, cidx;
 
     ism = this->ui_win.treeView->selectionModel();
-    mil = ism->selectedIndexes();
-    //qDebug()<<mil;
-    if (mil.count() > 0) {
-        if (this->sessTree->isDir(mil.at(0))) {
+    if (ism->hasSelection()) {
+        cidx = ism->currentIndex();
+        idx = ism->model()->index(cidx.row(), 0, cidx.parent());
+        if (this->sessTree->isDir(idx)) {
         } else {
-            //qDebug()<<mil.at(0).data();
-            QString show_name = mil.at(0).data().toString();
-            //qDebug()<<show_name;
+            QString show_name = idx.data().toString();
+            // qDebug()<<show_name;
             QMap<QString,QString> host = this->storage->getHost(show_name);
             QMap<QString,QString> host_new;
-            //qDebug()<<host;
+            // qDebug()<<host;
             QuickConnectInfoDialog *info_dlg = new QuickConnectInfoDialog(this);
             info_dlg->set_active_host(host);
             if (info_dlg->exec() == QDialog::Accepted) {
@@ -206,26 +206,27 @@ void SessionDialog::slot_edit_selected_host()
     } else {
         this->slot_show_no_item_tip();
     }
+
+    return; // fix 64bit win problem, by ism->selectedIndexes() call.
 }
 
 void SessionDialog::slot_rename_selected_host()
 {
     QItemSelectionModel *ism = 0;
-    QModelIndexList mil;
     bool ok;
     QString focusPath;
     QString newPath;
     QModelIndex pidx;
     QModelIndex cidx;
     QModelIndex nidx;
+    QModelIndex idx;
 
     ism = this->ui_win.treeView->selectionModel();
-    mil = ism->selectedIndexes();
-    //qDebug()<<mil;
 
-    if (mil.count() > 0) {
-        cidx = mil.at(0);
-        pidx = mil.at(0).parent();
+    if (ism->hasSelection()) {
+        cidx = ism->currentIndex();
+        pidx = cidx.parent();
+        idx = ism->model()->index(cidx.row(), 0, cidx.parent());
         
         QString new_name = 
             QInputDialog::getText(this, tr("Rename host:"), tr("Type the new name:"), 
@@ -233,7 +234,7 @@ void SessionDialog::slot_rename_selected_host()
         new_name = new_name.trimmed();
 
         if(ok && !new_name.isEmpty() && new_name != cidx.data().toString()) {
-            if (this->sessTree->isDir(mil.at(0))) {
+            if (this->sessTree->isDir(idx)) {
                 ok = this->ui_win.treeView->isExpanded(cidx);
                 focusPath = this->sessTree->filePath(cidx);
                 newPath = this->sessTree->filePath(pidx) + "/" + new_name;                                
@@ -244,7 +245,7 @@ void SessionDialog::slot_rename_selected_host()
                     this->ui_win.treeView->expand(this->sessTree->index(newPath)); // maybe crash?
                 }
             } else {
-                QMap<QString, QString> host = this->storage->getHost(mil.at(0).data().toString());
+                QMap<QString, QString> host = this->storage->getHost(idx.data().toString());
                 this->storage->updateHost(host, new_name);
             }
             this->sessTree->refresh(pidx);
@@ -257,16 +258,16 @@ void SessionDialog::slot_rename_selected_host()
 void SessionDialog::slot_remove_selected_host()
 {
     QItemSelectionModel *ism = 0;
-    QModelIndexList mil;
     QModelIndex cidx;
     QModelIndex pidx;
+    QModelIndex idx;
 
     ism = this->ui_win.treeView->selectionModel();
-    mil = ism->selectedIndexes();
-    //qDebug()<<mil;
-    if (mil.count() > 0) {
-        cidx = mil.at(0);
+
+    if (ism->hasSelection()) {
+        cidx = ism->currentIndex();
         pidx = cidx.parent();
+        idx = ism->model()->index(cidx.row(), 0, cidx.parent());
 
         //waning user
         int ret = QMessageBox::question(this, tr("Remote host:"), tr("Are you sure remove it?"), 
@@ -308,14 +309,15 @@ void SessionDialog::slot_show_no_item_tip()
 void SessionDialog::slot_cut_selected()
 {
     QItemSelectionModel *ism = 0;
-    QModelIndexList mil;
     QModelIndex cidx;
+    QModelIndex idx;
 
     ism = this->ui_win.treeView->selectionModel();
-    mil = ism->selectedIndexes();
-    //qDebug()<<mil;
-    if (mil.count() > 0) {
-        cidx = mil.at(0);
+
+    if (ism->hasSelection()) {
+        cidx = ism->currentIndex();
+        idx = ism->model()->index(cidx.row(), 0, cidx.parent());
+
         this->opLeftFile = this->sessTree->filePath(cidx);
         this->optype = OP_CUT;
     } else {
@@ -326,14 +328,15 @@ void SessionDialog::slot_cut_selected()
 void SessionDialog::slot_copy_selected()
 {
     QItemSelectionModel *ism = 0;
-    QModelIndexList mil;
     QModelIndex cidx;
+    QModelIndex idx;
 
     ism = this->ui_win.treeView->selectionModel();
-    mil = ism->selectedIndexes();
-    //qDebug()<<mil;
-    if (mil.count() > 0) {
-        cidx = mil.at(0);
+
+    if (ism->hasSelection()) {
+        cidx = ism->currentIndex();
+        idx = ism->model()->index(cidx.row(), 0, cidx.parent());
+
         this->opLeftFile = this->sessTree->filePath(cidx);
         this->optype = OP_COPY;
     } else {
@@ -344,7 +347,6 @@ void SessionDialog::slot_copy_selected()
 void SessionDialog::slot_paste_selected()
 {
     QItemSelectionModel *ism = 0;
-    QModelIndexList mil;
     QModelIndex cidx;
     QModelIndex pidx;
     QModelIndex aidx;
@@ -357,12 +359,11 @@ void SessionDialog::slot_paste_selected()
     }
 
     ism = this->ui_win.treeView->selectionModel();
-    mil = ism->selectedIndexes();
 
-    if (mil.count() == 0) {
+    if (!ism->hasSelection()) {
         aidx = this->ui_win.treeView->rootIndex();
     } else {
-        aidx = mil.at(0);
+        aidx = ism->currentIndex();
     }
     if (!this->sessTree->isDir(aidx)) {
         aidx = aidx.parent();
@@ -453,6 +454,7 @@ void SessionDialog::slot_paste_selected()
         this->ui_win.treeView->expand(aidx);
     }
 
+    // TODO
     switch (this->optype) {
     case OP_COPY:
         break;
@@ -466,20 +468,15 @@ void SessionDialog::slot_paste_selected()
 void SessionDialog::slot_new_folder()
 {
     QItemSelectionModel *ism = 0;
-    QModelIndexList mil;
     QModelIndex cidx;
-    QModelIndex pidx;
     QModelIndex aidx;
-    QString adir;
-    QString afile;
 
     ism = this->ui_win.treeView->selectionModel();
-    mil = ism->selectedIndexes();
 
-    if (mil.count() == 0) {
+    if (!ism->hasSelection()) {
         aidx = this->ui_win.treeView->rootIndex();
     } else {
-        aidx = mil.at(0);
+        aidx = ism->currentIndex();
         if (this->sessTree->isDir(aidx)) {            
         } else {
             aidx = aidx.parent();
@@ -497,7 +494,8 @@ void SessionDialog::slot_new_folder()
         if (this->sessTree->mkdir(aidx, new_name).isValid()) {
             this->sessTree->refresh(aidx);
             this->ui_win.treeView->expand(aidx);
-        } else {            
+        } else {
+            // what can i do?
         }
     }    
 }
@@ -510,5 +508,4 @@ void SessionDialog::slot_item_clicked(const QModelIndex &index)
     }
 }
 
-//
 // sessiondialog.cpp ends here
