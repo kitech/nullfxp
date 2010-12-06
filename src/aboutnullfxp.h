@@ -12,8 +12,11 @@
 
 #include <QDialog>
 
-#include "ui_aboutnullfxp.h"
+// #include "ui_aboutnullfxp.h"
 
+namespace Ui {
+    class AboutNullFXP;
+};
 /**
  * nullfxp关于信息对话框类
  * 
@@ -23,12 +26,12 @@ class AboutNullFXP : public QDialog
 {
     Q_OBJECT;
 public:
-    AboutNullFXP(QWidget *parent = 0, Qt::WindowFlags f = 0);
-    ~AboutNullFXP();
+    explicit AboutNullFXP(QWidget *parent = 0, Qt::WindowFlags f = 0);
+    virtual ~AboutNullFXP();
 
     void dummyDepend();
 private:
-    Ui::AboutNullFXP ui_about_nullfxp;
+    Ui::AboutNullFXP *uiw;
 };
 
 #endif

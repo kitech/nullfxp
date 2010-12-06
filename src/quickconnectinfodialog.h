@@ -14,7 +14,10 @@
 
 #include <QDialog>
 
-#include "ui_quickconnectinfodialog.h"
+
+namespace Ui {
+    class QuickConnectInfoDialog;
+};
 
 /**
  *
@@ -23,9 +26,8 @@ class QuickConnectInfoDialog : public QDialog
 {
     Q_OBJECT;
 public:
-    QuickConnectInfoDialog(QWidget* parent=0, Qt::WindowFlags f=0);
-
-    ~QuickConnectInfoDialog();
+    explicit QuickConnectInfoDialog(QWidget *parent = 0, Qt::WindowFlags f = 0);
+    virtual ~QuickConnectInfoDialog();
 
     QString get_protocol();
     QString get_user_name();
@@ -44,7 +46,7 @@ private slots:
     void slot_protocol_changed(int index);
 
 private:
-    Ui::QuickConnectInfoDialog quick_connect_info_dialog;
+    Ui::QuickConnectInfoDialog *uiw;
     QString show_name;
     QString pubkey_path;
 };

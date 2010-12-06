@@ -11,16 +11,20 @@
 
 #include "utils.h"
 
+#include "ui_quickconnectinfodialog.h"
 #include "quickconnectinfodialog.h"
 
-QuickConnectInfoDialog::QuickConnectInfoDialog(QWidget* parent, Qt::WindowFlags f): QDialog(parent, f)
+QuickConnectInfoDialog::QuickConnectInfoDialog(QWidget *parent, Qt::WindowFlags f)
+  : QDialog(parent, f)
+  ,uiw(new Ui::QuickConnectInfoDialog())
 {
-    this->quick_connect_info_dialog.setupUi(this);
-    QObject::connect(this->quick_connect_info_dialog.checkBox_3, SIGNAL(stateChanged(int)),
+    this->uiw->setupUi(this);
+
+    QObject::connect(this->uiw->checkBox_3, SIGNAL(stateChanged(int)),
                      this, SLOT(slot_pubkey_checked(int)));
-    QObject::connect(this->quick_connect_info_dialog.toolButton, SIGNAL(clicked()),
+    QObject::connect(this->uiw->toolButton, SIGNAL(clicked()),
                      this, SLOT(slot_select_pubkey()));
-    QObject::connect(this->quick_connect_info_dialog.comboBox, SIGNAL(currentIndexChanged(int)),
+    QObject::connect(this->uiw->comboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(slot_protocol_changed(int)));
 
     this->pubkey_path = QString::null;
@@ -34,7 +38,7 @@ QuickConnectInfoDialog::~QuickConnectInfoDialog()
 QString QuickConnectInfoDialog::get_protocol()
 {
     QString protocol;
-    switch (this->quick_connect_info_dialog.comboBox->currentIndex()) {
+    switch (this->uiw->comboBox->currentIndex()) {
     case 0:
         protocol = "SFTP";
         break;
@@ -53,27 +57,27 @@ QString QuickConnectInfoDialog::get_protocol()
         break;
     }
     return protocol;
-    return this->quick_connect_info_dialog.comboBox->currentText().trimmed();
+    return this->uiw->comboBox->currentText().trimmed();
 }
 QString QuickConnectInfoDialog::get_user_name ()
 {
-    return this->quick_connect_info_dialog.lineEdit_3->text().trimmed();
+    return this->uiw->lineEdit_3->text().trimmed();
 }
 
 QString QuickConnectInfoDialog::get_host_name ()
 {
-    return this->quick_connect_info_dialog.lineEdit->text().trimmed();
+    return this->uiw->lineEdit->text().trimmed();
 }
 
 QString QuickConnectInfoDialog::get_password()
 {
-    QString passwd = this->quick_connect_info_dialog.lineEdit_4->text();
+    QString passwd = this->uiw->lineEdit_4->text();
     passwd = QUrl::toPercentEncoding(passwd);
     return passwd;
 }
 short  QuickConnectInfoDialog::get_port()
 {
-    QString str_port = this->quick_connect_info_dialog.lineEdit_2->text().trimmed();
+    QString str_port = this->uiw->lineEdit_2->text().trimmed();
     int port = str_port.toShort();
     
     return port;
@@ -97,34 +101,34 @@ void QuickConnectInfoDialog::set_active_host(QMap<QString,QString> host)
     }
 
     if (protocol == QString("FTPS")) {
-        this->quick_connect_info_dialog.comboBox->setCurrentIndex(3);
+        this->uiw->comboBox->setCurrentIndex(3);
     } else if (protocol == QString("FTPES")) {
-        this->quick_connect_info_dialog.comboBox->setCurrentIndex(2);
+        this->uiw->comboBox->setCurrentIndex(2);
     } else if (protocol == QString("FTP")) {
-        this->quick_connect_info_dialog.comboBox->setCurrentIndex(1);
-    } if (protocol == QString("SFTP")) {
-        this->quick_connect_info_dialog.comboBox->setCurrentIndex(0);
+        this->uiw->comboBox->setCurrentIndex(1);
+    } else if (protocol == QString("SFTP")) {
+        this->uiw->comboBox->setCurrentIndex(0);
     } else {
         Q_ASSERT(1 == 2);
-        // this->quick_connect_info_dialog.comboBox->setCurrentIndex(0);
+        // this->uiw->comboBox->setCurrentIndex(0);
     }
 
-    this->quick_connect_info_dialog.lineEdit->setText(host_name);
-    this->quick_connect_info_dialog.lineEdit_2->setText(port);
-    this->quick_connect_info_dialog.lineEdit_3->setText(user_name);
+    this->uiw->lineEdit->setText(host_name);
+    this->uiw->lineEdit_2->setText(port);
+    this->uiw->lineEdit_3->setText(user_name);
     
-    this->quick_connect_info_dialog.lineEdit_4->setFocus();
-    this->quick_connect_info_dialog.lineEdit_4->setText(QUrl::fromPercentEncoding(password.toAscii()));
+    this->uiw->lineEdit_4->setFocus();
+    this->uiw->lineEdit_4->setText(QUrl::fromPercentEncoding(password.toAscii()));
     
-    this->quick_connect_info_dialog.groupBox->setTitle(QString(tr("Host Infomation: %1")).arg(show_name));
+    this->uiw->groupBox->setTitle(QString(tr("Host Infomation: %1")).arg(show_name));
     this->show_name = show_name;
     this->pubkey_path = pubkey_path;
 
     if (host.contains("pubkey")) {
-        this->quick_connect_info_dialog.toolButton->setToolTip(QString(tr("Current key: ")) 
-                                                               + this->pubkey_path);
+        this->uiw->toolButton->setToolTip(QString(tr("Current key: ")) 
+                                          + this->pubkey_path);
     } else {
-        this->quick_connect_info_dialog.toolButton->setToolTip(tr("No key"));
+        this->uiw->toolButton->setToolTip(tr("No key supplied."));
     }
 }
 
@@ -132,7 +136,7 @@ QMap<QString,QString> QuickConnectInfoDialog::get_host_map()
 {
     QMap<QString,QString> host;
 
-    // switch (this->quick_connect_info_dialog.comboBox->currentIndex()) {
+    // switch (this->uiw->comboBox->currentIndex()) {
     // case 0:
     //     host["protocol"] = "SFTP";
     //     break;
@@ -151,11 +155,12 @@ QMap<QString,QString> QuickConnectInfoDialog::get_host_map()
     // }
     host["show_name"] = this->show_name;
     host["protocol"] = this->get_protocol();
-    host["host_name"] = this->quick_connect_info_dialog.lineEdit->text().trimmed();
-    host["user_name"] = this->quick_connect_info_dialog.lineEdit_3->text().trimmed();
-    host["password"] = this->quick_connect_info_dialog.lineEdit_4->text();
+    host["host_name"] = this->uiw->lineEdit->text().trimmed();
+    host["user_name"] = this->uiw->lineEdit_3->text().trimmed();
+    host["password"] = this->uiw->lineEdit_4->text();
     host["password"] = QUrl::toPercentEncoding(host["password"]);
-    host["port"] = this->quick_connect_info_dialog.lineEdit_2->text().trimmed();
+    host["port"] = this->uiw->lineEdit_2->text().trimmed();
+
     if (this->pubkey_path != QString::null && this->pubkey_path.length() > 0) {
         host["pubkey"] = this->pubkey_path;
     }
@@ -166,9 +171,9 @@ QMap<QString,QString> QuickConnectInfoDialog::get_host_map()
 void QuickConnectInfoDialog::slot_pubkey_checked(int state)
 {
     if (state == Qt::Checked || state == Qt::PartiallyChecked) {
-        this->quick_connect_info_dialog.toolButton->setEnabled(true);
+        this->uiw->toolButton->setEnabled(true);
     } else {
-        this->quick_connect_info_dialog.toolButton->setEnabled(false);
+        this->uiw->toolButton->setEnabled(false);
     }
 }
 
@@ -199,7 +204,7 @@ void QuickConnectInfoDialog::slot_select_pubkey()
             QMessageBox::warning(this, tr("Warning"), tr("Can not find related private key file."));
         }
         this->pubkey_path = path;
-        this->quick_connect_info_dialog.toolButton->setToolTip(QString(tr("Current key: ")) 
+        this->uiw->toolButton->setToolTip(QString(tr("Current key: ")) 
                                                                + this->pubkey_path);
     }
 }
@@ -208,17 +213,17 @@ void QuickConnectInfoDialog::slot_protocol_changed(int index)
 {
     switch (index) {
     case 0:
-        this->quick_connect_info_dialog.lineEdit_2->setText("22");
+        this->uiw->lineEdit_2->setText("22");
         break;
     case 1:
-        this->quick_connect_info_dialog.lineEdit_2->setText("21");
+        this->uiw->lineEdit_2->setText("21");
         break;
     case 2:
-        this->quick_connect_info_dialog.lineEdit_2->setText("21");
+        this->uiw->lineEdit_2->setText("21");
         break;
     case 3:
         // ctrl 990, data 989
-        this->quick_connect_info_dialog.lineEdit_2->setText("990");
+        this->uiw->lineEdit_2->setText("990");
         break;
     default:
         qDebug()<<"Unkown protocl:"<<index;

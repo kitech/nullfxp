@@ -10,16 +10,21 @@
 #include <QtCore>
 
 #include "nullfxp-version.h"
+
+#include "ui_aboutnullfxp.h"
 #include "aboutnullfxp.h"
 
 AboutNullFXP::AboutNullFXP(QWidget *parent, Qt::WindowFlags f)
   : QDialog(parent, f)
+  , uiw(new Ui::AboutNullFXP())
 {
-    this->ui_about_nullfxp.setupUi(this);
-    QString NULLFXP_RELEASE_AND_QT_VERION = QString("%1 (Using Qt %2)\nCompile with Qt %3, %4")
+    this->uiw->setupUi(this);
+
+    QString NULLFXP_RELEASE_AND_QT_VERION = 
+        QString("%1 (Using Qt %2)\nCompile with Qt %3, %4")
         .arg(NULLFXP_RELEASE).arg(qVersion())
         .arg(QT_VERSION_STR).arg(GCC_MV);
-    this->ui_about_nullfxp.label_2->setText( NULLFXP_RELEASE_AND_QT_VERION );
+    this->uiw->label_2->setText(NULLFXP_RELEASE_AND_QT_VERION);
     
     QString about_info;    
     QString about_author;
@@ -35,10 +40,9 @@ AboutNullFXP::AboutNullFXP(QWidget *parent, Qt::WindowFlags f)
     about_author = fp.readAll();
     fp.close();
     
-    this->ui_about_nullfxp.label->setPixmap(QPixmap(":/icons/nullget-1.png").scaledToHeight(50));
-    this->ui_about_nullfxp.textBrowser_2->setHtml(about_info);
-    this->ui_about_nullfxp.textBrowser->setHtml(about_author);
-
+    this->uiw->label->setPixmap(QPixmap(":/icons/nullget-1.png").scaledToHeight(50));
+    this->uiw->textBrowser_2->setHtml(about_info);
+    this->uiw->textBrowser->setHtml(about_author);
 }
 
 AboutNullFXP::~AboutNullFXP()
@@ -57,7 +61,7 @@ void AboutNullFXP::dummyDepend()
 #ifndef Q_OS_WIN
 #ifndef Q_OS_MAC
     // force link fontconfig lib, can not strip 
-    FcObjectSet * fco = FcObjectSetCreate();
+    FcObjectSet *fco = FcObjectSetCreate();
     FcObjectSetDestroy(fco);
 #endif
 #endif
