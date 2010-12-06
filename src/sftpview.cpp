@@ -937,9 +937,14 @@ void SFTPView::slot_new_download_requested(TaskPackage remote_pkg)
 void SFTPView::slot_transfer_finished(int status, QString errorString)
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<status; 
-    SFTPView *remote_view = this ;
+    SFTPView *remote_view = this;
     
     ProgressDialog *pdlg = (ProgressDialog*)sender();
+
+    this->main_mdi_area->removeSubWindow(pdlg->parentWidget());
+
+    delete pdlg;
+    this->own_progress_dialog = 0;
 
     if (status == 0 // || status == 3
         ) {
@@ -958,6 +963,9 @@ void SFTPView::slot_transfer_finished(int status, QString errorString)
             // xxxxx: 没有预期到的错误
             //assert ( 1== 2 );
         }
+    } else if (status == 52 // Transportor::ERROR_CANCEL
+               ) {
+        // user cancel, show nothing
     } else if (status != 0 // && status != 3
                ) {
         QString errmsg = QString(errorString + " Code: %1").arg(status);
@@ -966,10 +974,6 @@ void SFTPView::slot_transfer_finished(int status, QString errorString)
     } else {
         Q_ASSERT(1 == 2);
     }
-    this->main_mdi_area->removeSubWindow(pdlg->parentWidget());
-
-    delete pdlg;
-    this->own_progress_dialog = 0;
     // remote_view->slot_leave_remote_dir_retrive_loop();
 }
 

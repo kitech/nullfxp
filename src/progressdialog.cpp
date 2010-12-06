@@ -36,10 +36,13 @@
 #include "transportor.h"
 #include "taskqueuemodel.h"
 
+#include "ui_progressdialog.h"
+
 ProgressDialog::ProgressDialog(QWidget *parent)
-    : QWidget(parent)
+    : QWidget(parent),
+      uiw(new Ui::ProgressDialog())
 {
-    this->uiw.setupUi(this);
+    this->uiw->setupUi(this);
     this->setObjectName("pv");
     //////////
     this->transportor = new Transportor();
@@ -50,7 +53,7 @@ ProgressDialog::ProgressDialog(QWidget *parent)
                      this, SLOT(slot_set_transfer_percent(int, quint64, int)));
     QObject::connect(this->transportor, SIGNAL(transfer_new_file_started(QString)),
                      this, SLOT(slot_new_file_transfer_started(QString)));
-    QObject::connect(this->uiw.pushButton, SIGNAL(clicked()),
+    QObject::connect(this->uiw->pushButton, SIGNAL(clicked()),
                      this, SLOT(slot_cancel_button_clicked()));
     QObject::connect( this->transportor, SIGNAL(transfer_got_file_size(quint64)),
                       this, SLOT(slot_transfer_got_file_size(quint64)));
@@ -62,7 +65,7 @@ ProgressDialog::ProgressDialog(QWidget *parent)
                      this, SLOT(slot_dest_file_exists(QString, QString, QString, QString, QString, QString)));
     
     this->first_show = true;
-    this->uiw.progressBar->setValue(0);
+    this->uiw->progressBar->setValue(0);
     this->total_files_size = 0;
     this->total_files_count = 0;
     this->abtained_files_size = 0;
@@ -103,25 +106,25 @@ void ProgressDialog::set_transfer_info(TaskPackage local_pkg, TaskPackage remote
     
     QString local_full_path;
     
-    this->uiw.comboBox->clear();
-    this->uiw.comboBox_2->clear();
+    this->uiw->comboBox->clear();
+    this->uiw->comboBox_2->clear();
 
     for (int i = 0; i < remote_pkg.files.count(); i ++) {
         remote_file_name = remote_pkg.files.at(i);
         local_full_path = local_file_name + "/"
             + remote_file_name.split("/").at(remote_file_name.split("/").count()-1);
-        this->uiw.lineEdit->setText(local_pkg.getProtocolNameById(local_pkg.scheme)
+        this->uiw->lineEdit->setText(local_pkg.getProtocolNameById(local_pkg.scheme)
                                                    + "-->" 
                                                    + remote_pkg.getProtocolNameById(remote_pkg.scheme));
-        this->uiw.comboBox_2->addItem(remote_file_name);
+        this->uiw->comboBox_2->addItem(remote_file_name);
     }
 }
 
 void ProgressDialog::slot_set_transfer_percent(int percent, quint64 total_transfered, int transfer_delta)
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
-    this->uiw.progressBar->setValue(percent);
-    this->uiw.lineEdit_5->setText(QString("%1").arg(total_transfered));
+    this->uiw->progressBar->setValue(percent);
+    this->uiw->lineEdit_5->setText(QString("%1").arg(total_transfered));
     this->abtained_files_size += transfer_delta; //TODO no right logic, when resume file
     if (percent == 100) {
         this->abtained_files_count += 1;
@@ -151,9 +154,10 @@ void ProgressDialog::slot_transfer_thread_finished()
     //this->done(QDialog::Accepted);
     int error_code = this->transportor->get_error_code();
     QString error_string = this->transportor->get_error_message(error_code);
-    emit this->transfer_finished(error_code, error_string);
 
     this->taskQueueModel->slot_transfer_thread_finished(this->modelId);
+
+    emit this->transfer_finished(error_code, error_string);
 }
 
 void ProgressDialog::exec()
@@ -178,47 +182,47 @@ void ProgressDialog::show()
 
 void ProgressDialog::slot_new_file_transfer_started(QString new_file_name)
 {
-    QString u_new_file_name =  new_file_name;
+    QString u_new_file_name = new_file_name;
 
     bool found = 0;
-    for (int i = 0; i < this->uiw.comboBox->count(); i ++) {
-        if (this->uiw.comboBox->itemText(i) == u_new_file_name) {
-            this->uiw.comboBox->setCurrentIndex(i);
+    for (int i = 0; i < this->uiw->comboBox->count(); i ++) {
+        if (this->uiw->comboBox->itemText(i) == u_new_file_name) {
+            this->uiw->comboBox->setCurrentIndex(i);
             found = 1;
             break;
         }
     }
     if (found == 0) {
-        this->uiw.comboBox->addItem(u_new_file_name);
-        this->uiw.comboBox->setCurrentIndex(this->uiw.comboBox->count()-1);
+        this->uiw->comboBox->addItem(u_new_file_name);
+        this->uiw->comboBox->setCurrentIndex(this->uiw->comboBox->count()-1);
     }
     u_new_file_name = QString(tr("processing: %1")).arg(u_new_file_name);
-    this->uiw.progressBar->setStatusTip(u_new_file_name);
+    this->uiw->progressBar->setStatusTip(u_new_file_name);
     ////
     this->total_files_count ++;
     this->update_transfer_state();
     //this->setToolTip(u_new_file_name);
-    this->uiw.lineEdit_4->setText(this->type(u_new_file_name));
+    this->uiw->lineEdit_4->setText(this->type(u_new_file_name));
 
-    QString dest_path = this->uiw.comboBox_2->currentText();
+    QString dest_path = this->uiw->comboBox_2->currentText();
 
     this->modelId = this->taskQueueModel->slot_new_file_transfer_started(new_file_name, dest_path);
 }
 
-void ProgressDialog::closeEvent(QCloseEvent * event) 
+void ProgressDialog::closeEvent(QCloseEvent *event)
 {
     int rv = 0;
     
-    //this->setVisible(false);
     rv = QMessageBox::information(this, tr("Attemp to close this window?"),
                                    tr("Are you sure to stop the transfomition ?"),
                                    QMessageBox::Ok | QMessageBox::Cancel );
     if (rv == QMessageBox::Ok) {
         this->transportor->set_user_cancel(true);
         //event->ignore();
-        this->setVisible(false);
-        //emit this->transfer_finished(this->transportor->get_error_code());
-        qDebug()<<"Transfer error: "<<this->transportor->get_error_code();
+        // this->setVisible(false);
+        // here this->parentWidget() is a QMdiSubWindow(0xdbaec0), valid widget.
+        this->parentWidget()->setVisible(false);
+        qDebug()<<"Transfer result: "<<this->transportor->get_error_code()<<this->parentWidget();
     } else {
         event->ignore();
     }
@@ -230,28 +234,28 @@ void ProgressDialog::slot_cancel_button_clicked()
 }
 void ProgressDialog::update_transfer_state()
 {
-    this->uiw.lineEdit_8->setText(QString("%1").arg(this->transfer_speed));
-    this->uiw.lineEdit_9->setText(QString("%1").arg(this->abtained_files_count));
-    this->uiw.lineEdit_10->setText(QString("%1").arg(this->total_files_count));
-    this->uiw.lineEdit_11->setText(QString("%1").arg(this->abtained_files_size));
-    this->uiw.lineEdit_12->setText(QString("%1").arg(this->total_files_size));
+    this->uiw->lineEdit_8->setText(QString("%1").arg(this->transfer_speed));
+    this->uiw->lineEdit_9->setText(QString("%1").arg(this->abtained_files_count));
+    this->uiw->lineEdit_10->setText(QString("%1").arg(this->total_files_count));
+    this->uiw->lineEdit_11->setText(QString("%1").arg(this->abtained_files_size));
+    this->uiw->lineEdit_12->setText(QString("%1").arg(this->total_files_size));
     if (this->total_files_size == 0) {
-        this->uiw.progressBar_2->setValue(100);
+        this->uiw->progressBar_2->setValue(100);
     } else {
-        this->uiw.progressBar_2->setValue(100.0*((double)this->abtained_files_size/(double)this->total_files_size));
+        this->uiw->progressBar_2->setValue(100.0*((double)this->abtained_files_size/(double)this->total_files_size));
     }
 }
 void ProgressDialog::slot_transfer_got_file_size(quint64 size)
 {
     this->total_files_size += size;
-    this->uiw.lineEdit_13->setText(QString("%1").arg(size));
+    this->uiw->lineEdit_13->setText(QString("%1").arg(size));
     this->update_transfer_state();
 
     this->taskQueueModel->slot_transfer_got_file_size(this->modelId, size);
 }
 void ProgressDialog::slot_transfer_log(QString log)
 {
-    this->uiw.lineEdit_14->setText(log);
+    this->uiw->lineEdit_14->setText(log);
 }
 
 QString ProgressDialog::type(QString file_name)
@@ -353,7 +357,7 @@ void ProgressDialog::slot_speed_timer_timeout()
     }
     time_str = QString(time_str_buf);
 
-    this->uiw.lineEdit_6->setText(time_str);
+    this->uiw->lineEdit_6->setText(time_str);
     eclapsed_time_str = time_str;
 
     ////////////
@@ -379,7 +383,7 @@ void ProgressDialog::slot_speed_timer_timeout()
     }
     time_str = QString(time_str_buf);
 
-    this->uiw.lineEdit_7->setText(time_str);
+    this->uiw->lineEdit_7->setText(time_str);
     left_time_str = time_str;
     
     this->taskQueueModel->slot_transfer_time_update(this->modelId, eclapsed_time_str, left_time_str);

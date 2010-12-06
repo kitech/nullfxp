@@ -16,10 +16,13 @@
 
 #include "taskpackage.h"
 // #include "transportor.h"
-#include "ui_progressdialog.h"
 
 class Transportor;
 class TaskQueueModel;
+
+namespace Ui {
+    class ProgressDialog;
+};
 
 class ProgressDialog : public QWidget
 {
@@ -70,7 +73,7 @@ private:
     QTimer  time_cacl_timer;
         
 private:    //UI element
-    Ui::ProgressDialog uiw; 
+    Ui::ProgressDialog *uiw; 
     int modelId;
 
 private:
@@ -78,7 +81,7 @@ private:
     QString type(QString file_name);
 
 protected:
-    void closeEvent(QCloseEvent * event);
+    void closeEvent(QCloseEvent *event);
 };
 
 #endif
