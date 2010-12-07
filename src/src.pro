@@ -12,7 +12,7 @@ CONFIG += qt thread console warn_on ordered
 TARGET = nullfxp
 DESTDIR = ../bin
 
-VERSION=2.1.0.85  # using in nullfxp-version.h
+VERSION=2.1.0.86  # using in nullfxp-version.h
 
 # install vars, unix xdg
 include(../install.pri)
@@ -222,8 +222,15 @@ win32 {
     TARGETDEPS += libssh2/src/libssh2.a            # depcreated
     POST_TARGETDEPS += libssh2/src/libssh2.a
 # WARNING: /home/gzleo/nullfxp-svn/src/src.pro:204: Variable TARGETDEPS is deprecated; use POST_TARGETDEPS instead.
-LIBS += -Wl,-Bstatic -lcurl -lexpat -Wl,-Bdynamic -lssl -lcrypto -lfontconfig
-LIBS += -lgnutls -lidn -ltasn1 -lgcrypt -lgpg-error
+unix {
+    LIBS += -Wl,-Bstatic -lcurl -lexpat -Wl,-Bdynamic -lssl -lcrypto -lfontconfig
+    LIBS += -lgnutls -lidn -ltasn1 -lgcrypt -lgpg-error
+} else {
+    # for mac os x
+    !win32 {
+        LIBS += -lcurl
+    }
+}
 # fix static compiled version cjk problem.
 exists($$[QT_INSTALL_PLUGINS]/codecs/libqcncodecs.a) {
     DEFINES += STATIC QT_STATICPLUGIN 

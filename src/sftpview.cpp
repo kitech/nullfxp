@@ -518,7 +518,25 @@ void SFTPView::slot_show_properties()
 
     QModelIndexList aim_mil;
     for (int i = 0; i < ism->model()->columnCount(pidx); i++) {
-        aim_mil<<ism->model()->index(cidx.row(), i, pidx);
+        idx = ism->model()->index(cidx.row(), i, pidx);
+        if (this->curr_item_view == this->uiw.treeView) {
+            idx = this->m_treeProxyModel->mapToSource(idx);
+        } else if (this->curr_item_view == this->uiw.listView_2) {
+            QModelIndex currIndex;
+            QModelIndex tmpIndex;
+
+            currIndex = this->m_tableProxyModel->mapToSource(idx);
+            aim_mil<<currIndex;
+            // aim_mil<<mil.at(i);
+            for (int col = 1; col < 4; col ++) {
+                tmpIndex = this->remote_dir_model->index(currIndex.row(), col, currIndex.parent());
+                aim_mil << tmpIndex;
+            }
+
+        } else if (this->curr_item_view == this->uiw.tableView) {
+            idx = this->m_tableProxyModel->mapToSource(idx);
+        }
+        aim_mil<<idx;
     }
     // TODO should be fix win x64
     // QModelIndexList mil = ism->selectedIndexes();

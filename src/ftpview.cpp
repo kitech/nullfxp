@@ -549,10 +549,26 @@ void FTPView::slot_show_properties()
     pidx = cidx.parent();
 
     QModelIndexList aim_mil;
-
-    for (int i = 0; i < ism->model()->columnCount(pidx) ; ++i) {
+    for (int i = 0; i < ism->model()->columnCount(pidx); i++) {
         idx = ism->model()->index(cidx.row(), i, pidx);
-        aim_mil << idx;
+        if (this->curr_item_view == this->uiw.treeView) {
+            idx = this->m_treeProxyModel->mapToSource(idx);
+        } else if (this->curr_item_view == this->uiw.listView_2) {
+            QModelIndex currIndex;
+            QModelIndex tmpIndex;
+
+            currIndex = this->m_tableProxyModel->mapToSource(idx);
+            aim_mil<<currIndex;
+            // aim_mil<<mil.at(i);
+            for (int col = 1; col < 4; col ++) {
+                tmpIndex = this->remote_dir_model->index(currIndex.row(), col, currIndex.parent());
+                aim_mil << tmpIndex;
+            }
+
+        } else if (this->curr_item_view == this->uiw.tableView) {
+            idx = this->m_tableProxyModel->mapToSource(idx);
+        }
+        aim_mil<<idx;
     }
     
     // QModelIndexList mil = ism->selectedIndexes();
