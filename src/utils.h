@@ -106,7 +106,7 @@ extern "C"{
     /*
      * Sets a socket to non-blocking operation.
      */
-    int set_nonblock (int sock);
+    int set_sock_nonblock (int sock);
     int set_sock_block(int sock);
 
 

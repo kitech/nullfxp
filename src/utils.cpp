@@ -281,7 +281,7 @@ long fxp_getpid()
     return pid;
 }
 
-int set_nonblock (int sock)
+int set_sock_nonblock (int sock)
 {
     unsigned long flags = 0;
 #ifdef WIN32
