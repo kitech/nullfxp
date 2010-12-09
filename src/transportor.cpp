@@ -687,19 +687,19 @@ int Transportor::run_SFTP_to_FILE()
     //TODO 选择性关闭 ssh2 会话，有可能是 src  ,也有可能是dest 
     if (this->src_ssh2_sftp != 0) {
         libssh2_sftp_shutdown(this->src_ssh2_sftp);
-        this->src_ssh2_sftp = 0 ;
+        this->src_ssh2_sftp = 0;
     }
     if (this->src_ssh2_sess != 0) {
         libssh2_session_free(this->src_ssh2_sess);
-        this->src_ssh2_sess = 0 ;
+        this->src_ssh2_sess = 0;
     }
    if (this->dest_ssh2_sftp != 0) {
         libssh2_sftp_shutdown(this->dest_ssh2_sftp);
-        this->dest_ssh2_sftp = 0 ;
+        this->dest_ssh2_sftp = 0;
     }
     if (this->dest_ssh2_sess != 0) {
         libssh2_session_free(this->dest_ssh2_sess);
-        this->dest_ssh2_sess = 0 ;
+        this->dest_ssh2_sess = 0;
     }
     if (this->user_canceled == true) {
         this->error_code = ERRNO_CANCEL;
@@ -714,7 +714,7 @@ int Transportor::run_SFTP_to_FILE(QString srcFile, QString destFile)
     int pcnt = 0 ;
     int rlen, wlen;
     int file_size, tran_len = 0;
-    LIBSSH2_SFTP_HANDLE *sftp_handle ;
+    LIBSSH2_SFTP_HANDLE *sftp_handle;
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
     char buff[8192] = {0};
     
@@ -853,11 +853,11 @@ int Transportor::run_SFTP_to_SFTP()
     this->error_code = 0 ;
     this->errorString = QString(tr("No error."));
     
-    this->dest_ssh2_sess = 0 ;
-    this->dest_ssh2_sftp = 0 ;
+    this->dest_ssh2_sess = 0;
+    this->dest_ssh2_sftp = 0;
         
-    this->src_ssh2_sess = 0 ;
-    this->src_ssh2_sftp = 0 ;
+    this->src_ssh2_sess = 0;
+    this->src_ssh2_sftp = 0;
     
     do {
         src_atom_pkg = this->transfer_ready_queue.front().first;

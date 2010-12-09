@@ -1,2 +1,4 @@
 好像在windows平台上，SFTP上传文件有内存泄漏，超过200M的文件能有比较明显的泄漏现象。
 两个SFTP直传出问题，ASSERT: "ret == 0" in file transportor.cpp, line 70
+
+see  http://nullget.sourceforge.net/bug/my_view_page.php

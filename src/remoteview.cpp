@@ -19,6 +19,7 @@
 #include "localview.h"
 #include "remoteview.h"
 #include "netdirsortfiltermodel.h"
+#include "ui_remoteview.h"
 
 #include "fileproperties.h"
 #include "encryptiondetailfocuslabel.h"
@@ -34,8 +35,9 @@
 
 RemoteView::RemoteView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *parent)
     : QWidget(parent)
+    , uiw(new Ui::RemoteView())
 {
-    this->uiw.setupUi(this);
+    this->uiw->setupUi(this);
     this->local_view = local_view;
     this->main_mdi_area = main_mdi_area;
     this->setObjectName("NetDirView");
@@ -56,40 +58,40 @@ RemoteView::RemoteView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *
     this->layout()->addWidget(this->status_bar);
 
     ////////////
-    //     this->uiw.treeView->setAcceptDrops(false);
-    //     this->uiw.treeView->setDragEnabled(false);
-    //     this->uiw.treeView->setDropIndicatorShown(false);
-    //     this->uiw.treeView->setDragDropMode(QAbstractItemView::NoDragDrop);
-    //this->uiw.treeView->setSelectionMode(QAbstractItemView::ExtendedSelection);
+    //     this->uiw->treeView->setAcceptDrops(false);
+    //     this->uiw->treeView->setDragEnabled(false);
+    //     this->uiw->treeView->setDropIndicatorShown(false);
+    //     this->uiw->treeView->setDragDropMode(QAbstractItemView::NoDragDrop);
+    //this->uiw->treeView->setSelectionMode(QAbstractItemView::ExtendedSelection);
     
-    QObject::connect(this->uiw.treeView, SIGNAL(customContextMenuRequested(const QPoint &)),
+    QObject::connect(this->uiw->treeView, SIGNAL(customContextMenuRequested(const QPoint &)),
                      this, SLOT(slot_dir_tree_customContextMenuRequested (const QPoint &)));
-    QObject::connect(this->uiw.tableView,SIGNAL(customContextMenuRequested(const QPoint &)),
+    QObject::connect(this->uiw->tableView,SIGNAL(customContextMenuRequested(const QPoint &)),
                      this, SLOT(slot_dir_tree_customContextMenuRequested (const QPoint & )));
-    QObject::connect(this->uiw.listView_2, SIGNAL(customContextMenuRequested(const QPoint &)),
+    QObject::connect(this->uiw->listView_2, SIGNAL(customContextMenuRequested(const QPoint &)),
                      this, SLOT(slot_dir_tree_customContextMenuRequested (const QPoint &)));
     // this->init_popup_context_menu();
     
     this->in_remote_dir_retrive_loop = false;
-    this->uiw.tableView->test_use_qt_designer_prompt = 0;
+    this->uiw->tableView->test_use_qt_designer_prompt = 0;
     CompleteLineEditDelegate *delegate = new CompleteLineEditDelegate();
-    this->uiw.tableView->setItemDelegate(delegate);
-    this->uiw.tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    this->uiw.treeView->setItemDelegate(delegate);
-    this->uiw.treeView->setAnimated(true);
+    this->uiw->tableView->setItemDelegate(delegate);
+    this->uiw->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    this->uiw->treeView->setItemDelegate(delegate);
+    this->uiw->treeView->setAnimated(true);
 
     // something about dir nav
     this->is_dir_complete_request = false;
     // this->dir_complete_request_prefix = "";
-    QObject::connect(this->uiw.widget, SIGNAL(goHome()),
+    QObject::connect(this->uiw->widget, SIGNAL(goHome()),
                      this, SLOT(slot_dir_nav_go_home()));
-    QObject::connect(this->uiw.widget, SIGNAL(dirPrefixChanged(const QString&)),
+    QObject::connect(this->uiw->widget, SIGNAL(dirPrefixChanged(const QString&)),
                      this, SLOT(slot_dir_nav_prefix_changed(const QString&)));
-    QObject::connect(this->uiw.widget, SIGNAL(dirInputConfirmed(const QString&)),
+    QObject::connect(this->uiw->widget, SIGNAL(dirInputConfirmed(const QString&)),
                      this, SLOT(slot_dir_nav_input_comfirmed(const QString&)));
-    QObject::connect(this->uiw.widget, SIGNAL(iconSizeChanged(int)),
+    QObject::connect(this->uiw->widget, SIGNAL(iconSizeChanged(int)),
                      this, SLOT(slot_icon_size_changed(int)));
-    // this->uiw.widget->onSetHome(QDir::homePath()); // call from set_user_home_path
+    // this->uiw->widget->onSetHome(QDir::homePath()); // call from set_user_home_path
     // this->setFileListViewMode(GlobalOption::FLV_BOTH_VIEW);
     this->setFileListViewMode(GlobalOption::FLV_DETAIL);
     this->m_operationLogModel = NULL;
@@ -97,7 +99,7 @@ RemoteView::RemoteView(QMdiArea *main_mdi_area, LocalView *local_view, QWidget *
 
 RemoteView::~RemoteView()
 {
-    this->uiw.treeView->setModel(0);
+    this->uiw->treeView->setModel(0);
     delete this->remote_dir_model;
 }
 
@@ -175,7 +177,7 @@ QMenu *RemoteView::encodingMenu()
 
 void RemoteView::slot_show_fxp_command_log(bool show)
 {
-    this->uiw.listView->setVisible(show);    
+    this->uiw->listView->setVisible(show);    
 }
 
 void RemoteView::i_init_dir_view()
@@ -193,12 +195,12 @@ void RemoteView::i_init_dir_view()
     // this->m_treeProxyModel = new DirTreeSortFilterModelEX();
     // this->m_treeProxyModel->setSourceModel(this->remote_dir_model);
     
-    this->uiw.treeView->setModel(m_treeProxyModel);
-    // this->uiw.treeView->setModel(this->remote_dir_model);
-    this->uiw.treeView->setAcceptDrops(true);
-    this->uiw.treeView->setDragEnabled(false);
-    this->uiw.treeView->setDropIndicatorShown(true);
-    this->uiw.treeView->setDragDropMode(QAbstractItemView::DropOnly);
+    this->uiw->treeView->setModel(m_treeProxyModel);
+    // this->uiw->treeView->setModel(this->remote_dir_model);
+    this->uiw->treeView->setAcceptDrops(true);
+    this->uiw->treeView->setDragEnabled(false);
+    this->uiw->treeView->setDropIndicatorShown(true);
+    this->uiw->treeView->setDragDropMode(QAbstractItemView::DropOnly);
 
     QObject::connect(this->remote_dir_model,
                      SIGNAL(sig_drop_mime_data(const QMimeData *, Qt::DropAction, int, int, const QModelIndex &)),
@@ -209,36 +211,36 @@ void RemoteView::i_init_dir_view()
     QObject::connect(this->remote_dir_model, SIGNAL(leave_remote_dir_retrive_loop()),
                      this, SLOT(slot_leave_remote_dir_retrive_loop()));
     
-    this->uiw.treeView->expandAll();
-    this->uiw.treeView->setColumnWidth(0, this->uiw.treeView->columnWidth(0)*2);
+    this->uiw->treeView->expandAll();
+    this->uiw->treeView->setColumnWidth(0, this->uiw->treeView->columnWidth(0)*2);
     
     //这里设置为true时，导致这个treeView不能正确显示滚动条了，为什么呢?
-    //this->uiw.treeView->setColumnHidden( 1, false);
-    this->uiw.treeView->setColumnWidth(1, 0);//使用这种方法隐藏看上去就正常了。
-    this->uiw.treeView->setColumnHidden(2, true);
-    this->uiw.treeView->setColumnHidden(3, true);
+    //this->uiw->treeView->setColumnHidden( 1, false);
+    this->uiw->treeView->setColumnWidth(1, 0);//使用这种方法隐藏看上去就正常了。
+    this->uiw->treeView->setColumnHidden(2, true);
+    this->uiw->treeView->setColumnHidden(3, true);
     
     /////tableView
-    this->uiw.tableView->setModel(this->m_tableProxyModel);
-    // this->uiw.tableView->setRootIndex(this->m_tableProxyModel->index(this->user_home_path));
+    this->uiw->tableView->setModel(this->m_tableProxyModel);
+    // this->uiw->tableView->setRootIndex(this->m_tableProxyModel->index(this->user_home_path));
 
     //change row height of table 
     // if (this->m_tableProxyModel->rowCount(this->m_tableProxyModel->index(this->user_home_path)) > 0) {
-    //     this->table_row_height = this->uiw.tableView->rowHeight(0)*2/3;
+    //     this->table_row_height = this->uiw->tableView->rowHeight(0)*2/3;
     // } else {
     //     this->table_row_height = 20 ;
     // }
     // for (int i = 0; i < this->m_tableProxyModel->rowCount(this->m_tableProxyModel->index(this->user_home_path)); i ++) {
-    //     this->uiw.tableView->setRowHeight(i, this->table_row_height);
+    //     this->uiw->tableView->setRowHeight(i, this->table_row_height);
     // }
-    this->uiw.tableView->resizeColumnToContents(0);
+    this->uiw->tableView->resizeColumnToContents(0);
     
     /////
-    QObject::connect(this->uiw.treeView, SIGNAL(clicked(const QModelIndex &)),
+    QObject::connect(this->uiw->treeView, SIGNAL(clicked(const QModelIndex &)),
                      this, SLOT(slot_dir_tree_item_clicked(const QModelIndex &)));
-    QObject::connect(this->uiw.tableView, SIGNAL(doubleClicked(const QModelIndex &)),
+    QObject::connect(this->uiw->tableView, SIGNAL(doubleClicked(const QModelIndex &)),
                      this, SLOT(slot_dir_file_view_double_clicked(const QModelIndex &)));
-    QObject::connect(this->uiw.tableView, SIGNAL(drag_ready()),
+    QObject::connect(this->uiw->tableView, SIGNAL(drag_ready()),
                      this, SLOT(slot_drag_ready()));
 
     //TODO 连接remoteview.treeView 的drag信号
@@ -264,7 +266,7 @@ void RemoteView::expand_to_directory(QString path, int level)
 
 void RemoteView::slot_disconnect_from_remote_host()
 {
-    this->uiw.treeView->setModel(0);
+    this->uiw->treeView->setModel(0);
     delete this->remote_dir_model;
     this->remote_dir_model = 0;
 }
@@ -303,7 +305,7 @@ void RemoteView::slot_new_transfer()
     // for(int i = 0 ; i < mil.size(); i +=4 ) {
     //     QModelIndex midx = mil.at(i);
     //     NetDirNode *dti = (NetDirNode*)
-    //         (this->curr_item_view!=this->uiw.treeView 
+    //         (this->curr_item_view!=this->uiw->treeView 
     //          ? this->m_tableProxyModel->mapToSource(midx).internalPointer() 
     //          : (this->m_treeProxyModel->mapToSource(midx ).internalPointer()));
     //     qDebug()<<dti->fileName()<<" "<<" "<<dti->fullPath;
@@ -324,7 +326,7 @@ QString RemoteView::get_selected_directory()
 {
     QString file_path;
     
-    // QItemSelectionModel *ism = this->uiw.treeView->selectionModel();
+    // QItemSelectionModel *ism = this->uiw->treeView->selectionModel();
     
     // if (ism == 0) {
     //     QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
@@ -387,15 +389,15 @@ void RemoteView::slot_custom_ui_area()
     
     QSizePolicy sp;
     sp.setVerticalPolicy(QSizePolicy::Ignored);
-    this->uiw.listView->setSizePolicy( sp ) ;
+    this->uiw->listView->setSizePolicy( sp ) ;
     //这个设置必须在show之前设置才有效果
-    this->uiw.splitter->setStretchFactor(0,1);
-    this->uiw.splitter->setStretchFactor(1,2);
+    this->uiw->splitter->setStretchFactor(0,1);
+    this->uiw->splitter->setStretchFactor(1,2);
 
-    this->uiw.splitter_2->setStretchFactor(0,6);
-    this->uiw.splitter_2->setStretchFactor(1,1);
-    this->uiw.listView->setVisible(false);//暂时没有功能在里面先隐藏掉
-    //this->uiw.tableView->setVisible(false);
+    this->uiw->splitter_2->setStretchFactor(0,6);
+    this->uiw->splitter_2->setStretchFactor(1,1);
+    this->uiw->listView->setVisible(false);//暂时没有功能在里面先隐藏掉
+    //this->uiw->tableView->setVisible(false);
     qDebug()<<this->geometry();
     this->setGeometry(this->x(),this->y(),this->width(),this->height()*2);
     qDebug()<<this->geometry();
@@ -406,21 +408,21 @@ void RemoteView::slot_enter_remote_dir_retrive_loop()
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     this->in_remote_dir_retrive_loop = true ;
     this->remote_dir_model->set_keep_alive(false);
-    this->orginal_cursor = this->uiw.splitter->cursor();
-    this->uiw.splitter->setCursor(Qt::BusyCursor);
+    this->orginal_cursor = this->uiw->splitter->cursor();
+    this->uiw->splitter->setCursor(Qt::BusyCursor);
 }
 
 void RemoteView::slot_leave_remote_dir_retrive_loop()
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
-    this->uiw.splitter->setCursor(this->orginal_cursor);
+    this->uiw->splitter->setCursor(this->orginal_cursor);
     this->remote_dir_model->set_keep_alive(true);
     this->in_remote_dir_retrive_loop = false ;
-    for (int i = 0 ; i < this->m_tableProxyModel->rowCount(this->uiw.tableView->rootIndex()); i ++) {
-        this->uiw.tableView->setRowHeight(i, this->table_row_height);
+    for (int i = 0 ; i < this->m_tableProxyModel->rowCount(this->uiw->tableView->rootIndex()); i ++) {
+        this->uiw->tableView->setRowHeight(i, this->table_row_height);
     }
-    this->uiw.tableView->resizeColumnToContents ( 0 );
+    this->uiw->tableView->resizeColumnToContents ( 0 );
 }
 
 void RemoteView::update_layout()
@@ -429,7 +431,7 @@ void RemoteView::update_layout()
     
     // QString file_path ;
     
-    // QItemSelectionModel *ism = this->uiw.treeView->selectionModel();
+    // QItemSelectionModel *ism = this->uiw->treeView->selectionModel();
     
     // if (ism == 0) {
     //     //QMessageBox::critical(this,tr("waring..."),tr("maybe you haven't connected"));                
@@ -474,7 +476,7 @@ void RemoteView::slot_show_properties()
     
     // QModelIndexList mil = ism->selectedIndexes();
     // QModelIndexList aim_mil;
-    // if (this->curr_item_view == this->uiw.treeView) {
+    // if (this->curr_item_view == this->uiw->treeView) {
     //     for (int i = 0 ; i < mil.count() ; i ++) {
     //         aim_mil << this->m_treeProxyModel->mapToSource(mil.at(i));
     //     }
@@ -518,7 +520,7 @@ void RemoteView::slot_mkdir()
     // }
     
     // QModelIndex midx = mil.at(0);
-    // QModelIndex aim_midx = (this->curr_item_view == this->uiw.treeView) ? this->m_treeProxyModel->mapToSource(midx): this->m_tableProxyModel->mapToSource(midx) ;
+    // QModelIndex aim_midx = (this->curr_item_view == this->uiw->treeView) ? this->m_treeProxyModel->mapToSource(midx): this->m_tableProxyModel->mapToSource(midx) ;
     // NetDirNode *dti = (NetDirNode*)(aim_midx.internalPointer());
     
     // //检查所选择的项是不是目录
@@ -567,7 +569,7 @@ void RemoteView::slot_rmdir()
     
     // QModelIndex midx = mil.at(0);
     // QModelIndex proxyIndex = midx;
-    // QModelIndex sourceIndex = (this->curr_item_view == this->uiw.treeView) 
+    // QModelIndex sourceIndex = (this->curr_item_view == this->uiw->treeView) 
     //     ? this->m_treeProxyModel->mapToSource(midx)
     //     : this->m_tableProxyModel->mapToSource(midx);    
 
@@ -611,7 +613,7 @@ void RemoteView::rm_file_or_directory_recursively()
     // }
     // //TODO 处理多选的情况
     // QModelIndex midx = mil.at(0);
-    // QModelIndex aim_midx = (this->curr_item_view == this->uiw.treeView) 
+    // QModelIndex aim_midx = (this->curr_item_view == this->uiw->treeView) 
     //     ? this->m_treeProxyModel->mapToSource(midx)
     //     : this->m_tableProxyModel->mapToSource(midx);
     // NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
@@ -666,7 +668,7 @@ void RemoteView::slot_copy_path()
     // }
     
     // QModelIndex midx = mil.at(0);
-    // QModelIndex aim_midx = (this->curr_item_view == this->uiw.treeView) 
+    // QModelIndex aim_midx = (this->curr_item_view == this->uiw->treeView) 
     //     ? this->m_treeProxyModel->mapToSource(midx)
     //     : this->m_tableProxyModel->mapToSource(midx);    
     // NetDirNode *dti = (NetDirNode*)aim_midx.internalPointer();
@@ -693,7 +695,7 @@ void RemoteView::slot_copy_url()
     // }
     
     // QModelIndex midx = mil.at(0);
-    // QModelIndex aim_midx = (this->curr_item_view == this->uiw.treeView) 
+    // QModelIndex aim_midx = (this->curr_item_view == this->uiw->treeView) 
     //     ? this->m_treeProxyModel->mapToSource(midx)
     //     : this->m_tableProxyModel->mapToSource(midx);    
     // NetDirNode *dti = (NetDirNode*) aim_midx.internalPointer();
@@ -833,11 +835,11 @@ void RemoteView::slot_dir_tree_item_clicked(const QModelIndex & index)
     remote_dir_model->slot_remote_dir_node_clicked(this->m_treeProxyModel->mapToSource(index));
     
     // file_path = this->m_treeProxyModel->filePath(index);
-    // this->uiw.tableView->setRootIndex(this->m_tableProxyModel->index(file_path));
+    // this->uiw->tableView->setRootIndex(this->m_tableProxyModel->index(file_path));
     // for (int i = 0 ; i < this->m_tableProxyModel->rowCount(this->m_tableProxyModel->index(file_path)); i ++ ) {
-    //     this->uiw.tableView->setRowHeight(i, this->table_row_height);
+    //     this->uiw->tableView->setRowHeight(i, this->table_row_height);
     // }
-    this->uiw.tableView->resizeColumnToContents(0);
+    this->uiw->tableView->resizeColumnToContents(0);
 }
 
 void RemoteView::slot_dir_file_view_double_clicked(const QModelIndex & index)
@@ -852,11 +854,11 @@ void RemoteView::slot_dir_file_view_double_clicked(const QModelIndex & index)
     //2。对于远程主机，　如果是目录，则打开这个目录，如果是文件，则提示是否要下载它(或者也可以直接打开这个文件）。
     QString file_path;
     // if (this->m_tableProxyModel->isDir(index)) {
-    //     this->uiw.treeView->expand(this->m_treeProxyModel->index(this->m_tableProxyModel->filePath(index)).parent());
-    //     this->uiw.treeView->expand(this->m_treeProxyModel->index(this->m_tableProxyModel->filePath(index)));
+    //     this->uiw->treeView->expand(this->m_treeProxyModel->index(this->m_tableProxyModel->filePath(index)).parent());
+    //     this->uiw->treeView->expand(this->m_treeProxyModel->index(this->m_tableProxyModel->filePath(index)));
     //     this->slot_dir_tree_item_clicked(this->m_treeProxyModel->index(this->m_tableProxyModel->filePath(index)));
-    //     this->uiw.treeView->selectionModel()->clearSelection();
-    //     this->uiw.treeView->selectionModel()->select(this->m_treeProxyModel->index(this->m_tableProxyModel->filePath(index)) , QItemSelectionModel::Select);
+    //     this->uiw->treeView->selectionModel()->clearSelection();
+    //     this->uiw->treeView->selectionModel()->select(this->m_treeProxyModel->index(this->m_tableProxyModel->filePath(index)) , QItemSelectionModel::Select);
     // } else if (this->m_tableProxyModel->isSymLink(index)) {
     //     QModelIndex idx = this->m_tableProxyModel->mapToSource(index);
     //     NetDirNode *node_item = (NetDirNode*)idx.internalPointer();
@@ -878,10 +880,10 @@ void RemoteView::slot_drag_ready()
     QMimeData *mimeData = new QMimeData;
     
     //这个视图中所选择的目录优先，如果没有则查找左侧目录树是是否有选择的目录，如果再找不到，则使用右侧表视图的根
-    // QItemSelectionModel *ism = this->uiw.tableView->selectionModel();
+    // QItemSelectionModel *ism = this->uiw->tableView->selectionModel();
     // QModelIndexList mil = ism->selectedIndexes();
     // if (mil.count() == 0) {
-    //     ism = this->uiw.treeView->selectionModel();
+    //     ism = this->uiw->treeView->selectionModel();
     //     mil = ism->selectedIndexes();
     // }
 
@@ -997,7 +999,7 @@ void RemoteView::slot_operation_triggered(QString text)
     this->m_operationLogModel->insertRows(rc, 1, QModelIndex());
     QModelIndex useIndex = this->m_operationLogModel->index(rc, 0, QModelIndex());
     this->m_operationLogModel->setData(useIndex, QVariant(text));
-    this->uiw.listView->scrollTo(useIndex);
+    this->uiw->listView->scrollTo(useIndex);
 
     if (rc > 300) {
         useIndex = this->m_operationLogModel->index(0, 0, QModelIndex());
@@ -1092,14 +1094,14 @@ void RemoteView::slot_dir_nav_go_home()
     // if no, callepse all and expand to home
     // tell dir nav instance the home path
 
-    // QModelIndex sourceIndex = this->uiw.tableView->rootIndex();
+    // QModelIndex sourceIndex = this->uiw->tableView->rootIndex();
     // QString rootPath = this->model->filePath(sourceIndex);
     // if (rootPath != QDir::homePath()) {
-    //     this->uiw.treeView->collapseAll();
+    //     this->uiw->treeView->collapseAll();
     //     this->expand_to_home_directory(QModelIndex(), 1);
-    //     this->uiw.tableView->setRootIndex(this->model->index(QDir::homePath()));
+    //     this->uiw->tableView->setRootIndex(this->model->index(QDir::homePath()));
     // }
-    // this->uiw.widget->onSetHome(QDir::homePath());
+    // this->uiw->widget->onSetHome(QDir::homePath());
 }
 
 void RemoteView::slot_dir_nav_prefix_changed(const QString &prefix)
@@ -1143,7 +1145,7 @@ void RemoteView::slot_dir_nav_prefix_changed(const QString &prefix)
     //                 matches << this->model->filePath(currIndex);
     //             }
     //         }
-    //         this->uiw.widget->onSetCompleteList(prefix, matches);
+    //         this->uiw->widget->onSetCompleteList(prefix, matches);
     //     }
     // } else {
     //     // any operation for this case???
@@ -1157,7 +1159,7 @@ void RemoteView::slot_dir_nav_input_comfirmed(const QString &prefix)
     q_debug()<<"";
 
     // QModelIndex sourceIndex = this->model->index(prefix);
-    // QModelIndex currIndex = this->uiw.tableView->rootIndex();
+    // QModelIndex currIndex = this->uiw->tableView->rootIndex();
     // QString currPath = this->model->filePath(currIndex);
 
     // if (!sourceIndex.isValid()) {
@@ -1168,41 +1170,41 @@ void RemoteView::slot_dir_nav_input_comfirmed(const QString &prefix)
     // }
 
     // if (currPath != prefix) {
-    //     this->uiw.treeView->collapseAll();
+    //     this->uiw->treeView->collapseAll();
     //     this->expand_to_directory(prefix, 1);
-    //     this->uiw.tableView->setRootIndex(this->model->index(prefix));
+    //     this->uiw->tableView->setRootIndex(this->model->index(prefix));
     // }
 }
 
 void RemoteView::slot_icon_size_changed(int value)
 {
-    this->uiw.listView_2->setGridSize(QSize(value, value));
+    this->uiw->listView_2->setGridSize(QSize(value, value));
 }
 
 void RemoteView::setFileListViewMode(int mode)
 {
     if (mode == GlobalOption::FLV_BOTH_VIEW) {
         // for debug purpose
-        this->uiw.tableView->setVisible(true);
-        this->uiw.listView_2->setVisible(true);
+        this->uiw->tableView->setVisible(true);
+        this->uiw->listView_2->setVisible(true);
     } else if (mode == GlobalOption::FLV_LARGE_ICON) {
-        this->uiw.tableView->setVisible(false);
-        this->uiw.listView_2->setVisible(true);
+        this->uiw->tableView->setVisible(false);
+        this->uiw->listView_2->setVisible(true);
         this->slot_icon_size_changed(96);
-        this->uiw.listView_2->setViewMode(QListView::IconMode);
+        this->uiw->listView_2->setViewMode(QListView::IconMode);
     } else if (mode == GlobalOption::FLV_SMALL_ICON) {
-        this->uiw.tableView->setVisible(false);
-        this->uiw.listView_2->setVisible(true);
+        this->uiw->tableView->setVisible(false);
+        this->uiw->listView_2->setVisible(true);
         this->slot_icon_size_changed(48);
-        this->uiw.listView_2->setViewMode(QListView::IconMode);
+        this->uiw->listView_2->setViewMode(QListView::IconMode);
     } else if (mode == GlobalOption::FLV_LIST) {
-        this->uiw.tableView->setVisible(false);
-        this->uiw.listView_2->setVisible(true);
+        this->uiw->tableView->setVisible(false);
+        this->uiw->listView_2->setVisible(true);
         this->slot_icon_size_changed(32);
-        this->uiw.listView_2->setViewMode(QListView::ListMode);
+        this->uiw->listView_2->setViewMode(QListView::ListMode);
     } else if (mode == GlobalOption::FLV_DETAIL) {
-        this->uiw.tableView->setVisible(true);
-        this->uiw.listView_2->setVisible(false);
+        this->uiw->tableView->setVisible(true);
+        this->uiw->listView_2->setVisible(false);
     } else {
         Q_ASSERT(1 == 2);
     }    

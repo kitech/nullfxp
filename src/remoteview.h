@@ -22,7 +22,9 @@
 #include "taskpackage.h"
 #include "remotedirmodel.h"
 
-#include "ui_remoteview.h"
+namespace Ui {
+    class RemoteView;
+};
 
 class ProgressDialog;
 class LocalView;
@@ -51,7 +53,7 @@ protected:
     QMdiArea   *main_mdi_area; // from NullFXP class
     QStatusBar *status_bar;
         
-    Ui::RemoteView uiw;
+    Ui::RemoteView *uiw;
     RemoteDirModel *remote_dir_model;
     int   table_row_height;
     QSortFilterProxyModel *m_treeProxyModel;
