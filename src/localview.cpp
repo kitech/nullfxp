@@ -16,10 +16,13 @@
 #include "globaloption.h"
 #include "fileproperties.h"
 
-LocalView::LocalView(QWidget *parent )
+#include "ui_localview.h"
+
+LocalView::LocalView(QWidget *parent)
     : QWidget(parent)
+    , uiw(new Ui::LocalView())
 {
-    uiw.setupUi(this);
+    this->uiw->setupUi(this);
     this->setObjectName("LocalFileSystemView");
     ////
     this->status_bar = new QStatusBar();
@@ -58,67 +61,67 @@ LocalView::LocalView(QWidget *parent )
     this->dir_file_model->setSourceModel(model);
 
     
-    this->uiw.treeView->setModel(this->dir_file_model);
-    this->uiw.treeView->setRootIndex(this->dir_file_model->index(""));
-    // this->uiw.treeView->setColumnHidden(1, true);
-    this->uiw.treeView->setColumnWidth(1, 0);
-    this->uiw.treeView->setColumnHidden(2, true);
-    this->uiw.treeView->setColumnHidden(3, true);
-    this->uiw.treeView->setColumnWidth(0, this->uiw.treeView->columnWidth(0) * 2);    
-    this->expand_to_home_directory(this->uiw.treeView->rootIndex(), 1);
-    // this->uiw.treeView->expand(this->dir_file_model->index("/home/gzleo"));
+    this->uiw->treeView->setModel(this->dir_file_model);
+    this->uiw->treeView->setRootIndex(this->dir_file_model->index(""));
+    // this->uiw->treeView->setColumnHidden(1, true);
+    this->uiw->treeView->setColumnWidth(1, 0);
+    this->uiw->treeView->setColumnHidden(2, true);
+    this->uiw->treeView->setColumnHidden(3, true);
+    this->uiw->treeView->setColumnWidth(0, this->uiw->treeView->columnWidth(0) * 2);    
+    this->expand_to_home_directory(this->uiw->treeView->rootIndex(), 1);
+    // this->uiw->treeView->expand(this->dir_file_model->index("/home/gzleo"));
   
     this->init_local_dir_tree_context_menu();
-    this->uiw.treeView->setAnimated(true);
+    this->uiw->treeView->setAnimated(true);
   
-    this->uiw.tableView->setModel(this->model);
-    this->uiw.tableView->setRootIndex(this->model->index(QDir::homePath()));
-    this->uiw.tableView->verticalHeader()->setVisible(false);
+    this->uiw->tableView->setModel(this->model);
+    this->uiw->tableView->setRootIndex(this->model->index(QDir::homePath()));
+    this->uiw->tableView->verticalHeader()->setVisible(false);
 
     //change row height of table 
     if (this->model->rowCount(this->model->index(QDir::homePath())) > 0) {
-        this->table_row_height = this->uiw.tableView->rowHeight(0) * 2 / 3;
+        this->table_row_height = this->uiw->tableView->rowHeight(0) * 2 / 3;
     } else {
-        this->table_row_height = 20 ;
+        this->table_row_height = 20;
     }
     for (int i = 0; i < this->model->rowCount(this->model->index(QDir::homePath())); i ++) {
-        this->uiw.tableView->setRowHeight(i, this->table_row_height);
+        this->uiw->tableView->setRowHeight(i, this->table_row_height);
     }
   
-    this->uiw.tableView->resizeColumnToContents(0);
+    this->uiw->tableView->resizeColumnToContents(0);
     /////
-    QObject::connect(this->uiw.treeView, SIGNAL(clicked(const QModelIndex &)),
+    QObject::connect(this->uiw->treeView, SIGNAL(clicked(const QModelIndex &)),
                      this, SLOT(slot_dir_tree_item_clicked(const QModelIndex &)));
-    QObject::connect(this->uiw.tableView, SIGNAL(doubleClicked(const QModelIndex &)),
+    QObject::connect(this->uiw->tableView, SIGNAL(doubleClicked(const QModelIndex &)),
                      this, SLOT(slot_dir_file_view_double_clicked(const QModelIndex &)));
-    QObject::connect(this->uiw.listView, SIGNAL(doubleClicked(const QModelIndex &)),
+    QObject::connect(this->uiw->listView, SIGNAL(doubleClicked(const QModelIndex &)),
                      this, SLOT(slot_dir_file_view_double_clicked(const QModelIndex &)));
 
     // list view of icon mode
-    this->uiw.listView->setModel(this->model);
-    this->uiw.listView->setRootIndex(this->model->index(QDir::homePath()));
-    this->uiw.listView->setViewMode(QListView::IconMode);
-    this->uiw.listView->setGridSize(QSize(80, 80));
+    this->uiw->listView->setModel(this->model);
+    this->uiw->listView->setRootIndex(this->model->index(QDir::homePath()));
+    this->uiw->listView->setViewMode(QListView::IconMode);
+    this->uiw->listView->setGridSize(QSize(80, 80));
     
     ////////ui area custom
-    this->uiw.splitter->setStretchFactor(0, 1);
-    this->uiw.splitter->setStretchFactor(1, 2);
-    //this->uiw.listView->setVisible(false);    //暂时没有功能在里面先隐藏掉
+    this->uiw->splitter->setStretchFactor(0, 1);
+    this->uiw->splitter->setStretchFactor(1, 2);
+    //this->uiw->listView->setVisible(false);    //暂时没有功能在里面先隐藏掉
 
     // dir navbar
     this->is_dir_complete_request = false;
     // this->dir_complete_request_prefix = "";
-    QObject::connect(this->uiw.widget, SIGNAL(goHome()),
+    QObject::connect(this->uiw->widget, SIGNAL(goHome()),
                      this, SLOT(slot_dir_nav_go_home()));
-    QObject::connect(this->uiw.widget, SIGNAL(dirPrefixChanged(const QString &)),
+    QObject::connect(this->uiw->widget, SIGNAL(dirPrefixChanged(const QString &)),
                      this, SLOT(slot_dir_nav_prefix_changed(const QString &)));
-    QObject::connect(this->uiw.widget, SIGNAL(dirInputConfirmed(const QString &)),
+    QObject::connect(this->uiw->widget, SIGNAL(dirInputConfirmed(const QString &)),
                      this, SLOT(slot_dir_nav_input_comfirmed(const QString &)));
-    QObject::connect(this->uiw.widget, SIGNAL(iconSizeChanged(int)),
+    QObject::connect(this->uiw->widget, SIGNAL(iconSizeChanged(int)),
                      this, SLOT(slot_icon_size_changed(int)));
-    this->uiw.widget->onSetHome(QDir::homePath());
+    this->uiw->widget->onSetHome(QDir::homePath());
 
-    this->uiw.listView->setSelectionModel(this->uiw.tableView->selectionModel());
+    this->uiw->listView->setSelectionModel(this->uiw->tableView->selectionModel());
     this->setFileListViewMode(GlobalOption::FLV_DETAIL);
 
     //TODO localview 标题格式: Local(主机名) - 当前所在目录名
@@ -128,7 +131,8 @@ LocalView::LocalView(QWidget *parent )
 
 
 LocalView::~LocalView()
-{}
+{
+}
 
 void LocalView::init_local_dir_tree_context_menu()
 {
@@ -195,11 +199,11 @@ void LocalView::init_local_dir_tree_context_menu()
     this->local_dir_tree_context_menu->addAction(action);
     QObject::connect(action, SIGNAL(triggered()), this, SLOT(slot_rename()));
     
-    QObject::connect(this->uiw.treeView, SIGNAL(customContextMenuRequested(const QPoint &)),
+    QObject::connect(this->uiw->treeView, SIGNAL(customContextMenuRequested(const QPoint &)),
                      this, SLOT(slot_local_dir_tree_context_menu_request(const QPoint &)));
-    QObject::connect(this->uiw.tableView, SIGNAL(customContextMenuRequested(const QPoint &)),
+    QObject::connect(this->uiw->tableView, SIGNAL(customContextMenuRequested(const QPoint &)),
                      this, SLOT(slot_local_dir_tree_context_menu_request(const QPoint &)));
-    QObject::connect(this->uiw.listView, SIGNAL(customContextMenuRequested(const QPoint &)),
+    QObject::connect(this->uiw->listView, SIGNAL(customContextMenuRequested(const QPoint &)),
                      this, SLOT(slot_local_dir_tree_context_menu_request(const QPoint &)));
 }
 
@@ -226,10 +230,10 @@ void LocalView::expand_to_home_directory(QModelIndex parent_model, int level)
         tmpPath = (unixRootFix ? QString("/") : QString()) + stepPathParts.join("/");
         /// qDebug()<<tmpPath<<stepPathParts;
         currIndex = this->dir_file_model->index(tmpPath);
-        this->uiw.treeView->expand(currIndex);
+        this->uiw->treeView->expand(currIndex);
     }
     if (level == 1) {
-        this->uiw.treeView->scrollTo(currIndex);
+        this->uiw->treeView->scrollTo(currIndex);
     }
     //qDebug()<<" root row count:"<< row_cnt ;
 }
@@ -254,10 +258,10 @@ void LocalView::expand_to_directory(QString path, int level)
         tmpPath = (unixRootFix ? QString("/") : QString()) + stepPathParts.join("/");
         /// qDebug()<<tmpPath<<stepPathParts;
         curr_model = this->dir_file_model->index(tmpPath);
-        this->uiw.treeView->expand(curr_model);
+        this->uiw->treeView->expand(curr_model);
     }
     if (level == 1) {
-        this->uiw.treeView->scrollTo(curr_model);
+        this->uiw->treeView->scrollTo(curr_model);
     }
     //qDebug()<<" root row count:"<< row_cnt ;
 }
@@ -290,7 +294,7 @@ void LocalView::slot_local_new_upload_requested()
     for (int i = ism->model()->rowCount(pidx) - 1 ; i >= 0 ; --i) {
         if (ism->isRowSelected(i, pidx)) {
             QModelIndex midx = idx = ism->model()->index(i, 0, pidx);
-            if (this->curr_item_view == this->uiw.treeView) {
+            if (this->curr_item_view == this->uiw->treeView) {
                 midx = this->dir_file_model->mapToSource(midx);
             }
             qDebug()<<this->model->fileName(midx);
@@ -304,7 +308,7 @@ void LocalView::slot_local_new_upload_requested()
 
     // for (int i = 0 ; i < mil.count() ; i += this->curr_item_view->model()->columnCount(QModelIndex())) {
     //     QModelIndex midx = mil.at(i);
-    //     if (this->curr_item_view==this->uiw.treeView) {
+    //     if (this->curr_item_view==this->uiw->treeView) {
     //         midx = this->dir_file_model->mapToSource(midx);
     //     }
     //     qDebug()<<this->model->fileName(midx);
@@ -320,7 +324,7 @@ QString LocalView::get_selected_directory()
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
     QString local_path;
-    QItemSelectionModel *ism = this->uiw.treeView->selectionModel();
+    QItemSelectionModel *ism = this->uiw->treeView->selectionModel();
     QModelIndex cidx, idx;
 
     if (ism == 0) {        
@@ -356,7 +360,7 @@ void LocalView::slot_refresh_directory_tree()
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
-    QItemSelectionModel *ism = this->uiw.treeView->selectionModel();
+    QItemSelectionModel *ism = this->uiw->treeView->selectionModel();
     QModelIndex cidx, idx;
 
     if (ism != 0) {
@@ -374,17 +378,17 @@ void LocalView::slot_refresh_directory_tree()
         //     // model->refresh(origIndex);
         // }
     }
-    this->dir_file_model->refresh(this->uiw.tableView->rootIndex());
+    this->dir_file_model->refresh(this->uiw->tableView->rootIndex());
 }
 void LocalView::update_layout()
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-//     this->dir_file_model->refresh( this->uiw.tableView->rootIndex());
-//     this->model->refresh(QModelIndex());
+    //     this->dir_file_model->refresh( this->uiw->tableView->rootIndex());
+    //     this->model->refresh(QModelIndex());
     this->slot_refresh_directory_tree();
 }
 
-void LocalView::closeEvent(QCloseEvent * event)
+void LocalView::closeEvent(QCloseEvent *event)
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     event->ignore();
@@ -394,24 +398,24 @@ void LocalView::closeEvent(QCloseEvent * event)
     this->showMinimized();
 }
 
-void LocalView::slot_dir_tree_item_clicked(const QModelIndex & index)
+void LocalView::slot_dir_tree_item_clicked(const QModelIndex &index)
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    QString file_path ;
+    QString file_path;
     
     file_path = this->dir_file_model->filePath(index);
-    this->uiw.tableView->setRootIndex(this->model->index(file_path));
+    this->uiw->tableView->setRootIndex(this->model->index(file_path));
     for (int i = 0 ; i < this->model->rowCount(this->model->index(file_path)); i ++)
-        this->uiw.tableView->setRowHeight(i, this->table_row_height);
-    this->uiw.tableView->resizeColumnToContents(0);
+        this->uiw->tableView->setRowHeight(i, this->table_row_height);
+    this->uiw->tableView->resizeColumnToContents(0);
 
-    this->uiw.listView->setRootIndex(this->model->index(file_path));
+    this->uiw->listView->setRootIndex(this->model->index(file_path));
 
-    this->uiw.widget->onNavToPath(file_path);
+    this->uiw->widget->onNavToPath(file_path);
     this->onUpdateEntriesStatus();
 }
 
-void LocalView::slot_dir_file_view_double_clicked(const QModelIndex & index)
+void LocalView::slot_dir_file_view_double_clicked(const QModelIndex &index)
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     //TODO if the clicked item is direcotry ,
@@ -420,14 +424,14 @@ void LocalView::slot_dir_file_view_double_clicked(const QModelIndex & index)
     //文件列表中的双击事件
     //1。 本地主机，如果是目录，则打开这个目录，如果是文件，则使用本机的程序打开这个文件
     //2。 对于远程主机，　如果是目录，则打开这个目录，如果是文件，则提示是否要下载它。
-    QString file_path ;
+    QString file_path;
     
     if (this->model->isDir(index)) {
-        this->uiw.treeView->expand( this->dir_file_model->index(this->model->filePath(index)).parent());        
-        this->uiw.treeView->expand( this->dir_file_model->index(this->model->filePath(index)));
+        this->uiw->treeView->expand( this->dir_file_model->index(this->model->filePath(index)).parent());        
+        this->uiw->treeView->expand( this->dir_file_model->index(this->model->filePath(index)));
         this->slot_dir_tree_item_clicked(this->dir_file_model->index(this->model->filePath(index)));
-        this->uiw.treeView->selectionModel()->clearSelection();
-        this->uiw.treeView->selectionModel()->select(this->dir_file_model->index(this->model->filePath(index)), QItemSelectionModel::Select ) ;
+        this->uiw->treeView->selectionModel()->clearSelection();
+        this->uiw->treeView->selectionModel()->select(this->dir_file_model->index(this->model->filePath(index)), QItemSelectionModel::Select ) ;
     } else {
         qDebug()<<" double clicked a regular file , no op now,only now";
     }
@@ -464,7 +468,7 @@ void LocalView::slot_mkdir()
 
     // QModelIndex midx = mil.at(0);
     QModelIndex midx = idx;
-    QModelIndex aim_midx = (this->curr_item_view == this->uiw.treeView)
+    QModelIndex aim_midx = (this->curr_item_view == this->uiw->treeView)
         ? this->dir_file_model->mapToSource(midx): midx ;
 
     //检查所选择的项是不是目录
@@ -495,7 +499,7 @@ void LocalView::slot_mkdir()
 
 void LocalView::slot_rmdir()
 {
-    QString dir_name ;
+    QString dir_name;
     
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     // QModelIndexList mil;
@@ -504,17 +508,17 @@ void LocalView::slot_rmdir()
     if (ism == 0 || !ism->hasSelection()) {
         qDebug()<<" selectedIndexes count :"<< ism->hasSelection() << " why no item selected????";
         QMessageBox::critical(this, tr("Waring..."), tr("No item selected"));
-        return ;
+        return;
     }    
     
-    // mil = ism->selectedIndexes() ;
+    // mil = ism->selectedIndexes();
 
     cidx = ism->currentIndex();
     idx = ism->model()->index(cidx.row(), 0, cidx.parent());
     
     // QModelIndex midx = mil.at(0);
     QModelIndex midx = idx;
-    QModelIndex aim_midx = (this->curr_item_view == this->uiw.treeView) 
+    QModelIndex aim_midx = (this->curr_item_view == this->uiw->treeView) 
         ? this->dir_file_model->mapToSource(midx): midx;
 
     //检查所选择的项是不是目录
@@ -530,7 +534,7 @@ void LocalView::slot_rmdir()
     if (!QDir().rmdir(this->model->filePath(aim_midx))) {
         QMessageBox::critical(this, tr("Waring..."), tr("Delete directory faild. Mayby the directory is not empty."));
     } else {
-        if (this->curr_item_view == this->uiw.treeView) {
+        if (this->curr_item_view == this->uiw->treeView) {
             QModelIndex tree_midx = this->dir_file_model->mapFromSource(aim_midx);
             this->slot_dir_tree_item_clicked(tree_midx.parent());
         }
@@ -540,19 +544,19 @@ void LocalView::slot_rmdir()
 
 void LocalView::slot_remove()
 {
-    QItemSelectionModel * ism = this->curr_item_view->selectionModel();
+    QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     // QModelIndexList mil;
     QModelIndex cidx, idx;
 
     if (ism == 0 || !ism->hasSelection()) {
         QMessageBox::critical(this, tr("Waring..."), tr("No item selected").leftJustified(50, ' '));
-        return ;
+        return;
     }
     // mil = ism->selectedIndexes();
     cidx = ism->currentIndex();
     idx = ism->model()->index(cidx.row(), 0, cidx.parent());
 
-    QString local_file = this->curr_item_view==this->uiw.treeView
+    QString local_file = this->curr_item_view==this->uiw->treeView
         ? this->dir_file_model->filePath(idx) : this->model->filePath(idx);
 
     if (QMessageBox::question(this, tr("Question..."), 
@@ -582,9 +586,9 @@ void LocalView::slot_rename()
     cidx = ism->currentIndex();
     idx = ism->model()->index(cidx.row(), 0, cidx.parent());
 
-    QString local_file = this->curr_item_view==this->uiw.treeView
+    QString local_file = this->curr_item_view==this->uiw->treeView
         ? this->dir_file_model->filePath(idx) : this->model->filePath(idx);
-    QString file_name = this->curr_item_view==this->uiw.treeView
+    QString file_name = this->curr_item_view==this->uiw->treeView
         ? this->dir_file_model->fileName(idx) : this->model->fileName(idx);
 
     QString rename_to;
@@ -633,7 +637,7 @@ void LocalView::slot_copy_path_url()
     cidx = ism->currentIndex();
     idx = ism->model()->index(cidx.row(), 0, cidx.parent());
 
-    QString local_file = this->curr_item_view==this->uiw.treeView
+    QString local_file = this->curr_item_view==this->uiw->treeView
         ? this->dir_file_model->filePath(idx) : this->model->filePath(idx);
     
     QApplication::clipboard()->setText(local_file);
@@ -659,7 +663,7 @@ void LocalView::slot_show_properties()
     cidx = ism->currentIndex();
     idx = ism->model()->index(cidx.row(), 0, cidx.parent());
 
-    QString local_file = this->curr_item_view==this->uiw.treeView
+    QString local_file = this->curr_item_view==this->uiw->treeView
         ? this->dir_file_model->filePath(idx) : this->model->filePath(idx);
     //  文件类型，大小，几个时间，文件权限
     //TODO 从模型中取到这些数据并显示在属性对话框中。
@@ -677,8 +681,8 @@ void LocalView::rm_file_or_directory_recursively()
 void LocalView::onDirectoryLoaded(const QString &path)
 {
     q_debug()<<path;
-    if (this->model->filePath(this->uiw.tableView->rootIndex()) == path) {
-        this->uiw.tableView->resizeColumnToContents(0);
+    if (this->model->filePath(this->uiw->tableView->rootIndex()) == path) {
+        this->uiw->tableView->resizeColumnToContents(0);
         this->onUpdateEntriesStatus();
     }
 
@@ -698,7 +702,7 @@ void LocalView::onDirectoryLoaded(const QString &path)
                 matches << this->model->filePath(currIndex);
             }
         }
-        this->uiw.widget->onSetCompleteList(prefix, matches);
+        this->uiw->widget->onSetCompleteList(prefix, matches);
     }
 }
 
@@ -714,7 +718,7 @@ void LocalView::onRootPathChanged(const QString &newPath)
 
 void LocalView::onUpdateEntriesStatus()
 {
-    int entries = this->model->rowCount(this->uiw.tableView->rootIndex());
+    int entries = this->model->rowCount(this->uiw->tableView->rootIndex());
     QString msg = QString("%1 entries").arg(entries);
     // this->status_bar->showMessage(msg);
     this->entriesLabel->setText(msg);
@@ -727,14 +731,14 @@ void LocalView::slot_dir_nav_go_home()
     // if no, callepse all and expand to home
     // tell dir nav instance the home path
 
-    QModelIndex sourceIndex = this->uiw.tableView->rootIndex();
+    QModelIndex sourceIndex = this->uiw->tableView->rootIndex();
     QString rootPath = this->model->filePath(sourceIndex);
     if (rootPath != QDir::homePath()) {
-        this->uiw.treeView->collapseAll();
+        this->uiw->treeView->collapseAll();
         this->expand_to_home_directory(QModelIndex(), 1);
-        this->uiw.tableView->setRootIndex(this->model->index(QDir::homePath()));
+        this->uiw->tableView->setRootIndex(this->model->index(QDir::homePath()));
     }
-    this->uiw.widget->onSetHome(QDir::homePath());
+    this->uiw->widget->onSetHome(QDir::homePath());
 }
 
 void LocalView::slot_dir_nav_prefix_changed(const QString &prefix)
@@ -781,7 +785,7 @@ void LocalView::slot_dir_nav_prefix_changed(const QString &prefix)
                     matches << this->model->filePath(currIndex);
                 }
             }
-            this->uiw.widget->onSetCompleteList(prefix, matches);
+            this->uiw->widget->onSetCompleteList(prefix, matches);
         }
     } else {
         // any operation for this case???
@@ -794,7 +798,7 @@ void LocalView::slot_dir_nav_input_comfirmed(const QString &prefix)
     q_debug()<<"";
 
     QModelIndex sourceIndex = this->model->index(prefix);
-    QModelIndex currIndex = this->uiw.tableView->rootIndex();
+    QModelIndex currIndex = this->uiw->tableView->rootIndex();
     QString currPath = this->model->filePath(currIndex);
 
     if (!sourceIndex.isValid()) {
@@ -805,39 +809,39 @@ void LocalView::slot_dir_nav_input_comfirmed(const QString &prefix)
     }
 
     if (currPath != prefix) {
-        this->uiw.treeView->collapseAll();
+        this->uiw->treeView->collapseAll();
         this->expand_to_directory(prefix, 1);
-        this->uiw.tableView->setRootIndex(this->model->index(prefix));
-        this->uiw.listView->setRootIndex(this->uiw.tableView->rootIndex());
+        this->uiw->tableView->setRootIndex(this->model->index(prefix));
+        this->uiw->listView->setRootIndex(this->uiw->tableView->rootIndex());
     }
 }
 
 void LocalView::slot_icon_size_changed(int value)
 {
     q_debug()<<value;
-    this->uiw.listView->setGridSize(QSize(value, value));
+    this->uiw->listView->setGridSize(QSize(value, value));
 }
 
 void LocalView::setFileListViewMode(int mode)
 {
     if (mode == GlobalOption::FLV_LARGE_ICON) {
-        this->uiw.tableView->setVisible(false);
-        this->uiw.listView->setVisible(true);
+        this->uiw->tableView->setVisible(false);
+        this->uiw->listView->setVisible(true);
         this->slot_icon_size_changed(96);
-        this->uiw.listView->setViewMode(QListView::IconMode);
+        this->uiw->listView->setViewMode(QListView::IconMode);
     } else if (mode == GlobalOption::FLV_SMALL_ICON) {
-        this->uiw.tableView->setVisible(false);
-        this->uiw.listView->setVisible(true);
+        this->uiw->tableView->setVisible(false);
+        this->uiw->listView->setVisible(true);
         this->slot_icon_size_changed(48);
-        this->uiw.listView->setViewMode(QListView::IconMode);
+        this->uiw->listView->setViewMode(QListView::IconMode);
     } else if (mode == GlobalOption::FLV_LIST) {
-        this->uiw.tableView->setVisible(false);
-        this->uiw.listView->setVisible(true);
+        this->uiw->tableView->setVisible(false);
+        this->uiw->listView->setVisible(true);
         this->slot_icon_size_changed(32);
-        this->uiw.listView->setViewMode(QListView::ListMode);
+        this->uiw->listView->setViewMode(QListView::ListMode);
     } else if (mode == GlobalOption::FLV_DETAIL) {
-        this->uiw.tableView->setVisible(true);
-        this->uiw.listView->setVisible(false);
+        this->uiw->tableView->setVisible(true);
+        this->uiw->listView->setVisible(false);
     } else {
         Q_ASSERT(1 == 2);
     }

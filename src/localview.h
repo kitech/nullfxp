@@ -18,13 +18,14 @@
 #include <QTreeWidget>
 #include <QDirModel>
 
-// #include "localdirfilemodel.h"
 #include "localdirsortfiltermodel.h"
 #include "taskpackage.h"
 
-#include "ui_localview.h"
+namespace Ui {
+    class LocalView;
+};
 
-class RemoteView ;
+class RemoteView;
 
 class LocalView : public QWidget
 {
@@ -74,7 +75,7 @@ protected:
 private:
     QStatusBar *status_bar;
     QFileSystemModel *model;
-    Ui::LocalView uiw;
+    Ui::LocalView *uiw;
     LocalDirSortFilterModel *dir_file_model;
     int   table_row_height;
     QAbstractItemView *curr_item_view;    //
