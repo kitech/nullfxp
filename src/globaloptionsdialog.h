@@ -11,8 +11,11 @@
 #define GLOBALOPTIONSDIALOG_H
 
 #include <QDialog>
+#include <QtGui>
 
-#include "ui_globaloptionsdialog.h"
+namespace Ui {
+    class GlobalOptionsDialog;
+};
 /**
  * 参数配置对话框类
  */
@@ -28,7 +31,8 @@ private slots:
     void slotCatItemClicked(QListWidgetItem *item);
 
 private:
-    Ui_GlobalOptionsDialog ui_win;
+    // Ui_GlobalOptionsDialog ui_win;
+    Ui::GlobalOptionsDialog *uiw;
 };
 
 #endif

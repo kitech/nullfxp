@@ -75,7 +75,7 @@ p, li { white-space: pre-wrap; }
         <enum>QListView::SinglePass</enum>
        </property>
        <property name="spacing">
-        <number>6</number>
+        <number>1</number>
        </property>
        <property name="viewMode">
         <enum>QListView::ListMode</enum>
@@ -98,7 +98,7 @@ p, li { white-space: pre-wrap; }
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>icons/document-encrypt.png</normaloff>icons/document-encrypt.png</iconset>
+          <normaloff>../../.designer/backup/icons/document-encrypt.png</normaloff>../../.designer/backup/icons/document-encrypt.png</iconset>
         </property>
        </item>
        <item>
@@ -107,8 +107,8 @@ p, li { white-space: pre-wrap; }
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>icons/document-properties.png</normaloff>
-          <normalon>icons/computer.png</normalon>icons/document-properties.png</iconset>
+          <normaloff>../../.designer/backup/icons/document-properties.png</normaloff>
+          <normalon>../../.designer/backup/icons/computer.png</normalon>../../.designer/backup/icons/document-properties.png</iconset>
         </property>
        </item>
        <item>
@@ -117,7 +117,7 @@ p, li { white-space: pre-wrap; }
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>icons/computer.png</normaloff>icons/computer.png</iconset>
+          <normaloff>../../.designer/backup/icons/computer.png</normaloff>../../.designer/backup/icons/computer.png</iconset>
         </property>
        </item>
        <item>
@@ -126,7 +126,7 @@ p, li { white-space: pre-wrap; }
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>icons/edit-cut.png</normaloff>icons/edit-cut.png</iconset>
+          <normaloff>../../.designer/backup/icons/edit-cut.png</normaloff>../../.designer/backup/icons/edit-cut.png</iconset>
         </property>
        </item>
        <item>
@@ -135,7 +135,7 @@ p, li { white-space: pre-wrap; }
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>icons/edit-paste.png</normaloff>icons/edit-paste.png</iconset>
+          <normaloff>../../.designer/backup/icons/edit-paste.png</normaloff>../../.designer/backup/icons/edit-paste.png</iconset>
         </property>
        </item>
        <item>
@@ -144,7 +144,7 @@ p, li { white-space: pre-wrap; }
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>icons/emblem-symbolic-link.png</normaloff>icons/emblem-symbolic-link.png</iconset>
+          <normaloff>../../.designer/backup/icons/emblem-symbolic-link.png</normaloff>../../.designer/backup/icons/emblem-symbolic-link.png</iconset>
         </property>
        </item>
       </widget>

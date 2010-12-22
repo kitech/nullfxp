@@ -9,21 +9,30 @@
 
 #include "utils.h"
 
+#include "ui_globaloptionsdialog.h"
 #include "globaloptionsdialog.h"
 
 GlobalOptionsDialog::GlobalOptionsDialog(QWidget* parent, Qt::WindowFlags f)
-  : QDialog(parent, f)
+    : QDialog(parent, f),
+      uiw(new Ui::GlobalOptionsDialog())
 {
-    this->ui_win.setupUi(this);
+    this->uiw->setupUi(this);
 
-    this->ui_win.listWidget->setIconSize(QSize(50,50));
+    this->uiw->listWidget->setIconSize(QSize(50,50));
 
-    QObject::connect(this->ui_win.pushButton_2, SIGNAL(clicked()),
+    QObject::connect(this->uiw->pushButton_2, SIGNAL(clicked()),
                      this, SLOT(slotCancelEdit()));
-    QObject::connect(this->ui_win.listWidget, SIGNAL(itemClicked(QListWidgetItem*)),
+    QObject::connect(this->uiw->listWidget, SIGNAL(itemClicked(QListWidgetItem*)),
                      this, SLOT(slotCatItemClicked(QListWidgetItem*)));
 
-    this->slotCatItemClicked(this->ui_win.listWidget->item(0));
+
+    QListWidgetItem *item = NULL;
+    for (int i = this->uiw->listWidget->count() - 1; i >= 0; --i) {
+        item = this->uiw->listWidget->item(i);
+        item->setSizeHint(QSize(120, 50));
+    }
+
+    this->slotCatItemClicked(this->uiw->listWidget->item(0));
 }
 
 GlobalOptionsDialog::~GlobalOptionsDialog()
@@ -37,11 +46,11 @@ void GlobalOptionsDialog::slotCancelEdit()
 
 void GlobalOptionsDialog::slotCatItemClicked(QListWidgetItem *item)
 {
-    q_debug()<<item<<this->ui_win.listWidget->row(item);
+    q_debug()<<item<<this->uiw->listWidget->row(item);
     QString catName = item->text();
     
-    this->ui_win.label_2->setText(catName);
-    this->ui_win.stackedWidget->setCurrentIndex(this->ui_win.listWidget->row(item));
+    this->uiw->label_2->setText(catName);
+    this->uiw->stackedWidget->setCurrentIndex(this->uiw->listWidget->row(item));
 }
 
 
