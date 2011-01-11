@@ -52,7 +52,7 @@ QModelIndex LocalDirSortFilterModel::index(const QString &path, int column) cons
 {
     return this->mapFromSource(this->source_model->index( path , column ));
 }
-QModelIndex LocalDirSortFilterModel::index(int& row, int column, QModelIndex& parent) const
+QModelIndex LocalDirSortFilterModel::index(int row, int column, QModelIndex& parent) const
 {
     return this->mapFromSource(this->source_model->index(row, column, this->mapToSource(parent)));
 }

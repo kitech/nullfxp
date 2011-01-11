@@ -25,7 +25,7 @@ public:
     virtual ~LocalDirSortFilterModel();
     
     QModelIndex index(const QString &path, int column = 0) const;
-    QModelIndex index(int& row, int column, QModelIndex& parent) const;
+    QModelIndex index(int row, int column, QModelIndex& parent) const;
     virtual void setSourceModel(QAbstractItemModel *sourceModel);
             
     QString filePath(const QModelIndex &index) const;

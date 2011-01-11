@@ -321,7 +321,7 @@ void LocalView::slot_local_new_upload_requested()
 
 QString LocalView::get_selected_directory()
 {
-    //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
     QString local_path;
     QItemSelectionModel *ism = this->uiw->treeView->selectionModel();
@@ -332,7 +332,8 @@ QString LocalView::get_selected_directory()
     }
 
     if (!ism->hasSelection()) {
-          return QString();
+        qDebug()<<"why no tree selection???";
+        return QString();
     }
 
     // QModelIndexList mil = ism->selectedIndexes();
@@ -345,6 +346,10 @@ QString LocalView::get_selected_directory()
     //qDebug() << model->filePath ( mil.at ( 0 ) );
 
     cidx = ism->currentIndex();
+    if (!ism->isSelected(cidx)) {
+        // so currentIndex is not always a selected index !!!!!!
+        qDebug()<<"Why current index is not a selected index???";
+    }
     idx = ism->model()->index(cidx.row(), 0, cidx.parent());
 
     // QString local_file = this->dir_file_model->filePath(mil.at(0));
@@ -425,13 +430,27 @@ void LocalView::slot_dir_file_view_double_clicked(const QModelIndex &index)
     //1。 本地主机，如果是目录，则打开这个目录，如果是文件，则使用本机的程序打开这个文件
     //2。 对于远程主机，　如果是目录，则打开这个目录，如果是文件，则提示是否要下载它。
     QString file_path;
+    QModelIndex idx, idx2, idx_top_left, idx_bottom_right;
     
     if (this->model->isDir(index)) {
         this->uiw->treeView->expand( this->dir_file_model->index(this->model->filePath(index)).parent());        
         this->uiw->treeView->expand( this->dir_file_model->index(this->model->filePath(index)));
         this->slot_dir_tree_item_clicked(this->dir_file_model->index(this->model->filePath(index)));
+        // this->uiw->treeView->selectionModel()->clearSelection();
+        // this->uiw->treeView->selectionModel()->select(this->dir_file_model->index(this->model->filePath(index)), QItemSelectionModel::Select);
+
+        idx = this->dir_file_model->index(this->model->filePath(index));
+        // qDebug()<<"column count:"<<this->dir_file_model->columnCount(idx);
+        idx2 = idx.parent();
+        idx_top_left = this->dir_file_model->index(idx.row(), 0, idx2);
+        idx_bottom_right = this->dir_file_model->index(idx.row(), 
+                                                       this->dir_file_model->columnCount(idx)-1,
+                                                       idx2);
+        QItemSelection iselect(idx_top_left, idx_bottom_right);
         this->uiw->treeView->selectionModel()->clearSelection();
-        this->uiw->treeView->selectionModel()->select(this->dir_file_model->index(this->model->filePath(index)), QItemSelectionModel::Select ) ;
+        this->uiw->treeView->selectionModel()->select(iselect, QItemSelectionModel::Select);
+        this->uiw->treeView->selectionModel()->setCurrentIndex(idx_top_left, QItemSelectionModel::Select);
+        this->uiw->treeView->setFocus(Qt::ActiveWindowFocusReason);
     } else {
         qDebug()<<" double clicked a regular file , no op now,only now";
     }

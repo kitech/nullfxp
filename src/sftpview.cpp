@@ -1068,6 +1068,7 @@ void SFTPView::slot_dir_file_view_double_clicked(const QModelIndex & index)
     QModelIndex proxyIndex = index;
     QModelIndex sourceIndex = this->m_tableProxyModel->mapToSource(proxyIndex);
     QModelIndex useIndex = sourceIndex;
+    QModelIndex idx, idx2, idx_top_left, idx_bottom_right;
 
     QString file_path;
     if (this->remote_dir_model->isDir(useIndex) || this->remote_dir_model->isSymLinkToDir(useIndex)) {
@@ -1075,9 +1076,24 @@ void SFTPView::slot_dir_file_view_double_clicked(const QModelIndex & index)
         this->uiw->treeView->expand(this->m_treeProxyModel->mapFromSource(useIndex));
         this->slot_dir_tree_item_clicked(this->m_treeProxyModel->mapFromSource(useIndex));
 
+        // this->uiw->treeView->selectionModel()->clearSelection();
+        // this->uiw->treeView->selectionModel()->select(this->m_treeProxyModel->mapFromSource(useIndex), 
+        //                                                     QItemSelectionModel::Select);
+        
+        idx = useIndex;
+        idx2 = idx.parent();
+
+        idx_top_left = this->remote_dir_model->index(idx.row(), 0, idx2);
+        idx_bottom_right = this->remote_dir_model->index(idx.row(), 
+                                                         this->remote_dir_model->columnCount(idx)-1,
+                                                         idx2);
+        QItemSelection iselect(this->m_treeProxyModel->mapFromSource(idx_top_left),
+                               this->m_treeProxyModel->mapFromSource(idx_bottom_right));
         this->uiw->treeView->selectionModel()->clearSelection();
-        this->uiw->treeView->selectionModel()->select(this->m_treeProxyModel->mapFromSource(useIndex), 
-                                                            QItemSelectionModel::Select);
+        this->uiw->treeView->selectionModel()->select(iselect, QItemSelectionModel::Select);
+        this->uiw->treeView->selectionModel()->setCurrentIndex(this->m_treeProxyModel->mapFromSource(idx_top_left),
+                                                               QItemSelectionModel::Select);
+        this->uiw->treeView->setFocus(Qt::ActiveWindowFocusReason);
     } else if (this->remote_dir_model->isSymLink(useIndex)) {
         NetDirNode *node_item = (NetDirNode*)useIndex.internalPointer();
         QPersistentModelIndex *persisIndex = new QPersistentModelIndex(useIndex);
