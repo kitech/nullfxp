@@ -7,48 +7,52 @@
 // Version: $Id$
 // 
 
-#include "utils.h"
-#include "dirnavbar.h"
-
 #include <QtCore>
 #include <QtGui>
+
+#include "utils.h"
+
+#include "ui_dirnavbar.h"
+
+#include "dirnavbar.h"
 
 // TODO now not support CJKs paths, why?
 // TODO drop duplicate item in history vector
 DirNavBar::DirNavBar(QWidget *parent)
     : QWidget(parent)
+    ,uiw(new Ui::DirNavBar())
 {
-    this->uiw.setupUi(this);
+    this->uiw->setupUi(this);
 
     ////
     this->zoonSlider = NULL;
 
     this->dirHistoryCurrentPos = -1;
-    this->comer = this->uiw.comboBox->completer();
+    this->comer = this->uiw->comboBox->completer();
     this->comer->setCompletionMode(QCompleter::PopupCompletion);
     this->comer->setMaxVisibleItems(32);
     this->comModel = new QStringListModel();
     this->comer->setModel(this->comModel);
     
     // on emit signal by key, not program setting
-    QObject::connect(this->uiw.comboBox, SIGNAL(currentIndexChanged(const QString &)),
+    QObject::connect(this->uiw->comboBox, SIGNAL(currentIndexChanged(const QString &)),
                      this, SLOT(onComboboxIndexChanged(const QString &)));
-    QObject::connect(this->uiw.comboBox, SIGNAL(editTextChanged(const QString &)),
+    QObject::connect(this->uiw->comboBox, SIGNAL(editTextChanged(const QString &)),
                      this, SLOT(onComboBoxEditTextChanged(const QString &)));
-    QObject::connect(this->uiw.toolButton_5, SIGNAL(clicked()),
+    QObject::connect(this->uiw->toolButton_5, SIGNAL(clicked()),
                      this, SLOT(onGoHome()));
-    QObject::connect(this->uiw.toolButton_4, SIGNAL(clicked()),
+    QObject::connect(this->uiw->toolButton_4, SIGNAL(clicked()),
                      this, SLOT(onGoPrevious()));
-    QObject::connect(this->uiw.toolButton_3, SIGNAL(clicked()),
+    QObject::connect(this->uiw->toolButton_3, SIGNAL(clicked()),
                      this, SLOT(onGoNext()));
-    QObject::connect(this->uiw.toolButton_2, SIGNAL(clicked()),
+    QObject::connect(this->uiw->toolButton_2, SIGNAL(clicked()),
                      this, SLOT(onGoUp()));
-    QObject::connect(this->uiw.toolButton, SIGNAL(clicked()),
+    QObject::connect(this->uiw->toolButton, SIGNAL(clicked()),
                      this, SLOT(onReload()));
-    QObject::connect(this->uiw.toolButton_7, SIGNAL(clicked()),
+    QObject::connect(this->uiw->toolButton_7, SIGNAL(clicked()),
                      this, SLOT(onDropDownZoonSlider()));
 
-    this->uiw.comboBox->installEventFilter(this);
+    this->uiw->comboBox->installEventFilter(this);
 
     this->maxHistoryCount = 100;
 }
@@ -61,15 +65,15 @@ void DirNavBar::onSetHome(QString path)
 {
     Q_ASSERT(!path.isEmpty());
     this->homePath = path;
-    this->uiw.comboBox->setEditText(path);
+    this->uiw->comboBox->setEditText(path);
 
-    int insertOffset = this->uiw.comboBox->count() - 1;
+    int insertOffset = this->uiw->comboBox->count() - 1;
     Q_ASSERT(insertOffset >= 0);
-    this->uiw.comboBox->insertItem(insertOffset, path);
-    if (this->uiw.comboBox->count() > this->maxHistoryCount) {
-        this->uiw.comboBox->removeItem(0);
+    this->uiw->comboBox->insertItem(insertOffset, path);
+    if (this->uiw->comboBox->count() > this->maxHistoryCount) {
+        this->uiw->comboBox->removeItem(0);
     }
-    this->dirHistoryCurrentPos = this->uiw.comboBox->count() - 2;
+    this->dirHistoryCurrentPos = this->uiw->comboBox->count() - 2;
     // why -2? because has a Clear... item at last
 }
 void DirNavBar::onNavToPath(QString path)
@@ -79,15 +83,15 @@ void DirNavBar::onNavToPath(QString path)
         Q_ASSERT(!path.isEmpty());
     }
 
-    this->uiw.comboBox->setEditText(path);
+    this->uiw->comboBox->setEditText(path);
 
-    int insertOffset = this->uiw.comboBox->count() - 1;
+    int insertOffset = this->uiw->comboBox->count() - 1;
     Q_ASSERT(insertOffset >= 0);
-    this->uiw.comboBox->insertItem(insertOffset, path);
-    if (this->uiw.comboBox->count() > this->maxHistoryCount) {
-        this->uiw.comboBox->removeItem(0);
+    this->uiw->comboBox->insertItem(insertOffset, path);
+    if (this->uiw->comboBox->count() > this->maxHistoryCount) {
+        this->uiw->comboBox->removeItem(0);
     }
-    this->dirHistoryCurrentPos = this->uiw.comboBox->count() - 2;
+    this->dirHistoryCurrentPos = this->uiw->comboBox->count() - 2;
 }
 
 void DirNavBar::onSetCompleteList(QString dirPrefix, QStringList paths)
@@ -115,7 +119,7 @@ void DirNavBar::onGoPrevious()
 {
     // pos - 1, hicnt, 0
     int p1 = this->dirHistoryCurrentPos - 1;
-    int p2 = this->uiw.comboBox->count() - 2;
+    int p2 = this->uiw->comboBox->count() - 2;
 
     if (p1 < 0) {
         p1 = p2;
@@ -126,11 +130,11 @@ void DirNavBar::onGoPrevious()
     } else if (p1 == 0 && p2 == 0) {
         // only 1 item, no previous and next item, no op
     } else {
-        Q_ASSERT(p1 >= 0 && p1 < this->uiw.comboBox->count());
-        QString path = this->uiw.comboBox->itemText(p1);
+        Q_ASSERT(p1 >= 0 && p1 < this->uiw->comboBox->count());
+        QString path = this->uiw->comboBox->itemText(p1);
         this->dirHistoryCurrentPos = p1;
 
-        this->uiw.comboBox->setEditText(path);        
+        this->uiw->comboBox->setEditText(path);        
         emit dirInputConfirmed(path);
     }
 }
@@ -138,7 +142,7 @@ void DirNavBar::onGoPrevious()
 void DirNavBar::onGoNext()
 {
     int p1 = this->dirHistoryCurrentPos + 1;
-    int p2 = this->uiw.comboBox->count() - 2;
+    int p2 = this->uiw->comboBox->count() - 2;
 
     if (p1 > p2) {
         p1 = 0;
@@ -147,18 +151,18 @@ void DirNavBar::onGoNext()
     if (p1 == 0 && p2 == 0) {
         // only 1 item, no previous and next item, no op
     } else {
-        Q_ASSERT(p1 >= 0 && p1 < this->uiw.comboBox->count());
-        QString path = this->uiw.comboBox->itemText(p1);
+        Q_ASSERT(p1 >= 0 && p1 < this->uiw->comboBox->count());
+        QString path = this->uiw->comboBox->itemText(p1);
         this->dirHistoryCurrentPos = p1;
 
-        this->uiw.comboBox->setEditText(path);
+        this->uiw->comboBox->setEditText(path);
         emit dirInputConfirmed(path);
     }
 }
 
 void DirNavBar::onGoUp()
 {
-    QString currPath = this->uiw.comboBox->currentText();
+    QString currPath = this->uiw->comboBox->currentText();
     if (currPath.length() == 0) {
         q_debug()<<"No current path set!!!";
         return;
@@ -189,15 +193,15 @@ void DirNavBar::onGoUp()
         currPath = "/";
     }
     
-    this->uiw.comboBox->setEditText(currPath);
+    this->uiw->comboBox->setEditText(currPath);
 
-    int insertOffset = this->uiw.comboBox->count() - 1;
+    int insertOffset = this->uiw->comboBox->count() - 1;
     Q_ASSERT(insertOffset >= 0);
-    this->uiw.comboBox->insertItem(insertOffset, currPath);
-    if (this->uiw.comboBox->count() > this->maxHistoryCount) {
-        this->uiw.comboBox->removeItem(0);
+    this->uiw->comboBox->insertItem(insertOffset, currPath);
+    if (this->uiw->comboBox->count() > this->maxHistoryCount) {
+        this->uiw->comboBox->removeItem(0);
     }
-    this->dirHistoryCurrentPos = this->uiw.comboBox->count() - 2;
+    this->dirHistoryCurrentPos = this->uiw->comboBox->count() - 2;
 
     emit this->dirInputConfirmed(currPath);
 }
@@ -207,14 +211,14 @@ void DirNavBar::onGoHome()
     if (this->homePath.isEmpty()) {
         emit goHome();
     } else {
-        this->uiw.comboBox->setEditText(this->homePath);
+        this->uiw->comboBox->setEditText(this->homePath);
         emit dirInputConfirmed(this->homePath);
     }
 }
 
 void DirNavBar::onReload()
 {
-    QString currPath = this->uiw.comboBox->currentText();
+    QString currPath = this->uiw->comboBox->currentText();
     emit dirInputConfirmed(currPath);
 }
 
@@ -222,11 +226,11 @@ void DirNavBar::onComboBoxEditTextChanged(const QString &text)
 {
     //     emit dirPrefixChanged(text);
     if (text == tr("Clear...")) {
-        this->uiw.comboBox->setCurrentIndex(-1);
+        this->uiw->comboBox->setCurrentIndex(-1);
         this->dirHistoryCurrentPos = -1;
 
-        while (this->uiw.comboBox->count() > 1) {
-            this->uiw.comboBox->removeItem(0);
+        while (this->uiw->comboBox->count() > 1) {
+            this->uiw->comboBox->removeItem(0);
         }
     }
 }
@@ -244,15 +248,15 @@ bool DirNavBar::eventFilter(QObject *obj, QEvent *event)
 {
     bool hok = QObject::eventFilter(obj, event);
 
-    if (obj == this->uiw.comboBox) {
+    if (obj == this->uiw->comboBox) {
         if (event->type() == QEvent::KeyRelease) {
             QKeyEvent *kevt = static_cast<QKeyEvent *>(event);
             if (kevt->key() == Qt::Key_Return) {
                 q_debug()<<"filter got return key";
-                // emit dirInputConfirmed(this->uiw.comboBox->currentText());
-                this->onComboboxIndexChanged(this->uiw.comboBox->currentText());
+                // emit dirInputConfirmed(this->uiw->comboBox->currentText());
+                this->onComboboxIndexChanged(this->uiw->comboBox->currentText());
             } else {
-                QString currPath = this->uiw.comboBox->currentText();
+                QString currPath = this->uiw->comboBox->currentText();
                 q_debug()<<currPath;
                 if (currPath.startsWith("/")
                     || (currPath.length() > 1 
@@ -279,7 +283,7 @@ bool DirNavBar::eventFilter(QObject *obj, QEvent *event)
 void DirNavBar::onDropDownZoonSlider()
 {
     if (this->zoonSlider == NULL) {
-        // this->zoonSlider = new QSlider(this->uiw.toolButton_7);
+        // this->zoonSlider = new QSlider(this->uiw->toolButton_7);
         this->zoonSlider = new QSlider(this);
         this->zoonSlider->installEventFilter(this);
         // this->zoonSlider->setWindowFlags(Qt::ToolTip);
@@ -299,9 +303,9 @@ void DirNavBar::onDropDownZoonSlider()
     if (this->zoonSlider->isVisible()) {
         this->zoonSlider->hide();
     } else {
-        QPoint parentPos = this->uiw.toolButton_7->pos();
+        QPoint parentPos = this->uiw->toolButton_7->pos();
         QPoint realPos = this->mapToGlobal(parentPos);
-        realPos.setY(realPos.y() + this->uiw.toolButton_7->height());
+        realPos.setY(realPos.y() + this->uiw->toolButton_7->height());
         q_debug()<<parentPos<<realPos;
         this->zoonSlider->move(realPos);
         this->zoonSlider->show();

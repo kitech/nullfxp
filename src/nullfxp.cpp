@@ -23,6 +23,7 @@
 #include <QCoreApplication>
 
 #include "utils.h"
+#include "ui_nullfxp.h"
 #include "nullfxp.h"
 #include "aboutnullfxp.h" 
 #include "globaloptionsdialog.h"
@@ -43,9 +44,10 @@ extern GlobalOption *gOpt;
 
 //////////////////////////
 NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
-    : QMainWindow(parent, flags)
+: QMainWindow(parent, flags)
+    ,mUIMain(new Ui::MainWindow())
 {
-    this->mUIMain.setupUi(this);
+    this->mUIMain->setupUi(this);
     this->setWindowIcon(QIcon(":/icons/nullget-1.png")); 
 
     //////////////////////////
@@ -56,14 +58,14 @@ NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
     //
     mdiArea = new QMdiArea;
     mdiArea->setWindowIcon(QIcon(":/icons/nullget-2.png")); 
-    QObject::connect(this->mUIMain.actionTransfer_queue, SIGNAL(triggered(bool)),
+    QObject::connect(this->mUIMain->actionTransfer_queue, SIGNAL(triggered(bool)),
                      this, SLOT(slot_show_transfer_queue(bool)));
-    QObject::connect(this->mUIMain.actionShow_log,SIGNAL(triggered(bool)),
+    QObject::connect(this->mUIMain->actionShow_log,SIGNAL(triggered(bool)),
                      this, SLOT(slot_show_fxp_command_log(bool)));
   
-    QObject::connect(this->mUIMain.actionCascade_window, SIGNAL(triggered(bool)),
+    QObject::connect(this->mUIMain->actionCascade_window, SIGNAL(triggered(bool)),
                      this, SLOT(slot_cascade_sub_windows(bool)));
-    QObject::connect(this->mUIMain.actionTile_window, SIGNAL(triggered(bool)),
+    QObject::connect(this->mUIMain->actionTile_window, SIGNAL(triggered(bool)),
                      this, SLOT(slot_tile_sub_windows(bool)));
   
     this->task_queue_view = new TaskQueueView();
@@ -80,13 +82,13 @@ NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
     windowMapper = new QSignalMapper(this);
 
     ///////////////////////
-    QObject::connect(this->mUIMain.actionConnect, SIGNAL(triggered()),
+    QObject::connect(this->mUIMain->actionConnect, SIGNAL(triggered()),
                        this, SLOT(connect_to_remote_host()));
-    QObject::connect(this->mUIMain.actionDisconnect, SIGNAL(triggered()),
+    QObject::connect(this->mUIMain->actionDisconnect, SIGNAL(triggered()),
                      this, SLOT(slot_disconnect_from_remote_host()));
-    QObject::connect(this->mUIMain.actionSession, SIGNAL(triggered()),
+    QObject::connect(this->mUIMain->actionSession, SIGNAL(triggered()),
                      this, SLOT(slot_show_session_dialog()));
-    QObject::connect(this->mUIMain.action_Global_Options, SIGNAL(triggered()),
+    QObject::connect(this->mUIMain->action_Global_Options, SIGNAL(triggered()),
                      this, SLOT(slot_show_option_dialog()));
 
     localView = new LocalView();
@@ -97,24 +99,24 @@ NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
                      this, SLOT(slot_new_upload_requested(TaskPackage)));
 
     //
-    QObject::connect(this->mUIMain.action_Local_Window, SIGNAL(triggered(bool)),
+    QObject::connect(this->mUIMain->action_Local_Window, SIGNAL(triggered(bool)),
                        this,SLOT(slot_show_local_view(bool)));
-    QObject::connect(this->mUIMain.action_Remote_Window, SIGNAL(triggered(bool)),
+    QObject::connect(this->mUIMain->action_Remote_Window, SIGNAL(triggered(bool)),
                      this, SLOT(slot_show_remote_view(bool)));
 
     //////////////
-    QObject::connect(this->mUIMain.actionCheck_for_update, SIGNAL(triggered()),
+    QObject::connect(this->mUIMain->actionCheck_for_update, SIGNAL(triggered()),
                      this, SLOT(slot_check_for_updates()));
     this->about_nullfxp_dialog = NULL;
-    QObject::connect(this->mUIMain.actionAbout_NullFXP, SIGNAL(triggered()),
+    QObject::connect(this->mUIMain->actionAbout_NullFXP, SIGNAL(triggered()),
                      this, SLOT(slot_about_nullfxp()));
-    QObject::connect(this->mUIMain.actionAbout_Qt, SIGNAL(triggered()),
+    QObject::connect(this->mUIMain->actionAbout_Qt, SIGNAL(triggered()),
                      qApp, SLOT(aboutQt()));
 
     //tool menu
-    QObject::connect(this->mUIMain.action_Forward_connect, SIGNAL(triggered(bool)),
+    QObject::connect(this->mUIMain->action_Forward_connect, SIGNAL(triggered(bool)),
                      this, SLOT(slot_forward_connect(bool)));
-    QObject::connect(this->mUIMain.action_Synchronize_file, SIGNAL(triggered()),
+    QObject::connect(this->mUIMain->action_Synchronize_file, SIGNAL(triggered()),
                      this, SLOT(slot_synchronize_file()));
     
     this->central_splitter_widget->setStretchFactor(0, 3);
@@ -152,10 +154,10 @@ NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
     local_sub_win->setGeometry(local_sub_win->x(), local_sub_win->y(), mdiArea->width()/2, mdiArea->height()*19/19);
 
     QActionGroup *flv_ag = new QActionGroup(this);
-    flv_ag->addAction(this->mUIMain.actionLar_ge_Icons);
-    flv_ag->addAction(this->mUIMain.actionS_mall_Icons);
-    flv_ag->addAction(this->mUIMain.action_List);
-    flv_ag->addAction(this->mUIMain.action_Details);
+    flv_ag->addAction(this->mUIMain->actionLar_ge_Icons);
+    flv_ag->addAction(this->mUIMain->actionS_mall_Icons);
+    flv_ag->addAction(this->mUIMain->action_List);
+    flv_ag->addAction(this->mUIMain->action_Details);
     QObject::connect(flv_ag, SIGNAL(triggered(QAction*)),
                      this, SLOT(slot_set_file_list_mode(QAction*)));
 
@@ -169,8 +171,8 @@ NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
 
     // QTimer::singleShot(10, this, SLOT(slot_set_mdi_area_background()));
     //////////////////////
-    //this->mUIMain.action_Forward_connect->setVisible(false);
-    //this->mUIMain.action_Synchronize_file->setVisible(false);
+    //this->mUIMain->action_Forward_connect->setVisible(false);
+    //this->mUIMain->action_Synchronize_file->setVisible(false);
 }
 
 NullFXP::~NullFXP()
@@ -419,7 +421,7 @@ void NullFXP::slot_cascade_sub_windows(bool triggered)
         this->mdiArea->cascadeSubWindows();
     }
 
-    this->mUIMain.actionTile_window->setChecked(!triggered);
+    this->mUIMain->actionTile_window->setChecked(!triggered);
 }
 void NullFXP::slot_tile_sub_windows(bool triggered)
 {
@@ -431,7 +433,7 @@ void NullFXP::slot_tile_sub_windows(bool triggered)
         this->mdiArea->tileSubWindows();
         this->mdiArea->setActiveSubWindow(curr_active_sub_window);
     }
-    this->mUIMain.actionCascade_window->setChecked(!triggered);
+    this->mUIMain->actionCascade_window->setChecked(!triggered);
 }
 
 void NullFXP::slot_show_local_view(bool triggered)
@@ -443,7 +445,7 @@ void NullFXP::slot_show_local_view(bool triggered)
         }
         this->mdiArea->setActiveSubWindow(this->mdiArea->subWindowList(QMdiArea::CreationOrder).at(0));
     }
-    this->mUIMain.action_Remote_Window->setChecked(!triggered);
+    this->mUIMain->action_Remote_Window->setChecked(!triggered);
 }
 
 void NullFXP::slot_show_remote_view(bool triggered)
@@ -463,7 +465,7 @@ void NullFXP::slot_show_remote_view(bool triggered)
             }
         }
     }
-    this->mUIMain.action_Local_Window->setChecked(!triggered);
+    this->mUIMain->action_Local_Window->setChecked(!triggered);
 }
 
 RemoteView *NullFXP::get_top_most_remote_view() 
@@ -488,13 +490,13 @@ void NullFXP::slot_set_file_list_mode(QAction *action)
     QList<QMdiSubWindow *> sub_window_list = this->mdiArea->subWindowList(QMdiArea::StackingOrder);
     int sub_wnd_count = sub_window_list.count() ;
 
-    if (action == this->mUIMain.actionLar_ge_Icons) {
+    if (action == this->mUIMain->actionLar_ge_Icons) {
         gOpt->file_list_view_mode = GlobalOption::FLV_LARGE_ICON;
-    } else if (action == this->mUIMain.actionS_mall_Icons) {
+    } else if (action == this->mUIMain->actionS_mall_Icons) {
         gOpt->file_list_view_mode = GlobalOption::FLV_SMALL_ICON;
-    } else if (action == this->mUIMain.action_List) {
+    } else if (action == this->mUIMain->action_List) {
         gOpt->file_list_view_mode = GlobalOption::FLV_LIST;
-    } else if (action == this->mUIMain.action_Details) {
+    } else if (action == this->mUIMain->action_Details) {
         gOpt->file_list_view_mode = GlobalOption::FLV_DETAIL;
     } else {
         Q_ASSERT(1 == 2);

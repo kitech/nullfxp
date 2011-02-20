@@ -11,15 +11,19 @@
 #include <QtGui>
 
 #include "basestorage.h"
-#include "ui_hostlistdialog.h"
+
+namespace Ui {
+    class HostListDialog;
+};
 
 class SessionDirModel : public QDirModel
 {
     Q_OBJECT;
 public:
-    SessionDirModel(const QStringList & nameFilters, QDir::Filters filters, QDir::SortFlags sort, QObject * parent = 0 );
+    SessionDirModel(const QStringList & nameFilters, QDir::Filters filters,
+                    QDir::SortFlags sort, QObject * parent = 0);
     SessionDirModel(QObject *parent = 0 );
-    ~SessionDirModel();
+    virtual ~SessionDirModel();
 
     virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
 };
@@ -29,7 +33,7 @@ class SessionDialog: public QDialog
     Q_OBJECT;
 public:
     SessionDialog(QWidget *parent = 0);
-    ~SessionDialog();
+    virtual ~SessionDialog();
 
 public slots:
     void slot_conntect_selected_host();
@@ -55,7 +59,7 @@ private slots:
     void slot_item_clicked(const QModelIndex &index);
 
 private:
-    Ui::HostListDialog ui_win;
+    Ui::HostListDialog *uiw;
     BaseStorage *storage;
     // QStringListModel *host_list_model;
     QMenu *host_list_ctx_menu;

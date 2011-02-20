@@ -14,8 +14,9 @@
 #include <QtGui>
 #include <QtSql>
 
-#include "ui_taskqueueview.h"
-
+namespace Ui {
+    class TaskQueueView;
+};
 class TaskQueueModel;
 
 class TaskQueueView : public QWidget
@@ -45,7 +46,7 @@ private:
     void initContextMenu();
 
 private:
-    Ui::TaskQueueView ui_win;
+    Ui::TaskQueueView *uiw;
     TaskQueueModel *taskQueueModel;
     QMenu *ctxMenu;
 };

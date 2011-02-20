@@ -7,33 +7,34 @@
 // Version: $Id$
 // 
 
-
 #include "taskqueue.h"
 #include "taskqueuemodel.h"
 
+#include "ui_taskqueueview.h"
 #include "taskqueueview.h"
 
 TaskQueueView::TaskQueueView(QWidget *parent)
     : QWidget(parent)
+    , uiw(new Ui::TaskQueueView())
 {
-    this->ui_win.setupUi(this);
+    this->uiw->setupUi(this);
 
     this->taskQueueModel = NULL;
     // this->taskQueueModel = TaskQueueModel::instance();
     // this->taskQueueModel->setTable("task_queue");
-    // this->ui_win.tableView->setModel(this->taskQueueModel);
+    // this->uiw->tableView->setModel(this->taskQueueModel);
 
     this->ctxMenu = NULL;
-    QObject::connect(this->ui_win.tableView, SIGNAL(customContextMenuRequested(const QPoint &)),
+    QObject::connect(this->uiw->tableView, SIGNAL(customContextMenuRequested(const QPoint &)),
                      this, SLOT(slotCustomContextMenuRequested(const QPoint &)));
 
     // resize column tableView
-    this->ui_win.tableView->setColumnWidth(0, 35);
-    this->ui_win.tableView->setColumnWidth(1, 170);
-    this->ui_win.tableView->setColumnWidth(2, 170);
-    this->ui_win.tableView->setColumnWidth(5, 65);
-    this->ui_win.tableView->setColumnWidth(10, 150);
-    this->ui_win.tableView->setColumnWidth(11, 150);
+    this->uiw->tableView->setColumnWidth(0, 35);
+    this->uiw->tableView->setColumnWidth(1, 170);
+    this->uiw->tableView->setColumnWidth(2, 170);
+    this->uiw->tableView->setColumnWidth(5, 65);
+    this->uiw->tableView->setColumnWidth(10, 150);
+    this->uiw->tableView->setColumnWidth(11, 150);
 }
 
 TaskQueueView::~TaskQueueView()
@@ -41,6 +42,7 @@ TaskQueueView::~TaskQueueView()
     if (this->taskQueueModel != NULL) {
         delete this->taskQueueModel;
     }
+    delete this->uiw;
 }
 
 void TaskQueueView::initContextMenu()
@@ -90,7 +92,7 @@ void TaskQueueView::slotCustomContextMenuRequested(const QPoint & pos)
         this->initContextMenu();
     }
     Q_ASSERT(this->ctxMenu != NULL);
-    this->ctxMenu->popup(this->ui_win.tableView->mapToGlobal(pos));
+    this->ctxMenu->popup(this->uiw->tableView->mapToGlobal(pos));
 }
 
 void TaskQueueView::showEvent(QShowEvent *event)
@@ -101,13 +103,13 @@ void TaskQueueView::showEvent(QShowEvent *event)
     if (this->taskQueueModel == NULL) {
         this->taskQueueModel = TaskQueueModel::instance();
         this->taskQueueModel->setTable("task_queue");
-        this->ui_win.tableView->setModel(this->taskQueueModel);
+        this->uiw->tableView->setModel(this->taskQueueModel);
     }
 }
 
 void TaskQueueView::onSelectAll()
 {
-    QItemSelectionModel *ism = this->ui_win.tableView->selectionModel();
+    QItemSelectionModel *ism = this->uiw->tableView->selectionModel();
     int rc = this->taskQueueModel->rowCount(QModelIndex());
     int cc = this->taskQueueModel->columnCount(QModelIndex());
     

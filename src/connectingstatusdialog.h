@@ -13,7 +13,9 @@
 #include <QtCore>
 #include <QDialog>
 
-#include "ui_connectingstatusdialog.h"
+namespace Ui {
+    class ConnectingStatusDialog;
+};
 
 /**
  * 连接到服务器的状态进度提示对话框类
@@ -41,7 +43,7 @@ private:
     QString port;
     QTimer  timer;
         
-    Ui::ConnectingStatusDialog uiwin;
+    Ui::ConnectingStatusDialog *uiwin;
 
 protected:
     virtual void closeEvent(QCloseEvent *event);

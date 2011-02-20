@@ -10,9 +10,12 @@
 #ifndef _UPDATEDIALOG_H_
 #define _UPDATEDIALOG_H_
 
+#include <QDialog>
 #include <QtNetwork>
 
-#include "ui_updatedialog.h"
+namespace Ui {
+    class UpdateDialog;
+};
 
 class UpdateDialog : public QDialog
 {
@@ -33,7 +36,7 @@ private:
     bool hasUpdate(QString lastestVersion);
 
 private:
-    Ui_UpdateDialog ui_win;
+    Ui::UpdateDialog *uiw;
     bool inChecking;
     QHttp *http;
 };

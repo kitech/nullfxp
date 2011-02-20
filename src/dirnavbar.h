@@ -12,17 +12,19 @@
 #ifndef _DIRNAVBAR_H_
 #define _DIRNAVBAR_H_
 
-#include "ui_dirnavbar.h"
-
 #include <QtCore>
 #include <QtGui>
+
+namespace Ui {
+    class DirNavBar;
+};
 
 class DirNavBar : public QWidget
 {
     Q_OBJECT;
 public:
     DirNavBar(QWidget *parent = 0);
-    ~DirNavBar();
+    virtual ~DirNavBar();
 
 public slots:
     void onSetHome(QString path);
@@ -55,7 +57,7 @@ protected:
     bool eventFilter(QObject *obj, QEvent *event);
 
 private:
-    Ui::DirNavBar uiw;
+    Ui::DirNavBar *uiw;
     QString homePath;
     unsigned char dirHistoryCurrentPos;
     unsigned char maxHistoryCount;

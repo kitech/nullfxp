@@ -9,24 +9,26 @@
 
 #include "utils.h"
 
+#include "ui_updatedialog.h"
 #include "updatedialog.h"
 
 UpdateDialog::UpdateDialog(QWidget *parent)
     : QDialog(parent)
+    ,uiw(new Ui::UpdateDialog())
 {
-    this->ui_win.setupUi(this);
+    this->uiw->setupUi(this);
 
-    this->ui_win.label_7->setPixmap(QIcon(":/icons/nullget-1.png").pixmap(QSize(90, 90)));
-    this->ui_win.label_2->setText(NULLFXP_VERSION_STR);
-    this->ui_win.label_5->setVisible(false);
-    this->ui_win.progressBar->setVisible(false);
+    this->uiw->label_7->setPixmap(QIcon(":/icons/nullget-1.png").pixmap(QSize(90, 90)));
+    this->uiw->label_2->setText(NULLFXP_VERSION_STR);
+    this->uiw->label_5->setVisible(false);
+    this->uiw->progressBar->setVisible(false);
     
     this->inChecking = false;
     this->http = NULL;
 
-    QObject::connect(this->ui_win.pushButton, SIGNAL(clicked()),
+    QObject::connect(this->uiw->pushButton, SIGNAL(clicked()),
                      this, SLOT(slotStartCheck()));
-    QObject::connect(this->ui_win.pushButton_2, SIGNAL(clicked()),
+    QObject::connect(this->uiw->pushButton_2, SIGNAL(clicked()),
                      this, SLOT(slotCancelCheck()));
 }
 
@@ -46,8 +48,8 @@ void UpdateDialog::slotStartCheck()
     QUrl uu(cvUrl);
     if (!this->inChecking) {
         this->inChecking = true;
-        this->ui_win.label_5->setVisible(true);
-        this->ui_win.progressBar->setVisible(true);
+        this->uiw->label_5->setVisible(true);
+        this->uiw->progressBar->setVisible(true);
         
         if (this->http == NULL) {
             this->http = new QHttp(uu.host(), uu.port() < 0 ? 80 : uu.port());
@@ -59,9 +61,9 @@ void UpdateDialog::slotStartCheck()
             QObject::connect(this->http, SIGNAL(readyRead(const QHttpResponseHeader&)),
                              this, SLOT(slotReadyRead(const QHttpResponseHeader&)));
         } else {
-            this->ui_win.progressBar->setValue(0);
-            this->ui_win.label_4->setText("");
-            this->ui_win.label_6->setText("");
+            this->uiw->progressBar->setValue(0);
+            this->uiw->label_4->setText("");
+            this->uiw->label_6->setText("");
         }
         this->http->get(uu.path());
     } else {
@@ -81,9 +83,9 @@ void UpdateDialog::slotDataReadProgress(int done, int total)
 {
     q_debug()<<"Got:"<<done<<" Total:"<<total;
     if (done == total) {
-        this->ui_win.progressBar->setValue(100);
+        this->uiw->progressBar->setValue(100);
     } else {
-        this->ui_win.progressBar->setValue(100*done/total);
+        this->uiw->progressBar->setValue(100*done/total);
     }
 }
 
@@ -104,14 +106,14 @@ void UpdateDialog::slotReadyRead(const QHttpResponseHeader &resp)
     q_debug()<<ba;
     if (!ba.isEmpty()) {
         QStringList sl = QString(ba).split('\n');
-        this->ui_win.label_4->setText(sl.at(0).trimmed() + "  (" + sl.at(1).trimmed() + ")");
+        this->uiw->label_4->setText(sl.at(0).trimmed() + "  (" + sl.at(1).trimmed() + ")");
         if (this->hasUpdate(sl.at(0).trimmed())) {
-            this->ui_win.label_6->setText(tr("Has update."));
+            this->uiw->label_6->setText(tr("Has update."));
         } else {
-            this->ui_win.label_6->setText(tr("No update."));
+            this->uiw->label_6->setText(tr("No update."));
         }
     } else {
-        this->ui_win.label_6->setText(tr("Retry please."));
+        this->uiw->label_6->setText(tr("Retry please."));
     }
 }
 

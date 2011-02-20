@@ -12,8 +12,6 @@
 
 #include <QDialog>
 
-// #include "ui_aboutnullfxp.h"
-
 namespace Ui {
     class AboutNullFXP;
 };

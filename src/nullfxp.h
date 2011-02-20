@@ -17,7 +17,10 @@
 class MdiChild;
 
 #include "taskpackage.h"
-#include "ui_nullfxp.h"
+
+namespace Ui {
+    class MainWindow;
+};
 
 class AboutNullFXP;
 class LocalView;
@@ -82,7 +85,7 @@ private:
                 
     LocalView *localView;
         
-    Ui::MainWindow mUIMain;
+    Ui::MainWindow *mUIMain;
     AboutNullFXP  *about_nullfxp_dialog;
 
     ConnectingStatusDialog *connect_status_dailog;

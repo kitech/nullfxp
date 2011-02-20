@@ -11,6 +11,7 @@
 
 #include "quickconnectinfodialog.h"
 
+#include "ui_hostlistdialog.h"
 #include "sessiondialog.h"
 
 SessionDirModel::SessionDirModel(const QStringList &nameFilters, 
@@ -37,54 +38,55 @@ QVariant SessionDirModel::data(const QModelIndex &index, int role) const
 
 SessionDialog::SessionDialog(QWidget *parent)
     :QDialog(parent),optype(0)
+    ,uiw(new Ui::HostListDialog())
 {
-    this->ui_win.setupUi(this);
+    this->uiw->setupUi(this);
 
     this->storage = BaseStorage::instance();
 
-    this->ui_win.treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    this->ui_win.treeView->setExpandsOnDoubleClick(false);
-    this->ui_win.treeView->setItemsExpandable(true);
-    this->ui_win.treeView->setAnimated(true);
+    this->uiw->treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    this->uiw->treeView->setExpandsOnDoubleClick(false);
+    this->uiw->treeView->setItemsExpandable(true);
+    this->uiw->treeView->setAnimated(true);
 
 #if QT_VERTION >= 0x0404000
-    this->ui_win.treeView->setHeaderHidden(true);
+    this->uiw->treeView->setHeaderHidden(true);
 #else
-    this->ui_win.treeView->header()->setVisible(false);
+    this->uiw->treeView->header()->setVisible(false);
 #endif
 
     this->sessPath = BaseStorage::instance()->getSessionPath();
 
     this->sessTree = new SessionDirModel();
     this->sessTree->setReadOnly(false);
-    this->ui_win.treeView->setModel(this->sessTree);
-    this->ui_win.treeView->setRootIndex(this->sessTree->index(this->sessPath));
-    this->ui_win.treeView->setColumnHidden(1, true);
-    this->ui_win.treeView->setColumnHidden(2, true);
-    this->ui_win.treeView->setColumnHidden(3, true);
+    this->uiw->treeView->setModel(this->sessTree);
+    this->uiw->treeView->setRootIndex(this->sessTree->index(this->sessPath));
+    this->uiw->treeView->setColumnHidden(1, true);
+    this->uiw->treeView->setColumnHidden(2, true);
+    this->uiw->treeView->setColumnHidden(3, true);
 
-    QObject::connect(this->ui_win.treeView, SIGNAL(customContextMenuRequested(const QPoint&)),
+    QObject::connect(this->uiw->treeView, SIGNAL(customContextMenuRequested(const QPoint&)),
                      this, SLOT(slot_ctx_menu_requested(const QPoint &)));
-    QObject::connect(this->ui_win.treeView, SIGNAL(doubleClicked(const QModelIndex&)),
+    QObject::connect(this->uiw->treeView, SIGNAL(doubleClicked(const QModelIndex&)),
                      this, SLOT(slot_conntect_selected_host(const QModelIndex&)));
-    QObject::connect(this->ui_win.treeView, SIGNAL(clicked(const QModelIndex &)),
+    QObject::connect(this->uiw->treeView, SIGNAL(clicked(const QModelIndex &)),
                      this, SLOT(slot_item_clicked(const QModelIndex &)));
-    QObject::connect(this->ui_win.toolButton, SIGNAL(clicked()),
+    QObject::connect(this->uiw->toolButton, SIGNAL(clicked()),
                      this, SLOT(slot_conntect_selected_host()));
-    QObject::connect(this->ui_win.toolButton_2, SIGNAL(clicked()),
+    QObject::connect(this->uiw->toolButton_2, SIGNAL(clicked()),
                      this, SLOT(slot_quick_connect()));
-    QObject::connect(this->ui_win.toolButton_3, SIGNAL(clicked()),
+    QObject::connect(this->uiw->toolButton_3, SIGNAL(clicked()),
                      this, SLOT(slot_remove_selected_host()));
-    QObject::connect(this->ui_win.toolButton_6, SIGNAL(clicked()),
+    QObject::connect(this->uiw->toolButton_6, SIGNAL(clicked()),
                      this, SLOT(slot_cut_selected()));
-    QObject::connect(this->ui_win.toolButton_7, SIGNAL(clicked()),
+    QObject::connect(this->uiw->toolButton_7, SIGNAL(clicked()),
                      this, SLOT(slot_copy_selected()));
-    QObject::connect(this->ui_win.toolButton_8, SIGNAL(clicked()),
+    QObject::connect(this->uiw->toolButton_8, SIGNAL(clicked()),
                      this, SLOT(slot_paste_selected()));
-    QObject::connect(this->ui_win.toolButton_10, SIGNAL(clicked()),
+    QObject::connect(this->uiw->toolButton_10, SIGNAL(clicked()),
                      this, SLOT(slot_new_folder()));
 
-    QObject::connect(this->ui_win.pushButton, SIGNAL(clicked()),
+    QObject::connect(this->uiw->pushButton, SIGNAL(clicked()),
                      this, SLOT(slot_conntect_selected_host()));
 
     this->host_list_ctx_menu = 0;
@@ -124,17 +126,17 @@ void SessionDialog::slot_ctx_menu_requested(const QPoint & pos)
         QObject::connect(this->action_remove, SIGNAL(triggered()),
                          this, SLOT(slot_remove_selected_host()));
     }
-    this->host_list_ctx_menu->popup(this->ui_win.treeView->mapToGlobal(pos));
+    this->host_list_ctx_menu->popup(this->uiw->treeView->mapToGlobal(pos));
 }
 
 void  SessionDialog::slot_conntect_selected_host(const QModelIndex & index)
 {
     if (index.isValid()){
         if (this->sessTree->isDir(index)) {
-            if (this->ui_win.treeView->isExpanded(index)) {
-                this->ui_win.treeView->collapse(index);
+            if (this->uiw->treeView->isExpanded(index)) {
+                this->uiw->treeView->collapse(index);
             } else {
-                this->ui_win.treeView->expand(index);
+                this->uiw->treeView->expand(index);
             }
         } else {
             QString show_name = index.data().toString();
@@ -164,7 +166,7 @@ void SessionDialog::slot_conntect_selected_host()
     QItemSelectionModel *ism = 0;
     QModelIndex idx, cidx;
 
-    ism = this->ui_win.treeView->selectionModel();
+    ism = this->uiw->treeView->selectionModel();
     if (ism->hasSelection()) {
         cidx = ism->currentIndex();
         idx = ism->model()->index(cidx.row(), 0, cidx.parent());
@@ -182,7 +184,7 @@ void SessionDialog::slot_edit_selected_host()
     QItemSelectionModel *ism = 0;
     QModelIndex idx, cidx;
 
-    ism = this->ui_win.treeView->selectionModel();
+    ism = this->uiw->treeView->selectionModel();
     if (ism->hasSelection()) {
         cidx = ism->currentIndex();
         idx = ism->model()->index(cidx.row(), 0, cidx.parent());
@@ -221,7 +223,7 @@ void SessionDialog::slot_rename_selected_host()
     QModelIndex nidx;
     QModelIndex idx;
 
-    ism = this->ui_win.treeView->selectionModel();
+    ism = this->uiw->treeView->selectionModel();
 
     if (ism->hasSelection()) {
         cidx = ism->currentIndex();
@@ -235,14 +237,14 @@ void SessionDialog::slot_rename_selected_host()
 
         if(ok && !new_name.isEmpty() && new_name != cidx.data().toString()) {
             if (this->sessTree->isDir(idx)) {
-                ok = this->ui_win.treeView->isExpanded(cidx);
+                ok = this->uiw->treeView->isExpanded(cidx);
                 focusPath = this->sessTree->filePath(cidx);
                 newPath = this->sessTree->filePath(pidx) + "/" + new_name;                                
                 nidx = this->sessTree->mkdir(pidx, new_name); // 欺骗QDirModel, 产生新目录缓存
                 QDir().rmdir(newPath);           // 使用后端方法删除掉这个目录，QDirModel变不知道。
                 QDir().rename(focusPath, newPath); //在把旧目录移动过来,这时QDirModel认为这个目录是它创建的那个
                 if (ok) {
-                    this->ui_win.treeView->expand(this->sessTree->index(newPath)); // maybe crash?
+                    this->uiw->treeView->expand(this->sessTree->index(newPath)); // maybe crash?
                 }
             } else {
                 QMap<QString, QString> host = this->storage->getHost(idx.data().toString());
@@ -262,7 +264,7 @@ void SessionDialog::slot_remove_selected_host()
     QModelIndex pidx;
     QModelIndex idx;
 
-    ism = this->ui_win.treeView->selectionModel();
+    ism = this->uiw->treeView->selectionModel();
 
     if (ism->hasSelection()) {
         cidx = ism->currentIndex();
@@ -298,7 +300,7 @@ void SessionDialog::slot_show_no_item_tip()
 {
     QString msg = QString("<br>&nbsp;&nbsp;&nbsp;<b>") + tr("No selected host.") 
         + QString("&nbsp;&nbsp;</b><br>");
-    // QPoint pos = this->ui_win.toolButton_3->pos();
+    // QPoint pos = this->uiw->toolButton_3->pos();
     // pos.setY(pos.y() + 80);
     // QToolTip::showText(this->mapToGlobal(pos), msg, this);
 
@@ -312,7 +314,7 @@ void SessionDialog::slot_cut_selected()
     QModelIndex cidx;
     QModelIndex idx;
 
-    ism = this->ui_win.treeView->selectionModel();
+    ism = this->uiw->treeView->selectionModel();
 
     if (ism->hasSelection()) {
         cidx = ism->currentIndex();
@@ -331,7 +333,7 @@ void SessionDialog::slot_copy_selected()
     QModelIndex cidx;
     QModelIndex idx;
 
-    ism = this->ui_win.treeView->selectionModel();
+    ism = this->uiw->treeView->selectionModel();
 
     if (ism->hasSelection()) {
         cidx = ism->currentIndex();
@@ -358,10 +360,10 @@ void SessionDialog::slot_paste_selected()
         return ;
     }
 
-    ism = this->ui_win.treeView->selectionModel();
+    ism = this->uiw->treeView->selectionModel();
 
     if (!ism->hasSelection()) {
-        aidx = this->ui_win.treeView->rootIndex();
+        aidx = this->uiw->treeView->rootIndex();
     } else {
         aidx = ism->currentIndex();
     }
@@ -429,7 +431,7 @@ void SessionDialog::slot_paste_selected()
             }           
         }
         this->sessTree->refresh(apidx);
-        this->ui_win.treeView->expand(apidx);
+        this->uiw->treeView->expand(apidx);
     } else {
         afile = this->sessTree->filePath(aidx) + QString("/") + this->sessTree->fileName(opidx);
         if (afile == this->sessTree->filePath(opidx)) {
@@ -451,7 +453,7 @@ void SessionDialog::slot_paste_selected()
         tset.setValue("show_name", show_name);
         tset.sync();
         this->sessTree->refresh(aidx);
-        this->ui_win.treeView->expand(aidx);
+        this->uiw->treeView->expand(aidx);
     }
 
     // TODO
@@ -471,10 +473,10 @@ void SessionDialog::slot_new_folder()
     QModelIndex cidx;
     QModelIndex aidx;
 
-    ism = this->ui_win.treeView->selectionModel();
+    ism = this->uiw->treeView->selectionModel();
 
     if (!ism->hasSelection()) {
-        aidx = this->ui_win.treeView->rootIndex();
+        aidx = this->uiw->treeView->rootIndex();
     } else {
         aidx = ism->currentIndex();
         if (this->sessTree->isDir(aidx)) {            
@@ -493,7 +495,7 @@ void SessionDialog::slot_new_folder()
     if(ok && !new_name.isEmpty() && new_name != cidx.data().toString()) {
         if (this->sessTree->mkdir(aidx, new_name).isValid()) {
             this->sessTree->refresh(aidx);
-            this->ui_win.treeView->expand(aidx);
+            this->uiw->treeView->expand(aidx);
         } else {
             // what can i do?
         }
@@ -504,7 +506,7 @@ void SessionDialog::slot_item_clicked(const QModelIndex &index)
 {
     Q_UNUSED(index);
     if (QApplication::keyboardModifiers() == Qt::ControlModifier) {
-        this->ui_win.treeView->clearSelection();
+        this->uiw->treeView->clearSelection();
     }
 }
 
