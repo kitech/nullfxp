@@ -208,8 +208,10 @@ int SSHConnection::initSocket()
     if (dest_addr.isNull()) {
         QHostInfo hi = QHostInfo::fromName(this->hostName);
         if (hi.error() != QHostInfo::NoError) {
-            emit connect_state_changed(tr("Resoving host faild: (%1),%2").arg(hi.error())
-                                       .arg(hi.errorString()));
+            QString emsg = tr("Resoving host faild: (%1),%2").arg(hi.error())
+                .arg(hi.errorString());
+            this->mErrorString = emsg;
+            emit connect_state_changed(emsg);
             return CONN_RESOLVE_ERROR;;
         } else {
             dest_addr = hi.addresses().at(0);
@@ -260,7 +262,8 @@ int SSHConnection::initSocket()
     } else if (ret == 0) {
         QString emsg = QString(tr("Connect faild : (%1),%2 ").arg(errno)
                                .arg(codec->toUnicode(QByteArray(strerror(errno)))));
-        emit connect_state_changed(emsg) ;
+        this->mErrorString = emsg;
+        emit connect_state_changed(emsg);
         qDebug()<<emsg;
         //assert( ret == 0 );
         return CONN_REFUSE;
@@ -276,6 +279,7 @@ int SSHConnection::initSocket()
         }
         if (myerrno != 0) {
             qDebug()<<"Connect faild: "<<codec->toUnicode(QByteArray(strerror(myerrno)));
+            this->mErrorString = codec->toUnicode(QByteArray(strerror(myerrno)));
             emit connect_state_changed(QString("%1%2").arg(tr("Connect error: "))
                                        .arg(codec->toUnicode(QByteArray(strerror(myerrno)))));
             // this->connect_status = CONN_REFUSE ;            
@@ -289,8 +293,10 @@ int SSHConnection::initSocket()
     ret = ioctlsocket(this->sock, FIONBIO, &sock_flag);
     if (ret == SOCKET_ERROR) {
     		qDebug()<<"win connect error";
-    		emit connect_state_changed(QString("%1%2").arg(tr("Connect error: "))
-                                       .arg(codec->toUnicode(QByteArray(strerror(ret)))));
+            QString emsg = QString("%1%2").arg(tr("Connect error: "))
+                .arg(codec->toUnicode(QByteArray(strerror(ret))));
+            this->mErrorString = emsg;
+    		emit connect_state_changed(emsg);
             // this->connect_status = CONN_REFUSE ;
             return CONN_REFUSE;
     }
@@ -304,7 +310,7 @@ int SSHConnection::initSocket()
     if (this->user_canceled == true) {
         this->piClose(this->sock);
         return CONN_CANCEL;
-    }   
+    }
 
     return 0;
 }
@@ -325,6 +331,7 @@ int SSHConnection::initSSHSession()
             libssh2_session_last_error(this->sess, &emsg, &emsg_len, 1);
             qDebug()<<"Start ssh session error: "<<libssh2_session_last_errno(this->sess)
                     <<emsg;
+            this->mErrorString = QString(emsg);
             emit connect_state_changed(QString("%1%2").arg(tr("Start ssh session error: ")).arg(emsg));
             if (emsg != 0) free(emsg);
         }        
@@ -373,7 +380,7 @@ int SSHConnection::sshAuth()
         libssh2_session_last_error(this->sess, &emsg, &emsg_len, 1);
         qDebug()<<"Host based public key auth error: "<<emsg;
         emit connect_state_changed( QString("%1%2").arg(tr("Host based public key auth error: ")).arg(emsg));
-        if (emsg != 0) free(emsg);        
+        if (emsg != 0) free(emsg);
     } else {
         qDebug()<<"Host based public key auth successful";
         emit connect_state_changed(QString("%1").arg(tr("Host based public key auth successful")));
@@ -453,7 +460,9 @@ int SSHConnection::sshAuth()
     if (ret == 0 ) {
         // this->connect_status = CONN_AUTH_ERROR ;
         qDebug()<<"User auth faild";
-        emit connect_state_changed(tr("User faild (Keyboard Interactive)(Password )."));
+        QString emsg = tr("User faild (Keyboard Interactive)(Password ).");
+        this->mErrorString = emsg;
+        emit connect_state_changed(emsg);
         return CONN_AUTH_ERROR;
     }
     if (this->user_canceled == true ) {
@@ -497,6 +506,7 @@ int SSHConnection::sshHomePath()
         } else {
             msg = QString(tr("Unknown SFTP error."));
         }
+        this->mErrorString = msg;
         emit connect_state_changed(tr( "Init sftp error: ") + msg);
         return CONN_SFTP_ERROR;
     }

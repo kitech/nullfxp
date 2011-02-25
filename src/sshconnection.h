@@ -17,7 +17,7 @@ class SSHConnection : public Connection
     Q_OBJECT;
 public:
     SSHConnection(QObject *parent = 0);
-    ~SSHConnection();
+    virtual ~SSHConnection();
 
     virtual int connect();
     virtual int disconnect();

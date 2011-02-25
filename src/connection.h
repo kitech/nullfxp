@@ -32,7 +32,7 @@ public:
           PROTO_MAX};
 
     Connection(QObject *parent = 0);
-    ~Connection();
+    virtual ~Connection();
 
     virtual int connect();
     virtual int disconnect();
@@ -66,6 +66,7 @@ public:
     unsigned short   port;
     QString pubkey;
     QString homePath;
+    QString mErrorString;
     
     LIBSSH2_SESSION *sess;
     int sock;
