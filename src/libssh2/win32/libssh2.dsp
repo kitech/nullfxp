@@ -248,6 +248,10 @@ SOURCE=..\src\comp.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\src\crypto.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\src\libgcrypt.h
 # End Source File
 # Begin Source File
@@ -277,6 +281,10 @@ SOURCE=..\src\packet.h
 # Begin Source File
 
 SOURCE=..\src\session.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\sftp.h
 # End Source File
 # Begin Source File
 

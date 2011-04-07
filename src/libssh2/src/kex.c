@@ -1,4 +1,5 @@
 /* Copyright (c) 2004-2007, Sara Golemon <sarag@libssh2.org>
+ * Copyright (c) 2010, Daniel Stenberg <daniel@haxx.se>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms,
@@ -140,8 +141,9 @@ static int diffie_hellman_sha1(LIBSSH2_SESSION *session,
     }
 
     if (exchange_state->state == libssh2_NB_state_created) {
-        rc = _libssh2_transport_write(session, exchange_state->e_packet,
-                                      exchange_state->e_packet_len);
+        rc = _libssh2_transport_send(session, exchange_state->e_packet,
+                                     exchange_state->e_packet_len,
+                                     NULL, 0);
         if (rc == LIBSSH2_ERROR_EAGAIN) {
             return rc;
         } else if (rc) {
@@ -410,7 +412,7 @@ static int diffie_hellman_sha1(LIBSSH2_SESSION *session,
     }
 
     if (exchange_state->state == libssh2_NB_state_sent2) {
-        rc = _libssh2_transport_write(session, &exchange_state->c, 1);
+        rc = _libssh2_transport_send(session, &exchange_state->c, 1, NULL, 0);
         if (rc == LIBSSH2_ERROR_EAGAIN) {
             return rc;
         } else if (rc) {
@@ -843,8 +845,8 @@ kex_method_diffie_hellman_group_exchange_sha1_key_exchange
     }
 
     if (key_state->state == libssh2_NB_state_created) {
-        rc = _libssh2_transport_write(session, key_state->request,
-                                      key_state->request_len);
+        rc = _libssh2_transport_send(session, key_state->request,
+                                     key_state->request_len, NULL, 0);
         if (rc == LIBSSH2_ERROR_EAGAIN) {
             return rc;
         } else if (rc) {
@@ -1043,10 +1045,10 @@ static int kexinit(LIBSSH2_SESSION * session)
                                      _libssh2_mac_methods());
         comp_cs_len =
             LIBSSH2_METHOD_PREFS_LEN(session->local.comp_prefs,
-                                     _libssh2_comp_methods());
+                                     _libssh2_comp_methods(session));
         comp_sc_len =
             LIBSSH2_METHOD_PREFS_LEN(session->remote.comp_prefs,
-                                     _libssh2_comp_methods());
+                                     _libssh2_comp_methods(session));
         lang_cs_len =
             LIBSSH2_METHOD_PREFS_LEN(session->local.lang_prefs, NULL);
         lang_sc_len =
@@ -1083,9 +1085,9 @@ static int kexinit(LIBSSH2_SESSION * session)
         LIBSSH2_METHOD_PREFS_STR(s, mac_sc_len, session->remote.mac_prefs,
                                  _libssh2_mac_methods());
         LIBSSH2_METHOD_PREFS_STR(s, comp_cs_len, session->local.comp_prefs,
-                                 _libssh2_comp_methods());
+                                 _libssh2_comp_methods(session));
         LIBSSH2_METHOD_PREFS_STR(s, comp_sc_len, session->remote.comp_prefs,
-                                 _libssh2_comp_methods());
+                                 _libssh2_comp_methods(session));
         LIBSSH2_METHOD_PREFS_STR(s, lang_cs_len, session->local.lang_prefs,
                                  NULL);
         LIBSSH2_METHOD_PREFS_STR(s, lang_sc_len, session->remote.lang_prefs,
@@ -1133,12 +1135,12 @@ static int kexinit(LIBSSH2_SESSION * session)
     } else {
         data = session->kexinit_data;
         data_len = session->kexinit_data_len;
-	/* zap the variables to ensure there is NOT a double free later */
+        /* zap the variables to ensure there is NOT a double free later */
         session->kexinit_data = NULL;
         session->kexinit_data_len = 0;
     }
 
-    rc = _libssh2_transport_write(session, data, data_len);
+    rc = _libssh2_transport_send(session, data, data_len, NULL, 0);
     if (rc == LIBSSH2_ERROR_EAGAIN) {
         session->kexinit_data = data;
         session->kexinit_data_len = data_len;
@@ -1271,7 +1273,7 @@ static int kex_agree_hostkey(LIBSSH2_SESSION * session,
         return -1;
     }
 
-    while (hostkeyp && (*hostkeyp)->name) {
+    while (hostkeyp && (*hostkeyp) && (*hostkeyp)->name) {
         s = kex_agree_instr(hostkey, hostkey_len,
                             (unsigned char *) (*hostkeyp)->name,
                             strlen((*hostkeyp)->name));
@@ -1487,11 +1489,11 @@ static int kex_agree_mac(LIBSSH2_SESSION * session,
 /* kex_agree_comp
  * Agree on a compression scheme
  */
-static int kex_agree_comp(LIBSSH2_SESSION * session,
-                          libssh2_endpoint_data * endpoint, unsigned char *comp,
+static int kex_agree_comp(LIBSSH2_SESSION *session,
+                          libssh2_endpoint_data *endpoint, unsigned char *comp,
                           unsigned long comp_len)
 {
-    const LIBSSH2_COMP_METHOD **compp = _libssh2_comp_methods();
+    const LIBSSH2_COMP_METHOD **compp = _libssh2_comp_methods(session);
     unsigned char *s;
     (void) session;
 
@@ -1827,12 +1829,14 @@ libssh2_session_method_pref(LIBSSH2_SESSION * session, int method_type,
 
     case LIBSSH2_METHOD_COMP_CS:
         prefvar = &session->local.comp_prefs;
-        mlist = (const LIBSSH2_COMMON_METHOD **) _libssh2_comp_methods();
+        mlist = (const LIBSSH2_COMMON_METHOD **)
+            _libssh2_comp_methods(session);
         break;
 
     case LIBSSH2_METHOD_COMP_SC:
         prefvar = &session->remote.comp_prefs;
-        mlist = (const LIBSSH2_COMMON_METHOD **) _libssh2_comp_methods();
+        mlist = (const LIBSSH2_COMMON_METHOD **)
+            _libssh2_comp_methods(session);
         break;
 
     case LIBSSH2_METHOD_LANG_CS:

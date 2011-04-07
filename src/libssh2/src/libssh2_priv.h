@@ -125,12 +125,7 @@ static inline int writev(int sock, struct iovec *iov, int nvecs)
 
 #endif /* WIN32 */
 
-
-#ifdef LIBSSH2_LIBGCRYPT
-#include "libgcrypt.h"
-#else
-#include "openssl.h"
-#endif
+#include "crypto.h"
 
 #ifdef HAVE_WINSOCK2_H
 
@@ -144,13 +139,6 @@ static inline int writev(int sock, struct iovec *iov, int nvecs)
 #endif
 
 #endif
-
-#ifdef WIN32
-typedef SOCKET libssh2_socket_t;
-#else /* !WIN32 */
-typedef int libssh2_socket_t;
-#define INVALID_SOCKET -1
-#endif /* WIN32 */
 
 /* RFC4253 section 6.1 Maximum Packet Length says:
  *
@@ -185,7 +173,6 @@ typedef int libssh2_socket_t;
 
 typedef struct _LIBSSH2_KEX_METHOD LIBSSH2_KEX_METHOD;
 typedef struct _LIBSSH2_HOSTKEY_METHOD LIBSSH2_HOSTKEY_METHOD;
-typedef struct _LIBSSH2_MAC_METHOD LIBSSH2_MAC_METHOD;
 typedef struct _LIBSSH2_CRYPT_METHOD LIBSSH2_CRYPT_METHOD;
 typedef struct _LIBSSH2_COMP_METHOD LIBSSH2_COMP_METHOD;
 
@@ -311,18 +298,13 @@ struct _LIBSSH2_PACKET
 {
     struct list_node node; /* linked list header */
 
-    unsigned char type;
-
-    /* Unencrypted Payload (no type byte, no padding, just the facts ma'am) */
+    /* the raw unencrypted payload */
     unsigned char *data;
     size_t data_len;
 
     /* Where to start reading data from,
      * used for channel data that's been partially consumed */
-    unsigned long data_head;
-
-    /* Can the message be confirmed? */
-    int mac;
+    size_t data_head;
 };
 
 typedef struct _libssh2_channel_data
@@ -331,7 +313,7 @@ typedef struct _libssh2_channel_data
     uint32_t id;
 
     /* Limits and restrictions */
-    unsigned long window_size_initial, window_size, packet_size;
+    uint32_t window_size_initial, window_size, packet_size;
 
     /* Set to 1 when CHANNEL_CLOSE / CHANNEL_EOF sent/received */
     char close, eof, extended_data_ignore_mode;
@@ -347,9 +329,12 @@ struct _LIBSSH2_CHANNEL
     /* channel's program exit status */
     int exit_status;
 
+    /* channel's program exit signal (without the SIG prefix) */
+    char *exit_signal;
+
     libssh2_channel_data local, remote;
     /* Amount of bytes to be refunded to receive window (but not yet sent) */
-    unsigned long adjust_queue;
+    uint32_t adjust_queue;
 
     LIBSSH2_SESSION *session;
 
@@ -363,9 +348,10 @@ struct _LIBSSH2_CHANNEL
     unsigned char setenv_local_channel[4];
     packet_requirev_state_t setenv_packet_requirev_state;
 
-    /* State variables used in libssh2_channel_request_pty_ex() */
+    /* State variables used in libssh2_channel_request_pty_ex()
+       libssh2_channel_request_pty_size_ex() */
     libssh2_nonblocking_states reqPTY_state;
-    unsigned char *reqPTY_packet;
+    unsigned char reqPTY_packet[41 + 256];
     size_t reqPTY_packet_len;
     unsigned char reqPTY_local_channel[4];
     packet_requirev_state_t reqPTY_packet_requirev_state;
@@ -400,10 +386,8 @@ struct _LIBSSH2_CHANNEL
 
     /* State variables used in libssh2_channel_write_ex() */
     libssh2_nonblocking_states write_state;
-    unsigned char *write_packet;
-    unsigned char *write_s;
+    unsigned char write_packet[13];
     size_t write_packet_len;
-    size_t write_bufwrote;
     size_t write_bufwrite;
 
     /* State variables used in libssh2_channel_close() */
@@ -421,6 +405,7 @@ struct _LIBSSH2_CHANNEL
 
     /* State variables used in libssh2_channel_handle_extended_data2() */
     libssh2_nonblocking_states extData2_state;
+
 };
 
 struct _LIBSSH2_LISTENER
@@ -454,8 +439,8 @@ typedef struct _libssh2_endpoint_data
     const LIBSSH2_CRYPT_METHOD *crypt;
     void *crypt_abstract;
 
-    const LIBSSH2_MAC_METHOD *mac;
-    unsigned long seqno;
+    const struct _LIBSSH2_MAC_METHOD *mac;
+    uint32_t seqno;
     void *mac_abstract;
 
     const LIBSSH2_COMP_METHOD *comp;
@@ -476,17 +461,17 @@ struct transportpacket
     unsigned char buf[PACKETBUFSIZE];
     unsigned char init[5];  /* first 5 bytes of the incoming data stream,
                                still encrypted */
-    int writeidx;           /* at what array index we do the next write into
+    size_t writeidx;        /* at what array index we do the next write into
                                the buffer */
-    int readidx;            /* at what array index we do the next read from
+    size_t readidx;         /* at what array index we do the next read from
                                the buffer */
     uint32_t packet_length; /* the most recent packet_length as read from the
                                network data */
     uint8_t padding_length; /* the most recent padding_length as read from the
                                network data */
-    int data_num;           /* How much of the total package that has been read
+    size_t data_num;        /* How much of the total package that has been read
                                so far. */
-    int total_num;          /* How much a total package is supposed to be, in
+    size_t total_num;       /* How much a total package is supposed to be, in
                                number of bytes. A full package is
                                packet_length + padding_length + 4 +
                                mac_length. */
@@ -496,11 +481,10 @@ struct transportpacket
                                are currently writing decrypted data */
 
     /* ------------- for outgoing data --------------- */
-    unsigned char *outbuf;  /* pointer to a LIBSSH2_ALLOC() area for the
-                               outgoing data */
+    unsigned char outbuf[MAX_SSH_PACKET_LEN]; /* area for the outgoing data */
+
     int ototal_num;         /* size of outbuf in number of bytes */
-    unsigned char *odata;   /* original pointer to the data we stored in
-                               outbuf */
+    const unsigned char *odata; /* original pointer to the data */
     size_t olen;            /* original size of the data we stored in
                                outbuf */
     size_t osent;           /* number of bytes already sent */
@@ -509,7 +493,7 @@ struct transportpacket
 struct _LIBSSH2_PUBLICKEY
 {
     LIBSSH2_CHANNEL *channel;
-    unsigned long version;
+    uint32_t version;
 
     /* State variables used in libssh2_publickey_packet_receive() */
     libssh2_nonblocking_states receive_state;
@@ -534,136 +518,12 @@ struct _LIBSSH2_PUBLICKEY
     size_t listFetch_data_len;
 };
 
-#define SFTP_HANDLE_MAXLEN 256 /* according to spec! */
-
-struct _LIBSSH2_SFTP_HANDLE
-{
-    struct list_node node;
-
-    LIBSSH2_SFTP *sftp;
-
-    /* This is a pre-allocated buffer used for sending SFTP requests as the
-       whole thing might not get sent in one go. This buffer is used for read,
-       write, close and MUST thus be big enough to suit all these. */
-    unsigned char request_packet[SFTP_HANDLE_MAXLEN + 25];
-
-    char handle[SFTP_HANDLE_MAXLEN];
-    size_t handle_len;
-
-    char handle_type;
-
-    union _libssh2_sftp_handle_data
-    {
-        struct _libssh2_sftp_handle_file_data
-        {
-            libssh2_uint64_t offset;
-        } file;
-        struct _libssh2_sftp_handle_dir_data
-        {
-            unsigned long names_left;
-            void *names_packet;
-            char *next_name;
-        } dir;
-    } u;
-
-    /* State variables used in libssh2_sftp_close_handle() */
-    libssh2_nonblocking_states close_state;
-    unsigned long close_request_id;
-    unsigned char *close_packet;
-};
-
-struct _LIBSSH2_SFTP
-{
-    LIBSSH2_CHANNEL *channel;
-
-    unsigned long request_id, version;
-
-    struct list_head packets;
-
-    /* a list of _LIBSSH2_SFTP_HANDLE structs */
-    struct list_head sftp_handles;
-
-    uint32_t last_errno;
-
-    /* Holder for partial packet, use in libssh2_sftp_packet_read() */
-    unsigned char *partial_packet;      /* The data                */
-    size_t partial_len;                 /* Desired number of bytes */
-    size_t partial_received;            /* Bytes received so far   */
-
-    /* Time that libssh2_sftp_packet_requirev() started reading */
-    time_t requirev_start;
-
-    /* State variables used in libssh2_sftp_open_ex() */
-    libssh2_nonblocking_states open_state;
-    unsigned char *open_packet;
-    size_t open_packet_len;
-    size_t open_packet_sent;
-    uint32_t open_request_id;
-
-    /* State variables used in libssh2_sftp_read() */
-    libssh2_nonblocking_states read_state;
-    unsigned char *read_packet;
-    uint32_t read_request_id;
-    size_t read_total_read;
-
-    /* State variables used in libssh2_sftp_readdir() */
-    libssh2_nonblocking_states readdir_state;
-    unsigned char *readdir_packet;
-    uint32_t readdir_request_id;
-
-    /* State variables used in libssh2_sftp_write() */
-    libssh2_nonblocking_states write_state;
-    unsigned char *write_packet;
-    uint32_t write_request_id;
-
-    /* State variables used in libssh2_sftp_fstat_ex() */
-    libssh2_nonblocking_states fstat_state;
-    unsigned char *fstat_packet;
-    uint32_t fstat_request_id;
-
-    /* State variables used in libssh2_sftp_unlink_ex() */
-    libssh2_nonblocking_states unlink_state;
-    unsigned char *unlink_packet;
-    uint32_t unlink_request_id;
-
-    /* State variables used in libssh2_sftp_rename_ex() */
-    libssh2_nonblocking_states rename_state;
-    unsigned char *rename_packet;
-    unsigned char *rename_s;
-    uint32_t rename_request_id;
-
-    /* State variables used in libssh2_sftp_fstatvfs() */
-    libssh2_nonblocking_states fstatvfs_state;
-    unsigned char *fstatvfs_packet;
-    uint32_t fstatvfs_request_id;
-
-    /* State variables used in libssh2_sftp_statvfs() */
-    libssh2_nonblocking_states statvfs_state;
-    unsigned char *statvfs_packet;
-    uint32_t statvfs_request_id;
-
-    /* State variables used in libssh2_sftp_mkdir() */
-    libssh2_nonblocking_states mkdir_state;
-    unsigned char *mkdir_packet;
-    uint32_t mkdir_request_id;
-
-    /* State variables used in libssh2_sftp_rmdir() */
-    libssh2_nonblocking_states rmdir_state;
-    unsigned char *rmdir_packet;
-    uint32_t rmdir_request_id;
-
-    /* State variables used in libssh2_sftp_stat() */
-    libssh2_nonblocking_states stat_state;
-    unsigned char *stat_packet;
-    uint32_t stat_request_id;
-
-    /* State variables used in libssh2_sftp_symlink() */
-    libssh2_nonblocking_states symlink_state;
-    unsigned char *symlink_packet;
-    uint32_t symlink_request_id;
-};
-
 #define LIBSSH2_SCP_RESPONSE_BUFLEN     256
+
+struct flags {
+    int sigpipe;  /* LIBSSH2_FLAG_SIGPIPE */
+    int compress; /* LIBSSH2_FLAG_COMPRESS */
+};
 
 struct _LIBSSH2_SESSION
 {
@@ -685,14 +545,16 @@ struct _LIBSSH2_SESSION
     char *hostkey_prefs;
 
     int state;
-    int flags;
+
+    /* Flag options */
+    struct flags flag;
 
     /* Agreed Key Exchange Method */
     const LIBSSH2_KEX_METHOD *kex;
     int burn_optimistic_kexinit:1;
 
     unsigned char *session_id;
-    unsigned long session_id_len;
+    uint32_t session_id_len;
 
     /* this is set to TRUE if a blocking API behavior is requested */
     int api_block_mode;
@@ -705,7 +567,7 @@ struct _LIBSSH2_SESSION
      * Or read from server in (eg) KEXDH_INIT (for client mode)
      */
     unsigned char *server_hostkey;
-    unsigned long server_hostkey_len;
+    uint32_t server_hostkey_len;
 #if LIBSSH2_MD5
     unsigned char server_hostkey_md5[MD5_DIGEST_LENGTH];
 #endif                          /* ! LIBSSH2_MD5 */
@@ -724,7 +586,7 @@ struct _LIBSSH2_SESSION
     /* Active connection channels */
     struct list_head channels;
 
-    unsigned long next_channel;
+    uint32_t next_channel;
 
     struct list_head listeners; /* list of LIBSSH2_LISTENER structs */
 
@@ -771,7 +633,7 @@ struct _LIBSSH2_SESSION
 
     /* State variables used in libssh2_session_disconnect_ex() */
     libssh2_nonblocking_states disconnect_state;
-    unsigned char *disconnect_data;
+    unsigned char disconnect_data[256 + 13];
     size_t disconnect_data_len;
 
     /* State variables used in libssh2_packet_read() */
@@ -852,8 +714,8 @@ struct _LIBSSH2_SESSION
     /* State variables used in libssh2_channel_forward_listen_ex() */
     libssh2_nonblocking_states fwdLstn_state;
     unsigned char *fwdLstn_packet;
-    unsigned long fwdLstn_host_len;
-    unsigned long fwdLstn_packet_len;
+    uint32_t fwdLstn_host_len;
+    uint32_t fwdLstn_packet_len;
     packet_requirev_state_t fwdLstn_packet_requirev_state;
 
     /* State variables used in libssh2_publickey_init() */
@@ -868,16 +730,15 @@ struct _LIBSSH2_SESSION
 
     /* State variables used in libssh2_packet_add() */
     libssh2_nonblocking_states packAdd_state;
-    LIBSSH2_CHANNEL *packAdd_channel;
-    unsigned long packAdd_data_head;
-    key_exchange_state_t packAdd_key_state;
+    LIBSSH2_CHANNEL *packAdd_channelp; /* keeper of the channel during EAGAIN
+                                          states */
     packet_queue_listener_state_t packAdd_Qlstn_state;
     packet_x11_open_state_t packAdd_x11open_state;
 
     /* State variables used in fullpacket() */
     libssh2_nonblocking_states fullpacket_state;
     int fullpacket_macstate;
-    int fullpacket_payload_len;
+    size_t fullpacket_payload_len;
     int fullpacket_packet_type;
 
     /* State variables used in libssh2_sftp_init() */
@@ -892,9 +753,9 @@ struct _LIBSSH2_SESSION
     /* State variables used in libssh2_scp_recv() */
     libssh2_nonblocking_states scpRecv_state;
     unsigned char *scpRecv_command;
-    unsigned long scpRecv_command_len;
+    size_t scpRecv_command_len;
     unsigned char scpRecv_response[LIBSSH2_SCP_RESPONSE_BUFLEN];
-    unsigned long scpRecv_response_len;
+    size_t scpRecv_response_len;
     long scpRecv_mode;
 #if defined(HAVE_LONGLONG) && defined(HAVE_STRTOLL)
     /* we have the type and we can parse such numbers */
@@ -906,18 +767,14 @@ struct _LIBSSH2_SESSION
 #endif
     long scpRecv_mtime;
     long scpRecv_atime;
-    char *scpRecv_err_msg;
-    long scpRecv_err_len;
     LIBSSH2_CHANNEL *scpRecv_channel;
 
     /* State variables used in libssh2_scp_send_ex() */
     libssh2_nonblocking_states scpSend_state;
     unsigned char *scpSend_command;
-    unsigned long scpSend_command_len;
+    size_t scpSend_command_len;
     unsigned char scpSend_response[LIBSSH2_SCP_RESPONSE_BUFLEN];
-    unsigned long scpSend_response_len;
-    char *scpSend_err_msg;
-    long scpSend_err_len;
+    size_t scpSend_response_len;
     LIBSSH2_CHANNEL *scpSend_channel;
 
     /* Keepalive variables used by keepalive.c. */
@@ -934,8 +791,8 @@ struct _LIBSSH2_SESSION
 
 /* session.flag helpers */
 #ifdef MSG_NOSIGNAL
-#define LIBSSH2_SOCKET_SEND_FLAGS(session)      (((session)->flags & LIBSSH2_FLAG_SIGPIPE) ? 0 : MSG_NOSIGNAL)
-#define LIBSSH2_SOCKET_RECV_FLAGS(session)      (((session)->flags & LIBSSH2_FLAG_SIGPIPE) ? 0 : MSG_NOSIGNAL)
+#define LIBSSH2_SOCKET_SEND_FLAGS(session)      (((session)->flag.sigpipe) ? 0 : MSG_NOSIGNAL)
+#define LIBSSH2_SOCKET_RECV_FLAGS(session)      (((session)->flag.sigpipe) ? 0 : MSG_NOSIGNAL)
 #else
 /* If MSG_NOSIGNAL isn't defined we're SOL on blocking SIGPIPE */
 #define LIBSSH2_SOCKET_SEND_FLAGS(session)      0
@@ -1005,33 +862,22 @@ struct _LIBSSH2_CRYPT_METHOD
 struct _LIBSSH2_COMP_METHOD
 {
     const char *name;
-
-    int (*init) (LIBSSH2_SESSION * session, int compress, void **abstract);
-    int (*comp) (LIBSSH2_SESSION * session, int compress, unsigned char **dest,
-                 size_t *dest_len, size_t payload_limit,
-                 int *free_dest, const unsigned char *src,
-                 size_t src_len, void **abstract);
-    int (*dtor) (LIBSSH2_SESSION * session, int compress, void **abstract);
-};
-
-struct _LIBSSH2_MAC_METHOD
-{
-    const char *name;
-
-    /* The length of a given MAC packet */
-    int mac_len;
-
-    /* integrity key length */
-    int key_len;
-
-    /* Message Authentication Code Hashing algo */
-    int (*init) (LIBSSH2_SESSION * session, unsigned char *key, int *free_key,
+    int compress; /* 1 if it does compress, 0 if it doesn't */
+    int (*init) (LIBSSH2_SESSION *session, int compress, void **abstract);
+    int (*comp) (LIBSSH2_SESSION *session,
+                 unsigned char *dest,
+                 size_t *dest_len,
+                 const unsigned char *src,
+                 size_t src_len,
                  void **abstract);
-    int (*hash) (LIBSSH2_SESSION * session, unsigned char *buf,
-                 unsigned long seqno, const unsigned char *packet,
-                 unsigned long packet_len, const unsigned char *addtl,
-                 unsigned long addtl_len, void **abstract);
-    int (*dtor) (LIBSSH2_SESSION * session, void **abstract);
+    int (*decomp) (LIBSSH2_SESSION *session,
+                   unsigned char **dest,
+                   size_t *dest_len,
+                   size_t payload_limit,
+                   const unsigned char *src,
+                   size_t src_len,
+                   void **abstract);
+    int (*dtor) (LIBSSH2_SESSION * session, int compress, void **abstract);
 };
 
 #ifdef LIBSSH2DEBUG
@@ -1115,13 +961,17 @@ _libssh2_debug(LIBSSH2_SESSION * session, int context, const char *format, ...)
 #define SSH_MSG_CHANNEL_SUCCESS                     99
 #define SSH_MSG_CHANNEL_FAILURE                     100
 
-#if defined( WIN32 ) || defined( __VMS )
-ssize_t _libssh2_recv(libssh2_socket_t socket, void *buffer, size_t length, int flags);
-ssize_t _libssh2_send(libssh2_socket_t socket, const void *buffer, size_t length, int flags);
-#else
-#define _libssh2_recv(a,b,c,d) recv(a,b,c,d)
-#define _libssh2_send(a,b,c,d) send(a,b,c,d)
-#endif
+/* Error codes returned in SSH_MSG_CHANNEL_OPEN_FAILURE message
+   (see RFC4254) */
+#define SSH_OPEN_ADMINISTRATIVELY_PROHIBITED 1
+#define SSH_OPEN_CONNECT_FAILED              2
+#define SSH_OPEN_UNKNOWN_CHANNELTYPE         3
+#define SSH_OPEN_RESOURCE_SHORTAGE           4
+
+ssize_t _libssh2_recv(libssh2_socket_t socket, void *buffer,
+                      size_t length, int flags);
+ssize_t _libssh2_send(libssh2_socket_t socket, const void *buffer,
+                      size_t length, int flags);
 
 #define LIBSSH2_READ_TIMEOUT 60 /* generic timeout in seconds used when
                                    waiting for more data to arrive */

@@ -1,4 +1,4 @@
-/* Copyright (c) 2009 Simon Josefsson <simon@josefsson.org>
+/* Copyright (c) 2009, 2010 Simon Josefsson <simon@josefsson.org>
  * Copyright (c) 2004-2007, Sara Golemon <sarag@libssh2.org>
  * All rights reserved.
  *
@@ -79,9 +79,9 @@ crypt_init(LIBSSH2_SESSION * session,
 {
     struct crypt_ctx *ctx = LIBSSH2_ALLOC(session,
                                           sizeof(struct crypt_ctx));
-    if (!ctx) {
-        return -1;
-    }
+    if (!ctx)
+        return LIBSSH2_ERROR_ALLOC;
+
     ctx->encrypt = encrypt;
     ctx->algo = method->algo;
     if (_libssh2_cipher_init(&ctx->h, ctx->algo, iv, secret, encrypt)) {
@@ -242,13 +242,13 @@ crypt_init_arcfour128(LIBSSH2_SESSION * session,
     int rc;
 
     rc = crypt_init (session, method, iv, free_iv, secret, free_secret,
-		     encrypt, abstract);
+                     encrypt, abstract);
     if (rc == 0) {
-	struct crypt_ctx *cctx = *(struct crypt_ctx **) abstract;
-	unsigned char block[8];
-	size_t discard = 1536;
-	for (; discard; discard -= 8)
-	    _libssh2_cipher_crypt(&cctx->h, cctx->algo, cctx->encrypt, block);
+        struct crypt_ctx *cctx = *(struct crypt_ctx **) abstract;
+        unsigned char block[8];
+        size_t discard = 1536;
+        for (; discard; discard -= 8)
+            _libssh2_cipher_crypt(&cctx->h, cctx->algo, cctx->encrypt, block);
     }
 
     return rc;

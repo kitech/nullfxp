@@ -16,7 +16,8 @@
 LIBSSH2_API 
 int libssh2_sftp_get_version(LIBSSH2_SFTP * sftp)
 {
-	return sftp->version;	
+	// return sftp->version;	
+    return 0;
 }
 
 // add by liuguangzhao@users.sf.net
@@ -55,17 +56,17 @@ LIBSSH2_API char ** libssh2_session_get_remote_info(LIBSSH2_SESSION *session, ch
 	"Key fingerprint: %s\n"
 	"Host key method: %s , Hash length: %ld\n"
 	"S->C Crypt name: %s, secret length: %d\n"
-	"S->C Mac name: %s, Key length: %d\n"
+             //	"S->C Mac name: %s, Key length: %d\n"
 	"C->S Crypt name: %s, secret length: %d\n"
 	"C->S Mac name: %s, Key length: %d\n"
 	"Comp name: %s\n"
 	, remote->banner, kex->name,
 	fingerprint,
-	hostkey->name, hostkey->hash_len,
+             //	hostkey->name, hostkey->hash_len,
 	remote->crypt->name, remote->crypt->secret_len,
-	remote->mac->name, remote->mac->key_len,
+             //	remote->mac->name, remote->mac->key_len,
 	local->crypt->name, local->crypt->secret_len,
-	local->mac->name, local->mac->key_len,
+             //	local->mac->name, local->mac->key_len,
 	remote->comp->name);
  
 	strcpy(info_vec[0], info_buff);
@@ -73,9 +74,9 @@ LIBSSH2_API char ** libssh2_session_get_remote_info(LIBSSH2_SESSION *session, ch
 	strcpy(info_vec[2], hostkey->name);
 	strcpy(info_vec[3], fingerprint);
 	strcpy(info_vec[4], local->crypt->name);
-	strcpy(info_vec[5], local->mac->name);
+    //	strcpy(info_vec[5], local->mac->name);
 	strcpy(info_vec[6], remote->crypt->name);
-	strcpy(info_vec[7], remote->mac->name);
+    //	strcpy(info_vec[7], remote->mac->name);
 
 	free(info_buff);
 	

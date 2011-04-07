@@ -1,5 +1,5 @@
 /* Copyright (c) 2004-2007 Sara Golemon <sarag@libssh2.org>
- * Copyright (c) 2009-2010 by Daniel Stenberg
+ * Copyright (c) 2009-2011 by Daniel Stenberg
  * Copyright (c) 2010 Simon Josefsson <simon@josefsson.org>
  * All rights reserved.
  *
@@ -55,6 +55,7 @@
 #include "transport.h"
 #include "session.h"
 #include "channel.h"
+#include "mac.h"
 
 /* libssh2_default_alloc
  */
@@ -88,7 +89,8 @@ LIBSSH2_REALLOC_FUNC(libssh2_default_realloc)
  *
  * Wait for a hello from the remote host
  * Allocate a buffer and store the banner in session->remote.banner
- * Returns: 0 on success, LIBSSH2_ERROR_EAGAIN if read would block, negative on failure
+ * Returns: 0 on success, LIBSSH2_ERROR_EAGAIN if read would block, negative
+ * on failure
  */
 static int
 banner_receive(LIBSSH2_SESSION * session)
@@ -114,15 +116,18 @@ banner_receive(LIBSSH2_SESSION * session)
 
         ret = _libssh2_recv(session->socket_fd, &c, 1,
                             LIBSSH2_SOCKET_RECV_FLAGS(session));
-        if (ret < 0)
-            _libssh2_debug(session, LIBSSH2_TRACE_SOCKET,
-                           "Error recving %d bytes to %p: %d", 1, &c, errno);
+        if (ret < 0) {
+            if(session->api_block_mode || (ret != -EAGAIN))
+                /* ignore EAGAIN when non-blocking */
+                _libssh2_debug(session, LIBSSH2_TRACE_SOCKET,
+                               "Error recving %d bytes: %d", 1, -ret);
+        }
         else
             _libssh2_debug(session, LIBSSH2_TRACE_SOCKET,
-                           "Recved %d bytes to %p", ret, &c);
+                           "Recved %d bytes banner", ret);
 
         if (ret < 0) {
-            if (errno == EAGAIN) {
+            if (ret == -EAGAIN) {
                 session->socket_block_directions =
                     LIBSSH2_SESSION_BLOCK_INBOUND;
                 session->banner_TxRx_total_send = banner_len;
@@ -132,19 +137,19 @@ banner_receive(LIBSSH2_SESSION * session)
             /* Some kinda error */
             session->banner_TxRx_state = libssh2_NB_state_idle;
             session->banner_TxRx_total_send = 0;
-            return -1;
+            return LIBSSH2_ERROR_SOCKET_RECV;
         }
 
         if (ret == 0) {
             session->socket_state = LIBSSH2_SOCKET_DISCONNECTED;
-            return LIBSSH2_ERROR_SOCKET_NONE;
+            return LIBSSH2_ERROR_SOCKET_RECV;
         }
 
         if (c == '\0') {
             /* NULLs are not allowed in SSH banners */
             session->banner_TxRx_state = libssh2_NB_state_idle;
             session->banner_TxRx_total_send = 0;
-            return -1;
+            return LIBSSH2_ERROR_BANNER_RECV;
         }
 
         session->banner_TxRx_banner[banner_len++] = c;
@@ -161,7 +166,7 @@ banner_receive(LIBSSH2_SESSION * session)
     session->banner_TxRx_total_send = 0;
 
     if (!banner_len)
-        return -1;
+        return LIBSSH2_ERROR_BANNER_RECV;
 
     session->remote.banner = LIBSSH2_ALLOC(session, banner_len + 1);
     if (!session->remote.banner) {
@@ -172,7 +177,7 @@ banner_receive(LIBSSH2_SESSION * session)
     session->remote.banner[banner_len] = '\0';
     _libssh2_debug(session, LIBSSH2_TRACE_TRANS, "Received Banner: %s",
                    session->remote.banner);
-    return 0;
+    return LIBSSH2_ERROR_NONE;
 }
 
 /*
@@ -180,9 +185,9 @@ banner_receive(LIBSSH2_SESSION * session)
  *
  * Send the default banner, or the one set via libssh2_setopt_string
  *
- * Returns LIBSSH2_ERROR_EAGAIN if it would block - and if it does so, you should
- * call this function again as soon as it is likely that more data can be
- * sent, and this function should then be called with the same argument set
+ * Returns LIBSSH2_ERROR_EAGAIN if it would block - and if it does so, you
+ * should call this function again as soon as it is likely that more data can
+ * be sent, and this function should then be called with the same argument set
  * (same data pointer and same data_len) until zero or failure is returned.
  */
 static int
@@ -228,7 +233,7 @@ banner_send(LIBSSH2_SESSION * session)
     if (ret < 0)
         _libssh2_debug(session, LIBSSH2_TRACE_SOCKET,
                        "Error sending %d bytes: %d",
-                       banner_len - session->banner_TxRx_total_send, errno);
+                       banner_len - session->banner_TxRx_total_send, -ret);
     else
         _libssh2_debug(session, LIBSSH2_TRACE_SOCKET,
                        "Sent %d/%d bytes at %p+%d", ret,
@@ -236,16 +241,17 @@ banner_send(LIBSSH2_SESSION * session)
                        banner, session->banner_TxRx_total_send);
 
     if (ret != (banner_len - session->banner_TxRx_total_send)) {
-        if ((ret > 0) || ((ret == -1) && (errno == EAGAIN))) {
+        if (ret >= 0 || ret == -EAGAIN) {
             /* the whole packet could not be sent, save the what was */
             session->socket_block_directions =
                 LIBSSH2_SESSION_BLOCK_OUTBOUND;
-            session->banner_TxRx_total_send += ret;
+            if (ret > 0)
+                session->banner_TxRx_total_send += ret;
             return LIBSSH2_ERROR_EAGAIN;
         }
         session->banner_TxRx_state = libssh2_NB_state_idle;
         session->banner_TxRx_total_send = 0;
-        return LIBSSH2_ERROR_SOCKET_NONE;
+        return LIBSSH2_ERROR_SOCKET_RECV;
     }
 
     /* Set the state back to idle */
@@ -410,16 +416,15 @@ get_socket_nonblocking(int sockfd)
 LIBSSH2_API int
 libssh2_banner_set(LIBSSH2_SESSION * session, const char *banner)
 {
-    int banner_len = banner ? strlen(banner) : 0;
+    size_t banner_len = banner ? strlen(banner) : 0;
 
     if (session->local.banner) {
         LIBSSH2_FREE(session, session->local.banner);
         session->local.banner = NULL;
     }
 
-    if (!banner_len) {
+    if (!banner_len)
         return 0;
-    }
 
     session->local.banner = LIBSSH2_ALLOC(session, banner_len + 3);
     if (!session->local.banner) {
@@ -556,6 +561,14 @@ int _libssh2_wait_socket(LIBSSH2_SESSION *session)
         /* figure out what to wait for */
         dir = libssh2_session_block_directions(session);
 
+        if(!dir) {
+            _libssh2_debug(session, LIBSSH2_TRACE_SOCKET,
+                           "Nothing to wait for in wait_socket");
+            /* To avoid that we hang below just because there's nothing set to
+               wait for, we timeout on 1 second to also avoid busy-looping
+               during this condition */
+            seconds_to_next = 1;
+        }
         {
 #ifdef HAVE_POLL
             struct pollfd sockets[1];
@@ -621,7 +634,7 @@ session_startup(LIBSSH2_SESSION *session, libssh2_socket_t sock)
                        "session_startup for socket %d", sock);
         if (INVALID_SOCKET == sock) {
             /* Did we forget something? */
-            return _libssh2_error(session, LIBSSH2_ERROR_SOCKET_NONE,
+            return _libssh2_error(session, LIBSSH2_ERROR_BAD_SOCKET,
                                   "Bad socket provided");
         }
         session->socket_fd = sock;
@@ -647,11 +660,14 @@ session_startup(LIBSSH2_SESSION *session, libssh2_socket_t sock)
     }
 
     if (session->startup_state == libssh2_NB_state_sent) {
-        rc = banner_receive(session);
-        if (rc) {
-            return _libssh2_error(session, rc,
-                                  "Failed getting banner");
-        }
+        do {
+            session->banner_TxRx_state = libssh2_NB_state_idle;
+
+            rc = banner_receive(session);
+            if (rc)
+                return _libssh2_error(session, rc,
+                                      "Failed getting banner");
+        } while(strncmp("SSH-", (char *)session->remote.banner, 4));
 
         session->startup_state = libssh2_NB_state_sent1;
     }
@@ -680,8 +696,9 @@ session_startup(LIBSSH2_SESSION *session, libssh2_socket_t sock)
     }
 
     if (session->startup_state == libssh2_NB_state_sent3) {
-        rc = _libssh2_transport_write(session, session->startup_service,
-                                      sizeof("ssh-userauth") + 5 - 1);
+        rc = _libssh2_transport_send(session, session->startup_service,
+                                     sizeof("ssh-userauth") + 5 - 1,
+                                     NULL, 0);
         if (rc) {
             return _libssh2_error(session, rc,
                                   "Unable to ask for ssh-userauth service");
@@ -722,22 +739,38 @@ session_startup(LIBSSH2_SESSION *session, libssh2_socket_t sock)
 }
 
 /*
- * proto libssh2_session_startup
+ * libssh2_session_handshake()
  *
  * session: LIBSSH2_SESSION struct allocated and owned by the calling program
+ * sock:    *must* be populated with an opened and connected socket.
+ *
  * Returns: 0 on success, or non-zero on failure
- * Any memory allocated by libssh2 will use alloc/realloc/free
- * callbacks in session.
- * The 'sock' socket *must* be populated with an opened and connected socket.
  */
 LIBSSH2_API int
-libssh2_session_startup(LIBSSH2_SESSION *session, int sock)
+libssh2_session_handshake(LIBSSH2_SESSION *session, libssh2_socket_t sock)
 {
     int rc;
 
     BLOCK_ADJUST(rc, session, session_startup(session, sock) );
 
     return rc;
+}
+
+/*
+ * libssh2_session_startup()
+ *
+ * DEPRECATED. Use libssh2_session_handshake() instead! This function is not
+ * portable enough.
+ *
+ * session: LIBSSH2_SESSION struct allocated and owned by the calling program
+ * sock:    *must* be populated with an opened and connected socket.
+ *
+ * Returns: 0 on success, or non-zero on failure
+ */
+LIBSSH2_API int
+libssh2_session_startup(LIBSSH2_SESSION *session, int sock)
+{
+    return libssh2_session_handshake(session, (libssh2_socket_t) sock);
 }
 
 /*
@@ -753,7 +786,6 @@ session_free(LIBSSH2_SESSION *session)
     LIBSSH2_PACKET *pkg;
     LIBSSH2_CHANNEL *ch;
     LIBSSH2_LISTENER *l;
-    struct transportpacket *p = &session->packet;
 
     if (session->free_state == libssh2_NB_state_idle) {
         _libssh2_debug(session, LIBSSH2_TRACE_TRANS, "Freeing session resource",
@@ -884,9 +916,6 @@ session_free(LIBSSH2_SESSION *session)
     if (session->startup_data) {
         LIBSSH2_FREE(session, session->startup_data);
     }
-    if (session->disconnect_data) {
-        LIBSSH2_FREE(session, session->disconnect_data);
-    }
     if (session->userauth_list_data) {
         LIBSSH2_FREE(session, session->userauth_list_data);
     }
@@ -944,12 +973,6 @@ session_free(LIBSSH2_SESSION *session)
     if (session->scpSend_command) {
         LIBSSH2_FREE(session, session->scpSend_command);
     }
-    if (session->scpRecv_err_msg) {
-        LIBSSH2_FREE(session, session->scpRecv_err_msg);
-    }
-    if (session->scpSend_err_msg) {
-        LIBSSH2_FREE(session, session->scpSend_err_msg);
-    }
 
     /* Cleanup all remaining packets */
     while ((pkg = _libssh2_list_first(&session->packets))) {
@@ -959,11 +982,6 @@ session_free(LIBSSH2_SESSION *session)
         /* free */
         LIBSSH2_FREE(session, pkg->data);
         LIBSSH2_FREE(session, pkg);
-    }
-
-    /* Cleanup remaining outgoing packet buffer */
-    if (p->outbuf) {
-        LIBSSH2_FREE(session, p->outbuf);
     }
 
     if(session->socket_prev_blockstate)
@@ -1000,7 +1018,8 @@ libssh2_session_free(LIBSSH2_SESSION * session)
  */
 static int
 session_disconnect(LIBSSH2_SESSION *session, int reason,
-                   const char *description, const char *lang)
+                   const char *description,
+                   const char *lang)
 {
     unsigned char *s;
     unsigned long descr_len = 0, lang_len = 0;
@@ -1010,40 +1029,36 @@ session_disconnect(LIBSSH2_SESSION *session, int reason,
         _libssh2_debug(session, LIBSSH2_TRACE_TRANS,
                        "Disconnecting: reason=%d, desc=%s, lang=%s", reason,
                        description, lang);
-        if (description) {
+        if (description)
             descr_len = strlen(description);
-        }
-        if (lang) {
+
+        if (lang)
             lang_len = strlen(lang);
-        }
+
+        if(descr_len > 256)
+            return _libssh2_error(session, LIBSSH2_ERROR_INVAL,
+                                  "too long description");
+
         /* 13 = packet_type(1) + reason code(4) + descr_len(4) + lang_len(4) */
         session->disconnect_data_len = descr_len + lang_len + 13;
 
-        s = session->disconnect_data =
-            LIBSSH2_ALLOC(session, session->disconnect_data_len);
-        if (!session->disconnect_data) {
-            session->disconnect_state = libssh2_NB_state_idle;
-            return _libssh2_error(session, LIBSSH2_ERROR_ALLOC,
-                                  "Unable to allocate memory for "
-                                  "disconnect packet");
-        }
+        s = session->disconnect_data;
 
         *(s++) = SSH_MSG_DISCONNECT;
         _libssh2_store_u32(&s, reason);
         _libssh2_store_str(&s, description, descr_len);
-        _libssh2_store_str(&s, lang, lang_len);
+        /* store length only, lang is sent separately */
+        _libssh2_store_u32(&s, lang_len);
 
         session->disconnect_state = libssh2_NB_state_created;
     }
 
-    rc = _libssh2_transport_write(session, session->disconnect_data,
-                                  session->disconnect_data_len);
-    if (rc == LIBSSH2_ERROR_EAGAIN) {
+    rc = _libssh2_transport_send(session, session->disconnect_data,
+                                 session->disconnect_data_len,
+                                 (unsigned char *)lang, lang_len);
+    if (rc == LIBSSH2_ERROR_EAGAIN)
         return rc;
-    }
 
-    LIBSSH2_FREE(session, session->disconnect_data);
-    session->disconnect_data = NULL;
     session->disconnect_state = libssh2_NB_state_idle;
 
     return 0;
@@ -1208,19 +1223,24 @@ libssh2_session_last_errno(LIBSSH2_SESSION * session)
  *
  * Set/Get session flags
  *
- * Passing flag==0 will avoid changing session->flags while still returning
- * its current value
+ * Return error code.
  */
 LIBSSH2_API int
 libssh2_session_flag(LIBSSH2_SESSION * session, int flag, int value)
 {
-    if (value) {
-        session->flags |= flag;
-    } else {
-        session->flags &= ~flag;
+    switch(flag) {
+    case LIBSSH2_FLAG_SIGPIPE:
+        session->flag.sigpipe = value;
+        break;
+    case LIBSSH2_FLAG_COMPRESS:
+        session->flag.compress = value;
+        break;
+    default:
+        /* unknown flag */
+        return LIBSSH2_ERROR_INVAL;
     }
 
-    return session->flags;
+    return LIBSSH2_ERROR_NONE;
 }
 
 /* _libssh2_session_set_blocking
@@ -1338,8 +1358,8 @@ libssh2_poll(LIBSSH2_POLLFD * fds, unsigned int nfds, long timeout)
     struct pollfd sockets[256];
 
     if (nfds > 256)
-        /* systems without alloca use a fixed-size array, this can be fixed
-           if we really want to, at least if the compiler is a C99 capable one */
+        /* systems without alloca use a fixed-size array, this can be fixed if
+           we really want to, at least if the compiler is a C99 capable one */
         return -1;
 #endif
     /* Setup sockets for polling */

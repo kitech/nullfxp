@@ -1,5 +1,6 @@
 /* Copyright (c) 2004-2007 Sara Golemon <sarag@libssh2.org>
- * Copyright (c) 2009 by Daniel Stenberg
+ * Copyright (c) 2009-2010 by Daniel Stenberg
+ * Copyright (c) 2010  Simon Josefsson
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms,
@@ -55,6 +56,10 @@ int _libssh2_error(LIBSSH2_SESSION* session, int errcode, const char* errmsg)
     session->err_msg = errmsg;
     session->err_code = errcode;
 #ifdef LIBSSH2DEBUG
+    if((errcode == LIBSSH2_ERROR_EAGAIN) && !session->api_block_mode)
+        /* if this is EAGAIN and we're in non-blocking mode, don't generate
+           a debug output for this */
+        return errcode;
     _libssh2_debug(session, LIBSSH2_TRACE_ERROR, "%d - %s", session->err_code,
                    session->err_msg);
 #endif
@@ -84,53 +89,56 @@ static int wsa2errno(void)
 }
 #endif
 
-#ifndef _libssh2_recv
 /* _libssh2_recv
  *
- * Wrapper around standard recv to allow WIN32 systems
- * to set errno
+ * Replacement for the standard recv, return -errno on failure.
  */
 ssize_t
-_libssh2_recv(libssh2_socket_t socket, void *buffer, size_t length, int flags)
+_libssh2_recv(libssh2_socket_t sock, void *buffer, size_t length, int flags)
 {
-    ssize_t rc = recv(socket, buffer, length, flags);
+    ssize_t rc = recv(sock, buffer, length, flags);
 #ifdef WIN32
     if (rc < 0 )
-        errno = wsa2errno();
-#endif
-#ifdef __VMS
+        return -wsa2errno();
+#elif defined(__VMS)
     if (rc < 0 ){
-       if ( errno == EWOULDBLOCK ) errno = EAGAIN;
+        if ( errno == EWOULDBLOCK )
+            return -EAGAIN;
+        else
+            return -errno;
     }
+#else
+    if (rc < 0 )
+        return -errno;
 #endif
     return rc;
 }
-#endif /* _libssh2_recv */
-
-#ifndef _libssh2_send
 
 /* _libssh2_send
  *
- * Wrapper around standard send to allow WIN32 systems
- * to set errno
+ * Replacement for the standard send, return -errno on failure.
  */
 ssize_t
-_libssh2_send(libssh2_socket_t socket, const void *buffer, size_t length,
+_libssh2_send(libssh2_socket_t sock, const void *buffer, size_t length,
               int flags)
 {
-    ssize_t rc = send(socket, buffer, length, flags);
+    ssize_t rc = send(sock, buffer, length, flags);
 #ifdef WIN32
     if (rc < 0 )
-        errno = wsa2errno();
-#endif
-#ifdef VMS
-    if (rc < 0 ){
-       if ( errno == EWOULDBLOCK ) errno = EAGAIN;
+        return -wsa2errno();
+#elif defined(__VMS)
+    if (rc < 0 ) {
+        if ( errno == EWOULDBLOCK )
+            return -EAGAIN;
+        else
+            return -errno;
     }
+#else
+    if (rc < 0 )
+        return -errno;
 #endif
     return rc;
 }
-#endif /* _libssh2_recv */
 
 /* libssh2_ntohu32
  */
@@ -148,8 +156,10 @@ _libssh2_ntohu64(const unsigned char *buf)
 {
     unsigned long msl, lsl;
 
-    msl = (buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3];
-    lsl = (buf[4] << 24) | (buf[5] << 16) | (buf[6] << 8) | buf[7];
+    msl = ((libssh2_uint64_t)buf[0] << 24) | ((libssh2_uint64_t)buf[1] << 16)
+        | ((libssh2_uint64_t)buf[2] << 8) | (libssh2_uint64_t)buf[3];
+    lsl = ((libssh2_uint64_t)buf[4] << 24) | ((libssh2_uint64_t)buf[5] << 16)
+        | ((libssh2_uint64_t)buf[6] << 8) | (libssh2_uint64_t)buf[7];
 
     return ((libssh2_uint64_t)msl <<32) | lsl;
 }
@@ -347,6 +357,12 @@ size_t _libssh2_base64_encode(LIBSSH2_SESSION *session,
   return strlen(base64data); /* return the length of the new data */
 }
 /* ---- End of Base64 Encoding ---- */
+
+LIBSSH2_API void
+libssh2_free(LIBSSH2_SESSION *session, void *ptr)
+{
+    LIBSSH2_FREE(session, ptr);
+}
 
 #ifdef LIBSSH2DEBUG
 LIBSSH2_API int

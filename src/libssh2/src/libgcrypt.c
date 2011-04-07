@@ -537,11 +537,11 @@ _libssh2_cipher_init(_libssh2_cipher_ctx * h,
 
     if (mode != GCRY_CIPHER_MODE_STREAM) {
         int blklen = gcry_cipher_get_algo_blklen(cipher);
-	if (mode == GCRY_CIPHER_MODE_CTR)
-	  ret = gcry_cipher_setctr(*h, iv, blklen);
-	else
-	  ret = gcry_cipher_setiv(*h, iv, blklen);
-	if (ret) {
+        if (mode == GCRY_CIPHER_MODE_CTR)
+            ret = gcry_cipher_setctr(*h, iv, blklen);
+        else
+            ret = gcry_cipher_setiv(*h, iv, blklen);
+        if (ret) {
             gcry_cipher_close(*h);
             return -1;
         }
@@ -570,6 +570,19 @@ _libssh2_cipher_crypt(_libssh2_cipher_ctx * ctx,
         ret = gcry_cipher_decrypt(*ctx, block, blklen, block, blklen);
     }
     return ret;
+}
+
+int
+_libssh2_pub_priv_keyfile(LIBSSH2_SESSION *session,
+                          unsigned char **method,
+                          size_t *method_len,
+                          unsigned char **pubkeydata,
+                          size_t *pubkeydata_len,
+                          const char *privatekey,
+                          const char *passphrase)
+{
+    return -1; /* not yet supported; interpreted by userauth.c to call
+                  libssh2_error */
 }
 
 #endif /* LIBSSH2_LIBGCRYPT */
