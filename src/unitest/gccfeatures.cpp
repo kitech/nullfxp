@@ -49,5 +49,10 @@ void gcc_feature_statements_and_declarations_in_expressions()
     printf("maxint of %d,%d is %d=?%d\n", la, lb, maxv, maxint_sd_express(lb, la));
     
     // 这代码就够复杂了，如果不知道这个扩展，看着也头晕。
+
+    // c++0x test
+#if ((__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)) && __GXX_EXPERIMENTAL_CXX0X__)
+#else
+#endif
 }
 
