@@ -33,13 +33,13 @@ SOURCES += agent.c \
         version.c \
         global.c \
         keepalive.c \
-        info.c 
+        ssh_info.c 
 
 HEADERS += libgcrypt.h \
         libssh2_config.h \
         libssh2_priv.h \
         openssl.h \
-        info.h
+        ssh_info.h
 
 win32 {
 	#SOURCES += libgcrypt.c

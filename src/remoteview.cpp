@@ -10,7 +10,7 @@
 #include <QtCore>
 #include <QtGui>
 
-#include "info.h"
+#include "ssh_info.h"
 
 #include "globaloption.h"
 #include "utils.h"

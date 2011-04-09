@@ -30,7 +30,7 @@
 
 #include "libssh2.h"
 #include "libssh2_sftp.h"
-#include "info.h"
+#include "ssh_info.h"
 
 #include "utils.h"
 #include "globaloption.h"

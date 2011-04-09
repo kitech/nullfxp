@@ -358,10 +358,10 @@ src/libssh2/configure -text
 src/libssh2/configure.in -text
 src/libssh2/depcomp -text
 src/libssh2/get_ver.awk -text
-src/libssh2/include/info.h -text
 src/libssh2/include/libssh2.h -text
 src/libssh2/include/libssh2_publickey.h -text
 src/libssh2/include/libssh2_sftp.h -text
+src/libssh2/include/ssh_info.h -text
 src/libssh2/install-sh -text
 src/libssh2/libssh2.pc.in -text
 src/libssh2/libssh2.pro -text
@@ -381,7 +381,6 @@ src/libssh2/src/crypt.c -text
 src/libssh2/src/crypto.h -text
 src/libssh2/src/global.c -text
 src/libssh2/src/hostkey.c -text
-src/libssh2/src/info.c -text
 src/libssh2/src/keepalive.c -text
 src/libssh2/src/kex.c -text
 src/libssh2/src/knownhost.c -text
@@ -407,6 +406,7 @@ src/libssh2/src/session.h -text
 src/libssh2/src/sftp.c -text
 src/libssh2/src/sftp.h -text
 src/libssh2/src/src.pro -text
+src/libssh2/src/ssh_info.c -text
 src/libssh2/src/stamp-h1 -text
 src/libssh2/src/transport.c -text
 src/libssh2/src/transport.h -text
