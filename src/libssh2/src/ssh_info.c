@@ -11,13 +11,14 @@
 
 #include "libssh2_priv.h"
 #include "mac.h"
+#include "sftp.h"
 
 #include "ssh_info.h"
 
 LIBSSH2_API 
 int libssh2_sftp_get_version(LIBSSH2_SFTP * sftp)
 {
-	// return sftp->version;	
+    return sftp->version;	
     return 0;
 }
 

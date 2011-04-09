@@ -551,13 +551,23 @@ void RemoteView::slot_rmdir()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     
-    // QItemSelectionModel *ism = this->curr_item_view->selectionModel();
+    QItemSelectionModel *ism = this->curr_item_view->selectionModel();
+    QModelIndex cidx, idx, pidx;
     
-    // if (ism == 0) {
-    //     qDebug()<<" why???? no QItemSelectionModel??";
-    //     QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
-    //     return ;
-    // }
+    if (ism == 0) {
+        qDebug()<<" why???? no QItemSelectionModel??";
+        QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
+        return ;
+    }
+
+    if (!ism->hasSelection()) {
+        qDebug()<<"selectedIndexes count :"<<ism->hasSelection()<<"why no item selected????";
+        QMessageBox::critical(this, tr("Waring..."), tr("No item selected"));
+        return;
+    }
+    
+    cidx = ism->currentIndex();
+    idx = ism->model()->index(cidx.row(), 0, cidx.parent());
     
     // QModelIndexList mil = ism->selectedIndexes();
     
@@ -567,29 +577,39 @@ void RemoteView::slot_rmdir()
     //     return;
     // }
     
-    // QModelIndex midx = mil.at(0);
-    // QModelIndex proxyIndex = midx;
-    // QModelIndex sourceIndex = (this->curr_item_view == this->uiw->treeView) 
-    //     ? this->m_treeProxyModel->mapToSource(midx)
-    //     : this->m_tableProxyModel->mapToSource(midx);    
+    QModelIndex midx = idx;
+    QModelIndex proxyIndex = midx;
+    QModelIndex sourceIndex = (this->curr_item_view == this->uiw->treeView) 
+        ? this->m_treeProxyModel->mapToSource(midx)
+        : this->m_tableProxyModel->mapToSource(midx);    
 
-    // QModelIndex useIndex = sourceIndex;
-    // QModelIndex parent_model = useIndex.parent();
-    // NetDirNode *parent_item = (NetDirNode*)parent_model.internalPointer();
+    QModelIndex useIndex = sourceIndex;
+    QModelIndex parent_model = useIndex.parent();
+    NetDirNode *parent_item = (NetDirNode*)parent_model.internalPointer();
     
-    // // check if the selected item is a directory
-    // if (this->remote_dir_model->isDir(useIndex)
-    //     || this->remote_dir_model->isSymLinkToDir(useIndex)) {
-    //     QPersistentModelIndex *persisIndex = new QPersistentModelIndex(parent_model);
-    //     this->remote_dir_model->slot_execute_command(parent_item, persisIndex, SSH2_FXP_RMDIR,
-    //                                                  this->remote_dir_model->fileName(useIndex));
-    // } else {
-    //     q_debug()<<"selected item is not a directory";
-    //     QMessageBox::critical(this, tr("Waring..."), 
-    //                           tr("Selected item is not a directory.\n\t%1")
-    //                           .arg(this->remote_dir_model->filePath(useIndex))
-    //                           .leftJustified(50, ' '));
-    // }
+    // check if the selected item is a directory
+    if (this->remote_dir_model->isDir(useIndex)
+        || this->remote_dir_model->isSymLinkToDir(useIndex)) {
+        QPersistentModelIndex *persisIndex = new QPersistentModelIndex(parent_model);
+        this->remote_dir_model->slot_execute_command(parent_item, persisIndex, SSH2_FXP_RMDIR,
+                                                     this->remote_dir_model->fileName(useIndex));
+    } else {
+        q_debug()<<"selected item is not a directory";
+        int btn = QMessageBox::critical(this, tr("Waring..."), 
+                                        tr("Selected item is not a directory.\n\t%1\n\n%2")
+                                        .arg(this->remote_dir_model->filePath(useIndex))
+                                        .arg(tr("Still remove it?"))
+                                        .leftJustified(50, ' '), 
+                                        QMessageBox::Yes, QMessageBox::Cancel);
+        if (btn == QMessageBox::Yes) {
+            QPersistentModelIndex *persisIndex = new QPersistentModelIndex(parent_model);
+            this->remote_dir_model->slot_execute_command(parent_item, persisIndex,
+                                                         SSH2_FXP_REMOVE,
+                                                         this->remote_dir_model->fileName(useIndex));
+        } else {
+            q_debug()<<"Cancel remove directory, it's really a file";
+        }
+    }
 }
 
 void RemoteView::rm_file_or_directory_recursively()

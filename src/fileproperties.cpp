@@ -343,28 +343,33 @@ void FileProperties::update_perm_table(QString file_perm)
 		QChar rp = file_perm.at(1);
 		QChar wp = file_perm.at(1+1);
 		QChar xp = file_perm.at(1+2);
+        QChar sp = file_perm.at(1+2);
 
 		this->ui_file_prop_dialog.checkBox->setChecked(rp=='r');
 		this->ui_file_prop_dialog.checkBox_2->setChecked(wp=='w');
-		this->ui_file_prop_dialog.checkBox_3->setChecked(xp=='x');
+		this->ui_file_prop_dialog.checkBox_3->setChecked(xp=='x'  || sp == 's');
+        this->ui_file_prop_dialog.checkBox_10->setChecked(sp == 'S' || sp == 's');
 	}
 	{
 		QChar rp = file_perm.at(4);
 		QChar wp = file_perm.at(4+1);
 		QChar xp = file_perm.at(4+2);
+        QChar sp = file_perm.at(4+2);
 
 		this->ui_file_prop_dialog.checkBox_4->setChecked(rp=='r');
 		this->ui_file_prop_dialog.checkBox_5->setChecked(wp=='w');
-		this->ui_file_prop_dialog.checkBox_6->setChecked(xp=='x');
+		this->ui_file_prop_dialog.checkBox_6->setChecked(xp=='x' || sp == 's');
+        this->ui_file_prop_dialog.checkBox_11->setChecked(sp == 'S' || sp == 's');
 	}
 	{
 		QChar rp = file_perm.at(7);
 		QChar wp = file_perm.at(7+1);
 		QChar xp = file_perm.at(7+2);
+
 		this->ui_file_prop_dialog.checkBox_7->setChecked(rp=='r');
 		this->ui_file_prop_dialog.checkBox_8->setChecked(wp=='w');
-		this->ui_file_prop_dialog.checkBox_9->setChecked(xp=='x');
-        this->ui_file_prop_dialog.checkBox_12->setChecked(xp=='t');
+		this->ui_file_prop_dialog.checkBox_9->setChecked(xp=='x' || xp == 'T');
+        this->ui_file_prop_dialog.checkBox_12->setChecked(xp=='t'  || xp == 'T');
 	}
 }
 

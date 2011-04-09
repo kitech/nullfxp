@@ -694,9 +694,9 @@ void SFTPView::rm_file_or_directory_recursively()
 
     bool firstWarning = true;
     for (int i = ism->model()->rowCount(pidx) - 1; i >= 0; --i) {
-      if (!ism->isRowSelected(i, pidx)) {
-	continue;
-      }
+        if (!ism->isRowSelected(i, pidx)) {
+            continue;
+        }
         QModelIndex midx = ism->model()->index(i, 0, pidx);
         QModelIndex proxyIndex = midx;
         QModelIndex sourceIndex = (this->curr_item_view == this->uiw->treeView)
