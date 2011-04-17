@@ -39,11 +39,12 @@
 
 // global init on start up
 static int gLibssh2Inited = libssh2_init(0);
+// TODO where to call libssh2_exit()
 
 /////
-static QMutex ssh2_kbd_cb_mutex ;
+static QMutex ssh2_kbd_cb_mutex;
 
-static char ssh2_password[60] ;
+static char ssh2_password[60];
 
 static void kbd_callback(const char *name, int name_len, 
                          const char *instruction, int instruction_len, int num_prompts,
@@ -245,13 +246,13 @@ int SSHConnection::initSocket()
     ret = ::connect(this->sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
     QTextCodec *codec = gOpt->locale_codec;
 
-    struct timeval timeo = {10, 0}; // setting connect timeout to 10 sec
+    struct timeval timeo = {5, 0}; // setting connect timeout to 10 sec
     fd_set set, rdset, exset;
     FD_ZERO(&set);
     FD_SET(this->sock, &set);
     rdset = set;
     exset = set;
-    ret = select(this->sock + 1, &rdset, &set, &exset, &timeo);
+    ret = ::select(this->sock + 1, &rdset, &set, &exset, &timeo);
 // #ifdef WIN32
 //     ret = select(this->sock + 1, &rdset, &set, &exset, &timeo);
 // #else
@@ -264,7 +265,7 @@ int SSHConnection::initSocket()
                                .arg(codec->toUnicode(QByteArray(strerror(errno)))));
         this->mErrorString = emsg;
         emit connect_state_changed(emsg);
-        qDebug()<<emsg;
+        qDebug()<<__FILE__<<__LINE__<<emsg;
         //assert( ret == 0 );
         return CONN_REFUSE;
     } else {
@@ -292,13 +293,13 @@ int SSHConnection::initSocket()
     sock_flag = 0;
     ret = ioctlsocket(this->sock, FIONBIO, &sock_flag);
     if (ret == SOCKET_ERROR) {
-    		qDebug()<<"win connect error";
-            QString emsg = QString("%1%2").arg(tr("Connect error: "))
-                .arg(codec->toUnicode(QByteArray(strerror(ret))));
-            this->mErrorString = emsg;
-    		emit connect_state_changed(emsg);
-            // this->connect_status = CONN_REFUSE ;
-            return CONN_REFUSE;
+        qDebug()<<__FILE__<<__LINE__<<"win connect error";
+        QString emsg = QString("%1%2").arg(tr("Connect error: "))
+            .arg(codec->toUnicode(QByteArray(strerror(ret))));
+        this->mErrorString = emsg;
+        emit connect_state_changed(emsg);
+        // this->connect_status = CONN_REFUSE ;
+        return CONN_REFUSE;
     }
 #else
     sock_flag = 0;
@@ -320,11 +321,41 @@ int SSHConnection::initSSHSession()
     int ret = -1;
 
     this->sess = libssh2_session_init();
+    assert(this->sess != NULL);
     libssh2_session_set_blocking(this->sess, 1);
-    libssh2_trace(this->sess, 64);
+    // libssh2_session_set_blocking(this->sess, 0);
+    
+    // libssh2_trace(this->sess, 64);
+    libssh2_trace(this->sess, LIBSSH2_TRACE_SOCKET | LIBSSH2_TRACE_TRANS
+                  | LIBSSH2_TRACE_KEX | LIBSSH2_TRACE_AUTH | LIBSSH2_TRACE_CONN
+                  | LIBSSH2_TRACE_SCP | LIBSSH2_TRACE_SFTP | LIBSSH2_TRACE_ERROR 
+                  | LIBSSH2_TRACE_PUBLICKEY);
 
+    switch (libssh2_session_block_directions(this->sess)) {
+    case LIBSSH2_SESSION_BLOCK_INBOUND:
+        qDebug()<<__FILE__<<__LINE__<<"in bound block";
+        break;
+    case LIBSSH2_SESSION_BLOCK_OUTBOUND:
+        qDebug()<<__FILE__<<__LINE__<<"out bound block";
+        break;
+    case LIBSSH2_SESSION_BLOCK_INBOUND | LIBSSH2_SESSION_BLOCK_OUTBOUND:
+        qDebug()<<__FILE__<<__LINE__<<"all in and out bound block";
+        break;
+    default:
+        qDebug()<<__FILE__<<__LINE__<<"unknown block direction";
+        break;
+    }
+
+    int restartup_times = 0;
+ restartup:
     ret = libssh2_session_startup(this->sess, this->sock);
     if (ret != 0) {
+        if (ret == LIBSSH2_ERROR_EAGAIN) {
+            // qDebug()<<__FILE__<<__LINE__<<"Maybe non-block mode, should again."<<restartup_times;
+            restartup_times ++;
+            // OK, but cpu load too hight
+            goto restartup;
+        }
         {
             char *emsg = 0;
             int  emsg_len = 0;
