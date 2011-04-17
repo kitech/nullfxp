@@ -38,6 +38,10 @@ private:
     int sshHomePath();
     QString get_server_env_vars(const char *cmd);
     QString libssh2SessionLastErrorString();
+
+private:
+    static int gLibssh2Inited;
+    static QAtomicInt gLibssh2UseCount;
 };
 
 #endif /* _SSHCONNECTION_H_ */

@@ -13,21 +13,25 @@
 #include <QtCore>
 #include <QtGui>
 
-#include "ui_encryptiondetaildialog.h"
+// #include "ui_encryptiondetaildialog.h"
+namespace Ui {
+    class EncryptionDetailDialog;
+};
 
 class EncryptionDetailDialog : public QDialog
 {
-Q_OBJECT
-  public:
-  EncryptionDetailDialog(char **server_info, QWidget * parent = 0, Qt::WindowFlags f = 0);
-  ~EncryptionDetailDialog();
+    Q_OBJECT;
+public:
+    EncryptionDetailDialog(char **server_info, QWidget *parent = 0, Qt::WindowFlags f = 0);
+    virtual ~EncryptionDetailDialog();
 
-  public slots:
-  void why();
- signals:
+public slots:
+    void why();
 
- private:
-  Ui::EncryptionDetailDialog ui_dlg;
+signals:
+
+private:
+    Ui::EncryptionDetailDialog *ui_dlg;
 };
 
 #endif

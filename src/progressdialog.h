@@ -29,7 +29,7 @@ class ProgressDialog : public QWidget
     Q_OBJECT;
 public:    
     ProgressDialog(QWidget *parent = 0);
-    ~ProgressDialog();
+    virtual ~ProgressDialog();
 
     void set_transfer_info(TaskPackage local_pkg, TaskPackage remote_pkg);
     
@@ -50,6 +50,7 @@ public slots:
 
 private slots:
     void slot_speed_timer_timeout();
+    void slot_refresh_ui_timer_timeout();
 
 signals:
     void transfer_finished(int status, QString errorString);
@@ -58,19 +59,22 @@ private:
     TaskPackage local_pkg;
     TaskPackage remote_pkg;
 
-    // TransferThread *sftp_transfer_thread;
     Transportor *transportor;
     bool   first_show;
     TaskQueueModel *taskQueueModel;
-    
+
+    quint64 total_transfered;
     quint64 total_files_size;
-    quint64 abtained_files_size;
+    quint64 total_abtained_size;
     int     total_files_count;
-    quint64     abtained_files_count;
+    quint64 abtained_files_count;
+    quint64 curr_file_size;
+    quint64 curr_abtained_size;
     int  transfer_speed;
     QDateTime start_time;
     QDateTime end_time;
     QTimer  time_cacl_timer;
+    QTimer  refresh_ui_timer; // random trigger internal, 300-1200
         
 private:    //UI element
     Ui::ProgressDialog *uiw; 
@@ -79,6 +83,7 @@ private:    //UI element
 private:
     void update_transfer_state();
     QString type(QString file_name);
+    inline int rand_intval() { return qrand() % 900 + 300; }
 
 protected:
     void closeEvent(QCloseEvent *event);

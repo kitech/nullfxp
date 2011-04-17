@@ -68,11 +68,18 @@ ProgressDialog::ProgressDialog(QWidget *parent)
     this->uiw->progressBar->setValue(0);
     this->total_files_size = 0;
     this->total_files_count = 0;
-    this->abtained_files_size = 0;
+    this->total_abtained_size = 0;
     this->abtained_files_count = 0;
+    this->transfer_speed = 0;
+
+    this->curr_file_size = 0;
+    this->curr_abtained_size = 0;
 
     this->time_cacl_timer.setInterval(1000*1);
     QObject::connect(&this->time_cacl_timer, SIGNAL(timeout()), this, SLOT(slot_speed_timer_timeout()));
+    
+    // this->refresh_ui_timer.setInterval(1000*1);
+    QObject::connect(&this->refresh_ui_timer, SIGNAL(timeout()), this, SLOT(slot_refresh_ui_timer_timeout()));
 }
 
 ProgressDialog::~ProgressDialog()
@@ -123,9 +130,11 @@ void ProgressDialog::set_transfer_info(TaskPackage local_pkg, TaskPackage remote
 void ProgressDialog::slot_set_transfer_percent(int percent, quint64 total_transfered, int transfer_delta)
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__; 
-    this->uiw->progressBar->setValue(percent);
-    this->uiw->lineEdit_5->setText(QString("%1").arg(total_transfered));
-    this->abtained_files_size += transfer_delta; //TODO no right logic, when resume file
+    // this->uiw->progressBar->setValue(percent);
+    // this->uiw->lineEdit_5->setText(QString("%1").arg(total_transfered));
+    this->total_transfered = total_transfered;
+    this->curr_abtained_size += transfer_delta;
+    this->total_abtained_size += transfer_delta; //TODO no right logic, when resume file
     if (percent == 100) {
         this->abtained_files_count += 1;
     }
@@ -133,18 +142,20 @@ void ProgressDialog::slot_set_transfer_percent(int percent, quint64 total_transf
         start_time = QDateTime::currentDateTime();
         transfer_speed = 0;
         this->time_cacl_timer.start();
+        this->refresh_ui_timer.start(this->rand_intval());
     } else {
-        end_time = QDateTime::currentDateTime();
-        if ((end_time.toTime_t()-start_time.toTime_t()) != 0) {
-            transfer_speed = this->abtained_files_size/(end_time.toTime_t() - start_time.toTime_t());
-        } else {
-            transfer_speed = this->abtained_files_size/1;
-        }
-        transfer_speed /= 1024;
+        // end_time = QDateTime::currentDateTime();
+        // if ((end_time.toTime_t()-start_time.toTime_t()) != 0) {
+        //     transfer_speed = this->abtained_files_size/(end_time.toTime_t() - start_time.toTime_t());
+        // } else {
+        //     transfer_speed = this->abtained_files_size/1;
+        // }
+        // transfer_speed /= 1024;
     }
-    this->update_transfer_state();
+    // this->update_transfer_state(); // by tick now
 
-    this->taskQueueModel->slot_set_transfer_percent(this->modelId, percent, this->abtained_files_size, this->transfer_speed);
+    // this->taskQueueModel->slot_set_transfer_percent(this->modelId, percent, this->abtained_files_size, this->transfer_speed);
+    // this->taskQueueModel->slot_set_transfer_percent(this->modelId, percent, this->curr_abtained_size, this->transfer_speed);
 }
 
 void ProgressDialog::slot_transfer_thread_finished()
@@ -237,13 +248,29 @@ void ProgressDialog::update_transfer_state()
     this->uiw->lineEdit_8->setText(QString("%1").arg(this->transfer_speed));
     this->uiw->lineEdit_9->setText(QString("%1").arg(this->abtained_files_count));
     this->uiw->lineEdit_10->setText(QString("%1").arg(this->total_files_count));
-    this->uiw->lineEdit_11->setText(QString("%1").arg(this->abtained_files_size));
+    this->uiw->lineEdit_11->setText(QString("%1").arg(this->total_abtained_size));
     this->uiw->lineEdit_12->setText(QString("%1").arg(this->total_files_size));
     if (this->total_files_size == 0) {
         this->uiw->progressBar_2->setValue(100);
     } else {
-        this->uiw->progressBar_2->setValue(100.0*((double)this->abtained_files_size/(double)this->total_files_size));
+        this->uiw->progressBar_2->setValue(100.0*((double)this->total_abtained_size/(double)this->total_files_size));
     }
+
+    end_time = QDateTime::currentDateTime();
+    if (start_time.secsTo(end_time) == 0) {
+        // transfer_speed = this->total_abtained_size/1;
+        transfer_speed = 0;
+    } else {
+        transfer_speed = this->total_abtained_size/start_time.secsTo(end_time);
+    }
+    transfer_speed /= 1024;
+
+    int percent = (this->total_files_size == 0) ? 0 : (this->total_abtained_size * 100 / this->total_files_size);
+    this->uiw->progressBar->setValue(percent);
+    this->uiw->lineEdit_5->setText(QString("%1").arg(total_transfered));
+
+    // pass update info to task queue backend
+    this->taskQueueModel->slot_set_transfer_percent(this->modelId, percent, this->curr_abtained_size, this->transfer_speed);
 }
 void ProgressDialog::slot_transfer_got_file_size(quint64 size)
 {
@@ -362,7 +389,7 @@ void ProgressDialog::slot_speed_timer_timeout()
 
     ////////////
     speed_value = this->transfer_speed * 1024;
-    left_size = total_files_size - abtained_files_size;
+    left_size = total_files_size - total_abtained_size;
 
     total_seconds = left_size/speed_value;
 
@@ -387,4 +414,10 @@ void ProgressDialog::slot_speed_timer_timeout()
     left_time_str = time_str;
     
     this->taskQueueModel->slot_transfer_time_update(this->modelId, eclapsed_time_str, left_time_str);
+}
+
+void ProgressDialog::slot_refresh_ui_timer_timeout()
+{
+    this->update_transfer_state();
+    this->refresh_ui_timer.setInterval(this->rand_intval());
 }

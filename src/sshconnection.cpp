@@ -38,7 +38,7 @@
 #include "sshconnection.h"
 
 // global init on start up
-static int gLibssh2Inited = libssh2_init(0);
+// static int gLibssh2Inited = libssh2_init(0);
 // TODO where to call libssh2_exit()
 
 /////
@@ -65,10 +65,21 @@ static void kbd_callback(const char *name, int name_len,
 } /* kbd_callback */
 
 
+// static 
+int SSHConnection::gLibssh2Inited = 0;
+QAtomicInt SSHConnection::gLibssh2UseCount = 0; // default is zero
+
 SSHConnection::SSHConnection(QObject *parent)
     : Connection(parent)
 {
     // qDebug()<<"gLibssh2Inited:"<<gLibssh2Inited;
+
+    // if (!this->gLibssh2Inited) {
+    if (this->gLibssh2UseCount.testAndSetOrdered(0, 1)) {
+        this->gLibssh2Inited = libssh2_init(0);
+    } else {
+        this->gLibssh2UseCount.ref();
+    }
 }
 SSHConnection::~SSHConnection()
 {
@@ -80,6 +91,12 @@ SSHConnection::~SSHConnection()
     if (this->qdsock != NULL) {
         delete this->qdsock;
         this->qdsock = NULL;
+    }
+
+    if (this->gLibssh2UseCount.deref() == false) {
+        libssh2_exit();
+        qDebug()<<"libssh2 exited because no one using this..";
+        fflush(stdout);
     }
 }
 
