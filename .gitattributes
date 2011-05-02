@@ -585,6 +585,8 @@ src/sftpfile.cpp -text
 src/sftpfile.h -text
 src/sftpview.cpp -text
 src/sftpview.h -text
+src/simplelog.cpp -text
+src/simplelog.h -text
 src/sqlite/sqlite3.c -text
 src/sqlite/sqlite3.h -text
 src/src.pro -text

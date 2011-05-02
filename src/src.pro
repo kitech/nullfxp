@@ -74,6 +74,7 @@ SOURCES += main.cpp \
  globaloption.cpp \
  globaloptionsdialog.cpp \
  utils.cpp \
+ simplelog.cpp \
  fileproperties.cpp \
  netdirsortfiltermodel.cpp \
  remoteviewdirtableview.cpp \
@@ -134,6 +135,7 @@ HEADERS += nullfxp.h \
  aboutnullfxp.h \
  globaloption.h \
  globaloptionsdialog.h \
+ simplelog.h \
  fileproperties.h \
  netdirsortfiltermodel.h \
  remoteviewdirtableview.h \
