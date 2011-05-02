@@ -13,21 +13,19 @@
 
 #include <QtCore>
 
-#include "boost/smart_ptr.hpp"
-
 class FileLog : public QObject
 {
     Q_OBJECT;
 public:
     virtual ~FileLog();
-    static boost::shared_ptr<FileLog> instance();
+    static FileLog* instance();
     QFile *stream();
 
 protected:
     explicit FileLog();
 
 private:
-    static boost::shared_ptr<FileLog> mInst;
+    static FileLog* mInst;
     QFile* mStream;
 };
 
