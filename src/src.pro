@@ -8,7 +8,7 @@
 # 
 
 TEMPLATE = app
-CONFIG += qt thread console warn_on ordered  
+CONFIG += qt thread console warn_on ordered
 TARGET = nullfxp
 DESTDIR = ../bin
 
@@ -28,6 +28,7 @@ win32 {
     QT -= webkit
 } else {
 	CONFIG += debug
+    CONFIG += link_pkgconfig
 }
 QT += network sql 
 
@@ -227,11 +228,23 @@ win32 {
 macx-g++ {
     # for mac os x
     LIBS += -lcurl
-    message("iooooooooooo")
 } else:linux-g++ {
-   message("hahahahhahaha")
-    LIBS += -Wl,-Bstatic -lcurl -lexpat -Wl,-Bdynamic -lssl -lcrypto -lfontconfig
-    LIBS += -lgnutls -lidn -ltasn1 -lgcrypt -lgpg-error
+    static_libcurl=$$system("pkg-config  --libs libcurl")
+    LIBS += -Wl,-Bstatic $$static_libcurl -lexpat
+    # LIBS += -Wl,-Bstatic -lcurl -lexpat 
+    # LIBS += -Wl,-Bdynamic -lssl -lcrypto -lfontconfig
+    # LIBS += -lgnutls -lidn -ltasn1 -lgcrypt -lgpg-error
+    LIBS += -Wl,-Bdynamic -lgnutls -lidn -lgcrypt
+    HAS_GSSAPI=$$find(static_libcurl,gssapi)
+    isEmpty(HAS_GSSAPI) {
+    } else {
+        LIBS += -lgssapi_krb5
+    }
+    HAS_LDAP=$$find(static_libcurl,ldap)
+    isEmpty(HAS_LDAP) {
+    } else {
+        LIBS += -lldap
+    }
 } else {
    # win32
    
