@@ -229,7 +229,7 @@ macx-g++ {
     # for mac os x
     LIBS += -lcurl
 } else:linux-g++ {
-    static_libcurl=$$system("pkg-config  --libs libcurl")
+    static_libcurl=$$system("pkg-config --static --libs libcurl")
     LIBS += -Wl,-Bstatic -lcurl -lexpat
     # LIBS += -Wl,-Bstatic -lcurl -lexpat 
     # LIBS += -Wl,-Bdynamic -lssl -lcrypto -lfontconfig
