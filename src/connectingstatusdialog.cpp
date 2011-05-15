@@ -25,6 +25,8 @@ ConnectingStatusDialog::ConnectingStatusDialog(QString user_name, QString host_n
     
     uiwin->setupUi(this);
     
+    this->uiwin->progressBar->setMinimum( 0 );
+    this->uiwin->progressBar->setMaximum( 0 );
     this->uiwin->progressBar->setValue(0);
     this->uiwin->lineEdit->setText(QString("%1@%2:%3")
                                    .arg(user_name).arg(host_name).arg(port));
