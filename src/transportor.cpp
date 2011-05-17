@@ -509,10 +509,13 @@ int Transportor::run_FILE_to_SFTP(QString srcFile, QString destFile)
                 this->errorString = QString(tr("Reach server quota limitation."));
                 goto sftp_error;
             }
-            Q_ASSERT(wlen == rlen);
-            if (wlen < rlen) {
-                q_debug()<<"Write to server less then need write bytes";
-                // TODO 这种情况应该尝试再次写入剩余的数据
+            if (wlen != rlen) {
+                if (wlen < rlen) {
+                    q_debug()<<"Write to server less then need write bytes";
+                    // TODO 这种情况应该尝试再次写入剩余的数据
+                }
+                Q_ASSERT(wlen == rlen);
+                // 应该return网络错误
             }
             tran_len += wlen ;
             

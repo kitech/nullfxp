@@ -12,7 +12,7 @@ CONFIG += qt thread console warn_on ordered
 TARGET = nullfxp
 DESTDIR = ../bin
 
-VERSION=2.1.1  # using in nullfxp-version.h
+VERSION=2.1.1.80  # using in nullfxp-version.h
 
 # install vars, unix xdg
 include(../install.pri)
@@ -203,6 +203,7 @@ win32 {
              LIBPATH += Z:/librarys/vc-ssl-x86/lib Z:/librarys/vc-zlib/static32   # depcreated
              QMAKE_LIBDIR += Z:/librarys/vc-ssl-x86/lib Z:/librarys/vc-zlib/static32
              LIBS += -lcurllib
+             LIBS += /NODEFAULTLIB:msvcrt.lib
         } else {
              LIBPATH += Z:/librarys/vc-ssl-x64/lib Z:/librarys/vc-zlib/staticx64 # depcreated
              QMAKE_LIBDIR += Z:/librarys/vc-ssl-x64/lib Z:/librarys/vc-zlib/staticx64
@@ -227,6 +228,8 @@ win32 {
 # WARNING: /home/gzleo/nullfxp-svn/src/src.pro:204: Variable TARGETDEPS is deprecated; use POST_TARGETDEPS instead.
 macx-g++ {
     # for mac os x
+    LIBS += -lcurl
+} else:freebsd-g++ {
     LIBS += -lcurl
 } else:linux-g++ {
     static_libcurl=$$system("pkg-config --static --libs libcurl")

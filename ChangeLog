@@ -1,4 +1,4 @@
-Version 2.1.1
+Version 2.1.1 (May 15, 2011)
 	* 减少快速网络传输CPU使用率。
 	* 彻底Windows 7 x64版本支持。
 	* 改进Windows版本的稳定性。
