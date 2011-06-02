@@ -12,7 +12,7 @@ CONFIG += qt thread console warn_on ordered
 TARGET = nullfxp
 DESTDIR = ../bin
 
-VERSION=2.1.1.80  # using in nullfxp-version.h
+VERSION=2.1.1.81  # using in nullfxp-version.h
 
 # install vars, unix xdg
 include(../install.pri)
@@ -226,14 +226,16 @@ win32 {
     TARGETDEPS += libssh2/src/libssh2.a            # depcreated
     POST_TARGETDEPS += libssh2/src/libssh2.a
 # WARNING: /home/gzleo/nullfxp-svn/src/src.pro:204: Variable TARGETDEPS is deprecated; use POST_TARGETDEPS instead.
-macx-g++ {
+macx-g++* {
     # for mac os x
     LIBS += -lcurl
-} else:freebsd-g++ {
+} else: freebsd-g++* {
     LIBS += -lcurl
-} else:linux-g++ {
+} else: linux-g++* {
     static_libcurl=$$system("pkg-config --static --libs libcurl")
+    message($$static_libcurl)
     LIBS += -Wl,-Bstatic -lcurl -lexpat
+    #LIBS += -lssh2 # ARCH Linux's curl already contains ssh2, and should explict it here 
     # LIBS += -Wl,-Bstatic -lcurl -lexpat 
     # LIBS += -Wl,-Bdynamic -lssl -lcrypto -lfontconfig
     # LIBS += -lgnutls -lidn -ltasn1 -lgcrypt -lgpg-error
@@ -248,10 +250,11 @@ macx-g++ {
     } else {
         LIBS += -lldap
     }
+} else: win32 {
 } else {
-   # win32
-   
+    message("Unsupported compile platform detected.")
 }
+
 # fix static compiled version cjk problem.
 exists($$[QT_INSTALL_PLUGINS]/codecs/libqcncodecs.a) {
     DEFINES += STATIC QT_STATICPLUGIN 
@@ -329,5 +332,5 @@ INSTALLS += target document icons osicons mimes tools menus mylib
 message($$[QT_INSTALL_PLUGINS])
 
 static {
-       message("execute pure static build.")
+    message("execute pure static build.")
 }
