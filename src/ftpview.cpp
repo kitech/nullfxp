@@ -238,7 +238,7 @@ void FTPView::slot_new_transfer()
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     QModelIndex cidx, idx, pidx;
     if (ism == 0) {
-        QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));
+        QMessageBox::critical(this, tr("Warning..."), tr("Maybe you haven't connected"));
         return;
     }
     if (!ism->hasSelection()) {
@@ -295,7 +295,7 @@ QString FTPView::get_selected_directory()
     QModelIndex cidx, idx, pidx;
     
     if (ism == 0) {
-        QMessageBox::critical(this, tr("Waring..."),
+        QMessageBox::critical(this, tr("Warning..."),
                               tr("Maybe you haven't connected"));                
         return file_path;
     }
@@ -350,7 +350,7 @@ QPair<QString, QString> FTPView::get_selected_directory(bool pair)
     QModelIndex cidx, idx, pidx;
     
     if (ism == 0) {
-        QMessageBox::critical(this, tr("Waring..."),
+        QMessageBox::critical(this, tr("Warning..."),
                               tr("Maybe you haven't connected"));                
         return file_path;
     }
@@ -637,19 +637,19 @@ void FTPView::slot_mkdir()
     
     if (ism == 0) {
         qDebug()<<"why???? no QItemSelectionModel??";
-        QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
+        QMessageBox::critical(this, tr("Warning..."), tr("Maybe you haven't connected"));                
         return;
     }
     
     // QModelIndexList mil = ism->selectedIndexes();
     // if (mil.count() == 0) {
     //     qDebug()<<"selectedIndexes count :"<<mil.count()<<" why no item selected????";
-    //     QMessageBox::critical(this, tr("Waring..."), tr("No item selected"));
+    //     QMessageBox::critical(this, tr("Warning..."), tr("No item selected"));
     //     return;
     // }
     if (!ism->hasSelection()) {
         qDebug()<<"selectedIndexes count :"<<ism->hasSelection()<<" why no item selected????";
-        QMessageBox::critical(this, tr("Waring..."), tr("No item selected"));
+        QMessageBox::critical(this, tr("Warning..."), tr("No item selected"));
         return;
     }
     
@@ -695,19 +695,19 @@ void FTPView::rm_file_or_directory_recursively()
     
     if (ism == 0) {
         qDebug()<<"why???? no QItemSelectionModel??";
-        QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
+        QMessageBox::critical(this, tr("Warning..."), tr("Maybe you haven't connected"));                
         return;
     }
     
     // QModelIndexList mil = ism->selectedIndexes();
     // if (mil.count() == 0) {
     //     qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
-    //     QMessageBox::critical(this, tr("Waring..."), tr("No item selected"));
+    //     QMessageBox::critical(this, tr("Warning..."), tr("No item selected"));
     //     return;
     // }
     if (!ism->hasSelection()) {
         qDebug()<<" selectedIndexes count :"<< ism->hasSelection() << " why no item selected????";
-        QMessageBox::critical(this, tr("Waring..."), tr("No item selected"));
+        QMessageBox::critical(this, tr("Warning..."), tr("No item selected"));
         return;
     }
 
@@ -824,19 +824,19 @@ void FTPView::slot_copy_path()
     
     if (ism == 0) {
         qDebug()<<"why???? no QItemSelectionModel??";
-        QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));
+        QMessageBox::critical(this, tr("Warning..."), tr("Maybe you haven't connected"));
         return;
     }
     
     // QModelIndexList mil = ism->selectedIndexes();
     // if (mil.count() == 0) {
     //     qDebug()<<"selectedIndexes count :"<<mil.count()<<"why no item selected????";
-    //     QMessageBox::critical(this, tr("Waring..."), tr("No item selected").leftJustified(50, ' '));
+    //     QMessageBox::critical(this, tr("Warning..."), tr("No item selected").leftJustified(50, ' '));
     //     return;
     // }
     if (!ism->hasSelection()) {
         qDebug()<<"selectedIndexes count :"<<ism->hasSelection()<<"why no item selected????";
-        QMessageBox::critical(this, tr("Waring..."), tr("No item selected").leftJustified(50, ' '));
+        QMessageBox::critical(this, tr("Warning..."), tr("No item selected").leftJustified(50, ' '));
         return;
     }
     
@@ -859,19 +859,19 @@ void FTPView::slot_copy_url()
 
     if (ism == 0) {
         qDebug()<<" why???? no QItemSelectionModel??";
-        QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));
+        QMessageBox::critical(this, tr("Warning..."), tr("Maybe you haven't connected"));
         return ;
     }
     
     // QModelIndexList mil = ism->selectedIndexes();
     // if (mil.count() == 0) {
     //     qDebug()<<"selectedIndexes count :"<<mil.count()<<" why no item selected????";
-    //     QMessageBox::critical(this, tr("Waring..."), tr("No item selected").leftJustified(50, ' '));
+    //     QMessageBox::critical(this, tr("Warning..."), tr("No item selected").leftJustified(50, ' '));
     //     return;
     // }
     if (!ism->hasSelection()) {
         qDebug()<<"selectedIndexes count :"<<ism->hasSelection()<<" why no item selected????";
-        QMessageBox::critical(this, tr("Waring..."), tr("No item selected").leftJustified(50, ' '));
+        QMessageBox::critical(this, tr("Warning..."), tr("No item selected").leftJustified(50, ' '));
         return;
     }
 
@@ -920,7 +920,7 @@ void FTPView::slot_new_upload_requested(TaskPackage local_pkg)
     // 在向根目录传文件时，这个检测是有问题的。 fullPath="/"  path=""
     if (remote__fileName.first.length() == 0
         && remote__fileName.second.length() == 0) {
-        QMessageBox::critical(this, tr("Waring..."),
+        QMessageBox::critical(this, tr("Warning..."),
                               tr("you should selecte a remote file directory."));
     } else {
         remote_pkg.files<<remote__fileName.first;

@@ -296,7 +296,7 @@ void RemoteView::slot_new_transfer()
     // QModelIndex cidx, idx;
 
     // if (ism == 0) {
-    //     QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));
+    //     QMessageBox::critical(this, tr("Warning..."), tr("Maybe you haven't connected"));
     //     return;
     // }
     
@@ -329,7 +329,7 @@ QString RemoteView::get_selected_directory()
     // QItemSelectionModel *ism = this->uiw->treeView->selectionModel();
     
     // if (ism == 0) {
-    //     QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
+    //     QMessageBox::critical(this, tr("Warning..."), tr("Maybe you haven't connected"));                
     //     return file_path;
     // }
     
@@ -507,7 +507,7 @@ void RemoteView::slot_mkdir()
     
     // if (ism == 0) {
     //     qDebug()<<" why???? no QItemSelectionModel??";
-    //     QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
+    //     QMessageBox::critical(this, tr("Warning..."), tr("Maybe you haven't connected"));                
     //     return ;
     // }
     
@@ -515,7 +515,7 @@ void RemoteView::slot_mkdir()
     
     // if (mil.count() == 0) {
     //     qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
-    //     QMessageBox::critical(this, tr("Waring..."), tr("No item selected"));
+    //     QMessageBox::critical(this, tr("Warning..."), tr("No item selected"));
     //     return ;
     // }
     
@@ -556,13 +556,13 @@ void RemoteView::slot_rmdir()
     
     if (ism == 0) {
         qDebug()<<" why???? no QItemSelectionModel??";
-        QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
+        QMessageBox::critical(this, tr("Warning..."), tr("Maybe you haven't connected"));                
         return ;
     }
 
     if (!ism->hasSelection()) {
         qDebug()<<"selectedIndexes count :"<<ism->hasSelection()<<"why no item selected????";
-        QMessageBox::critical(this, tr("Waring..."), tr("No item selected"));
+        QMessageBox::critical(this, tr("Warning..."), tr("No item selected"));
         return;
     }
     
@@ -573,7 +573,7 @@ void RemoteView::slot_rmdir()
     
     // if (mil.count() == 0) {
     //     qDebug()<<"selectedIndexes count:"<<mil.count()<<"why no item selected????";
-    //     QMessageBox::critical(this, tr("Waring..."), tr("No item selected").leftJustified(50, ' '));
+    //     QMessageBox::critical(this, tr("Warning..."), tr("No item selected").leftJustified(50, ' '));
     //     return;
     // }
     
@@ -595,7 +595,7 @@ void RemoteView::slot_rmdir()
                                                      this->remote_dir_model->fileName(useIndex));
     } else {
         q_debug()<<"selected item is not a directory";
-        int btn = QMessageBox::critical(this, tr("Waring..."), 
+        int btn = QMessageBox::critical(this, tr("Warning..."), 
                                         tr("Selected item is not a directory.\n\t%1\n\n%2")
                                         .arg(this->remote_dir_model->filePath(useIndex))
                                         .arg(tr("Still remove it?"))
@@ -620,7 +620,7 @@ void RemoteView::rm_file_or_directory_recursively()
     
     // if (ism == 0) {
     //     qDebug()<<"why???? no QItemSelectionModel??";
-    //     QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
+    //     QMessageBox::critical(this, tr("Warning..."), tr("Maybe you haven't connected"));                
     //     return;
     // }
     
@@ -628,7 +628,7 @@ void RemoteView::rm_file_or_directory_recursively()
     
     // if (mil.count() == 0) {
     //     qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
-    //     QMessageBox::critical(this, tr("Waring..."), tr("No item selected"));
+    //     QMessageBox::critical(this, tr("Warning..."), tr("No item selected"));
     //     return;
     // }
     // //TODO 处理多选的情况
@@ -675,7 +675,7 @@ void RemoteView::slot_copy_path()
     
     // if (ism == 0) {
     //     qDebug()<<"why???? no QItemSelectionModel??";
-    //     QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));
+    //     QMessageBox::critical(this, tr("Warning..."), tr("Maybe you haven't connected"));
     //     return;
     // }
     
@@ -683,7 +683,7 @@ void RemoteView::slot_copy_path()
     
     // if (mil.count() == 0) {
     //     qDebug()<<"selectedIndexes count :"<< mil.count() << " why no item selected????";
-    //     QMessageBox::critical(this, tr("Waring..."), tr("No item selected").leftJustified(50, ' '));
+    //     QMessageBox::critical(this, tr("Warning..."), tr("No item selected").leftJustified(50, ' '));
     //     return;
     // }
     
@@ -702,7 +702,7 @@ void RemoteView::slot_copy_url()
     
     // if (ism == 0) {
     //     qDebug()<<"why???? no QItemSelectionModel??";
-    //     QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));
+    //     QMessageBox::critical(this, tr("Warning..."), tr("Maybe you haven't connected"));
     //     return;
     // }
     
@@ -710,7 +710,7 @@ void RemoteView::slot_copy_url()
     
     // if (mil.count() == 0) {
     //     qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
-    //     QMessageBox::critical(this, tr("Waring..."), tr("No item selected").leftJustified(50, ' '));
+    //     QMessageBox::critical(this, tr("Warning..."), tr("No item selected").leftJustified(50, ' '));
     //     return;
     // }
     
@@ -752,7 +752,7 @@ void RemoteView::slot_new_upload_requested(TaskPackage local_pkg)
     remote_file_name = remote_view->get_selected_directory();    
 
     if (remote_file_name.length() == 0) {
-        QMessageBox::critical(this, tr("Waring..."), tr("you should selecte a remote file directory."));
+        QMessageBox::critical(this, tr("Warning..."), tr("you should selecte a remote file directory."));
     } else {
         remote_pkg.files<<remote_file_name;
 

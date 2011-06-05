@@ -23,7 +23,6 @@
 #endif
 
 #ifdef WIN32
-//#include <windows.h>
 #include <winsock2.h>
 #endif
 
@@ -33,7 +32,7 @@
 #include <QtCore>
 
 #if defined(__WIN32__) || defined(_WIN32)
-//#       include <winsock.h>
+#include <winsock2.h>
         // Stuff for Visual C++ only
 #       if defined(_MSC_VER)
 #               define snprintf _snprintf

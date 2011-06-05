@@ -477,7 +477,7 @@ void LocalView::slot_mkdir()
     if (ism == 0 || !ism->hasSelection()) {
         // qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
         qDebug()<<" selectedIndexes count :"<< ism->hasSelection() << " why no item selected????";
-        QMessageBox::critical(this, tr("Waring..."), tr("No item selected"));
+        QMessageBox::critical(this, tr("Warning..."), tr("No item selected"));
         return;
     }
 
@@ -492,7 +492,7 @@ void LocalView::slot_mkdir()
 
     //检查所选择的项是不是目录
     if (!this->model->isDir(aim_midx)) {
-        QMessageBox::critical(this, tr("Waring..."), tr("The selected item is not a directory."));
+        QMessageBox::critical(this, tr("Warning..."), tr("The selected item is not a directory."));
         return ;
     }
     
@@ -505,12 +505,12 @@ void LocalView::slot_mkdir()
     if (dir_name.length () == 0) {
         // qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
         qDebug()<<" selectedIndexes count :"<< ism->hasSelection() << " why no item selected????";
-        QMessageBox::critical(this, tr("Waring..."), tr("No directory name supplyed."));
+        QMessageBox::critical(this, tr("Warning..."), tr("No directory name supplyed."));
         return;
     }
 
     if (!QDir().mkdir(this->model->filePath(aim_midx) + "/" + dir_name)) {
-        QMessageBox::critical(this, tr("Waring..."), tr("Create directory faild."));
+        QMessageBox::critical(this, tr("Warning..."), tr("Create directory faild."));
     } else {
         this->slot_refresh_directory_tree();
     }
@@ -552,25 +552,48 @@ void LocalView::slot_rmdir()
     QModelIndex tree_midx = this->dir_file_model->mapFromSource(aim_midx);
     QModelIndex pidx = aim_midx.parent();
     int it_row = tree_midx.row();
+    QModelIndex nidx = tree_midx.parent();
+    QString next_select_path;
+    
+    if (this->dir_file_model->rowCount(nidx) == 1) {
+        // goto parent 
+        next_select_path = this->dir_file_model->filePath(nidx);
+    } else if (it_row == this->dir_file_model->rowCount(nidx)-1) {
+        // goto privious
+        next_select_path = this->dir_file_model->filePath(this->dir_file_model->index(it_row-1, 0, nidx));
+    } else if (it_row > this->dir_file_model->rowCount(nidx)-1) {
+        // not possible
+    } else if (it_row < this->dir_file_model->rowCount(nidx)-1) {
+        // goto next
+        next_select_path = this->dir_file_model->filePath(this->dir_file_model->index(it_row+1, 0, nidx));
+    } else {
+        // not possible
+    }
+
+    Q_ASSERT(!next_select_path.isEmpty());
+    
     if (this->model->rmdir(aim_midx)) {
         if (this->curr_item_view == this->uiw->treeView) {
             // this->slot_dir_tree_item_clicked(tree_midx.parent());
             // A: if has next sible, will select next sible
             // B: if has priv sible, will select privious sible
             // C: if no next and no priv, will select parent 
-            // QModelIndex nidx = this->dir_file_model->mapFromSource(pidx);
-            // if (this->dir_file_model->rowCount(nidx) == 0) {
-            //     qDebug()<<"aaaaaaaaaaa";
-            //     this->slot_dir_tree_item_clicked(nidx);
-            // } else if (it_row < (this->dir_file_model->rowCount(nidx) - 1)) {
-            //     idx = this->dir_file_model->index(it_row, 0, nidx);
-            //     qDebug()<<"bbbbbbbbbbbbbbbbbbb"<<idx<<this->dir_file_model->filePath(idx);
-            //     this->slot_dir_tree_item_clicked(idx);
-            // } else {
-            //     qDebug()<<"ccccccccccccccccccccc";
-            //     idx = this->dir_file_model->index(it_row, 0, nidx);
-            //     this->slot_dir_tree_item_clicked(idx);
-            // }
+
+            // ism = this->curr_item_view->selectionModel();
+            idx = ism->currentIndex();
+            qDebug()<<idx<<this->dir_file_model->filePath(idx);
+
+            // set selection and go on
+            ism->clearSelection();
+            QItemSelection *selection = new QItemSelection();
+                                                           
+            // ism->select(this->dir_file_model->index(next_select_path), QItemSelectionModel::Select | QItemSelectionModel::Current  | QItemSelectionModel::Rows);
+            ism->setCurrentIndex(this->dir_file_model->index(next_select_path), QItemSelectionModel::Select | QItemSelectionModel::Current  | QItemSelectionModel::Rows);
+
+            idx = ism->currentIndex();
+            qDebug()<<idx<<this->dir_file_model->filePath(idx);
+
+            this->slot_dir_tree_item_clicked(this->dir_file_model->index(next_select_path));
         }
     } else {
         QMessageBox::critical(this, tr("Warning..."),
@@ -578,7 +601,7 @@ void LocalView::slot_rmdir()
     }
 
     // if (!QDir().rmdir(this->model->filePath(aim_midx))) {
-    //     QMessageBox::critical(this, tr("Waring..."), tr("Delete directory faild. Mayby the directory is not empty."));
+    //     QMessageBox::critical(this, tr("Warning..."), tr("Delete directory faild. Mayby the directory is not empty."));
     // } else {
     //     this->slot_refresh_directory_tree();
     // }
@@ -591,7 +614,7 @@ void LocalView::slot_remove()
     QModelIndex cidx, idx;
 
     if (ism == 0 || !ism->hasSelection()) {
-        QMessageBox::critical(this, tr("Waring..."), tr("No item selected").leftJustified(50, ' '));
+        QMessageBox::critical(this, tr("Warning..."), tr("No item selected").leftJustified(50, ' '));
         return;
     }
     // mil = ism->selectedIndexes();
@@ -656,7 +679,7 @@ void LocalView::slot_rename()
     QModelIndex cidx, idx;
 
     if (ism == 0 || !ism->hasSelection()) {
-        QMessageBox::critical(this, tr("Waring..."),
+        QMessageBox::critical(this, tr("Warning..."),
                               tr("No item selected").leftJustified(60, ' '));
         return;
     }
@@ -676,11 +699,11 @@ void LocalView::slot_rename()
      
     if (rename_to  == QString::null) {
         //qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
-        //QMessageBox::critical(this,tr("Waring..."),tr("No new name supplyed "));
+        //QMessageBox::critical(this,tr("Warning..."),tr("No new name supplyed "));
         return;
     }
     if (rename_to.length() == 0) {
-        QMessageBox::critical(this, tr("Waring..."), tr("No new name supplyed "));
+        QMessageBox::critical(this, tr("Warning..."), tr("No new name supplyed "));
         return;
     }
     q_debug()<<rename_to<<local_file<<this->curr_item_view<<file_name;
@@ -688,10 +711,10 @@ void LocalView::slot_rename()
     QString file_path = local_file.left(local_file.length()-file_name.length());
     rename_to = file_path + rename_to;
 
-    // 为什么用这个函数,直接用qt的函数不好吗
     if (!QFile::rename(local_file, rename_to)) {
         q_debug()<<"file rename faild";
     }
+    // 为什么用这个函数,直接用qt的函数不好吗
     // ::rename(codec->fromUnicode(local_file).data(), codec->fromUnicode(rename_to).data());
     
     this->slot_refresh_directory_tree();

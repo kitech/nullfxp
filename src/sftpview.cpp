@@ -244,7 +244,7 @@ void SFTPView::slot_new_transfer()
     QModelIndex cidx, idx, pidx;
 
     if (ism == 0) {
-        QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));
+        QMessageBox::critical(this, tr("Warning..."), tr("Maybe you haven't connected"));
         return;
     }
     if (!ism->hasSelection()) {
@@ -300,7 +300,7 @@ QString SFTPView::get_selected_directory()
     QModelIndex cidx, idx, pidx;
     
     if (ism == 0) {
-        QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
+        QMessageBox::critical(this, tr("Warning..."), tr("Maybe you haven't connected"));                
         return QString();
     }
 
@@ -605,13 +605,13 @@ void SFTPView::slot_mkdir()
     
     if (ism == 0) {
         qDebug()<<"why???? no QItemSelectionModel??";
-        QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
+        QMessageBox::critical(this, tr("Warning..."), tr("Maybe you haven't connected"));                
         return;
     }
 
     if (!ism->hasSelection()) {
         qDebug()<<"selectedIndexes count :"<<ism->hasSelection()<<"why no item selected????";
-        QMessageBox::critical(this, tr("Waring..."), tr("No item selected"));
+        QMessageBox::critical(this, tr("Warning..."), tr("No item selected"));
         return;
     }
     
@@ -622,7 +622,7 @@ void SFTPView::slot_mkdir()
     
     // if (mil.count() == 0) {
     //     qDebug()<<"selectedIndexes count :"<<mil.count()<<"why no item selected????";
-    //     QMessageBox::critical(this, tr("Waring..."), tr("No item selected"));
+    //     QMessageBox::critical(this, tr("Warning..."), tr("No item selected"));
     //     return;
     // }
     
@@ -671,7 +671,7 @@ void SFTPView::rm_file_or_directory_recursively()
     
     if (ism == 0) {
         qDebug()<<"why???? no QItemSelectionModel??";
-        QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));                
+        QMessageBox::critical(this, tr("Warning..."), tr("Maybe you haven't connected"));                
         return;
     }
     
@@ -679,13 +679,13 @@ void SFTPView::rm_file_or_directory_recursively()
     
     // if (mil.count() == 0) {
     //     qDebug()<<"selectedIndexes count:"<<mil.count()<<"why no item selected????";
-    //     QMessageBox::critical(this, tr("Waring..."), tr("No item selected"));
+    //     QMessageBox::critical(this, tr("Warning..."), tr("No item selected"));
     //     return;
     // }
 
     if (!ism->hasSelection()) {
         qDebug()<<"selectedIndexes count:"<<ism->hasSelection()<<"why no item selected????";
-        QMessageBox::critical(this, tr("Waring..."), tr("No item selected"));
+        QMessageBox::critical(this, tr("Warning..."), tr("No item selected"));
         return;
     }
 
@@ -807,19 +807,19 @@ void SFTPView::slot_copy_path()
     
     if (ism == 0) {
         qDebug()<<"why???? no QItemSelectionModel??";
-        QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));
+        QMessageBox::critical(this, tr("Warning..."), tr("Maybe you haven't connected"));
         return;
     }
     
     // QModelIndexList mil = ism->selectedIndexes();
     // if (mil.count() == 0) {
     //     qDebug()<<"selectedIndexes count :"<< mil.count() << " why no item selected????";
-    //     QMessageBox::critical(this, tr("Waring..."), tr("No item selected").leftJustified(50, ' '));
+    //     QMessageBox::critical(this, tr("Warning..."), tr("No item selected").leftJustified(50, ' '));
     //     return;
     // }
     if (!ism->hasSelection()) {
         qDebug()<<"selectedIndexes count :"<< ism->hasSelection() << " why no item selected????";
-        QMessageBox::critical(this, tr("Waring..."), tr("No item selected").leftJustified(50, ' '));
+        QMessageBox::critical(this, tr("Warning..."), tr("No item selected").leftJustified(50, ' '));
         return;
     }
     
@@ -843,19 +843,19 @@ void SFTPView::slot_copy_url()
 
     if (ism == 0) {
         qDebug()<<"why???? no QItemSelectionModel??";
-        QMessageBox::critical(this, tr("Waring..."), tr("Maybe you haven't connected"));
+        QMessageBox::critical(this, tr("Warning..."), tr("Maybe you haven't connected"));
         return;
     }
     
     // QModelIndexList mil = ism->selectedIndexes();
     // if (mil.count() == 0) {
     //     qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";
-    //     QMessageBox::critical(this, tr("Waring..."), tr("No item selected").leftJustified(50, ' '));
+    //     QMessageBox::critical(this, tr("Warning..."), tr("No item selected").leftJustified(50, ' '));
     //     return;
     // }
     if (!ism->hasSelection()) {
         qDebug()<<" selectedIndexes count :"<< ism->hasSelection() << " why no item selected????";
-        QMessageBox::critical(this, tr("Waring..."), tr("No item selected").leftJustified(50, ' '));
+        QMessageBox::critical(this, tr("Warning..."), tr("No item selected").leftJustified(50, ' '));
         return;
     }
 
@@ -903,7 +903,7 @@ void SFTPView::slot_new_upload_requested(TaskPackage local_pkg)
     remote__fileName = remote_view->get_selected_directory();    
 
     if (remote__fileName.length() == 0) {
-        QMessageBox::critical(this, tr("Waring..."), tr("you should selecte a remote file directory."));
+        QMessageBox::critical(this, tr("Warning..."), tr("you should selecte a remote file directory."));
     } else {
         remote_pkg.files<<remote__fileName;
 
