@@ -531,11 +531,9 @@ void LocalView::slot_rmdir()
     }    
     
     // mil = ism->selectedIndexes();
-
     cidx = ism->currentIndex();
     idx = ism->model()->index(cidx.row(), 0, cidx.parent());
     
-    // QModelIndex midx = mil.at(0);
     QModelIndex midx = idx;
     QModelIndex aim_midx = (this->curr_item_view == this->uiw->treeView) 
         ? this->dir_file_model->mapToSource(midx): midx;
@@ -578,14 +576,50 @@ void LocalView::slot_remove()
     QString local_file = this->curr_item_view==this->uiw->treeView
         ? this->dir_file_model->filePath(idx) : this->model->filePath(idx);
 
-    if (QMessageBox::question(this, tr("Question..."), 
-                             QString("%1\n\t%2").arg(QString(tr("Are you sure remove it?"))).arg(local_file),
-                             QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes) {
-        if (QFile::remove(local_file)) {
-            this->slot_refresh_directory_tree();    
-        } else {
-            q_debug()<<"can not remove file:"<<local_file;
+    QStringList local_files;
+    for (int i = ism->model()->rowCount(cidx.parent())-1; i >= 0; --i) {
+        idx = ism->model()->index(i, 0, cidx.parent());
+        if (ism->isRowSelected(i, cidx.parent())) {
+            local_file = this->curr_item_view==this->uiw->treeView
+                ? this->dir_file_model->filePath(idx) : this->model->filePath(idx);
+            local_files.prepend(local_file);
         }
+    }
+
+    if (QMessageBox::question(this, tr("Question..."), 
+                             QString("%1\n    %2").arg(QString(tr("Are you sure remove it?")))
+                              .arg(local_files.join("\n    ")),
+                             QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes) {
+
+        bool bok;
+        for (int i = ism->model()->rowCount(cidx.parent())-1; i >= 0; --i) {
+            idx = ism->model()->index(i, 0, cidx.parent());
+            if (ism->isRowSelected(i, cidx.parent())) {
+                idx = ism->model()->index(i, 0, cidx.parent());
+                if (ism->model() == this->model ?
+                    this->model->isDir(idx) : this->model->isDir(idx)) {
+                    bok = ism->model() == this->model ?
+                        this->model->rmdir(idx) : this->model->rmdir(idx);
+                } else {
+                    bok = ism->model() == this->model ?
+                        this->model->remove(idx) : this->model->remove(idx);
+                }
+
+                if (bok) {
+                    // this->slot_refresh_directory_tree();
+                } else {
+                    local_file = this->curr_item_view==this->uiw->treeView
+                        ? this->dir_file_model->filePath(idx) : this->model->filePath(idx);
+                    q_debug()<<"can not remove file/direcotry:"<<i<<local_file;
+                }
+            }
+        }
+
+        // if (QFile::remove(local_file)) {
+        //     this->slot_refresh_directory_tree();    
+        // } else {
+        //     q_debug()<<"can not remove file:"<<local_file;
+        // }
     }
 }
 

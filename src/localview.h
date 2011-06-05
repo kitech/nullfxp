@@ -32,7 +32,7 @@ class LocalView : public QWidget
     Q_OBJECT;
 public:
     LocalView(QWidget *parent = 0);
-    ~LocalView();
+    virtual ~LocalView();
 
     QString get_selected_directory();    
     void update_layout();
