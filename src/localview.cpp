@@ -497,7 +497,7 @@ void LocalView::slot_mkdir()
     }
     
     dir_name = QInputDialog::getText(this, tr("Create directory:"),
-                                     tr("Input directory name:").leftJustified(100, ' '),
+                                     tr("Input directory name:").leftJustified(80, ' '),
                                      QLineEdit::Normal, tr("new_direcotry"));
     if (dir_name == QString::null) {
         return ;
@@ -525,8 +525,8 @@ void LocalView::slot_rmdir()
     QModelIndex cidx, idx;
 
     if (ism == 0 || !ism->hasSelection()) {
-        qDebug()<<" selectedIndexes count :"<< ism->hasSelection() << " why no item selected????";
-        QMessageBox::critical(this, tr("Waring..."), tr("No item selected"));
+        qDebug()<<"SelectedIndexes count :"<< ism->hasSelection() << " why no item selected????";
+        QMessageBox::critical(this, tr("Warning..."), tr("No item selected"));
         return;
     }    
     
@@ -540,23 +540,48 @@ void LocalView::slot_rmdir()
 
     //检查所选择的项是不是目录
     if (!this->model->isDir(aim_midx)) {
-        QMessageBox::critical(this, tr("Waring..."), tr("The selected item is not a directory."));
+        QMessageBox::critical(this, tr("Warning..."), tr("The selected item is not a directory."));
         return ;
     }
-    qDebug()<<QDir(this->model->filePath(aim_midx)).count();
+    // qDebug()<<QDir(this->model->filePath(aim_midx)).count();
     if (QDir(this->model->filePath(aim_midx)).count() > 2) {
-        QMessageBox::critical(this, tr("Waring..."), tr("Selected director not empty."));
+        QMessageBox::critical(this, tr("Warning..."), tr("Selected director not empty."));
         return;
     }
-    if (!QDir().rmdir(this->model->filePath(aim_midx))) {
-        QMessageBox::critical(this, tr("Waring..."), tr("Delete directory faild. Mayby the directory is not empty."));
-    } else {
+
+    QModelIndex tree_midx = this->dir_file_model->mapFromSource(aim_midx);
+    QModelIndex pidx = aim_midx.parent();
+    int it_row = tree_midx.row();
+    if (this->model->rmdir(aim_midx)) {
         if (this->curr_item_view == this->uiw->treeView) {
-            QModelIndex tree_midx = this->dir_file_model->mapFromSource(aim_midx);
-            this->slot_dir_tree_item_clicked(tree_midx.parent());
+            // this->slot_dir_tree_item_clicked(tree_midx.parent());
+            // A: if has next sible, will select next sible
+            // B: if has priv sible, will select privious sible
+            // C: if no next and no priv, will select parent 
+            // QModelIndex nidx = this->dir_file_model->mapFromSource(pidx);
+            // if (this->dir_file_model->rowCount(nidx) == 0) {
+            //     qDebug()<<"aaaaaaaaaaa";
+            //     this->slot_dir_tree_item_clicked(nidx);
+            // } else if (it_row < (this->dir_file_model->rowCount(nidx) - 1)) {
+            //     idx = this->dir_file_model->index(it_row, 0, nidx);
+            //     qDebug()<<"bbbbbbbbbbbbbbbbbbb"<<idx<<this->dir_file_model->filePath(idx);
+            //     this->slot_dir_tree_item_clicked(idx);
+            // } else {
+            //     qDebug()<<"ccccccccccccccccccccc";
+            //     idx = this->dir_file_model->index(it_row, 0, nidx);
+            //     this->slot_dir_tree_item_clicked(idx);
+            // }
         }
-        this->slot_refresh_directory_tree();
+    } else {
+        QMessageBox::critical(this, tr("Warning..."),
+                              tr("Delete directory faild. Maybe the directory is not empty."));
     }
+
+    // if (!QDir().rmdir(this->model->filePath(aim_midx))) {
+    //     QMessageBox::critical(this, tr("Waring..."), tr("Delete directory faild. Mayby the directory is not empty."));
+    // } else {
+    //     this->slot_refresh_directory_tree();
+    // }
 }
 
 void LocalView::slot_remove()
