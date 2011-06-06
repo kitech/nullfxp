@@ -34,6 +34,7 @@ void Connector::setHostInfo(QMap<QString, QString> host)
     if (this->conn == NULL) {
         if (protocol == "FTPS") {
             // not impled yet
+            this->conn = new FTPConnection();
         } else if (protocol == "FTPES") {
             // not impled yet
             this->conn = new FTPConnection();

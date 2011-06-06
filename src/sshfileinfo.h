@@ -36,9 +36,17 @@ public:
     QFile::Permissions qMode() const;
 
     static SSHFileInfo fromQFileInfo(QFileInfo &fi);
-    
+
+    QString symlinkTarget() {
+        return this->m_symlink_target;
+    }
+    void setSymlinkTarget(const QString &target) {
+        this->m_symlink_target = target;
+    }
+  
 private:
     LIBSSH2_SFTP_ATTRIBUTES mAttr;
+    QString m_symlink_target;
 };
 
 #endif

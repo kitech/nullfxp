@@ -29,6 +29,7 @@ extern QHash<QString, QString> gMimeHash;
 
 #include "connection.h"
 #include "libftp/libftp.h"
+#include "ui_fileproperties.h"
 
 static int QUrlInfo2LIBSSH2_SFTP_ATTRIBUTES(QUrlInfo &ui, LIBSSH2_SFTP_ATTRIBUTES *attr)
 {
@@ -243,12 +244,13 @@ void FilePropertiesRetriver::run_ftp()
 ///////////////////////////////////////////////////
 FileProperties::FileProperties(QWidget *parent)
     : QDialog(parent)
+    , ui_file_prop_dialog(new Ui::FileProperties())
 {
     this->ssh2_sftp = 0;
     this->conn = 0;
 
-	this->ui_file_prop_dialog.setupUi(this);
-    this->ui_file_prop_dialog.label_13->setPixmap(QPixmap(":/icons/nullget-1.png").scaledToHeight(50));
+	this->ui_file_prop_dialog->setupUi(this);
+    this->ui_file_prop_dialog->label_13->setPixmap(QPixmap(":/icons/nullget-1.png").scaledToHeight(50));
 }
 
 FileProperties::~FileProperties()
@@ -280,9 +282,9 @@ void FileProperties::set_file_info_model_list(QModelIndexList &mil)
         file_location = "/";
     }
     
-	this->ui_file_prop_dialog.lineEdit->setText(file_name);
-	this->ui_file_prop_dialog.lineEdit_2->setText (file_perm.left(1));
-    this->ui_file_prop_dialog.lineEdit_3->setText (file_location);
+	this->ui_file_prop_dialog->lineEdit->setText(file_name);
+	this->ui_file_prop_dialog->lineEdit_2->setText (file_perm.left(1));
+    this->ui_file_prop_dialog->lineEdit_3->setText (file_location);
 
     {
         long long int ifilesize = file_size.toLongLong();
@@ -300,8 +302,8 @@ void FileProperties::set_file_info_model_list(QModelIndexList &mil)
                 .arg("B").arg(ifilesize);
         }
     }
-	this->ui_file_prop_dialog.lineEdit_4->setText(file_size);
-	this->ui_file_prop_dialog.lineEdit_5->setText(file_modify_time);
+	this->ui_file_prop_dialog->lineEdit_4->setText(file_size);
+	this->ui_file_prop_dialog->lineEdit_5->setText(file_modify_time);
 
 	if (file_perm.length() < strlen("drwxr-xr-x")) {
 		//qDebug() <<" Invalide perm string";
@@ -310,8 +312,8 @@ void FileProperties::set_file_info_model_list(QModelIndexList &mil)
         this->update_perm_table(file_perm);
     }
     
-    QString file_path = this->ui_file_prop_dialog.lineEdit_3->text()
-        + QString("/") + this->ui_file_prop_dialog.lineEdit->text();
+    QString file_path = this->ui_file_prop_dialog->lineEdit_3->text()
+        + QString("/") + this->ui_file_prop_dialog->lineEdit->text();
 
     FilePropertiesRetriver *rt = 0;
     // rt = new FilePropertiesRetriver(this->ssh2_sftp, file_path, this);
@@ -339,35 +341,35 @@ void FileProperties::slot_file_attr_abtained(QString file_name, void *attr, cons
 
     if (fi.isDir()) {
         QIcon icon = qApp->style()->standardIcon(QStyle::SP_DirIcon);
-        this->ui_file_prop_dialog.label_13->setPixmap(icon.pixmap(50, 50).scaledToHeight(50));
+        this->ui_file_prop_dialog->label_13->setPixmap(icon.pixmap(50, 50).scaledToHeight(50));
     } else {
-        this->ui_file_prop_dialog.label_13->setPixmap(this->fileIcon(file_name).pixmap(50, 50).scaledToHeight(50));
+        this->ui_file_prop_dialog->label_13->setPixmap(this->fileIcon(file_name).pixmap(50, 50).scaledToHeight(50));
     }
     
-    this->ui_file_prop_dialog.label_15->setText(QString("%1").arg(sftp_attrib->uid));
-	this->ui_file_prop_dialog.label_16->setText(QString("%1").arg(sftp_attrib->gid));
+    this->ui_file_prop_dialog->label_15->setText(QString("%1").arg(sftp_attrib->uid));
+	this->ui_file_prop_dialog->label_16->setText(QString("%1").arg(sftp_attrib->gid));
 
 	QString mode = digit_mode(sftp_attrib->permissions);
-	this->ui_file_prop_dialog.lineEdit_7->setText(mode);
+	this->ui_file_prop_dialog->lineEdit_7->setText(mode);
 	
-    this->ui_file_prop_dialog.lineEdit_6->setText(fi.lastModified().toString("yyyy/MM/dd HH:mm:ss"));
-    this->ui_file_prop_dialog.lineEdit_5->setText(fi.lastRead().toString("yyyy/MM/dd HH:mm:ss"));
+    this->ui_file_prop_dialog->lineEdit_6->setText(fi.lastModified().toString("yyyy/MM/dd HH:mm:ss"));
+    this->ui_file_prop_dialog->lineEdit_5->setText(fi.lastRead().toString("yyyy/MM/dd HH:mm:ss"));
     
-	if (this->ui_file_prop_dialog.lineEdit_2->text() == "D") {
+	if (this->ui_file_prop_dialog->lineEdit_2->text() == "D") {
          file_size = QString("%1").arg(sftp_attrib->filesize);
-        this->ui_file_prop_dialog.lineEdit_4->setText(file_size);
-        this->ui_file_prop_dialog.lineEdit_2->setText(tr("Folder"));
-	} else if (this->ui_file_prop_dialog.lineEdit_2->text() == "d") {
-        this->ui_file_prop_dialog.lineEdit_2->setText(tr("Folder"));
-	} else if (this->ui_file_prop_dialog.lineEdit_2->text() == "l") {
+        this->ui_file_prop_dialog->lineEdit_4->setText(file_size);
+        this->ui_file_prop_dialog->lineEdit_2->setText(tr("Folder"));
+	} else if (this->ui_file_prop_dialog->lineEdit_2->text() == "d") {
+        this->ui_file_prop_dialog->lineEdit_2->setText(tr("Folder"));
+	} else if (this->ui_file_prop_dialog->lineEdit_2->text() == "l") {
 		//qDebug() <<" open link , not process now";
         //TODO 写一个更好的，根据文件后缀判断文件类型的类库
-        this->ui_file_prop_dialog.lineEdit_2->setText(tr("Symlink"));
-        this->ui_file_prop_dialog.lineEdit->setText(QString("%1 --> %2")
+        this->ui_file_prop_dialog->lineEdit_2->setText(tr("Symlink"));
+        this->ui_file_prop_dialog->lineEdit->setText(QString("%1 --> %2")
                                                     .arg(file_name).arg(link_to));
 	} else {
 		// reg file??
-        this->ui_file_prop_dialog.lineEdit_2->setText(this->type(file_name));
+        this->ui_file_prop_dialog->lineEdit_2->setText(this->type(file_name));
 	}
 	strmode(sftp_attrib->permissions,file_perm);
 	this->update_perm_table(file_perm);
@@ -377,7 +379,7 @@ void FileProperties::slot_file_attr_abtained(QString file_name, void *attr, cons
 void FileProperties::update_perm_table(QString file_perm)
 {
     //在一个线程中操作UI元素很不安全，容易导致程序死锁
-    this->ui_file_prop_dialog.label_17->setText(file_perm);
+    this->ui_file_prop_dialog->label_17->setText(file_perm);
 	//perm format : drwxr-xr-x
 	{
 		QChar rp = file_perm.at(1);
@@ -385,10 +387,10 @@ void FileProperties::update_perm_table(QString file_perm)
 		QChar xp = file_perm.at(1+2);
         QChar sp = file_perm.at(1+2);
 
-		this->ui_file_prop_dialog.checkBox->setChecked(rp=='r');
-		this->ui_file_prop_dialog.checkBox_2->setChecked(wp=='w');
-		this->ui_file_prop_dialog.checkBox_3->setChecked(xp=='x'  || sp == 's');
-        this->ui_file_prop_dialog.checkBox_10->setChecked(sp == 'S' || sp == 's');
+		this->ui_file_prop_dialog->checkBox->setChecked(rp=='r');
+		this->ui_file_prop_dialog->checkBox_2->setChecked(wp=='w');
+		this->ui_file_prop_dialog->checkBox_3->setChecked(xp=='x'  || sp == 's');
+        this->ui_file_prop_dialog->checkBox_10->setChecked(sp == 'S' || sp == 's');
 	}
 	{
 		QChar rp = file_perm.at(4);
@@ -396,20 +398,20 @@ void FileProperties::update_perm_table(QString file_perm)
 		QChar xp = file_perm.at(4+2);
         QChar sp = file_perm.at(4+2);
 
-		this->ui_file_prop_dialog.checkBox_4->setChecked(rp=='r');
-		this->ui_file_prop_dialog.checkBox_5->setChecked(wp=='w');
-		this->ui_file_prop_dialog.checkBox_6->setChecked(xp=='x' || sp == 's');
-        this->ui_file_prop_dialog.checkBox_11->setChecked(sp == 'S' || sp == 's');
+		this->ui_file_prop_dialog->checkBox_4->setChecked(rp=='r');
+		this->ui_file_prop_dialog->checkBox_5->setChecked(wp=='w');
+		this->ui_file_prop_dialog->checkBox_6->setChecked(xp=='x' || sp == 's');
+        this->ui_file_prop_dialog->checkBox_11->setChecked(sp == 'S' || sp == 's');
 	}
 	{
 		QChar rp = file_perm.at(7);
 		QChar wp = file_perm.at(7+1);
 		QChar xp = file_perm.at(7+2);
 
-		this->ui_file_prop_dialog.checkBox_7->setChecked(rp=='r');
-		this->ui_file_prop_dialog.checkBox_8->setChecked(wp=='w');
-		this->ui_file_prop_dialog.checkBox_9->setChecked(xp=='x' || xp == 'T');
-        this->ui_file_prop_dialog.checkBox_12->setChecked(xp=='t'  || xp == 'T');
+		this->ui_file_prop_dialog->checkBox_7->setChecked(rp=='r');
+		this->ui_file_prop_dialog->checkBox_8->setChecked(wp=='w');
+		this->ui_file_prop_dialog->checkBox_9->setChecked(xp=='x' || xp == 'T');
+        this->ui_file_prop_dialog->checkBox_12->setChecked(xp=='t'  || xp == 'T');
 	}
 }
 
@@ -489,9 +491,10 @@ QIcon FileProperties::fileIcon(QString file_name)
 
 LocalFileProperties::LocalFileProperties(QWidget *parent)
     : QDialog(parent)
+  , ui_file_prop_dialog(new Ui::FileProperties())
 {
-    this->ui_file_prop_dialog.setupUi(this);
-    this->ui_file_prop_dialog.label_13->setPixmap(QPixmap(":/icons/nullget-1.png").scaledToHeight(50));
+    this->ui_file_prop_dialog->setupUi(this);
+    this->ui_file_prop_dialog->label_13->setPixmap(QPixmap(":/icons/nullget-1.png").scaledToHeight(50));
 }
 
 LocalFileProperties::~LocalFileProperties()
@@ -502,7 +505,7 @@ LocalFileProperties::~LocalFileProperties()
 void LocalFileProperties::set_file_info_model_list(QString file_name)
 {
     q_debug()<<"";
-    this->ui_file_prop_dialog.label_13->setPixmap(this->fileIcon(file_name).pixmap(50, 50).scaledToHeight(50));
+    this->ui_file_prop_dialog->label_13->setPixmap(this->fileIcon(file_name).pixmap(50, 50).scaledToHeight(50));
 
     QFileInfo fi(file_name);
     
@@ -510,9 +513,9 @@ void LocalFileProperties::set_file_info_model_list(QString file_name)
     QString file_size = QString("%1").arg(fi.size());
     QString file_modify_time = "";
 
-    this->ui_file_prop_dialog.lineEdit->setText(fi.fileName());
-    this->ui_file_prop_dialog.lineEdit_2->setText(this->type(file_name));
-    this->ui_file_prop_dialog.lineEdit_3->setText(fi.path());
+    this->ui_file_prop_dialog->lineEdit->setText(fi.fileName());
+    this->ui_file_prop_dialog->lineEdit_2->setText(this->type(file_name));
+    this->ui_file_prop_dialog->lineEdit_3->setText(fi.path());
 
     {
         long long int ifilesize = file_size.toLongLong();
@@ -530,15 +533,15 @@ void LocalFileProperties::set_file_info_model_list(QString file_name)
                 .arg("B").arg(ifilesize);
         }
     }
-    this->ui_file_prop_dialog.lineEdit_4->setText(file_size);
+    this->ui_file_prop_dialog->lineEdit_4->setText(file_size);
 
-    this->ui_file_prop_dialog.lineEdit_5->setText(fi.lastModified().toString("yyyy/MM/dd hh:mm:ss"));
-    this->ui_file_prop_dialog.lineEdit_6->setText(fi.lastRead().toString("yyyy/MM/dd hh:mm:ss")); //2007/11/28 06:53:45
+    this->ui_file_prop_dialog->lineEdit_5->setText(fi.lastModified().toString("yyyy/MM/dd hh:mm:ss"));
+    this->ui_file_prop_dialog->lineEdit_6->setText(fi.lastRead().toString("yyyy/MM/dd hh:mm:ss")); //2007/11/28 06:53:45
 
     QString mode = this->digit_mode(fi.permissions());
-    this->ui_file_prop_dialog.lineEdit_7->setText(mode);
-    this->ui_file_prop_dialog.label_15->setText(fi.owner());
-    this->ui_file_prop_dialog.label_16->setText(fi.group());
+    this->ui_file_prop_dialog->lineEdit_7->setText(mode);
+    this->ui_file_prop_dialog->label_15->setText(fi.owner());
+    this->ui_file_prop_dialog->label_16->setText(fi.group());
 
     this->update_perm_table(file_name);
 }
@@ -579,20 +582,20 @@ void LocalFileProperties::update_perm_table(QString file_name)
     QFile::Permissions fp = fi.permissions();
 
     {
-        this->ui_file_prop_dialog.checkBox->setChecked(fp & QFile::ReadOwner/*rp=='r'*/);
-        this->ui_file_prop_dialog.checkBox_2->setChecked(fp & QFile::WriteOwner/*wp=='w'*/);
-        this->ui_file_prop_dialog.checkBox_3->setChecked(fp & QFile::ExeOwner/*xp=='x'*/);
+        this->ui_file_prop_dialog->checkBox->setChecked(fp & QFile::ReadOwner/*rp=='r'*/);
+        this->ui_file_prop_dialog->checkBox_2->setChecked(fp & QFile::WriteOwner/*wp=='w'*/);
+        this->ui_file_prop_dialog->checkBox_3->setChecked(fp & QFile::ExeOwner/*xp=='x'*/);
     }
     {
-        this->ui_file_prop_dialog.checkBox_4->setChecked(fp & QFile::ReadGroup /*rp=='r'*/);
-        this->ui_file_prop_dialog.checkBox_5->setChecked(fp & QFile::WriteGroup /*wp=='w'*/);
-        this->ui_file_prop_dialog.checkBox_6->setChecked(fp & QFile::ExeGroup /*xp=='x'*/);
+        this->ui_file_prop_dialog->checkBox_4->setChecked(fp & QFile::ReadGroup /*rp=='r'*/);
+        this->ui_file_prop_dialog->checkBox_5->setChecked(fp & QFile::WriteGroup /*wp=='w'*/);
+        this->ui_file_prop_dialog->checkBox_6->setChecked(fp & QFile::ExeGroup /*xp=='x'*/);
     }
     {
 
-        this->ui_file_prop_dialog.checkBox_7->setChecked(fp & QFile::ReadOther/*rp=='r'*/);
-        this->ui_file_prop_dialog.checkBox_8->setChecked(fp & QFile::WriteOther /*wp=='w'*/);
-        this->ui_file_prop_dialog.checkBox_9->setChecked(fp & QFile::ExeOther /*xp=='x'*/);
+        this->ui_file_prop_dialog->checkBox_7->setChecked(fp & QFile::ReadOther/*rp=='r'*/);
+        this->ui_file_prop_dialog->checkBox_8->setChecked(fp & QFile::WriteOther /*wp=='w'*/);
+        this->ui_file_prop_dialog->checkBox_9->setChecked(fp & QFile::ExeOther /*xp=='x'*/);
     }
 }
 

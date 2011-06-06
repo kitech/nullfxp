@@ -96,6 +96,8 @@ void UpdateDialog::slotDone(bool error)
         q_debug()<<"Http error:"<<this->http->errorString();
     }
     this->inChecking = false;
+    this->http->clearPendingRequests();
+    this->http->close();
 }
 
 void UpdateDialog::slotReadyRead(const QHttpResponseHeader &resp)

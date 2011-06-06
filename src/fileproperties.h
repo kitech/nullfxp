@@ -17,9 +17,13 @@
 #include "libssh2.h"
 #include "libssh2_sftp.h"
 
-#include "ui_fileproperties.h"
+// #include "ui_fileproperties.h"
 
 class Connection;
+
+namespace Ui {
+    class FileProperties;
+};
 
 class FilePropertiesRetriver : public QThread
 {
@@ -62,7 +66,7 @@ private:
     QString type(QString file_name);
     QIcon fileIcon(QString file_name);
 
-    Ui::FileProperties ui_file_prop_dialog;
+    Ui::FileProperties *ui_file_prop_dialog;
     LIBSSH2_SFTP *ssh2_sftp;
     Connection *conn;
 };
@@ -83,7 +87,7 @@ private:
     QString digit_mode(int mode);
     QIcon fileIcon(QString file_name);
 
-    Ui::FileProperties ui_file_prop_dialog;
+    Ui::FileProperties *ui_file_prop_dialog;
     QString file_name;
 };
 
