@@ -62,6 +62,12 @@ void RemoteDirModel::setConnection(Connection *conn)
     this->ssh2_sess = this->conn->sess;
 
     switch (this->conn->protocolType()) {
+    case Connection::PROTO_FTPS:
+        q_debug()<<"Not impled yet.";
+        break;
+    case Connection::PROTO_FTPES:
+        this->dir_retriver = new FTPDirRetriver();
+        break;
     case Connection::PROTO_FTP:
         this->dir_retriver = new FTPDirRetriver();
         break;

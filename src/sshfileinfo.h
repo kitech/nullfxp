@@ -20,7 +20,7 @@ class SSHFileInfo
 public:
     SSHFileInfo(LIBSSH2_SFTP_ATTRIBUTES attr);
     SSHFileInfo(LIBSSH2_SFTP_ATTRIBUTES *pattr);
-    ~SSHFileInfo();
+    virtual ~SSHFileInfo();
 
     uint groupId () const;
     bool isDir () const;

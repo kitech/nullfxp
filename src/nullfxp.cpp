@@ -239,7 +239,10 @@ void NullFXP::connect_to_remote_host(QMap<QString, QString> host)
     QString protocol;
     protocol = host["protocol"];
     if (protocol == "FTPS") {
-        q_debug()<<"Not impled";
+        q_debug()<<"Not impled yet";
+    } else if (protocol == "FTPES") {
+        q_debug()<<"Not impled yet.";
+        this->connect_to_remote_host2(host);
     } else if (protocol == "FTP") {
         this->connect_to_remote_host2(host);
     } else if (protocol == "SFTP") {
@@ -327,6 +330,9 @@ void NullFXP::slot_connect_remote_host_finished(int status, Connection *conn)
     if (status == Connection::CONN_OK ) {
         RemoteView *view = NULL;
         switch (conn->protocolType()) {
+        case Connection::PROTO_FTPES:
+            view = new FTPView(this->mdiArea, this->localView);
+            break;
         case Connection::PROTO_FTP:
             view = new FTPView(this->mdiArea, this->localView);
             break;

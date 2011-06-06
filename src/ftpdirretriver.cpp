@@ -17,6 +17,7 @@
 #include "globaloption.h"
 #include "ftpdirretriver.h"
 
+#include "ftpfileinfo.h"
 #include "rfsdirnode.h"
 #include "connection.h"
 #include "libftp/libftp.h"
@@ -160,14 +161,16 @@ static int QUrlInfo2LIBSSH2_SFTP_ATTRIBUTES(QUrlInfo &ui, LIBSSH2_SFTP_ATTRIBUTE
     return 0;
 }
 
-static QVector<NetDirNode *> dirListToTreeNode(QVector<QUrlInfo> &dirList, NetDirNode *pnode)
+// static QVector<NetDirNode *> dirListToTreeNode(QVector<QUrlInfo> &dirList, NetDirNode *pnode)
+static QVector<NetDirNode *> dirListToTreeNode(QVector<FTPFileInfo> &dirList, NetDirNode *pnode)
 {
     QVector<NetDirNode *> nodes;
     NetDirNode *node;
     // LIBSSH2_SFTP_ATTRIBUTES attr;
     
     for (int i = 0 ; i < dirList.count(); i++) {
-        QUrlInfo ui = dirList.at(i);
+        // QUrlInfo ui = dirList.at(i);
+        FTPFileInfo ui = dirList.at(i);
         
         node = new NetDirNode();
         QUrlInfo2LIBSSH2_SFTP_ATTRIBUTES(ui, &node->attrib);
@@ -214,7 +217,7 @@ int FTPDirRetriver::retrive_dir()
         
         // list 
         this->conn->ftp->lista(parent_item->fullPath + "/");
-        QVector<QUrlInfo> dirList = this->conn->ftp->getDirList();
+        QVector<FTPFileInfo> dirList = this->conn->ftp->getDirList2();
         for (int i = dirList.count() - 1 ; i >= 0 ; i--) {
             QUrlInfo ui = dirList.at(i);
             qDebug()<<ui.name()<<ui.lastModified()<<ui.permissions()<<ui.size()<<ui.isSymLink();
@@ -333,8 +336,8 @@ int FTPDirRetriver::rm_file_or_directory_recursively_ex(QString parent_path)  //
     int exec_ret = -1;
     LibFtp *ftp;
     QString abs_path;
-    // QVector<QMap<char, QString> > fileinfos;
-    QVector<QUrlInfo> fileList;
+    // QVector<QUrlInfo> fileList;
+    QVector<FTPFileInfo> fileList;
 
     //再次从服务器列出目录，然后处理
     //int lflag = 0 ;    
@@ -353,7 +356,7 @@ int FTPDirRetriver::rm_file_or_directory_recursively_ex(QString parent_path)  //
         exec_ret = ftp->lista(parent_path);
         assert(exec_ret == 0);
         exec_ret = ftp->closeDataChannel();
-        fileList = ftp->getDirList();
+        fileList = ftp->getDirList2();
         
         for (int i = fileList.count() - 1; i >= 0; --i) {
             QUrlInfo ui = fileList.at(i);

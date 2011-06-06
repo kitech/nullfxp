@@ -28,7 +28,7 @@ public:
           CONN_SESS_ERROR,CONN_AUTH_ERROR,CONN_SFTP_ERROR,CONN_EXEC_ERROR,
           CONN_PROTOCOL_VERSION_NOT_MATCH_ERROR};
     enum {PROTO_MIN = 0, 
-          PROTO_SFTP, PROTO_FTP, PROTO_FTPS,
+          PROTO_SFTP, PROTO_FTP, PROTO_FTPS, PROTO_FTPES,
           PROTO_MAX};
 
     Connection(QObject *parent = 0);

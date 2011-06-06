@@ -11,6 +11,7 @@
 
 #include "utils.h"
 #include "sshfileinfo.h"
+#include "ftpfileinfo.h"
 #include "globaloption.h"
 #include "sshdirretriver.h"
 #include "fileproperties.h"
@@ -103,6 +104,10 @@ void FilePropertiesRetriver::run()
         this->run_sftp();
     } else if (this->conn->protocolType() == Connection::PROTO_FTP) {
         this->run_ftp();
+    } else if (this->conn->protocolType() == Connection::PROTO_FTPS) {
+        this->run_ftp();
+    } else if (this->conn->protocolType() == Connection::PROTO_FTPES) {
+        this->run_ftp();
     } else {
         assert(0);
     }
@@ -121,7 +126,7 @@ void FilePropertiesRetriver::run_sftp()
         qDebug()<<this->file_path;
         qDebug()<<"sftp stat error:"<<libssh2_sftp_last_error(ssh2_sftp);
     }
-    emit file_attr_abtained(this->file_path, sftp_attrib);
+    emit file_attr_abtained(this->file_path, sftp_attrib, QString());
     // QString u8_file_path = GlobalOption::instance()->remote_codec->toUnicode(this->file_path.toAscii());
     // emit file_attr_abtained(u8_file_path, sftp_attrib);
 }
@@ -132,9 +137,11 @@ void FilePropertiesRetriver::run_ftp()
     LIBSSH2_SFTP_ATTRIBUTES *sftp_attrib = (LIBSSH2_SFTP_ATTRIBUTES*)malloc(sizeof(LIBSSH2_SFTP_ATTRIBUTES));
     memset(sftp_attrib, 0, sizeof(LIBSSH2_SFTP_ATTRIBUTES));
     LibFtp *ftp = this->conn->ftp;
-    QVector<QUrlInfo> fileList;
+    //QVector<QUrlInfo> fileList;
+    QVector<FTPFileInfo> fileList;
+    QString link_to;
 
-    rv = ftp->chdir(this->file_path);
+    rv = ftp->chdir(this->file_path); // so we can known if it is directory
     if (rv == 0) {
         // it is dir
         // rv = ftp->passive();
@@ -160,7 +167,7 @@ void FilePropertiesRetriver::run_ftp()
         //     }
         // }
         rv = ftp->mlst(this->file_path);
-        fileList = ftp->getDirList();
+        fileList = ftp->getDirList2();
         if (fileList.count() == 1) {
             QUrlInfo ui = fileList.at(0);
             rv = QUrlInfo2LIBSSH2_SFTP_ATTRIBUTES(ui, sftp_attrib);
@@ -188,10 +195,41 @@ void FilePropertiesRetriver::run_ftp()
         // } else {
         //     assert(0);
         // }
+
+        // FIXME: if this->file_path is soft symbol link, fileList.count() == 0
+        // because this symlink link to a directory which can not access for permission resion.
+        // how fix???
+        // 也可能不是一个文件，而是一个链接。
         rv = ftp->mlst(this->file_path);
         assert(rv == 0);
-        fileList = ftp->getDirList();
-        if (fileList.count() == 1) {
+        fileList = ftp->getDirList2();
+        q_debug()<<fileList.count();
+        if (fileList.count() == 0) {
+            // q_debug()<<"FIXME:"<<this->file_path;
+            if (this->file_path == "/") {
+                // not possible
+                Q_ASSERT(1==2);
+            }
+            QString file_name = this->file_path.right(this->file_path.length()
+                                                      -this->file_path.lastIndexOf("/")-1);
+            QString parent_path = this->file_path.left(this->file_path.lastIndexOf("/"));
+            // q_debug()<<file_name<<parent_path;
+            rv = ftp->mlst(parent_path);
+            assert(rv == 0);
+            fileList = ftp->getDirList2();
+            FTPFileInfo ui;
+            for (int i = 0; i < fileList.count(); ++i) {
+                ui = fileList.at(i);
+                // q_debug()<<ui.name()<<file_name<<i;
+                if (ui.name() == file_name) {
+                    rv = QUrlInfo2LIBSSH2_SFTP_ATTRIBUTES(ui, sftp_attrib);
+                    if (ui.isSymLink()) {
+                        link_to = ui.symlinkTarget();
+                    }
+                    break;
+                }
+            }
+        } else if (fileList.count() == 1) {
             QUrlInfo ui = fileList.at(0);
             rv = QUrlInfo2LIBSSH2_SFTP_ATTRIBUTES(ui, sftp_attrib);
         } else {
@@ -199,7 +237,7 @@ void FilePropertiesRetriver::run_ftp()
         }
     }
 
-    emit file_attr_abtained(this->file_path, sftp_attrib);    
+    emit file_attr_abtained(this->file_path, sftp_attrib, link_to);
 }
 
 ///////////////////////////////////////////////////
@@ -278,8 +316,8 @@ void FileProperties::set_file_info_model_list(QModelIndexList &mil)
     FilePropertiesRetriver *rt = 0;
     // rt = new FilePropertiesRetriver(this->ssh2_sftp, file_path, this);
     rt = new FilePropertiesRetriver(this->conn, this->ssh2_sftp, file_path, this);
-    QObject::connect(rt, SIGNAL(file_attr_abtained(QString, void*)), 
-                     this, SLOT(slot_file_attr_abtained(QString, void*)));
+    QObject::connect(rt, SIGNAL(file_attr_abtained(QString, void*, const QString &)), 
+                     this, SLOT(slot_file_attr_abtained(QString, void*, const QString &)));
     rt->start();
 }
 
@@ -290,7 +328,7 @@ void FileProperties::slot_prop_thread_finished()
     FilePropertiesRetriver *rt = static_cast<FilePropertiesRetriver*>(sender());
     rt->deleteLater();
 }
-void FileProperties::slot_file_attr_abtained(QString file_name, void *attr)
+void FileProperties::slot_file_attr_abtained(QString file_name, void *attr, const QString &link_to)
 {
     // qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 
@@ -325,6 +363,8 @@ void FileProperties::slot_file_attr_abtained(QString file_name, void *attr)
 		//qDebug() <<" open link , not process now";
         //TODO 写一个更好的，根据文件后缀判断文件类型的类库
         this->ui_file_prop_dialog.lineEdit_2->setText(tr("Symlink"));
+        this->ui_file_prop_dialog.lineEdit->setText(QString("%1 --> %2")
+                                                    .arg(file_name).arg(link_to));
 	} else {
 		// reg file??
         this->ui_file_prop_dialog.lineEdit_2->setText(this->type(file_name));

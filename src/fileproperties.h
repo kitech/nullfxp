@@ -32,7 +32,7 @@ public:
     virtual void run_ftp();
 
 signals:
-    void file_attr_abtained(QString file_name, void *attr);
+    void file_attr_abtained(QString file_name, void *attr, const QString &link_to);
 private:
     Connection *conn;
     LIBSSH2_SFTP *ssh2_sftp;
@@ -55,7 +55,7 @@ public:
 
 public slots:
     void slot_prop_thread_finished();
-    void slot_file_attr_abtained(QString file_name, void *attr);
+    void slot_file_attr_abtained(QString file_name, void *attr, const QString &link_to);
         
 private:
     void update_perm_table( QString file_perm);

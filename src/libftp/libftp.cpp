@@ -357,7 +357,8 @@ static void _q_fixupDateTime(QDateTime *dateTime)
     }
 }
 
-static void _q_parseUnixDir(const QStringList &tokens, const QString &userName, QUrlInfo *info)
+// static void _q_parseUnixDir(const QStringList &tokens, const QString &userName, QUrlInfo *info)
+static void _q_parseUnixDir(const QStringList &tokens, const QString &userName, FTPFileInfo *info)
 {
     // Unix style, 7 + 1 entries
     // -rw-r--r--    1 ftp      ftp      17358091 Aug 10  2004 qt-x11-free-3.3.3.tar.gz
@@ -382,11 +383,14 @@ static void _q_parseUnixDir(const QStringList &tokens, const QString &userName, 
     }
 
     // Resolve filename
+    QString link_to;
     QString name = tokens.at(7);
     if (info->isSymLink()) {
         int linkPos = name.indexOf(QLatin1String(" ->"));
-        if (linkPos != -1)
+        if (linkPos != -1) {
+            link_to = name.right(name.length() - linkPos - 3);
             name.resize(linkPos);
+        }
     }
     info->setName(name);
 
@@ -440,9 +444,12 @@ static void _q_parseUnixDir(const QStringList &tokens, const QString &userName, 
     bool isOwner = info->owner() == userName;
     info->setReadable((permissions & QUrlInfo::ReadOther) || ((permissions & QUrlInfo::ReadOwner) && isOwner));
     info->setWritable((permissions & QUrlInfo::WriteOther) || ((permissions & QUrlInfo::WriteOwner) && isOwner));
+
+    info->setSymlinkTarget(link_to);
 }
 
-static void _q_parseDosDir(const QStringList &tokens, const QString &userName, QUrlInfo *info)
+// static void _q_parseDosDir(const QStringList &tokens, const QString &userName, QUrlInfo *info
+static void _q_parseDosDir(const QStringList &tokens, const QString &userName, FTPFileInfo *info)
 {
     // DOS style, 3 + 1 entries
     // 01-16-02  11:14AM       <DIR>          epsgroup
@@ -495,7 +502,8 @@ static void _q_parseDosDir(const QStringList &tokens, const QString &userName, Q
 
 }
 
-bool LibFtp::parseDir(const QByteArray &buffer, const QString &userName, QUrlInfo *info)
+// bool LibFtp::parseDir(const QByteArray &buffer, const QString &userName, QUrlInfo *info)
+bool LibFtp::parseDir(const QByteArray &buffer, const QString &userName, FTPFileInfo *info)
 {
     if (buffer.isEmpty())
         return false;
@@ -523,7 +531,8 @@ bool LibFtp::parseDir(const QByteArray &buffer, const QString &userName, QUrlInf
 }
 
 
-bool parseMLSTLine(const QByteArray &buffer, QUrlInfo *info)
+// bool parseMLSTLine(const QByteArray &buffer, QUrlInfo *info)
+bool parseMLSTLine(const QByteArray &buffer, FTPFileInfo *info)
 {
     QList<QByteArray> fields = buffer.split(';');
 
@@ -618,7 +627,8 @@ int LibFtp::list(QString path)
 
     // TODO when path has space, list match 0
     // there is a new cmd MLST and MLSD, try it.
-    this->dirList.clear();
+    // this->dirList.clear();
+    this->dirList2.clear();
 	cmd = QString("LIST -a -l %1\r\n").arg(path);
 
 	this->qsock->write(cmd.toAscii());
@@ -649,15 +659,17 @@ int LibFtp::list(QString path)
         this->qdsock->waitForReadyRead();
         qDebug()<<__FUNCTION__<<this->qdsock->canReadLine();
         while (this->qdsock->canReadLine()) {
-            QUrlInfo i;
+            // QUrlInfo i;
+            FTPFileInfo ffi; // TODO more info for gui
             QByteArray line = this->qdsock->readLine();
             qDebug("QFtpDTP read (list): '%s'", line.constData());
 
-            if (this->parseDir(line, QLatin1String(""), &i)) {
+            if (this->parseDir(line, QLatin1String(""), &ffi)) {
                 // emit listInfo(i);
                 // 转换文件名编码
-                i.setName(this->codec->toUnicode(i.name().toAscii()));
-                this->dirList.append(i);
+                ffi.setName(this->codec->toUnicode(ffi.name().toAscii()));
+                // this->dirList.append(i);
+                this->dirList2.append(ffi);
             } else {
                 // some FTP servers don't return a 550 if the file or directory
                 // does not exist, but rather write a text to the data socket
@@ -696,7 +708,8 @@ int LibFtp::lista(QString path)
     // sigLog = this->readAll(this->qsock);
     // q_debug()<<sigLog;
 
-    this->dirList.clear();
+    // this->dirList.clear();
+    this->dirList2.clear();
 	cmd = QString("LIST -a %1\r\n").arg(path);
 
 	this->qsock->write(cmd.toAscii());
@@ -728,15 +741,17 @@ int LibFtp::lista(QString path)
         this->qdsock->waitForReadyRead();
         qDebug()<<__FUNCTION__<<this->qdsock->canReadLine();
         while (this->qdsock->canReadLine()) {
-            QUrlInfo i;
+            // QUrlInfo i;
+            FTPFileInfo ffi;
             QByteArray line = this->qdsock->readLine();
             qDebug("LibFtpDTP read (list): '%s'", line.constData());
 
-            if (this->parseDir(line, QLatin1String(""), &i)) {
+            if (this->parseDir(line, QLatin1String(""), &ffi)) {
                 // emit listInfo(i);
                 // 转换文件名编码
-                i.setName(this->codec->toUnicode(i.name().toAscii()));
-                this->dirList.append(i);
+                ffi.setName(this->codec->toUnicode(ffi.name().toAscii()));
+                // this->dirList.append(i);
+                this->dirList2.append(ffi);
             } else {
                 // some FTP servers don't return a 550 if the file or directory
                 // does not exist, but rather write a text to the data socket
@@ -783,7 +798,8 @@ int LibFtp::mlst(QString path)
     }
 
     // TODO when path has space, list match 0
-    this->dirList.clear();
+    // this->dirList.clear();
+    this->dirList2.clear();
     cmd = QString("MLST %1\r\n").arg(path);
 
 	this->qsock->write(cmd.toAscii());
@@ -805,12 +821,14 @@ int LibFtp::mlst(QString path)
             qDebug()<<"line: "<<i<<inforows.at(i).trimmed();
         }
         for (int i = 1 ; i < inforows.count() - 2; ++i) {
-            QUrlInfo info;
+            // QUrlInfo info;
+            FTPFileInfo info;
             parseMLSTLine(inforows.at(i), &info);
-            this->dirList.append(info);
+            // this->dirList.append(info);
+            this->dirList2.append(info);
             qDebug()<<"line: "<<inforows.at(i);
         }
-        qDebug()<<__FUNCTION__<<__LINE__<<this->dirList.count();
+        qDebug()<<__FUNCTION__<<__LINE__<<this->dirList2.count();
         if (sl.at(0) == "250") {
             return 0;
         } else {
@@ -906,9 +924,13 @@ int LibFtp::passive()
 	return -1;    
     return 0;
 }
-QVector<QUrlInfo> LibFtp::getDirList()
+// QVector<QUrlInfo> LibFtp::getDirList()
+// {
+//     return this->dirList;
+// }
+QVector<FTPFileInfo> LibFtp::getDirList2()
 {
-    return this->dirList;
+    return this->dirList2;
 }
 QString LibFtp::getServerBanner()
 {
@@ -1331,7 +1353,8 @@ int LibFtp::stat(QString path)
 
     assert(this->qsock->bytesAvailable() == 0);
 
-    this->dirList.clear();
+    // this->dirList.clear();
+    this->dirList2.clear();
 	cmd = QString("STAT %1\r\n").arg(path);
 
 	this->qsock->write(cmd.toAscii());
@@ -1349,7 +1372,8 @@ int LibFtp::stat(QString path)
         // qDebug()<<this->qsock->canReadLine();
         // while (this->qsock->canReadLine()) { // why can not readLine the second line?
         for (int i = 0; i < sl.count(); i++) {
-            QUrlInfo ui;
+            // QUrlInfo ui;
+            FTPFileInfo ui;
             // QByteArray line = this->qsock->readLine();
             QByteArray line = sl.at(i).toAscii();
             qDebug("QFtpDTP read (list): '%s'", line.constData());
@@ -1362,7 +1386,8 @@ int LibFtp::stat(QString path)
             }
             if (this->parseDir(line, QLatin1String(""), &ui)) {
                 // emit listInfo(i);
-                this->dirList.append(ui);
+                // this->dirList.append(ui);
+                this->dirList2.append(ui);
             } else {
                 // some FTP servers don't return a 550 if the file or directory
                 // does not exist, but rather write a text to the data socket

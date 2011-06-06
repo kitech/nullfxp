@@ -82,7 +82,9 @@ int Connection::protocolType()
 {
     if (this->protocol == "FTPS") {
         return PROTO_FTPS;
-    } else if (this->protocol == "FTP") {
+    } else if (this->protocol == "FTPES") {
+        return PROTO_FTPES;
+    }else if (this->protocol == "FTP") {
         return PROTO_FTP;
     } else if (this->protocol == "SFTP") {
         return PROTO_SFTP;

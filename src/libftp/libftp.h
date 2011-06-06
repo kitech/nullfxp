@@ -13,6 +13,8 @@
 #include <QtCore>
 #include <QtNetwork>
 
+#include "ftpfileinfo.h"
+
 class LibFtp : public QObject
 {
     Q_OBJECT;
@@ -55,7 +57,8 @@ public:
     int swallowResponse();
     int waitForCtrlResponse();
     
-    QVector<QUrlInfo> getDirList();
+    // QVector<QUrlInfo> getDirList();
+    QVector<FTPFileInfo> getDirList2();
     QString getServerBanner();
     QString getServerWelcome();
     QTcpSocket *getDataSocket();
@@ -74,7 +77,8 @@ private:
     int parsePasvPort(QString &host, unsigned short &port);
     QByteArray readAll(QTcpSocket *sock);
     QByteArray readAllByEndSymbol(QTcpSocket *sock);
-    bool parseDir(const QByteArray &buffer, const QString &userName, QUrlInfo *info);
+    // bool parseDir(const QByteArray &buffer, const QString &userName, QUrlInfo *info);
+    bool parseDir(const QByteArray &buffer, const QString &userName, FTPFileInfo *info);
     void setError(int okno, QString msg);
     int getSupportedCmds();
     bool isCmdSupported(QString cmd);
@@ -85,7 +89,8 @@ private:
     QSslSocket *qdsock;
     QString pasvHost;
     unsigned short pasvPort;
-    QVector<QUrlInfo> dirList;
+    // QVector<QUrlInfo> dirList;
+    QVector<FTPFileInfo> dirList2;
     QString servBanner;
     QString welcomeText;
     QString lastCmd;

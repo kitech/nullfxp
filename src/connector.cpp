@@ -33,15 +33,18 @@ void Connector::setHostInfo(QMap<QString, QString> host)
     QString protocol = host["protocol"];
     if (this->conn == NULL) {
         if (protocol == "FTPS") {
-            // not impled
+            // not impled yet
+        } else if (protocol == "FTPES") {
+            // not impled yet
+            this->conn = new FTPConnection();
         } else if (protocol == "FTP") {
             this->conn = new FTPConnection();
         } else if (protocol == "SFTP") {
             this->conn = new SSHConnection();
         } else {
+            qDebug()<<"Unsupported protocol:"<<protocol;
         }
         if (this->conn != NULL) {
-
             QObject::connect(this->conn, SIGNAL(connect_state_changed(QString)),
                              this, SIGNAL(connect_state_changed(QString)));
         }
