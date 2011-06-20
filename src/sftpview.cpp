@@ -1136,25 +1136,36 @@ void SFTPView::slot_drag_ready()
     tpkg.password = this->conn->password;
     tpkg.pubkey = this->conn->pubkey;
 
-
-    // for (int i = 0 ; i< mil.count() ;i += this->remote_dir_model->columnCount()) {
-    //     QModelIndex midx = mil.at(i);
-    //     temp_file_path = (qobject_cast<RemoteDirModel*>(this->remote_dir_model))
-    //         ->filePath(midx);
-    //     tpkg.files<<temp_file_path;
-    // }
-    
     cidx = ism->currentIndex();
     pidx = cidx.parent();
+    // qDebug()<<cidx<<pidx<<ism->model()->rowCount(pidx);
 
     for (int i = ism->model()->rowCount(pidx) - 1 ; i >= 0 ; --i) {
         if (ism->isRowSelected(i, pidx)) {
             QModelIndex midx = ism->model()->index(i, 0, pidx);
-            temp_file_path = (qobject_cast<RemoteDirModel*>(this->remote_dir_model))
-                ->filePath(midx);
+            if (ism->model() == this->m_treeProxyModel) {
+                temp_file_path = this->remote_dir_model
+                    ->filePath(this->m_treeProxyModel->mapToSource(midx));
+                // qDebug()<<"tree";
+            } else if (ism->model() == this->m_tableProxyModel) {
+                temp_file_path = this->remote_dir_model
+                    ->filePath(this->m_tableProxyModel->mapToSource(midx));
+                // qDebug()<<"table";
+            } else {
+                // qDebug()<<"not possible";
+                Q_ASSERT(1==2);
+            }
+            // temp_file_path = (qobject_cast<RemoteDirModel*>(this->remote_dir_model))
+            //    ->filePath(midx);
+
             tpkg.files<<temp_file_path;
+            // qDebug()<<"Drag Row selected:"<<i<<temp_file_path;
+        } else {
+            // qDebug()<<"Row not selected:"<<i;
         }
     }
+
+    // qDebug()<<tpkg;
     
     mimeData->setData("application/task-package", tpkg.toRawData());
     drag->setMimeData(mimeData);
@@ -1189,8 +1200,9 @@ bool SFTPView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction action,
 
     if (data->hasFormat("application/task-package")) {
         local_pkg = TaskPackage::fromRawData(data->data("application/task-package"));
+        qDebug()<<local_pkg;
         if (local_pkg.isValid(local_pkg)) {
-            // TODO 两个sftp服务器间拖放的情况
+            // fixed 两个sftp服务器间拖放的情况, 也可以，已经完成
             this->slot_new_upload_requested(local_pkg, remote_pkg);
         }
     } else if (data->hasFormat("text/uri-list")) {

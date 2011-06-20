@@ -33,6 +33,7 @@
 #include "globaloption.h"
 #include "transportor.h"
 #include "sftp-const.h"
+#include "ssh_info.h"
 #include "utils.h"
 #include "sshfileinfo.h"
 #include "sshconnection.h"
@@ -56,17 +57,42 @@ Transportor::~Transportor()
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
 }
 
+static QString ssh2_sftp_error(LIBSSH2_SFTP *ssh2_sftp, int eno)
+{
+    QString str;
+    char ebuf[200] = {0};
+    int elen = sizeof(ebuf);
+    int ret = 0;
+    int feno = 0;
+    LIBSSH2_SESSION *sess = NULL;
+
+    sess = libssh2_session_for_sftp(ssh2_sftp);
+    ret = libssh2_session_last_error(sess, (char**)&ebuf, &elen, 0);
+    feno = libssh2_sftp_last_error(ssh2_sftp);
+
+    str = QString(ebuf);
+
+    if (feno != eno) {
+        qDebug()<<eno<<ret<<str<<elen;
+    }
+
+    return str;
+}
+
 int Transportor::remote_is_dir(LIBSSH2_SFTP *ssh2_sftp, QString path)
 {
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
-    LIBSSH2_SFTP_HANDLE *sftp_handle;
+    LIBSSH2_SFTP_HANDLE *sftp_handle = NULL;
     int ret = 0;
     QByteArray bpath = GlobalOption::instance()->remote_codec->fromUnicode(path);
+    QString estr;
 
     memset(&ssh2_sftp_attrib, 0, sizeof(ssh2_sftp_attrib));
 
     ret = libssh2_sftp_stat(ssh2_sftp, bpath.data(), &ssh2_sftp_attrib);
     if (ret != 0) {
+        estr = ssh2_sftp_error(ssh2_sftp, ret);
+        qDebug()<<path<<ret<<estr;
         Q_ASSERT(ret == 0);
         return 0;
     } else {
@@ -74,17 +100,17 @@ int Transportor::remote_is_dir(LIBSSH2_SFTP *ssh2_sftp, QString path)
     }
 
     // depcreated
-    sftp_handle = libssh2_sftp_opendir(ssh2_sftp, bpath.data());
+    // sftp_handle = libssh2_sftp_opendir(ssh2_sftp, bpath.data());
     
-    if (sftp_handle != NULL) {
-        libssh2_sftp_closedir(sftp_handle);
-        return 1 ;
-    } else {   // == NULL 
-        //TODO 可能是一个没有打开权限的目录，这里没有处理这种情况。
-        q_debug()<<"Error code: "<<libssh2_sftp_last_error(ssh2_sftp)
-                 <<path;
-        return 0;
-    }
+    // if (sftp_handle != NULL) {
+    //     libssh2_sftp_closedir(sftp_handle);
+    //     return 1 ;
+    // } else {   // == NULL 
+    //     //TODO 可能是一个没有打开权限的目录，这里没有处理这种情况。
+    //     q_debug()<<"Error code: "<<libssh2_sftp_last_error(ssh2_sftp)
+    //              <<path;
+    //     return 0;
+    // }
     return 0;
 }
 
@@ -96,6 +122,7 @@ int Transportor::remote_is_reg(LIBSSH2_SFTP *ssh2_sftp, QString path)
     long mode;
     int ret = 0;
     QByteArray bpath = GlobalOption::instance()->remote_codec->fromUnicode(path);
+    QString estr;
     
     memset(&ssh2_sftp_attrib, 0, sizeof(ssh2_sftp_attrib));
     flags = LIBSSH2_FXF_READ;
@@ -103,6 +130,8 @@ int Transportor::remote_is_reg(LIBSSH2_SFTP *ssh2_sftp, QString path)
 
     ret = libssh2_sftp_stat(ssh2_sftp, bpath.data(), &ssh2_sftp_attrib);
     if (ret != 0) {
+        estr = ssh2_sftp_error(ssh2_sftp, ret);
+        qDebug()<<path<<ret<<estr;
         Q_ASSERT(ret == 0);
         return 0;
     } else {
@@ -873,7 +902,7 @@ int Transportor::run_SFTP_to_SFTP()
         //nrsftp -> nrsftp
         //nrsftp -> file
   
-        qDebug()<<this->current_src_file_name;
+        qDebug()<<this->current_src_file_name;      // empty, #0000525
         qDebug()<<this->current_dest_file_name;
 
         //这里有几种情况，全部都列出来
@@ -930,7 +959,7 @@ int Transportor::run_SFTP_to_SFTP()
 
         ////////////
         if (remote_is_dir(this->src_ssh2_sftp, this->current_src_file_name) 
-            && remote_is_dir(this->dest_ssh2_sftp,this->current_dest_file_name ) ) {
+            && remote_is_dir(this->dest_ssh2_sftp, this->current_dest_file_name ) ) {
             qDebug()<<" nrsftp exchage dir to dir...";
             fileinfos.clear();        
             

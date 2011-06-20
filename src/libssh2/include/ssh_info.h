@@ -26,6 +26,7 @@ LIBSSH2_API char **libssh2_session_get_remote_info(LIBSSH2_SESSION *session, cha
 
 LIBSSH2_API int libssh2_sftp_get_version(LIBSSH2_SFTP * sftp);
 
+LIBSSH2_API LIBSSH2_SESSION *libssh2_session_for_sftp(LIBSSH2_SFTP *sftp);
 
 #ifdef __cplusplus
 } /* extern "C" */

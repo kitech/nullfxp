@@ -84,3 +84,20 @@ LIBSSH2_API char ** libssh2_session_get_remote_info(LIBSSH2_SESSION *session, ch
 	
 	return info_vec;
 }
+
+LIBSSH2_API LIBSSH2_SESSION *libssh2_session_for_sftp(LIBSSH2_SFTP *sftp)
+{
+    LIBSSH2_SESSION *sess = NULL;
+    LIBSSH2_CHANNEL *chan = NULL;
+
+    if (sftp == NULL) {
+    } else {
+        chan = sftp->channel;
+        if (chan == NULL) {
+        } else {
+            sess = chan->session;
+        }
+    }
+
+    return sess;
+}

@@ -35,9 +35,9 @@ int TaskPackage::setFile(QString file)
 void TaskPackage::dump(TaskPackage &pkg)
 {
     qDebug()<<"==== task package >>>";
-    qDebug()<<"scheme: "<<TaskPackage::getProtocolNameById(pkg.scheme);
+    qDebug()<<"scheme: "<<TaskPackage::getProtocolNameById(pkg.scheme)<<" ";
     qDebug()<<"host info: "<<pkg.username<<":"<<pkg.password<<"@"
-            <<pkg.host<<":"<<pkg.port;
+            <<pkg.host<<":"<<pkg.port<<" ";
     qDebug()<<"pubkey:"<<pkg.pubkey;
     qDebug()<<"<<<< task package ===";
 }
@@ -57,9 +57,14 @@ QDebug operator<<(QDebug dbg, const TaskPackage &pkg)
 {
     dbg.nospace() <<"(TaskPackage: "
                   <<"scheme: "<<TaskPackage::getProtocolNameById(pkg.scheme)
+                  <<" "
                   <<"host info: "<<pkg.username<<":"<<pkg.password<<"@"
                   <<pkg.host<<": "<<pkg.port
+                  <<" "
                   <<"pubkey: "<<pkg.pubkey
+                  <<" "
+                  <<"files: "<<pkg.files
+                  <<" "
                   <<")";
    
     return dbg.space();
@@ -70,7 +75,7 @@ QString TaskPackage::getProtocolNameById(int protocol_id)
 {
     Q_ASSERT(protocol_id > PROTO_MIN && protocol_id < PROTO_MAX);
 
-    QString name = "uknown";
+    QString name = "unknown";
     switch (protocol_id) {
     case PROTO_FILE:
         name = "file";
