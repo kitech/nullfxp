@@ -13,6 +13,7 @@
 #include "utils.h"
 #include "remoteview.h"
 #include "localview.h"
+#include "localfilesystemmodel.h"
 #include "globaloption.h"
 #include "fileproperties.h"
 
@@ -47,13 +48,21 @@ LocalView::LocalView(QWidget *parent)
 #endif
     
     ////
-    model = new QFileSystemModel();
+    this->model2 = new LocalFileSystemModel();
+    // this->model = new QFileSystemModel(); // temp comment for test
+    this->model = this->model2;
     QObject::connect(model, SIGNAL(directoryLoaded(const QString &)),
                      this, SLOT(onDirectoryLoaded(const QString &)));
     QObject::connect(model, SIGNAL(fileRenamed(const QString &, const QString &, const QString &)),
                      this, SLOT(onFileRenamed(const QString &, const QString &, const QString &)));
     QObject::connect(model, SIGNAL(rootPathChanged(const QString &)),
                      this, SLOT(onRootPathChanged(const QString &)));
+
+    QObject::connect(this->model2,
+                     SIGNAL(sig_drop_mime_data(const QMimeData *, Qt::DropAction, int, int, const QModelIndex &)),
+                     this, SLOT(slot_drop_mime_data(const QMimeData *, Qt::DropAction, int, int, const QModelIndex &)));
+    
+
     model->setRootPath(""); // on widows this can list all drivers
 
     // model->setFilter(QDir::AllEntries|QDir::Hidden|QDir::NoDotAndDotDot);
@@ -89,6 +98,13 @@ LocalView::LocalView(QWidget *parent)
     }
   
     this->uiw->tableView->resizeColumnToContents(0);
+
+    this->uiw->treeView->setAcceptDrops(true);
+    // this->uiw->treeView->setDragEnabled(false);
+    this->uiw->treeView->setDropIndicatorShown(true);
+    // this->uiw->treeView->setDragDropMode(QAbstractItemView::DropOnly);
+    this->uiw->treeView->setDragDropMode(QAbstractItemView::DragDrop);
+
     /////
     QObject::connect(this->uiw->treeView, SIGNAL(clicked(const QModelIndex &)),
                      this, SLOT(slot_dir_tree_item_clicked(const QModelIndex &)));
@@ -457,6 +473,58 @@ void LocalView::slot_dir_file_view_double_clicked(const QModelIndex &index)
 }
 
 //TODO accept drop 
+bool LocalView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction action,
+                                     int row, int column, const QModelIndex &parent)
+{
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    Q_UNUSED(row);
+    Q_UNUSED(column);
+    
+    TaskPackage local_pkg(PROTO_FILE);
+    TaskPackage remote_pkg(PROTO_SFTP);
+   
+    // NetDirNode *aim_item = static_cast<NetDirNode*>(parent.internalPointer());        
+    // QString remote_file_name = aim_item->fullPath;
+
+    // remote_pkg.files<<remote_file_name;
+
+    // remote_pkg.host = this->conn->hostName;
+    // remote_pkg.port = QString("%1").arg(this->conn->port);
+    // remote_pkg.username = this->conn->userName;
+    // remote_pkg.password = this->conn->password;
+    // remote_pkg.pubkey = this->conn->pubkey;
+
+    // if (data->hasFormat("application/task-package")) {
+    //     local_pkg = TaskPackage::fromRawData(data->data("application/task-package"));
+    //     qDebug()<<local_pkg;
+    //     if (local_pkg.isValid(local_pkg)) {
+    //         // fixed 两个sftp服务器间拖放的情况, 也可以，已经完成
+    //         this->slot_new_upload_requested(local_pkg, remote_pkg);
+    //     }
+    // } else if (data->hasFormat("text/uri-list")) {
+    //     // from localview
+    //     QList<QUrl> files = data->urls();
+    //     if (files.count() == 0) {
+    //         // return false;
+    //         assert(0);
+    //     } else {
+    //         for (int i = 0 ; i < files.count(); i++) {
+    //             QString path = files.at(i).path();
+    //             #ifdef WIN32
+    //             // because on win32, now path=/C:/xxxxx
+    //             path = path.right(path.length() - 1);
+    //             #endif
+    //             local_pkg.files<<path;
+    //         }
+    //         this->slot_new_upload_requested(local_pkg, remote_pkg);
+    //     }        
+    // } else {
+    //     qDebug()<<"invalid mime type:"<<data->formats();
+    // }
+    qDebug()<<"drop mime data processed";
+    
+    return true;
+}
 
 void LocalView::slot_show_hidden(bool show)
 {

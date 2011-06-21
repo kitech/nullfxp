@@ -26,6 +26,7 @@ namespace Ui {
 };
 
 class RemoteView;
+class LocalFileSystemModel;
 
 class LocalView : public QWidget
 {
@@ -52,7 +53,11 @@ public slots:
     void slot_icon_size_changed(int value);
 
     void setFileListViewMode(int mode);
-    
+
+    //
+    virtual bool slot_drop_mime_data(const QMimeData *data, Qt::DropAction action,
+			     int row, int column, const QModelIndex &parent);
+
 private slots:
     void slot_dir_tree_item_clicked(const QModelIndex & index);
     void slot_dir_file_view_double_clicked(const QModelIndex & index);
@@ -69,12 +74,15 @@ private slots:
     void onFileRenamed(const QString &path,  const QString &oldName, const QString & newName);
     void onRootPathChanged(const QString &newPath);
 
+    
+
 protected:
     virtual void closeEvent ( QCloseEvent * event );
         
 private:
     QStatusBar *status_bar;
     QFileSystemModel *model;
+    LocalFileSystemModel *model2;
     Ui::LocalView *uiw;
     LocalDirSortFilterModel *dir_file_model;
     int   table_row_height;

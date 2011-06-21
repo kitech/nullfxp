@@ -82,6 +82,7 @@ SOURCES += main.cpp \
  remotedirtreeview.cpp \
  localdirsortfiltermodel.cpp \
  localdirorginalmodel.cpp \
+ localfilesystemmodel.cpp \
  nullfxpext.cpp \
  forwardconnectdaemon.cpp \
  forwarddebugwindow.cpp \
@@ -144,6 +145,7 @@ HEADERS += nullfxp.h \
  remotedirtreeview.h \
  localdirsortfiltermodel.h \
  localdirorginalmodel.h \
+ localfilesystemmodel.h \
  forwardconnectdaemon.h \
  forwarddebugwindow.h \
  forwardconnectinfodialog.h \
