@@ -1176,7 +1176,7 @@ void SFTPView::slot_drag_ready()
         Qt::DropAction dropAction = drag->exec(Qt::CopyAction | Qt::MoveAction);
         Q_UNUSED(dropAction);
     }
-    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<"drag->exec returned";
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<"drag->exec returned"<<mimeData->formats();
 }
 
 bool SFTPView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction action,

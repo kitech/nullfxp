@@ -237,7 +237,7 @@ macx-g++* {
 } else: linux-g++* {
     static_libcurl=$$system("pkg-config --static --libs libcurl")
     message($$static_libcurl)
-    LIBS += -Wl,-Bstatic -lcurl -lexpat -lssh2
+    LIBS += -Wl,-Bstatic -lcurl -lexpat
     #LIBS += -lssh2 # ARCH Linux's curl already contains ssh2, and should explict it here 
     # LIBS += -Wl,-Bstatic -lcurl -lexpat 
     # LIBS += -Wl,-Bdynamic -lssl -lcrypto -lfontconfig

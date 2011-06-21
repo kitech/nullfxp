@@ -32,9 +32,9 @@ void RemoteDirTreeView::dragEnterEvent ( QDragEnterEvent * event )
     if( event->source() == this->parentWidget()->parentWidget()->parentWidget() 
         || event->source()->parentWidget()->parentWidget()->parentWidget() == this->parentWidget()->parentWidget()->parentWidget()){
         event->ignore();
-        }else{
-            QTreeView::dragEnterEvent ( event )  ;
-        }
+    } else {
+        QTreeView::dragEnterEvent ( event );
+    }
 }
 void RemoteDirTreeView::dragLeaveEvent ( QDragLeaveEvent * event ) 
 {
@@ -61,8 +61,7 @@ void RemoteDirTreeView::startDrag ( Qt::DropActions supportedActions )
 
 void RemoteDirTreeView::mousePressEvent ( QMouseEvent * event )
 {
-    if(event->button() == Qt::LeftButton )
-    {
+    if (event->button() == Qt::LeftButton ) {
         this->dragStartPosition = event->pos();
     }
     QTreeView::mousePressEvent ( event );
@@ -72,16 +71,16 @@ void RemoteDirTreeView::mouseMoveEvent ( QMouseEvent * event )
     if (!(event->buttons() & Qt::LeftButton))
         return;
     if ((event->pos() - dragStartPosition).manhattanLength()
-         < QApplication::startDragDistance())
+        < QApplication::startDragDistance()) {
         return;
+    }
     
     //有效性检查
     QItemSelectionModel * ism = this->selectionModel();
     if( ! this->indexAt( this->dragStartPosition ) .isValid() 
-          || ism == 0 )
-    {
+        || ism == 0 ) {
         QTreeView::mouseMoveEvent ( event );
-        return ;
+        return;
     }
     emit drag_ready();
     

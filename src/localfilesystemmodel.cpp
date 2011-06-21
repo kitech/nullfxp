@@ -19,6 +19,29 @@ LocalFileSystemModel::~LocalFileSystemModel()
 {
 }
 
+Qt::DropActions LocalFileSystemModel::supportedDropActions() const
+{
+    return Qt::CopyAction | Qt::MoveAction | QFileSystemModel::supportedDropActions();
+}
+
+QStringList LocalFileSystemModel::mimeTypes() const
+{
+
+    QStringList mtypes;
+    mtypes<<"text/uri-list"<<"application/task-package";
+    //mtypes<<"text/plain";
+    mtypes<<QAbstractItemModel::mimeTypes();
+    //qDebug()<<mtypes ;
+    //mtypes = QAbstractItemModel::mimeTypes();
+    //qDebug()<<mtypes;
+    //return QAbstractItemModel::mimeTypes();
+
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<mtypes;
+
+    return mtypes;
+
+}
+
 bool LocalFileSystemModel::dropMimeData(const QMimeData * data, Qt::DropAction action, int row, int column, const QModelIndex & parent)
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;

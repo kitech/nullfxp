@@ -21,6 +21,9 @@ public:
     LocalFileSystemModel(QObject *parent = 0);
     virtual ~LocalFileSystemModel();
 
+    virtual Qt::DropActions supportedDropActions() const;
+    virtual QStringList mimeTypes() const;
+
 public:
     virtual bool dropMimeData(const QMimeData * data, Qt::DropAction action, int row, int column, const QModelIndex & parent);
 

@@ -102,8 +102,8 @@ LocalView::LocalView(QWidget *parent)
     this->uiw->treeView->setAcceptDrops(true);
     // this->uiw->treeView->setDragEnabled(false);
     this->uiw->treeView->setDropIndicatorShown(true);
-    // this->uiw->treeView->setDragDropMode(QAbstractItemView::DropOnly);
-    this->uiw->treeView->setDragDropMode(QAbstractItemView::DragDrop);
+    this->uiw->treeView->setDragDropMode(QAbstractItemView::DropOnly);
+    // this->uiw->treeView->setDragDropMode(QAbstractItemView::DragDrop);
 
     /////
     QObject::connect(this->uiw->treeView, SIGNAL(clicked(const QModelIndex &)),
