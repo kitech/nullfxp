@@ -1151,6 +1151,8 @@ void SFTPView::slot_drag_ready()
                 temp_file_path = this->remote_dir_model
                     ->filePath(this->m_tableProxyModel->mapToSource(midx));
                 // qDebug()<<"table";
+            } else if (ism->model() == this->remote_dir_model) {
+                temp_file_path = this->remote_dir_model->filePath(midx);
             } else {
                 // qDebug()<<"not possible";
                 Q_ASSERT(1==2);

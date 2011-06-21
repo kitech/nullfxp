@@ -69,12 +69,12 @@ public:
     virtual void user_response_result(int result);
 
 protected:
-    virtual int remote_is_dir(LIBSSH2_SFTP *ssh2_sftp, QString path);
-    virtual int remote_is_reg(LIBSSH2_SFTP *ssh2_sftp, QString path); 
-    virtual int fxp_do_ls_dir(LIBSSH2_SFTP *ssh2_sftp, QString parent_path, QVector<QMap<char, QString> > & fileinfos);
+    virtual int remote_is_dir(LIBSSH2_SFTP *ssh2_sftp, const QString &path);
+    virtual int remote_is_reg(LIBSSH2_SFTP *ssh2_sftp, const QString &path); 
+    virtual int fxp_do_ls_dir(LIBSSH2_SFTP *ssh2_sftp, const QString &parent_path, QVector<QMap<char, QString> > & fileinfos);
 
-    virtual int isFTPDir(Connection *conn, QString path);
-    virtual int isFTPFile(Connection *conn, QString path);
+    virtual int isFTPDir(Connection *conn, const QString &path);
+    virtual int isFTPFile(Connection *conn, const QString &path);
 
     virtual void wait_user_response();
     virtual QMap<QString, QString> getHostInfo(TaskPackage &pkg);

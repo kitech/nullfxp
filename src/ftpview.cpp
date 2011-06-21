@@ -1140,8 +1140,17 @@ void FTPView::slot_drag_ready()
         }
         idx = ism->model()->index(i, 0, pidx);
         QModelIndex midx = idx;
-        temp_file_path = (qobject_cast<RemoteDirModel*>(this->remote_dir_model))
-            ->filePath(this->m_tableProxyModel->mapToSource(midx) );
+        if (ism->model() == this->m_treeProxyModel) {
+            temp_file_path = this->remote_dir_model->filePath(this->m_tableProxyModel->mapToSource(midx));
+        } else if (ism->model() == this->m_tableProxyModel) {
+            temp_file_path = this->remote_dir_model->filePath(this->m_treeProxyModel->mapToSource(midx));
+        } else if (ism->model() == this->remote_dir_model) {
+            temp_file_path = this->remote_dir_model->filePath(midx);
+        } else {
+            Q_ASSERT(1==2);
+        }
+        // temp_file_path = (qobject_cast<RemoteDirModel*>(this->remote_dir_model))
+        //     ->filePath(this->m_tableProxyModel->mapToSource(midx) );
         tpkg.files<<temp_file_path;
     }
     

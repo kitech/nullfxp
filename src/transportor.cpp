@@ -79,7 +79,7 @@ static QString ssh2_sftp_error(LIBSSH2_SFTP *ssh2_sftp, int eno)
     return str;
 }
 
-int Transportor::remote_is_dir(LIBSSH2_SFTP *ssh2_sftp, QString path)
+int Transportor::remote_is_dir(LIBSSH2_SFTP *ssh2_sftp, const QString &path)
 {
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
     LIBSSH2_SFTP_HANDLE *sftp_handle = NULL;
@@ -114,7 +114,7 @@ int Transportor::remote_is_dir(LIBSSH2_SFTP *ssh2_sftp, QString path)
     return 0;
 }
 
-int Transportor::remote_is_reg(LIBSSH2_SFTP *ssh2_sftp, QString path)
+int Transportor::remote_is_reg(LIBSSH2_SFTP *ssh2_sftp, const QString &path)
 {
     LIBSSH2_SFTP_ATTRIBUTES ssh2_sftp_attrib;
     LIBSSH2_SFTP_HANDLE *sftp_handle;
@@ -151,7 +151,7 @@ int Transportor::remote_is_reg(LIBSSH2_SFTP *ssh2_sftp, QString path)
     return 0;
 }
 //假设这个path的编码方式是远程服务器上所用的编码方式
-int Transportor::fxp_do_ls_dir(LIBSSH2_SFTP *ssh2_sftp, QString path,
+int Transportor::fxp_do_ls_dir(LIBSSH2_SFTP *ssh2_sftp, const QString &path,
                                   QVector<QMap<char, QString> > &fileinfos)
 {
     LIBSSH2_SFTP_HANDLE *sftp_handle = 0 ;
@@ -194,7 +194,7 @@ int Transportor::fxp_do_ls_dir(LIBSSH2_SFTP *ssh2_sftp, QString path,
     
     return 0; 
 }
-int Transportor::isFTPDir(Connection *conn, QString path)
+int Transportor::isFTPDir(Connection *conn, const QString &path)
 {
     q_debug()<<"test file: "<<path<<conn->ftp;
     int iret = conn->ftp->chdir(path);
@@ -203,7 +203,7 @@ int Transportor::isFTPDir(Connection *conn, QString path)
     }
     return 0;
 }
-int Transportor::isFTPFile(Connection *conn, QString path)
+int Transportor::isFTPFile(Connection *conn, const QString &path)
 {
     int iret = this->isFTPDir(conn, path);
     if (iret == 0) {
