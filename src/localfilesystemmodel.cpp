@@ -21,15 +21,20 @@ LocalFileSystemModel::~LocalFileSystemModel()
 
 Qt::DropActions LocalFileSystemModel::supportedDropActions() const
 {
-    return Qt::CopyAction | Qt::MoveAction | QFileSystemModel::supportedDropActions();
+    Qt::DropActions acts = Qt::CopyAction | Qt::MoveAction | QFileSystemModel::supportedDropActions();
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<acts;
+    
+    return acts;
 }
 
 QStringList LocalFileSystemModel::mimeTypes() const
 {
 
     QStringList mtypes;
-    mtypes<<"text/uri-list"<<"application/task-package";
-    //mtypes<<"text/plain";
+    
+    mtypes<<"text/uri-list";
+    mtypes<<"application/task-package";
+    // mtypes<<"text/plain";
     mtypes<<QAbstractItemModel::mimeTypes();
     //qDebug()<<mtypes ;
     //mtypes = QAbstractItemModel::mimeTypes();

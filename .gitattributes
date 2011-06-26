@@ -439,11 +439,15 @@ src/localdirorginalmodel.cpp -text
 src/localdirorginalmodel.h -text
 src/localdirsortfiltermodel.cpp -text
 src/localdirsortfiltermodel.h -text
+src/localdirtreeview.cpp -text
+src/localdirtreeview.h -text
 src/localfilesystemmodel.cpp -text
 src/localfilesystemmodel.h -text
 src/localview.cpp -text
 src/localview.h -text
 src/localview.ui -text
+src/localviewdirtableview.cpp -text
+src/localviewdirtableview.h -text
 src/main.cpp -text
 src/netdirsortfiltermodel.cpp -text
 src/netdirsortfiltermodel.h -text

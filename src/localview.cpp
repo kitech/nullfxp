@@ -99,11 +99,18 @@ LocalView::LocalView(QWidget *parent)
   
     this->uiw->tableView->resizeColumnToContents(0);
 
-    this->uiw->treeView->setAcceptDrops(true);
-    // this->uiw->treeView->setDragEnabled(false);
-    this->uiw->treeView->setDropIndicatorShown(true);
-    this->uiw->treeView->setDragDropMode(QAbstractItemView::DropOnly);
+    // this->uiw->treeView->setAcceptDrops(true);
+    // // this->uiw->treeView->setDragEnabled(false);
+    // this->uiw->treeView->setDragEnabled(true);
+    // this->uiw->treeView->setDropIndicatorShown(true);
+    // // this->uiw->treeView->setDragDropMode(QAbstractItemView::DropOnly);
     // this->uiw->treeView->setDragDropMode(QAbstractItemView::DragDrop);
+    
+    // this->uiw->tableView->setAcceptDrops(true);
+    // this->uiw->tableView->setDragEnabled(false);
+    // this->uiw->tableView->setDropIndicatorShown(false);
+    // this->uiw->tableView->setDragDropMode(QAbstractItemView::DragDrop);
+    // this->uiw->tableView->setDragDropOverwriteMode(true);
 
     /////
     QObject::connect(this->uiw->treeView, SIGNAL(clicked(const QModelIndex &)),
