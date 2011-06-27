@@ -16,12 +16,15 @@
 #include "localfilesystemmodel.h"
 #include "globaloption.h"
 #include "fileproperties.h"
+#include "progressdialog.h"
 
 #include "ui_localview.h"
 
-LocalView::LocalView(QWidget *parent)
+LocalView::LocalView(QMdiArea *main_mdi_area, QWidget *parent)
     : QWidget(parent)
     , uiw(new Ui::LocalView())
+    , main_mdi_area(main_mdi_area)
+    , own_progress_dialog(NULL)
 {
     this->uiw->setupUi(this);
     this->setObjectName("LocalFileSystemView");
@@ -342,6 +345,63 @@ void LocalView::slot_local_new_upload_requested()
     emit new_upload_requested(pkg);
 }
 
+void LocalView::slot_local_new_download_requested(const TaskPackage &local_pkg, const TaskPackage &remote_pkg)
+{
+    ProgressDialog *pdlg = new ProgressDialog(0);
+    // src is remote file , dest if localfile 
+    pdlg->set_transfer_info(remote_pkg, local_pkg);
+    QObject::connect(pdlg, SIGNAL(transfer_finished(int, QString)),
+                     this, SLOT(slot_transfer_finished(int, QString)));
+    this->main_mdi_area->addSubWindow(pdlg);
+    pdlg->show();
+    this->own_progress_dialog = pdlg;
+}
+
+void LocalView::slot_transfer_finished(int status, QString errorString)
+{
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__<<status; 
+    // SFTPView *remote_view = this;
+    
+    ProgressDialog *pdlg = (ProgressDialog*)sender();
+
+    this->main_mdi_area->removeSubWindow(pdlg->parentWidget());
+
+    delete pdlg;
+    this->own_progress_dialog = NULL;
+
+    if (status == 0 // || status == 3
+        ) {
+        //TODO 通知UI更新目录结构,在某些情况下会导致左侧树目录变空。
+        //int transfer_type = pdlg->get_transfer_type();
+        //if ( transfer_type == TransferThread::TRANSFER_GET )
+        {
+            // this->local_view->update_layout();
+            // local 不需要吧，这个能自动更新的？？？
+            this->update_layout();
+        }
+        //else if ( transfer_type == TransferThread::TRANSFER_PUT )
+        {
+            // remote_view->update_layout();
+        }
+        //else
+        {
+            // xxxxx: 没有预期到的错误
+            //assert ( 1== 2 );
+        }
+    } else if (status == 52 // Transportor::ERROR_CANCEL
+               ) {
+        // user cancel, show nothing
+    } else if (status != 0 // && status != 3
+               ) {
+        QString errmsg = QString(errorString + " Code: %1").arg(status);
+        if (errmsg.length() < 50) errmsg = errmsg.leftJustified(50);
+        QMessageBox::critical(this, QString(tr("Error: ")), errmsg);
+    } else {
+        Q_ASSERT(1 == 2);
+    }
+    // remote_view->slot_leave_remote_dir_retrive_loop();
+}
+
 QString LocalView::get_selected_directory()
 {
     qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
@@ -479,7 +539,7 @@ void LocalView::slot_dir_file_view_double_clicked(const QModelIndex &index)
     }
 }
 
-//TODO accept drop 
+//accept drop ok now
 bool LocalView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction action,
                                      int row, int column, const QModelIndex &parent)
 {
@@ -488,8 +548,42 @@ bool LocalView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction action
     Q_UNUSED(column);
     
     TaskPackage local_pkg(PROTO_FILE);
-    TaskPackage remote_pkg(PROTO_SFTP);
+    TaskPackage remote_pkg(PROTO_SFTP); // MAYBE also PROTO_FILE
    
+    QString local_file_name = this->model->filePath(parent);
+    local_pkg.files<<local_file_name;
+
+    if (data->hasFormat("application/task-package")) {
+        remote_pkg = TaskPackage::fromRawData(data->data("application/task-package"));
+        qDebug()<<remote_pkg;
+        if (remote_pkg.isValid(remote_pkg)) {
+            // fixed 两个sftp服务器间拖放的情况, 也可以，已经完成
+            // this->slot_new_upload_requested(local_pkg, remote_pkg);
+            this->slot_local_new_download_requested(local_pkg, remote_pkg);
+        }
+    } else if (data->hasFormat("text/uri-list")) {
+        // from native file explore like dolphin. or self?
+        remote_pkg.setProtocol(PROTO_FILE);
+        QList<QUrl> files = data->urls();
+        if (files.count() == 0) {
+             return false;
+             assert(0);
+        } else {
+            for (int i = 0 ; i < files.count(); i++) {
+                QString path = files.at(i).path();
+                #ifdef WIN32
+                // because on win32, now path=/C:/xxxxx, should
+                path = path.right(path.length() - 1);
+                #endif
+                remote_pkg.files<<path;
+            }
+            // this->slot_new_upload_requested(local_pkg, remote_pkg);
+            this->slot_local_new_download_requested(local_pkg, remote_pkg);
+        }
+    } else {
+        qDebug()<<"Invalid mime type:"<<data->formats();
+    }
+
     // NetDirNode *aim_item = static_cast<NetDirNode*>(parent.internalPointer());        
     // QString remote_file_name = aim_item->fullPath;
 
@@ -528,7 +622,7 @@ bool LocalView::slot_drop_mime_data(const QMimeData *data, Qt::DropAction action
     // } else {
     //     qDebug()<<"invalid mime type:"<<data->formats();
     // }
-    qDebug()<<"drop mime data processed";
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"drop mime data processed";
     
     return true;
 }
@@ -563,19 +657,19 @@ void LocalView::slot_mkdir()
     // QModelIndex midx = mil.at(0);
     QModelIndex midx = idx;
     QModelIndex aim_midx = (this->curr_item_view == this->uiw->treeView)
-        ? this->dir_file_model->mapToSource(midx): midx ;
+        ? this->dir_file_model->mapToSource(midx): midx;
 
     //检查所选择的项是不是目录
     if (!this->model->isDir(aim_midx)) {
         QMessageBox::critical(this, tr("Warning..."), tr("The selected item is not a directory."));
-        return ;
+        return;
     }
     
     dir_name = QInputDialog::getText(this, tr("Create directory:"),
                                      tr("Input directory name:").leftJustified(80, ' '),
                                      QLineEdit::Normal, tr("new_direcotry"));
     if (dir_name == QString::null) {
-        return ;
+        return;
     } 
     if (dir_name.length () == 0) {
         // qDebug()<<" selectedIndexes count :"<< mil.count() << " why no item selected????";

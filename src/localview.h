@@ -25,6 +25,7 @@ namespace Ui {
     class LocalView;
 };
 
+class ProgressDialog;
 class RemoteView;
 class LocalFileSystemModel;
 
@@ -32,7 +33,7 @@ class LocalView : public QWidget
 {
     Q_OBJECT;
 public:
-    LocalView(QWidget *parent = 0);
+    LocalView(QMdiArea *main_mdi_area, QWidget *parent = 0);
     virtual ~LocalView();
 
     QString get_selected_directory();    
@@ -41,9 +42,11 @@ public:
 signals:
     void new_upload_requested(TaskPackage pkg);
 
+
 public slots:        
     void slot_local_dir_tree_context_menu_request(const QPoint & pos);        
-    void slot_local_new_upload_requested();        
+    void slot_local_new_upload_requested();
+    void slot_local_new_download_requested(const TaskPackage &local_pkg, const TaskPackage &remote_pkg);
     void slot_refresh_directory_tree();        
     void slot_show_hidden(bool show);
 
@@ -55,6 +58,7 @@ public slots:
     void setFileListViewMode(int mode);
 
     //
+    virtual void slot_transfer_finished(int status, QString errorString);
     virtual bool slot_drop_mime_data(const QMimeData *data, Qt::DropAction action,
 			     int row, int column, const QModelIndex &parent);
 
@@ -74,12 +78,11 @@ private slots:
     void onFileRenamed(const QString &path,  const QString &oldName, const QString & newName);
     void onRootPathChanged(const QString &newPath);
 
-    
-
 protected:
     virtual void closeEvent ( QCloseEvent * event );
         
 private:
+    QMdiArea   *main_mdi_area; // from NullFXP class
     QStatusBar *status_bar;
     QFileSystemModel *model;
     LocalFileSystemModel *model2;
@@ -88,6 +91,8 @@ private:
     int   table_row_height;
     QAbstractItemView *curr_item_view;    //
     QMenu *local_dir_tree_context_menu;
+
+    ProgressDialog *own_progress_dialog;
 
     QLabel *entriesLabel;
     bool is_dir_complete_request;

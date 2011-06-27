@@ -40,11 +40,11 @@ public:
 
     virtual QString get_selected_directory();
     //
-    virtual void set_user_home_path(QString user_home_path);
+    virtual void set_user_home_path(const QString &user_home_path);
     virtual void setConnection(Connection *conn);
     
-    virtual bool is_in_remote_dir_retrive_loop() 
-    { return this->in_remote_dir_retrive_loop ; }
+    virtual inline bool is_in_remote_dir_retrive_loop() 
+    { return this->in_remote_dir_retrive_loop; }
     
     virtual void update_layout();
     
@@ -66,6 +66,7 @@ protected:
     virtual void init_popup_context_menu();
     
     QString user_home_path;
+    QString m_custom_initial_path; // user setting initial path, TODO
         
     QCursor orginal_cursor;
     bool    in_remote_dir_retrive_loop;

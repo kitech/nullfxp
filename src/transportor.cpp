@@ -220,6 +220,7 @@ void Transportor::run()
     int destProtocol = this->dest_pkg.scheme;
     int iret = -1;
     /*
+      FILE -> FILE  FILETransportor native copy
       FILE -> SFTP  SSHTransportor
       FILE -> FTP   FTPTransportor
       FTP -> FILE   FTPTransportor
@@ -229,7 +230,11 @@ void Transportor::run()
       FTP -> FTP    FTPTransportor
       SFTP -> SFTP  SSHTransportor
      */
-    if (srcProtocol == PROTO_FILE && destProtocol == PROTO_SFTP) {
+    if (srcProtocol == PROTO_FILE && destProtocol == PROTO_FILE) {
+        q_debug()<<"Unsupported file transport type. but coming soon.";
+        this->error_code = iret = Transportor::ERRNO_TASK_INVALID;
+        this->errorString = tr("Unsupported file transport type. but coming soon.");
+    } else if (srcProtocol == PROTO_FILE && destProtocol == PROTO_SFTP) {
         iret = this->run_FILE_to_SFTP();
     } else if (srcProtocol == PROTO_FILE && destProtocol == PROTO_FTP) {
         iret = this->run_FILE_to_FTP();

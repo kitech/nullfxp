@@ -32,11 +32,12 @@ class TaskPackage
  public:
     TaskPackage();
     TaskPackage(int scheme);
-    ~TaskPackage();
+    virtual ~TaskPackage();
     
+    bool setProtocol(int proto);
     int setFile(QString file);
-    static void dump(TaskPackage &pkg);
-    static bool isValid(TaskPackage &kg);
+    static void dump(const TaskPackage &pkg);
+    static bool isValid(const TaskPackage &kg);
     static QString getProtocolNameById(int protocol_id);
     QByteArray toRawData();
     static TaskPackage fromRawData(QByteArray ba);

@@ -350,7 +350,7 @@ QString RemoteView::get_selected_directory()
     return file_path;
 }
 
-void RemoteView::set_user_home_path(QString user_home_path)
+void RemoteView::set_user_home_path(const QString &user_home_path)
 {
     this->user_home_path = user_home_path;
 }

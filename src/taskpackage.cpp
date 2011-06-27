@@ -24,6 +24,15 @@ TaskPackage::~TaskPackage()
 {
 
 }
+
+bool TaskPackage::setProtocol(int proto)
+{
+    Q_ASSERT(proto > PROTO_MIN && proto < PROTO_MAX);
+    this->scheme = proto;
+    return true;
+}
+
+// TODO guess proto type by parse file's scheme
 int TaskPackage::setFile(QString file)
 {
     int current_file_count = this->files.count();
@@ -32,7 +41,7 @@ int TaskPackage::setFile(QString file)
 
     return current_file_count;
 }
-void TaskPackage::dump(TaskPackage &pkg)
+void TaskPackage::dump(const TaskPackage &pkg)
 {
     qDebug()<<"==== task package >>>";
     qDebug()<<"scheme: "<<TaskPackage::getProtocolNameById(pkg.scheme)<<" ";
@@ -41,7 +50,7 @@ void TaskPackage::dump(TaskPackage &pkg)
     qDebug()<<"pubkey:"<<pkg.pubkey;
     qDebug()<<"<<<< task package ===";
 }
-bool TaskPackage::isValid(TaskPackage &pkg)
+bool TaskPackage::isValid(const TaskPackage &pkg)
 {
     if (pkg.scheme <= PROTO_MIN || pkg.scheme >= PROTO_MAX) {
         return false;

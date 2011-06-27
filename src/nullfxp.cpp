@@ -45,7 +45,7 @@ extern GlobalOption *gOpt;
 //////////////////////////
 NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
 : QMainWindow(parent, flags)
-    ,mUIMain(new Ui::MainWindow())
+    , mUIMain(new Ui::MainWindow())
 {
     this->mUIMain->setupUi(this);
     this->setWindowIcon(QIcon(":/icons/nullget-1.png")); 
@@ -56,8 +56,8 @@ NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
     this->connector = NULL;
 
     //
-    mdiArea = new QMdiArea;
-    mdiArea->setWindowIcon(QIcon(":/icons/nullget-2.png")); 
+    this->mdiArea = new QMdiArea;
+    this->mdiArea->setWindowIcon(QIcon(":/icons/nullget-2.png")); 
     QObject::connect(this->mUIMain->actionTransfer_queue, SIGNAL(triggered(bool)),
                      this, SLOT(slot_show_transfer_queue(bool)));
     QObject::connect(this->mUIMain->actionShow_log,SIGNAL(triggered(bool)),
@@ -91,7 +91,7 @@ NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
     QObject::connect(this->mUIMain->action_Global_Options, SIGNAL(triggered()),
                      this, SLOT(slot_show_option_dialog()));
 
-    localView = new LocalView();
+    localView = new LocalView(this->mdiArea);
 
     mdiArea->addSubWindow(localView);
 

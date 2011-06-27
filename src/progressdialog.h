@@ -31,6 +31,8 @@ public:
     ProgressDialog(QWidget *parent = 0);
     virtual ~ProgressDialog();
 
+    // local_pkg is src pkg
+    // remote_pkg is dest pkg ???
     void set_transfer_info(TaskPackage local_pkg, TaskPackage remote_pkg);
     
 public slots:

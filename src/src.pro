@@ -12,7 +12,7 @@ CONFIG += qt thread console warn_on ordered
 TARGET = nullfxp
 DESTDIR = ../bin
 
-VERSION=2.1.1.84  # using in nullfxp-version.h
+VERSION=2.1.1.85  # using in nullfxp-version.h
 
 # install vars, unix xdg
 include(../install.pri)
@@ -230,7 +230,7 @@ win32 {
 } else {
     LIBS += libssh2/src/libssh2.a -lssl -lcrypto -lz
 #    LIBS += -lcurl
-    TARGETDEPS += libssh2/src/libssh2.a            # depcreated
+#    TARGETDEPS += libssh2/src/libssh2.a            # depcreated
     POST_TARGETDEPS += libssh2/src/libssh2.a
 # WARNING: /home/gzleo/nullfxp-svn/src/src.pro:204: Variable TARGETDEPS is deprecated; use POST_TARGETDEPS instead.
 macx-g++* {
@@ -241,7 +241,7 @@ macx-g++* {
 } else: linux-g++* {
     static_libcurl=$$system("pkg-config --static --libs libcurl")
     message($$static_libcurl)
-    LIBS += -Wl,-Bstatic -lcurl -lexpat
+    LIBS += -Wl,-Bstatic -lcurl -lexpat -lssh2
     #LIBS += -lssh2 # ARCH Linux's curl already contains ssh2, and should explict it here 
     # LIBS += -Wl,-Bstatic -lcurl -lexpat 
     # LIBS += -Wl,-Bdynamic -lssl -lcrypto -lfontconfig
