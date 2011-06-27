@@ -16,13 +16,15 @@ namespace Ui {
     class HostListDialog;
 };
 
-class SessionDirModel : public QDirModel
+// TODO QDirModel to QFileSysemModel
+// class SessionDirModel : public QDirModel
+class SessionDirModel : public QFileSystemModel
 {
     Q_OBJECT;
 public:
     SessionDirModel(const QStringList & nameFilters, QDir::Filters filters,
                     QDir::SortFlags sort, QObject * parent = 0);
-    SessionDirModel(QObject *parent = 0 );
+    SessionDirModel(QObject *parent = 0);
     virtual ~SessionDirModel();
 
     virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
@@ -57,6 +59,9 @@ private slots:
     void slot_ctx_menu_requested(const QPoint &pos);
     void slot_show_no_item_tip();
     void slot_item_clicked(const QModelIndex &index);
+
+    void slot_directory_loaded(const QString &path);
+    void slot_root_path_changed(const QString &newPath);
 
 private:
     Ui::HostListDialog *uiw;

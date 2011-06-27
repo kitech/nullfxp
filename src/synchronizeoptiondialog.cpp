@@ -10,20 +10,22 @@
 #include "utils.h"
 #include "basestorage.h"
 #include "synchronizewindow.h"
+#include "ui_synchronizeoptiondialog.h"
 #include "synchronizeoptiondialog.h"
 
 SynchronizeOptionDialog::SynchronizeOptionDialog(QWidget *parent, Qt::WindowFlags flags)
     : QDialog(parent, flags)
+    , uiw(new Ui::SynchronizeOptionDialog())
 {
-    this->ui_dlg.setupUi(this);
+    this->uiw->setupUi(this);
 
-    QObject::connect(this->ui_dlg.toolButton, SIGNAL(clicked()),
+    QObject::connect(this->uiw->toolButton, SIGNAL(clicked()),
                      this, SLOT(slot_select_local_base_directory()));
 
-    QObject::connect(this->ui_dlg.toolButton_2, SIGNAL(clicked()),
+    QObject::connect(this->uiw->toolButton_2, SIGNAL(clicked()),
                      this, SLOT(slot_show_session_list()));
 
-    QObject::connect(this->ui_dlg.buttonBox, SIGNAL(accepted()),
+    QObject::connect(this->uiw->buttonBox, SIGNAL(accepted()),
                      this, SLOT(slot_option_accepted()));
 }
 
@@ -38,12 +40,13 @@ void SynchronizeOptionDialog::slot_select_local_base_directory()
 
     dir = QFileDialog::getExistingDirectory(this, tr("Select directory"), ".");
     if(!dir.isEmpty()) {
-        this->ui_dlg.lineEdit->setText(dir);
+        this->uiw->lineEdit->setText(dir);
     }
 }
 
 void SynchronizeOptionDialog::slot_show_session_list()
 {
+    q_debug()<<"";
     QMenu * popmenu = new QMenu(this);
     QAction *action;
 
@@ -58,7 +61,7 @@ void SynchronizeOptionDialog::slot_show_session_list()
         popmenu->addAction(action);        
     }
 
-    QPoint pos = this->ui_dlg.toolButton_2->pos();
+    QPoint pos = this->uiw->toolButton_2->pos();
     pos = this->mapToGlobal(pos);
     pos.setX(pos.x() + 35);
     popmenu->popup(pos);
@@ -67,13 +70,13 @@ void SynchronizeOptionDialog::slot_show_session_list()
 void SynchronizeOptionDialog::slot_session_item_selected()
 {
     QAction *a = static_cast<QAction *>(sender());
-    this->ui_dlg.lineEdit_2->setText(a->text());
+    this->uiw->lineEdit_2->setText(a->text());
 }
 
 void SynchronizeOptionDialog::slot_option_accepted()
 {
     QString str;
-    str = this->ui_dlg.lineEdit->text().trimmed();
+    str = this->uiw->lineEdit->text().trimmed();
     if(str.isEmpty()) {
         //
         QMessageBox::warning(this, tr("Invalide parameter"), tr("You must input local directory"));
@@ -86,13 +89,13 @@ void SynchronizeOptionDialog::slot_option_accepted()
             return;
         }
     }
-    str = this->ui_dlg.lineEdit_2->text().trimmed();
+    str = this->uiw->lineEdit_2->text().trimmed();
     if(str.isEmpty()) {
         QMessageBox::warning(this, tr("Invalide parameter"), tr("You must select a session"));        
         this->show();
         return;
     }
-    str = this->ui_dlg.lineEdit_3->text().trimmed();
+    str = this->uiw->lineEdit_3->text().trimmed();
     if(str.isEmpty()) {
         QMessageBox::warning(this, tr("Invalide parameter"), tr("You must input remote direcotry"));
         this->show();
@@ -106,11 +109,11 @@ void SynchronizeOptionDialog::slot_option_accepted()
     }
 
     SynchronizeWindow *syncwin = new SynchronizeWindow((QWidget*)this->parent(), Qt::Dialog);
-    syncwin->set_sync_param(this->ui_dlg.lineEdit->text().trimmed(),
-                            this->ui_dlg.lineEdit_2->text().trimmed(),
-                            this->ui_dlg.lineEdit_3->text().trimmed(),
-                            this->ui_dlg.checkBox->isChecked(),
-                            this->ui_dlg.comboBox->currentIndex());
+    syncwin->set_sync_param(this->uiw->lineEdit->text().trimmed(),
+                            this->uiw->lineEdit_2->text().trimmed(),
+                            this->uiw->lineEdit_3->text().trimmed(),
+                            this->uiw->checkBox->isChecked(),
+                            this->uiw->comboBox->currentIndex());
     syncwin->show();
     this->deleteLater();
 }

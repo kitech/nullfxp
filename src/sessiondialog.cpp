@@ -16,12 +16,15 @@
 
 SessionDirModel::SessionDirModel(const QStringList &nameFilters, 
                                  QDir::Filters filters, QDir::SortFlags sort, QObject *parent)
-    : QDirModel(nameFilters, filters, sort, parent)
+//    : QDirModel(nameFilters, filters, sort, parent)
+    : QFileSystemModel(parent)
 {
-    
+    this->setNameFilters(nameFilters);
+    this->setFilter(filters);
 }
 SessionDirModel::SessionDirModel(QObject *parent)
-    : QDirModel(parent)
+//    : QDirModel(parent)
+    : QFileSystemModel(parent)
 {
 }
 SessionDirModel::~SessionDirModel()
@@ -33,7 +36,8 @@ QVariant SessionDirModel::data(const QModelIndex &index, int role) const
     if (role == Qt::DecorationRole && !this->isDir(index)) {
         return QIcon(":icons/computer.png");
     }
-    return QDirModel::data(index, role);
+    // return QDirModel::data(index, role);
+    return QFileSystemModel::data(index, role);
 }
 
 SessionDialog::SessionDialog(QWidget *parent)
@@ -58,9 +62,25 @@ SessionDialog::SessionDialog(QWidget *parent)
     this->sessPath = BaseStorage::instance()->getSessionPath();
 
     this->sessTree = new SessionDirModel();
-    this->sessTree->setReadOnly(false);
+    QDir::Filters filters = this->sessTree->filter();
+    filters = QDir::AllEntries;
+    this->sessTree->setFilter(filters);
+    QObject::connect(this->sessTree, SIGNAL(rootPathChanged(const QString &)),
+                     this, SLOT(slot_root_path_changed(const QString &)));
+
+    QObject::connect(this->sessTree, SIGNAL(directoryLoaded(const QString &)),
+                     this, SLOT(slot_directory_loaded(const QString &)));
+    
+    // this->sessTree->setReadOnly(false);
+    this->sessTree->setReadOnly(true);
     this->uiw->treeView->setModel(this->sessTree);
-    this->uiw->treeView->setRootIndex(this->sessTree->index(this->sessPath));
+    // this->uiw->treeView->setRootIndex(this->sessTree->index(this->sessPath));
+    // this->uiw->treeView->setRootIndex(this->sessTree->index("/home/gzleo/"));
+    this->sessTree->setRootPath(this->sessPath);
+
+    q_debug()<<this->sessPath<<this->sessTree->rootPath()
+             <<this->sessTree->nameFilters()<<this->sessTree->filter();
+
     this->uiw->treeView->setColumnHidden(1, true);
     this->uiw->treeView->setColumnHidden(2, true);
     this->uiw->treeView->setColumnHidden(3, true);
@@ -250,7 +270,7 @@ void SessionDialog::slot_rename_selected_host()
                 QMap<QString, QString> host = this->storage->getHost(idx.data().toString());
                 this->storage->updateHost(host, new_name);
             }
-            this->sessTree->refresh(pidx);
+            // this->sessTree->refresh(pidx); // TODO 
         }
     } else {
         this->slot_show_no_item_tip();
@@ -282,7 +302,7 @@ void SessionDialog::slot_remove_selected_host()
             } else {
                 this->storage->removeHost(cidx.data().toString(), this->sessTree->filePath(pidx));
             }
-            this->sessTree->refresh(pidx);
+            // this->sessTree->refresh(pidx); // TODO 
         }
     } else {
         this->slot_show_no_item_tip();
@@ -397,7 +417,7 @@ void SessionDialog::slot_paste_selected()
             QDir().rmdir(opfile);
             opfile = this->sessTree->filePath(opidx);
             QDir().rename(opfile, afile + QString("/") + this->sessTree->fileName(opidx));
-            this->sessTree->refresh(oppidx);
+            // this->sessTree->refresh(oppidx); // TODO
         }
         if (this->optype == OP_COPY) {
             QString dname = this->sessTree->fileName(opidx);
@@ -430,7 +450,7 @@ void SessionDialog::slot_paste_selected()
                 }
             }           
         }
-        this->sessTree->refresh(apidx);
+        // this->sessTree->refresh(apidx); // TODO
         this->uiw->treeView->expand(apidx);
     } else {
         afile = this->sessTree->filePath(aidx) + QString("/") + this->sessTree->fileName(opidx);
@@ -452,7 +472,7 @@ void SessionDialog::slot_paste_selected()
         }
         tset.setValue("show_name", show_name);
         tset.sync();
-        this->sessTree->refresh(aidx);
+        // this->sessTree->refresh(aidx); // TODO 
         this->uiw->treeView->expand(aidx);
     }
 
@@ -494,7 +514,7 @@ void SessionDialog::slot_new_folder()
     
     if(ok && !new_name.isEmpty() && new_name != cidx.data().toString()) {
         if (this->sessTree->mkdir(aidx, new_name).isValid()) {
-            this->sessTree->refresh(aidx);
+            // this->sessTree->refresh(aidx); // TODO 
             this->uiw->treeView->expand(aidx);
         } else {
             // what can i do?
@@ -508,6 +528,16 @@ void SessionDialog::slot_item_clicked(const QModelIndex &index)
     if (QApplication::keyboardModifiers() == Qt::ControlModifier) {
         this->uiw->treeView->clearSelection();
     }
+}
+
+void SessionDialog::slot_directory_loaded(const QString &path)
+{
+    q_debug()<<path;
+}
+
+void SessionDialog::slot_root_path_changed(const QString &newPath)
+{
+    q_debug()<<newPath;
 }
 
 // sessiondialog.cpp ends here

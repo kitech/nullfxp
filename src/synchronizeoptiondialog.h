@@ -16,17 +16,20 @@
 #include <QtGui>
 
 
-#include "ui_synchronizeoptiondialog.h"
+// #include "ui_synchronizeoptiondialog.h"
+namespace Ui {
+    class SynchronizeOptionDialog;
+};
 
 class SynchronizeOptionDialog : public QDialog
 {
     Q_OBJECT;
 public:
     SynchronizeOptionDialog(QWidget *parent = 0,Qt::WindowFlags flags = 0);
-    ~SynchronizeOptionDialog();
+    virtual ~SynchronizeOptionDialog();
 
 private:
-    Ui::SynchronizeOptionDialog ui_dlg;
+    Ui::SynchronizeOptionDialog *uiw;
 
 private slots:
     void slot_select_local_base_directory();

@@ -16,7 +16,7 @@
 
 QuickConnectInfoDialog::QuickConnectInfoDialog(QWidget *parent, Qt::WindowFlags f)
   : QDialog(parent, f)
-  ,uiw(new Ui::QuickConnectInfoDialog())
+  , uiw(new Ui::QuickConnectInfoDialog())
 {
     this->uiw->setupUi(this);
 
