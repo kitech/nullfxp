@@ -13,9 +13,10 @@
 #include <QtCore>
 #include <QtGui>
 
-#include <QDirModel>
+// #include <QDirModel>
 
-class LocalDirFileModel : public QDirModel
+// class LocalDirFileModel : public QDirModel
+class LocalDirFileModel : public QFileSystemModel
 {
     Q_OBJECT;
 public:

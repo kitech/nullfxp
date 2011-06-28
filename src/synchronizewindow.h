@@ -17,11 +17,13 @@
 #include "libssh2.h"
 #include "libssh2_sftp.h"
 
-#include "ui_synchronizewindow.h"
-
 class SyncDifferModel;
 class SynchronizeWindow;
 class SyncTransferThread;
+
+namespace Ui {
+    class SynchronizeWindow;
+};
 
 //////////////
 //////////////
@@ -119,7 +121,7 @@ private:
     void releaseBusyControl();
 
 private:
-    Ui::SynchronizeWindow  ui_win;
+    Ui::SynchronizeWindow*  ui_win;
     QString local_dir;
     QString sess_name;
     QString remote_dir;

@@ -10,7 +10,8 @@
 #include "localdirfilemodel.h"
 
 LocalDirFileModel::LocalDirFileModel(QObject *parent)
- : QDirModel(parent)
+// : QDirModel(parent)
+    : QFileSystemModel(parent)
 {
 }
 

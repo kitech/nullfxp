@@ -545,4 +545,22 @@ void SessionDialog::slot_root_path_changed(const QString &newPath)
     q_debug()<<newPath;
 }
 
+void SessionDialog::keyPressEvent(QKeyEvent * e)
+{
+    switch(e->key()) {
+#ifdef Q_WS_MAC
+    case Qt::Key_Enter:
+#else
+    case Qt::Key_F2:
+#endif
+        QTimer::singleShot(1, this, SLOT(slot_rename_selected_host()));
+        // QTimer::singleShot(1, this, SLOT(slot_edit_selected_host()));
+        break;
+    default:
+        QDialog::keyPressEvent(e);
+        break;
+    }
+}
+
+
 // sessiondialog.cpp ends here

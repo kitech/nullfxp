@@ -16,7 +16,7 @@
 #include <QWidget>
 #include <QMdiSubWindow>
 #include <QTreeWidget>
-#include <QDirModel>
+// #include <QDirModel>
 
 #include "localdirsortfiltermodel.h"
 #include "taskpackage.h"

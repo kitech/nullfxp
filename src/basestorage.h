@@ -24,9 +24,9 @@ public:
 
     bool containsHost(QString show_name, QString catPath = QString::null);
     
-    QMap<QString, QMap<QString,QString> > getAllHost(QString catPath = QString::null);
-    QMap<QString,QString> getHost(QString show_name, QString catPath = QString::null);
-    QStringList getNameList(QString catPath = QString::null);
+    QMap<QString, QMap<QString,QString> > getAllHost(const QString &catPath = QString::null);
+    QMap<QString,QString> getHost(const QString &show_name, const QString &catPath = QString::null);
+    QStringList getNameList(const QString &catPath = QString::null);
 
     int hostCount(QString catPath = QString::null);
 

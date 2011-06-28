@@ -16,6 +16,7 @@
 #include "syncdiffermodel.h"
 #include "synctransferthread.h"
 #include "synchronizewindow.h"
+#include "ui_synchronizewindow.h"
 
 SyncWalker::SyncWalker(QObject *parent)
     :QThread(0)
@@ -424,29 +425,30 @@ void SyncWalker::run()
 //////////////////////
 /////////////////////
 SynchronizeWindow::SynchronizeWindow(QWidget *parent, Qt::WindowFlags flags)
-    :QWidget(parent, flags),
-     ctxMenu(0), transfer(0), busy(false)
+    : QWidget(parent, flags)
+    , ui_win(new Ui::SynchronizeWindow())
+    , ctxMenu(0), transfer(0), busy(false)
 {
-    this->ui_win.setupUi(this);
+    this->ui_win->setupUi(this);
 
     walker = new SyncWalker(this);
     QObject::connect(walker, SIGNAL(status_msg(QString)), this, SLOT(slot_status_msg(QString)));
     QObject::connect(walker, SIGNAL(finished()), this, SLOT(slot_finished()));
-    QObject::connect(this->ui_win.toolButton_4, SIGNAL(clicked()), this, SLOT(start()));
+    QObject::connect(this->ui_win->toolButton_4, SIGNAL(clicked()), this, SLOT(start()));
     this->running = false;
 
     // model = new SyncDifferModel(this);
-    // this->ui_win.treeView->setModel(model);
+    // this->ui_win->treeView->setModel(model);
     // QObject::connect(walker, SIGNAL(found_row()), model, SLOT(maybe_has_data()));
-    this->ui_win.treeView->setModel(0);    
+    this->ui_win->treeView->setModel(0);    
     QObject::connect(&this->progress_timer, SIGNAL(timeout()), this, SLOT(progress_timer_timeout()));
-    QObject::connect(this->ui_win.treeView, SIGNAL(customContextMenuRequested ( const QPoint & )),
+    QObject::connect(this->ui_win->treeView, SIGNAL(customContextMenuRequested ( const QPoint & )),
                      this, SLOT(showCtxMenu(const QPoint &)));
-    QObject::connect(this->ui_win.toolButton, SIGNAL(triggered()),
+    QObject::connect(this->ui_win->toolButton, SIGNAL(clicked()),
                      this, SLOT(syncAllFiles()));
-    QObject::connect(this->ui_win.toolButton_2, SIGNAL(triggered()),
+    QObject::connect(this->ui_win->toolButton_2, SIGNAL(clicked()),
                      this, SLOT(uploadAllFiles()));
-    QObject::connect(this->ui_win.toolButton_3, SIGNAL(triggered()),
+    QObject::connect(this->ui_win->toolButton_3, SIGNAL(clicked()),
                      this, SLOT(downloadAllFiles()));
 }
 
@@ -468,8 +470,8 @@ void SynchronizeWindow::set_sync_param(QString local_dir, QString sess_name,
     this->recursive = recursive;
     this->way = way;
 
-    this->ui_win.lineEdit->setText(local_dir);
-    this->ui_win.lineEdit_2->setText(sess_name + ":" + remote_dir);
+    this->ui_win->lineEdit->setText(local_dir);
+    this->ui_win->lineEdit_2->setText(sess_name + ":" + remote_dir);
 }
 
 void SynchronizeWindow::start()
@@ -494,14 +496,14 @@ void SynchronizeWindow::slot_finished()
     this->running = false;
     model = new SyncDifferModel(this);
     model->setDiffFiles(this->walker->mMergedFiles);
-    this->ui_win.treeView->setModel(model);
+    this->ui_win->treeView->setModel(model);
 
-    this->ui_win.treeView->expandAll();
-    this->ui_win.treeView->setColumnWidth(0, 360);
-    this->ui_win.treeView->setColumnWidth(2, 100);
+    this->ui_win->treeView->expandAll();
+    this->ui_win->treeView->setColumnWidth(0, 360);
+    this->ui_win->treeView->setColumnWidth(2, 100);
 
     this->progress_timer.stop();
-    this->ui_win.progressBar->setValue(100);
+    this->ui_win->progressBar->setValue(100);
 
     ////////
     if (this->transfer == 0) {
@@ -526,7 +528,7 @@ void SynchronizeWindow::slot_finished()
 
 void SynchronizeWindow::slot_status_msg(QString msg)
 {
-    this->ui_win.label->setText(msg);
+    this->ui_win->label->setText(msg);
 }
 
 void SynchronizeWindow::closeEvent(QCloseEvent *evt)
@@ -543,12 +545,12 @@ QString SynchronizeWindow::diffDesciption(unsigned long flags)
 
 void SynchronizeWindow::progress_timer_timeout()
 {
-    int val = this->ui_win.progressBar->value();
+    int val = this->ui_win->progressBar->value();
     if (val == 100) {
         val = 0;
     }
     val = val == 100 ? 0 : val + 5;
-    this->ui_win.progressBar->setValue(val);
+    this->ui_win->progressBar->setValue(val);
 }
 
 void SynchronizeWindow::initCtxMenu()
@@ -596,7 +598,7 @@ QModelIndexList SynchronizeWindow::getSelectedModelIndexes()
     QModelIndex cidx, idx, pidx;
     QModelIndexList mil;
 
-    ism = this->ui_win.treeView->selectionModel();
+    ism = this->ui_win->treeView->selectionModel();
     if (ism != NULL) {
         // mil = ism->selectedIndexes();
         if (ism->hasSelection()) {
@@ -628,7 +630,7 @@ void SynchronizeWindow::showCtxMenu(const QPoint & pos)
     //if (this->model == NULL) {
     //  return ;
     //}
-    QPoint adjPos = this->ui_win.treeView->mapToGlobal(pos);
+    QPoint adjPos = this->ui_win->treeView->mapToGlobal(pos);
     adjPos.setX(adjPos.x() + 3);
     adjPos.setY(adjPos.y() + 25);
     this->ctxMenu->popup(adjPos);
@@ -642,7 +644,7 @@ void SynchronizeWindow::showDiffFileInfo()
     QModelIndex cidx, idx ;
     QPair<QString, LIBSSH2_SFTP_ATTRIBUTES*> file;
 
-    ism = this->ui_win.treeView->selectionModel();
+    ism = this->ui_win->treeView->selectionModel();
     if (ism != NULL) {
         if (ism->hasSelection()) {
             // mil = ism->selectedIndexes();
@@ -841,18 +843,18 @@ void SynchronizeWindow::uploadLocalOnlyFiles()
 void SynchronizeWindow::acquireBusyControl()
 {
     bool enable = false;
-    this->ui_win.toolButton->setEnabled(enable);
-    this->ui_win.toolButton_2->setEnabled(enable);
-    this->ui_win.toolButton_3->setEnabled(enable);
-    this->ui_win.toolButton_4->setEnabled(enable);
+    this->ui_win->toolButton->setEnabled(enable);
+    this->ui_win->toolButton_2->setEnabled(enable);
+    this->ui_win->toolButton_3->setEnabled(enable);
+    this->ui_win->toolButton_4->setEnabled(enable);
 }
 
 void SynchronizeWindow::releaseBusyControl()
 {
     bool enable = true;
-    this->ui_win.toolButton->setEnabled(enable);
-    this->ui_win.toolButton_2->setEnabled(enable);
-    this->ui_win.toolButton_3->setEnabled(enable);
-    this->ui_win.toolButton_4->setEnabled(enable);
+    this->ui_win->toolButton->setEnabled(enable);
+    this->ui_win->toolButton_2->setEnabled(enable);
+    this->ui_win->toolButton_3->setEnabled(enable);
+    this->ui_win->toolButton_4->setEnabled(enable);
 }
 

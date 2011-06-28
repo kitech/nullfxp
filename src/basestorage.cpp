@@ -122,24 +122,29 @@ bool BaseStorage::containsHost(QString show_name, QString catPath)
     return false;
 }
 
-QMap<QString, QMap<QString,QString> > BaseStorage::getAllHost(QString catPath)
+QMap<QString, QMap<QString,QString> > BaseStorage::getAllHost(const QString &catPath)
 {
     Q_UNUSED(catPath);
     QMap<QString, QMap<QString,QString> > hosts;
 
     return hosts;
 }
-QStringList BaseStorage::getNameList(QString catPath)
+QStringList BaseStorage::getNameList(const QString &catPath)
 {
     Q_UNUSED(catPath);
     QStringList nlist;
-
+    QStringList elist;
+    
+    QDir::Filters filters = QDir::Files | QDir::NoDotAndDotDot;
+    elist = QDir(this->storagePath).entryList(filters);
+    // qDebug()<<elist;
     // nlist = this->hosts.keys();
+    nlist = elist;
 
     return nlist;
 }
 
-QMap<QString,QString> BaseStorage::getHost(QString show_name, QString catPath)
+QMap<QString,QString> BaseStorage::getHost(const QString &show_name, const QString &catPath)
 {
     QMap<QString,QString> host;
 

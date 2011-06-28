@@ -13,18 +13,19 @@
 #include <QtCore>
 #include <QtGui>
 
-#include <QDirModel>
+// #include <QDirModel>
 
 /**
 	@author liuguangzhao <liuguangzhao@users.sf.net>
 */
-class LocalDirOrginalModel : public QDirModel
+// class LocalDirOrginalModel : public QDirModel
+class LocalDirOrginalModel : public QFileSystemModel
 {
-Q_OBJECT
+    Q_OBJECT;
 public:
     LocalDirOrginalModel(QObject *parent = 0);
 
-    ~LocalDirOrginalModel();
+    virtual ~LocalDirOrginalModel();
 
 };
 

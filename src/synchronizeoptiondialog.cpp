@@ -13,6 +13,19 @@
 #include "ui_synchronizeoptiondialog.h"
 #include "synchronizeoptiondialog.h"
 
+/*
+  sync type:
+    Upload only - List those files that may need to be transferred from the local machine to the remote machine.
+
+    Download only - List those files that may need to be transferred from the remote machine to the local machine.
+
+    Mirror-both - List both the Upload and Download files. If you choose this option, Quick Synchronize will transfer files in both directions. This takes place when a file has been removed from one side or if a file has a different timestamp.
+
+    Mirror-local - List both the Upload files and files that will be deleted with this action. If you choose this option, Quick Synchronize will modify the remote directory to look exactly like the local directory. If the same file exists in both directories, the remote file will be overwritten even if it is newer. Remote files that do not exist in the local directory will be deleted. The local directory will not be changed.
+
+    Mirror-remote - List both the Download files and files that will be deleted with this action. If you choose this option, Quick Synchronize will modify the local directory to look exactly like the remote directory. If the same file exists in both directories, the local file will be overwritten even if it is newer. Local files that do not exist in the remote directory will be deleted. The remote directory will not be changed.
+ */
+
 SynchronizeOptionDialog::SynchronizeOptionDialog(QWidget *parent, Qt::WindowFlags flags)
     : QDialog(parent, flags)
     , uiw(new Ui::SynchronizeOptionDialog())
@@ -44,10 +57,13 @@ void SynchronizeOptionDialog::slot_select_local_base_directory()
     }
 }
 
+// TODO session edit auto complete when input
 void SynchronizeOptionDialog::slot_show_session_list()
 {
     q_debug()<<"";
-    QMenu * popmenu = new QMenu(this);
+    QMenu *popmenu = new QMenu(this);
+    QObject::connect(popmenu, SIGNAL(aboutToHide()), this, SLOT(slot_session_list_menu_hide()));
+
     QAction *action;
 
     BaseStorage * storage = BaseStorage::instance();
@@ -118,3 +134,10 @@ void SynchronizeOptionDialog::slot_option_accepted()
     this->deleteLater();
 }
 
+// OK
+void SynchronizeOptionDialog::slot_session_list_menu_hide()
+{
+    // q_debug()<<sender();
+
+    sender()->deleteLater();
+}

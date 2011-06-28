@@ -36,6 +36,7 @@ private slots:
     void slot_show_session_list();
     void slot_session_item_selected();
     void slot_option_accepted();
+    void slot_session_list_menu_hide();
 };
 
 #endif

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>627</width>
-    <height>458</height>
+    <width>747</width>
+    <height>525</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -45,6 +45,27 @@
       </widget>
      </item>
      <item>
+      <widget class="QToolButton" name="toolButton_6">
+       <property name="text">
+        <string>Mirror Both</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="toolButton_7">
+       <property name="text">
+        <string>Mirror Local</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="toolButton_8">
+       <property name="text">
+        <string>Mirror Remote</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QToolButton" name="toolButton_5">
        <property name="text">
         <string>Property</string>
@@ -76,12 +97,26 @@
    <item>
     <layout class="QHBoxLayout">
      <item>
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>Local:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QLineEdit" name="lineEdit"/>
      </item>
      <item>
       <widget class="Line" name="line">
        <property name="orientation">
         <enum>Qt::Vertical</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_5">
+       <property name="text">
+        <string>Remote:</string>
        </property>
       </widget>
      </item>
@@ -107,11 +142,27 @@ p, li { white-space: pre-wrap; }
     </widget>
    </item>
    <item>
+    <widget class="QTextBrowser" name="textBrowser">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>16777215</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>TextLabel status bar</string>
+        <string>status bar</string>
        </property>
       </widget>
      </item>

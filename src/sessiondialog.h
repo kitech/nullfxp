@@ -63,6 +63,9 @@ private slots:
     void slot_directory_loaded(const QString &path);
     void slot_root_path_changed(const QString &newPath);
 
+protected:
+    virtual void keyPressEvent(QKeyEvent * e);
+
 private:
     Ui::HostListDialog *uiw;
     BaseStorage *storage;

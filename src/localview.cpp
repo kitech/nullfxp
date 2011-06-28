@@ -863,7 +863,7 @@ void LocalView::slot_rename()
 
     QString rename_to;
     rename_to = QInputDialog::getText(this, tr("Rename to:"), 
-                                      tr("Input new name:").leftJustified(100, ' '),
+                                      tr("Input new name for: \"%1\"").arg(file_name).leftJustified(100, ' '),
                                       QLineEdit::Normal, file_name );
      
     if (rename_to  == QString::null) {
