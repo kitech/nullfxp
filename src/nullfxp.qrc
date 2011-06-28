@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="/">
+    <file>icons/quickopen.png</file>
+    <file>icons/network-connect.png</file>
     <file>icons/zoom-in.png</file>
     <file>icons/os/osx.png</file>
     <file>icons/os/tux.png</file>

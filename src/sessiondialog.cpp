@@ -62,9 +62,9 @@ SessionDialog::SessionDialog(QWidget *parent)
     this->sessPath = BaseStorage::instance()->getSessionPath();
 
     this->sessTree = new SessionDirModel();
-    QDir::Filters filters = this->sessTree->filter();
-    filters = QDir::AllEntries;
-    this->sessTree->setFilter(filters);
+    // QDir::Filters filters = this->sessTree->filter();
+    // filters = QDir::AllEntries;
+    // this->sessTree->setFilter(filters);
     QObject::connect(this->sessTree, SIGNAL(rootPathChanged(const QString &)),
                      this, SLOT(slot_root_path_changed(const QString &)));
 
@@ -73,13 +73,13 @@ SessionDialog::SessionDialog(QWidget *parent)
     
     // this->sessTree->setReadOnly(false);
     this->sessTree->setReadOnly(true);
-    this->uiw->treeView->setModel(this->sessTree);
-    // this->uiw->treeView->setRootIndex(this->sessTree->index(this->sessPath));
-    // this->uiw->treeView->setRootIndex(this->sessTree->index("/home/gzleo/"));
-    this->sessTree->setRootPath(this->sessPath);
 
-    q_debug()<<this->sessPath<<this->sessTree->rootPath()
-             <<this->sessTree->nameFilters()<<this->sessTree->filter();
+    this->uiw->treeView->setModel(this->sessTree);
+    this->sessTree->setRootPath("");
+    this->uiw->treeView->setRootIndex(this->sessTree->index(this->sessPath));
+
+    // q_debug()<<this->sessPath<<this->sessTree->rootPath()
+    //          <<this->sessTree->nameFilters()<<this->sessTree->filter();
 
     this->uiw->treeView->setColumnHidden(1, true);
     this->uiw->treeView->setColumnHidden(2, true);
@@ -533,6 +533,11 @@ void SessionDialog::slot_item_clicked(const QModelIndex &index)
 void SessionDialog::slot_directory_loaded(const QString &path)
 {
     q_debug()<<path;
+    if (path == "") {
+    } else {
+        int row_count = this->sessTree->rowCount(this->sessTree->index(path));
+        this->uiw->label->setText(tr("%1 Entries").arg(row_count));
+    }
 }
 
 void SessionDialog::slot_root_path_changed(const QString &newPath)

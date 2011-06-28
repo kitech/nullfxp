@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>347</width>
+    <width>356</width>
     <height>406</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Session Dialog</string>
   </property>
-  <layout class="QVBoxLayout">
+  <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <layout class="QHBoxLayout">
      <item>
@@ -27,6 +27,10 @@ p, li { white-space: pre-wrap; }
        <property name="text">
         <string>...</string>
        </property>
+       <property name="icon">
+        <iconset resource="../nullfxp.qrc">
+         <normaloff>:/icons/network-connect.png</normaloff>:/icons/network-connect.png</iconset>
+       </property>
       </widget>
      </item>
      <item>
@@ -39,6 +43,10 @@ p, li { white-space: pre-wrap; }
        </property>
        <property name="text">
         <string>...</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../nullfxp.qrc">
+         <normaloff>:/icons/quickopen.png</normaloff>:/icons/quickopen.png</iconset>
        </property>
       </widget>
      </item>
@@ -235,14 +243,25 @@ p, li { white-space: pre-wrap; }
     </widget>
    </item>
    <item>
-    <widget class="QCheckBox" name="checkBox">
-     <property name="text">
-      <string>&amp;Show dialog on startup</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-    </widget>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QCheckBox" name="checkBox">
+       <property name="text">
+        <string>&amp;Show dialog on startup</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>0 Entries</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item>
     <layout class="QHBoxLayout">
