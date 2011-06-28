@@ -29,6 +29,7 @@
 #include "libssh2.h"
 #include "libssh2_sftp.h"
 
+#include "ui_forwardconnectdaemon.h"
 #include "forwardconnectdaemon.h"
 #include "forwarddebugwindow.h"
 #include "forwardconnectinfodialog.h"
@@ -58,18 +59,19 @@ static void kbd_callback(const char *name, int name_len,
 
 ForwardConnectDaemon::ForwardConnectDaemon(QWidget *parent)
  : QWidget(parent)
+ , uiw(new Ui::ForwardConnectDaemon())
 {
-    this->ui_fcd.setupUi(this);
+    this->uiw->setupUi(this);
     this->init_custom_menu();
     
     QObject::connect(this, SIGNAL(customContextMenuRequested(const QPoint &)),
                      this, SLOT(slot_custom_ctx_menu(const QPoint &)));
-    QObject::connect(this->ui_fcd.comboBox, SIGNAL(customContextMenuRequested(const QPoint &)),
+    QObject::connect(this->uiw->comboBox, SIGNAL(customContextMenuRequested(const QPoint &)),
                      this, SLOT ( slot_custom_ctx_menu(const QPoint &)));
-    QObject::connect(this->ui_fcd.toolButton, SIGNAL(customContextMenuRequested ( const QPoint &)),
+    QObject::connect(this->uiw->toolButton, SIGNAL(customContextMenuRequested ( const QPoint &)),
                      this, SLOT(slot_custom_ctx_menu(const QPoint &)));
     
-    QObject::connect(this->ui_fcd.comboBox, SIGNAL(currentIndexChanged(int)), 
+    QObject::connect(this->uiw->comboBox, SIGNAL(currentIndexChanged(int)), 
                      this, SLOT(slot_forward_index_changed(int)));
     
     fdw = 0;
@@ -85,7 +87,7 @@ void ForwardConnectDaemon::slot_custom_ctx_menu(const QPoint &pos)
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     //TODO 按情况让某些菜单变灰色
-    //if(this->ui_fcd.comboBox.count() == 0) 
+    //if(this->uiw->comboBox.count() == 0) 
         
     this->op_menu->popup(this->mapToGlobal(pos));
 }
@@ -129,7 +131,7 @@ void ForwardConnectDaemon::slot_stop_port_forward()
     fl->ps_proc->kill();
     
     //从下拉框中删掉这一条
-    this->ui_fcd.comboBox->removeItem(this->ui_fcd.comboBox->currentIndex());
+    this->uiw->comboBox->removeItem(this->uiw->comboBox->currentIndex());
 }
 
 void ForwardConnectDaemon::slot_new_forward()
@@ -149,8 +151,8 @@ void ForwardConnectDaemon::slot_new_forward()
     info_dlg->get_forward_info(fl->host, fl->user_name, fl->passwd, fl->remote_listen_port,fl->forward_local_port);
     delete info_dlg;
     
-    this->ui_fcd.comboBox->addItem(fl->host+ fl->user_name+ fl->passwd+ fl->remote_listen_port+fl->forward_local_port);
-    this->ui_fcd.comboBox->setToolTip(fl->host+ fl->user_name+ fl->passwd+ fl->remote_listen_port+fl->forward_local_port);
+    this->uiw->comboBox->addItem(fl->host+ fl->user_name+ fl->passwd+ fl->remote_listen_port+fl->forward_local_port);
+    this->uiw->comboBox->setToolTip(fl->host+ fl->user_name+ fl->passwd+ fl->remote_listen_port+fl->forward_local_port);
     //
     QObject::connect(fl->plink_proc, SIGNAL(error(QProcess::ProcessError)),
                      this, SLOT(slot_proc_error(QProcess::ProcessError)));
@@ -454,7 +456,7 @@ ForwardList *ForwardConnectDaemon::get_forward_list_by_serv_info()
     QString item_text;
     QString fl_serv_digest;
     
-    item_text = this->ui_fcd.comboBox->currentText();
+    item_text = this->uiw->comboBox->currentText();
     
     for (int i = 0 ; i < this->forward_list.count(); i ++) {
         fl = this->forward_list.at(i);
@@ -473,7 +475,7 @@ ForwardList *ForwardConnectDaemon::get_forward_list_by_timer(QObject *timer_obj)
     QString item_text;
     QString fl_serv_digest;
     
-    item_text = this->ui_fcd.comboBox->currentText();
+    item_text = this->uiw->comboBox->currentText();
     
     for (int i = 0 ; i < this->forward_list.count(); i ++) {
         fl = this->forward_list.at(i);
@@ -489,8 +491,8 @@ void ForwardConnectDaemon::slot_forward_index_changed(int index)
 {
     QString item_text;
     
-    item_text = this->ui_fcd.comboBox->itemText(index);
-    this->ui_fcd.comboBox->setToolTip(item_text);
+    item_text = this->uiw->comboBox->itemText(index);
+    this->uiw->comboBox->setToolTip(item_text);
 }
 
 void ForwardProcessDaemon::run()

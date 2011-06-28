@@ -1,7 +1,7 @@
 // ftphostinfodialog.h --- 
 // 
 // Author: liuguangzhao
-// Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+// Copyright (C) 2007-2012 liuguangzhao@users.sf.net
 // URL: 
 // Created: 2010-06-10 23:06:16 +0800
 // Version: $Id$
@@ -13,8 +13,10 @@
 #include <QtCore>
 #include <QtGui>
 
+namespace Ui {
+    class FTPHostInfoDialog;
+};
 
-#include "ui_ftphostinfodialog.h"
 /**
  *
  * show something like, welcome mesg, host type.
@@ -31,7 +33,7 @@ public:
     void setWelcome(QString welcome);
 
 private:
-    Ui::FTPHostInfoDialog uiw;
+    Ui::FTPHostInfoDialog *uiw;
     QGraphicsScene *mainScene;
 };
 

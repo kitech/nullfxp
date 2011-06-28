@@ -13,8 +13,9 @@ TARGET = ssh
 
 CONFIG += dll console #staticlib
 CONFIG -= qt 
+OBJECTS_DIR = obj
 
-VERSION = 0.4.6
+VERSION = 0.5.0
 
 win32 {
 	CONFIG += release
@@ -24,43 +25,46 @@ win32 {
 
 DEFINES += HAVE_CONFIG_H
 
-SOURCES += agent.c        \
-        auth1.c        \
-        auth.c        \
-        base64.c        \
-        buffer.c        \
-        callbacks.c        \
-        channels1.c        \
-        channels.c        \
-        client.c        \
-        config.c        \
-        connect.c        \
-        crc32.c        \
-        crypt.c        \
-        dh.c        \
-        error.c        \
-        gcrypt_missing.c        \
-        gzip.c        \
-        init.c        \
-        kex.c        \
-        keyfiles.c        \
-        keys.c        \
-        log.c        \
-        match.c        \
-        messages.c        \
-        misc.c        \
-        options.c        \
-        packet.c        \
-        pcap.c        \
-        poll.c        \
-        scp.c        \
-        server.c        \
-        session.c        \
-        sftp.c        \
-        sftpserver.c        \
-        socket.c        \
-        string.c        \
-        wrapper.c 
+SOURCES +=   agent.c \
+  auth.c \
+  base64.c \
+  buffer.c \
+  callbacks.c \
+  channels.c \
+  client.c \
+  config.c \
+  connect.c \
+  crc32.c \
+  crypt.c \
+  dh.c \
+  error.c \
+  getpass.c \
+  gcrypt_missing.c \
+  gzip.c \
+  init.c \
+  kex.c \
+  keyfiles.c \
+  keys.c \
+  known_hosts.c \
+  legacy.c \
+  libcrypto.c \
+  libgcrypt.c \
+  log.c \
+  match.c \
+  messages.c \
+  misc.c \
+  options.c \
+  packet.c \
+  pcap.c \
+  pki.c \
+  poll.c \
+  session.c \
+  scp.c \
+  socket.c \
+  string.c \
+  threads.c \
+  wrapper.c
+
 
 HEADERS += 
 
@@ -69,6 +73,7 @@ win32 {
 	#SOURCES += openssl.c	
 } else {
 	#SOURCES += openssl.c
+    SOURCES +=   threads/pthread.c
 }
 
 

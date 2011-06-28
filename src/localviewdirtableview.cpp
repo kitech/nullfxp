@@ -1,10 +1,10 @@
 // localviewdirtableview.cpp --- 
 // 
 // Author: liuguangzhao
-// Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+// Copyright (C) 2007-2012 liuguangzhao@users.sf.net
 // URL: 
 // Created: 2010-06-16 17:43:57 +0800
-// Version: $Id: localviewdirtableview.cpp 673 2010-06-16 09:59:52Z liuguangzhao $
+// Version: $Id$
 // 
 
 #include <QtCore>
@@ -24,6 +24,7 @@ LocalViewDirTableView::~LocalViewDirTableView()
 
 /**
  * 当源和目标都是同一主机的时候忽略此事件
+ * and compat with native file manager
  */
 void LocalViewDirTableView::dragEnterEvent(QDragEnterEvent *event) 
 {
@@ -38,7 +39,28 @@ void LocalViewDirTableView::dragEnterEvent(QDragEnterEvent *event)
     //     QTableView::dragEnterEvent(event);
     // }
 
-    QTableView::dragEnterEvent(event);
+    qDebug()<<event<<event->source();
+    if (event->source()) {
+        qDebug()<<event->source()->parentWidget();
+        qDebug()<<event->source()->parentWidget()->parentWidget();
+        qDebug()<<event->source()->parentWidget()->parentWidget()->parentWidget();
+    }
+    qDebug()<<this<<this->parentWidget()->parentWidget()->parentWidget();
+
+    if (event->source() == NULL) {
+        // must be from native file manager, such as dolpin and so on.
+        QTableView::dragEnterEvent(event);
+    } else {
+        if( event->source() == this->parentWidget()->parentWidget()->parentWidget() 
+            || event->source()->parentWidget()->parentWidget()->parentWidget()
+            == this->parentWidget()->parentWidget()->parentWidget()) {
+            event->ignore();
+        } else {
+            QTableView::dragEnterEvent(event);
+        }
+    }
+
+    // QTableView::dragEnterEvent(event);
 }
 
 // void LocalViewDirTableView::dragLeaveEvent(QDragLeaveEvent *event) 

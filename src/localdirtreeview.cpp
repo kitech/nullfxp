@@ -4,7 +4,7 @@
 // Copyright (C) 2007-2010 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2008-08-29 16:30:05 +0800
-// Version: $Id: localdirtreeview.cpp 756 2011-06-21 15:01:08Z liuguangzhao $
+// Version: $Id$
 // 
 
 #include <QtCore>

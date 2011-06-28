@@ -1,10 +1,10 @@
 // localviewdirtableview.h --- 
 // 
 // Author: liuguangzhao
-// Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+// Copyright (C) 2007-2012 liuguangzhao@users.sf.net
 // URL: 
 // Created: 2010-06-16 17:43:45 +0800
-// Version: $Id: localviewdirtableview.h 673 2010-06-16 09:59:52Z liuguangzhao $
+// Version: $Id$
 // 
 
 #ifndef LOCALVIEWDIRTABLEVIEW_H

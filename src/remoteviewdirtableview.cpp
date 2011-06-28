@@ -28,12 +28,25 @@ RemoteViewDirTableView::~RemoteViewDirTableView()
 void RemoteViewDirTableView::dragEnterEvent(QDragEnterEvent *event) 
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    //qDebug()<<event<<event->source()<<this<<this->parentWidget()->parentWidget()->parentWidget()<<event->source()->parentWidget()->parentWidget()->parentWidget();
-    if( event->source() == this->parentWidget()->parentWidget()->parentWidget() 
-        || event->source()->parentWidget()->parentWidget()->parentWidget() == this->parentWidget()->parentWidget()->parentWidget()){
-        event->ignore();
-    } else {
+    qDebug()<<event<<event->source();
+    if (event->source()) {
+        qDebug()<<event->source()->parentWidget();
+        qDebug()<<event->source()->parentWidget()->parentWidget();
+        qDebug()<<event->source()->parentWidget()->parentWidget()->parentWidget();
+    }
+    qDebug()<<this<<this->parentWidget()->parentWidget()->parentWidget();
+
+    if (event->source() == NULL) {
+        // must be from native file manager, such as dolpin and so on.
         QTableView::dragEnterEvent(event);
+    } else {
+        if( event->source() == this->parentWidget()->parentWidget()->parentWidget() 
+            || event->source()->parentWidget()->parentWidget()->parentWidget()
+            == this->parentWidget()->parentWidget()->parentWidget()) {
+            event->ignore();
+        } else {
+            QTableView::dragEnterEvent(event);
+        }
     }
 }
 void RemoteViewDirTableView::dragLeaveEvent(QDragLeaveEvent *event) 

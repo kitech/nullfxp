@@ -13,7 +13,9 @@
 #include <QtCore>
 #include <QtGui>
 
-#include "ui_forwarddebugwindow.h"
+namespace Ui {
+    class ForwardDebugWindow;
+};
 
 class DebugMessage
 {
@@ -36,22 +38,21 @@ Port Forward Connection Debug Message Window Class
 */
 class ForwardDebugWindow : public QDialog
 {
-Q_OBJECT
+    Q_OBJECT;
 public:
     ForwardDebugWindow(QWidget *parent = 0);
+    virtual ~ForwardDebugWindow();
+private:
+    Ui::ForwardDebugWindow *uiw;
+    char curr_show_level;
+    QString curr_show_key;
+    //QMap<QString, QVector<QPair<int, QStringList> > > msg_vec;
+    QVector<DebugMessage> msg_vec;
 
-    ~ForwardDebugWindow();
-    private:
-        Ui::ForwardDebugWindow fdw;
-        char curr_show_level;
-        QString curr_show_key;
-        //QMap<QString, QVector<QPair<int, QStringList> > > msg_vec;
-        QVector<DebugMessage> msg_vec;
-
-    public slots:
-        void slot_log_debug_message(QString key, int level, QString msg);
-        void slot_reload_message(QString key, int level);
-        void slot_currentIndexChanged ( int index );
+public slots:
+    void slot_log_debug_message(QString key, int level, QString msg);
+    void slot_reload_message(QString key, int level);
+    void slot_currentIndexChanged ( int index );
 };
 
 #endif

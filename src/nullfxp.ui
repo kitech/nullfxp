@@ -20,7 +20,7 @@
      <x>0</x>
      <y>0</y>
      <width>749</width>
-     <height>21</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFfff">
@@ -56,6 +56,9 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
+    <addaction name="separator"/>
+    <addaction name="actionRecent_Connections"/>
+    <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
    <widget class="QMenu" name="menuTool">
@@ -274,6 +277,11 @@
   <action name="actionReconnect">
    <property name="text">
     <string>&amp;Reconnect</string>
+   </property>
+  </action>
+  <action name="actionRecent_Connections">
+   <property name="text">
+    <string>Recent Connections</string>
    </property>
   </action>
  </widget>

@@ -1,7 +1,7 @@
 // forwardconnectdaemon.h --- 
 // 
 // Author: liuguangzhao
-// Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+// Copyright (C) 2007-2012 liuguangzhao@users.sf.net
 // URL: http://www.qtchina.net http://nullget.sourceforge.net
 // Created: 2007-05-18 22:11:37 +0800
 // Version: $Id$
@@ -13,7 +13,9 @@
 #include <QtGui>
 #include <QWidget>
 
-#include "ui_forwardconnectdaemon.h"
+namespace Ui {
+    class ForwardConnectDaemon;
+};
 
 class ForwardDebugWindow;
 class ForwardConnectInfoDialog;
@@ -103,7 +105,7 @@ private:
     ForwardList *get_forward_list_by_serv_info();
     
 private:
-    Ui::ForwardConnectDaemon ui_fcd;
+    Ui::ForwardConnectDaemon *uiw;
     QMenu *op_menu;
     ForwardDebugWindow *fdw ;
     ForwardConnectInfoDialog *info_dlg;
