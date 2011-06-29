@@ -219,6 +219,18 @@ void SFTPView::slot_disconnect_from_remote_host()
     // delete this->remote_dir_sort_filter_model;
 }
 
+void SFTPView::slot_backend_connection_disconnected()
+{
+    q_debug()<<"";
+    // ask for close
+    if (QMessageBox::question(this, tr("close this window?"),
+                              tr("Connection lost, close session %1?").arg(this->windowTitle()),
+                              QMessageBox::Ok|QMessageBox::Cancel, QMessageBox::Cancel) == QMessageBox::Ok) {
+        this->close();
+        // this->slot_close_session_window(false);
+    }
+}
+
 void SFTPView::slot_dir_tree_customContextMenuRequested(const QPoint & pos)
 {
     this->curr_item_view = static_cast<QAbstractItemView*>(sender());
@@ -351,18 +363,22 @@ void SFTPView::set_user_home_path(const QString &user_home_path)
 {
     this->user_home_path = user_home_path;
 }
+
 void SFTPView::setConnection(Connection *conn)
 {
+    Q_ASSERT(conn != NULL);
+    Q_ASSERT(conn->isConnected() == true);
+
     this->conn = conn;
+    QObject::connect(this->conn, SIGNAL(disconnected()), this, SLOT(slot_backend_connection_disconnected()));
+
     this->ssh2_sftp = libssh2_sftp_init(this->conn->sess);
     assert(this->ssh2_sftp != 0);    
     this->setWindowTitle(this->windowTitle() + ": " + this->conn->userName + "@" + this->conn->hostName);
 }
 
-void SFTPView::closeEvent(QCloseEvent *event)
+void SFTPView::slot_close_session_window(bool ask)
 {
-    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    event->ignore();
     if (this->in_remote_dir_retrive_loop) {
         //TODO 怎么能友好的结束
         //QMessageBox::warning(this,tr("Attentions:"),tr("Retriving remote directory tree, wait a minute please.") );
@@ -374,11 +390,30 @@ void SFTPView::closeEvent(QCloseEvent *event)
         }
     }
     //this->setVisible(false);
-    if (QMessageBox::question(this, tr("Attemp to close this window?"),tr("Are you sure disconnect from %1?").arg(this->windowTitle()), QMessageBox::Ok|QMessageBox::Cancel, QMessageBox::Cancel) == QMessageBox::Ok) {
+    bool bok = false;
+    if (ask) {
+        if (QMessageBox::question(this, tr("Attemp to close this window?"),
+                                  tr("Are you sure disconnect from %1?").arg(this->windowTitle()),
+                                  QMessageBox::Ok|QMessageBox::Cancel, QMessageBox::Cancel) == QMessageBox::Ok) {
+            bok = true;
+        }
+    }
+
+    if ((ask && bok == true) || ask == false) {
         this->setVisible(false);
-        qDebug()<<"delete remote view";
+        q_debug()<<"delete remote view";
+        Q_ASSERT(this->parentWidget() != NULL);
+        this->main_mdi_area->removeSubWindow(this->parentWidget());
         delete this;
     }
+}
+
+void SFTPView::closeEvent(QCloseEvent *event)
+{
+    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    event->ignore();
+
+    this->slot_close_session_window(this->conn->isConnected());
 }
 void SFTPView::slot_custom_ui_area()
 {

@@ -31,7 +31,7 @@ SOURCES += ../basestorage.cpp ../utils.cpp ../globaloption.cpp \
           ../libftp/curlftp.cpp ../libftp/curlftp_callback.cpp \
           ../security.cpp
 
-HEADERS += ../libftp/curlftp.h
+HEADERS += ../libftp/curlftp.h  ../globaloption.h
 
 win32 {
     win32-g++ {

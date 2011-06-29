@@ -92,6 +92,7 @@ protected:
 public slots:
     virtual void i_init_dir_view();
     virtual void slot_disconnect_from_remote_host();
+    virtual void slot_backend_connection_disconnected() {}
         
     virtual void slot_dir_tree_customContextMenuRequested(const QPoint &pos);
     virtual void slot_new_transfer();

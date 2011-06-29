@@ -38,7 +38,8 @@ public:
     virtual int disconnect();
     virtual int reconnect();
     virtual bool isConnected();
-    virtual bool isRealConnected();
+    // virtual bool isRealConnected();
+    virtual bool isProtocolConnected();
     virtual bool setUserCanceled();
     void setHostInfo(QMap<QString, QString> host);
     QMap<QString, QString> hostInfo();
@@ -47,7 +48,7 @@ public:
 
     virtual QString get_status_desc(int status);
     /// 根据环境信息字符串,获取编码.
-    virtual QTextCodec *codecForEnv(QString env);
+    virtual QTextCodec *codecForEnv(const QString &env);
     QTextCodec *codecForConnect();
 
     virtual QString errorString();
@@ -56,7 +57,10 @@ public slots:
     virtual int alivePing();
 
 public:
+    QTimer *mPingTimer;
+    int mPingInterval;
     bool connected; 
+    bool protocolConnected;
     QMap<QString, QString> mHostInfo;
     QString protocol;
     QString userName;
@@ -84,6 +88,8 @@ signals:
     void alivePong(int alive);
     // virtual 
     void connect_state_changed(QString state_desc);
+
+    void disconnected();
 };
 
 

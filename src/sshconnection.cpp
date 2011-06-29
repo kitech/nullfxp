@@ -80,10 +80,20 @@ SSHConnection::SSHConnection(QObject *parent)
     } else {
         this->gLibssh2UseCount.ref();
     }
+
+    this->mPingTimer = new QTimer(this);
+    this->mPingTimer->setInterval(this->mPingInterval*1000);
+    QObject::connect(this->mPingTimer, SIGNAL(timeout()), this, SLOT(alivePing()));
 }
 SSHConnection::~SSHConnection()
 {
     q_debug()<<""<<"gLibssh2Inited:"<<(gLibssh2Inited == 0 ? "OK" : "Faild");
+
+    if (this->mPingTimer != NULL) {
+        delete this->mPingTimer;
+        this->mPingTimer = NULL;
+    }
+
     if (this->qsock != NULL) {
         delete this->qsock;
         this->qsock = NULL;
@@ -123,6 +133,7 @@ int SSHConnection::connect()
     }
 
     if (this->user_canceled) {
+        // TODO clean
         return Connection::CONN_CANCEL;
     }
     
@@ -134,6 +145,11 @@ int SSHConnection::connect()
         return ret;
     }        
     
+    //////// 
+    this->mPingTimer->start();
+    q_debug()<<"conn ping timer started.";
+    this->connected = true;
+
     // home path
     ret = this->sshHomePath();
     if (ret != 0) {
@@ -142,6 +158,7 @@ int SSHConnection::connect()
     }
 
     if (this->user_canceled) {
+        // TODO clean
         return Connection::CONN_CANCEL;
     }
 
@@ -153,6 +170,7 @@ int SSHConnection::connect()
     //<<"\nSHA1 Hostkey hash:"<<libssh2_hostkey_hash(this->sess, LIBSSH2_HOSTKEY_HASH_SHA1);
 
     if (this->user_canceled) {
+        // TODO clean
         return Connection::CONN_CANCEL;
     }
 
@@ -166,20 +184,43 @@ int SSHConnection::reconnect()
 {
     return 0;
 }
-bool SSHConnection::isConnected()
-{
-    return Connection::isConnected();
-}
-bool SSHConnection::isRealConnected()
-{
-    return Connection::isRealConnected();
-}
+
+// bool SSHConnection::isConnected()
+// {
+//     return Connection::isConnected();
+// }
+
+// bool SSHConnection::isRealConnected()
+// {
+//     return Connection::isRealConnected();
+// }
 
 int SSHConnection::alivePing()
 {
+    q_debug()<<"";
+    int iret = -1;
+    int second_to_next = 0;
+
+    if (this->sess) {
+        libssh2_keepalive_config(this->sess, 1, this->mPingInterval);
+        iret = libssh2_keepalive_send(this->sess, &second_to_next);
+        if (iret == LIBSSH2_ERROR_SOCKET_SEND) {
+            this->connected = false;
+            // 
+            q_debug()<<"maybe socket closed.";
+            emit this->disconnected();
+        } else {
+            // OK
+        }
+    } else {
+        q_debug()<<"ssh session has not been initilized.";
+        Q_ASSERT(1==2);
+    }
+    
     return 0;
 }
-QTextCodec *SSHConnection::codecForEnv(QString env)
+
+QTextCodec *SSHConnection::codecForEnv(const QString &env)
 {
     QTextCodec *ecodec = NULL;
     QStringList sl = env.split("\n");
@@ -248,7 +289,7 @@ int SSHConnection::initSocket()
 
     emit connect_state_changed(tr("Connecting to %1 ( %2:%3 )").arg(this->hostName)
                                .arg(dest_addr.toString()).arg(this->port));
-    this->sock = socket(AF_INET, SOCK_STREAM, 0);
+    this->sock = ::socket(AF_INET, SOCK_STREAM, 0);
     assert(this->sock > 0);
 
     //设置连接超时
@@ -256,9 +297,9 @@ int SSHConnection::initSocket()
 #ifdef WIN32
     ioctlsocket(this->sock, FIONBIO, &sock_flag);
 #else
-    sock_flag = fcntl(this->sock, F_GETFL, NULL);
+    sock_flag = ::fcntl(this->sock, F_GETFL, NULL);
     sock_flag |= O_NONBLOCK;
-    fcntl(this->sock, F_SETFL, sock_flag);
+    ::fcntl(this->sock, F_SETFL, sock_flag);
 #endif
     ret = ::connect(this->sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
     QTextCodec *codec = gOpt->locale_codec;
@@ -271,9 +312,9 @@ int SSHConnection::initSocket()
     exset = set;
     ret = ::select(this->sock + 1, &rdset, &set, &exset, &timeo);
 // #ifdef WIN32
-//     ret = select(this->sock + 1, &rdset, &set, &exset, &timeo);
+//     ret = ::select(this->sock + 1, &rdset, &set, &exset, &timeo);
 // #else
-//     ret = select(this->sock + 1, &rdset, &set, &exset, &timeo);
+//     ret = ::select(this->sock + 1, &rdset, &set, &exset, &timeo);
 // #endif
     if (ret == -1) {
         assert(1 == 2);
@@ -292,7 +333,7 @@ int SSHConnection::initSocket()
         }
         int myerrno = 888;
         socklen_t mylen = 889;
-        if (getsockopt(this->sock, SOL_SOCKET, SO_ERROR, &myerrno, &mylen) < 0) {
+        if (::getsockopt(this->sock, SOL_SOCKET, SO_ERROR, &myerrno, &mylen) < 0) {
             qDebug()<<"getsockopt error:";            
         }
         if (myerrno != 0) {
@@ -308,7 +349,7 @@ int SSHConnection::initSocket()
 
 #ifdef WIN32
     sock_flag = 0;
-    ret = ioctlsocket(this->sock, FIONBIO, &sock_flag);
+    ret = ::ioctlsocket(this->sock, FIONBIO, &sock_flag);
     if (ret == SOCKET_ERROR) {
         qDebug()<<__FILE__<<__LINE__<<"win connect error";
         QString emsg = QString("%1%2").arg(tr("Connect error: "))
@@ -320,9 +361,9 @@ int SSHConnection::initSocket()
     }
 #else
     sock_flag = 0;
-    sock_flag = fcntl(this->sock, F_GETFL, NULL);
+    sock_flag = ::fcntl(this->sock, F_GETFL, NULL);
     sock_flag |= (~O_NONBLOCK);
-    fcntl(this->sock, F_SETFL, sock_flag);
+    ::fcntl(this->sock, F_SETFL, sock_flag);
 #endif
 
     if (this->user_canceled == true) {
@@ -337,7 +378,8 @@ int SSHConnection::initSSHSession()
 {
     int ret = -1;
 
-    this->sess = libssh2_session_init();
+    // this->sess = libssh2_session_init();
+    this->sess = libssh2_session_init_ex(NULL, NULL, NULL, (void*)(this));
     assert(this->sess != NULL);
     libssh2_session_set_blocking(this->sess, 1);
     // libssh2_session_set_blocking(this->sess, 0);
@@ -347,6 +389,8 @@ int SSHConnection::initSSHSession()
                   | LIBSSH2_TRACE_KEX | LIBSSH2_TRACE_AUTH | LIBSSH2_TRACE_CONN
                   | LIBSSH2_TRACE_SCP | LIBSSH2_TRACE_SFTP | LIBSSH2_TRACE_ERROR 
                   | LIBSSH2_TRACE_PUBLICKEY);
+
+    libssh2_trace(this->sess, 0);
 
     switch (libssh2_session_block_directions(this->sess)) {
     case LIBSSH2_SESSION_BLOCK_INBOUND:
@@ -398,6 +442,9 @@ int SSHConnection::initSSHSession()
     }
     printf("Received Banner: %s\n", libssh2_session_get_remote_version(this->sess));
     emit connect_state_changed(tr("SSH session started ..."));
+
+    /////////// new 
+    this->setCallbacks();
 
     return 0;
 }
@@ -646,4 +693,70 @@ QString SSHConnection::libssh2SessionLastErrorString()
     } 
     
     return errorString;
+}
+
+// 为什么不管用呢？
+int SSHConnection::setCallbacks()
+{
+    q_debug()<<"";
+    int iret = -1;
+    void *old_cb = NULL;
+    
+    old_cb = NULL;
+    old_cb = libssh2_session_callback_set(this->sess, LIBSSH2_CALLBACK_DEBUG,
+                                          (void*)(&SSHConnection::callback_debug_wrapper));
+    Q_ASSERT(old_cb == NULL);
+    old_cb = libssh2_session_callback_set(this->sess, LIBSSH2_CALLBACK_DEBUG,
+                                          (void*)(&SSHConnection::callback_debug_wrapper));
+    Q_ASSERT(old_cb != NULL);
+
+    ///////////////////////////////////////
+    old_cb = NULL;
+    old_cb = libssh2_session_callback_set(this->sess, LIBSSH2_CALLBACK_DISCONNECT,
+                                          (void*)(&SSHConnection::callback_disconnect_wrapper));
+    assert(old_cb == NULL);
+    old_cb = libssh2_session_callback_set(this->sess, LIBSSH2_CALLBACK_DISCONNECT,
+                                          (void*)(&SSHConnection::callback_disconnect_wrapper));
+    assert(old_cb != NULL);
+
+    return 0;
+}
+
+void SSHConnection::callback_debug_wrapper(LIBSSH2_SESSION *session, int always_display, const char *message, 
+                                   int message_len, const char *language, int language_len, 
+                                   void **abstract)
+{
+    SSHConnection *conn = NULL;
+    
+    if (abstract != NULL) {
+        conn = (SSHConnection *)(*abstract);
+        conn->backend_debug(session, always_display, message, message_len, language, language_len, abstract);
+    }
+}
+
+void SSHConnection::backend_debug(LIBSSH2_SESSION *session, int always_display, const char *message, 
+                   int message_len, const char *language, int language_len, 
+                   void **abstract)
+{
+    q_debug()<<session<<always_display<<QByteArray(message, message_len)<<QByteArray(language, language_len)<<abstract;
+}
+
+void SSHConnection::callback_disconnect_wrapper(LIBSSH2_SESSION *session, int reason, const char *message, 
+                                        int message_len, const char *language, int language_len, 
+                                        void **abstract)
+{
+    SSHConnection *conn = NULL;
+    
+    if (abstract != NULL) {
+        conn = (SSHConnection *)(*abstract);
+        conn->backend_disconnect(session, reason, message, message_len, language, language_len, abstract);
+    }
+}
+
+
+void SSHConnection::backend_disconnect(LIBSSH2_SESSION *session, int reason, const char *message, 
+                        int message_len, const char *language, int language_len, 
+                        void **abstract)
+{
+    q_debug()<<session<<reason<<QByteArray(message, message_len)<<QByteArray(language, language_len)<<abstract;
 }

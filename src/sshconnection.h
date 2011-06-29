@@ -22,10 +22,26 @@ public:
     virtual int connect();
     virtual int disconnect();
     virtual int reconnect();
-    virtual bool isConnected();
-    virtual bool isRealConnected();
+    // virtual bool isConnected();
+    // virtual bool isRealConnected();
 
-    virtual QTextCodec *codecForEnv(QString env);
+    virtual QTextCodec *codecForEnv(const QString &env);
+
+    // libssh2 callbacks, prototype in libssh2.h:236
+    static void callback_debug_wrapper(LIBSSH2_SESSION *session, int always_display, const char *message, 
+                                       int message_len, const char *language, int language_len, 
+                                       void **abstract);
+    void backend_debug(LIBSSH2_SESSION *session, int always_display, const char *message, 
+                       int message_len, const char *language, int language_len, 
+                       void **abstract);
+
+    static void callback_disconnect_wrapper(LIBSSH2_SESSION *session, int reason, const char *message, 
+                                      int message_len, const char *language, int language_len, 
+                                      void **abstract);
+
+    void backend_disconnect(LIBSSH2_SESSION *session, int reason, const char *message, 
+                                      int message_len, const char *language, int language_len, 
+                                      void **abstract);
 
 public slots:
     virtual int alivePing();
@@ -38,6 +54,7 @@ private:
     int sshHomePath();
     QString get_server_env_vars(const char *cmd);
     QString libssh2SessionLastErrorString();
+    int setCallbacks();
 
 private:
     static int gLibssh2Inited;

@@ -1013,8 +1013,20 @@ void RemoteDirModel::set_keep_alive(bool keep_alive,int time_out)
 void RemoteDirModel::slot_keep_alive_time_out()
 {
     //qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    this->dir_retriver->slot_execute_command(0, 0, SSH2_FXP_KEEP_ALIVE, "");
-    
+    // this->dir_retriver->slot_execute_command(0, 0, SSH2_FXP_KEEP_ALIVE, "");
+
+    // Using libssh2 core keep alive method now
+    int iret = -1;
+    int second_to_next = this->keep_alive_interval;
+
+    libssh2_keepalive_config(this->ssh2_sess, 1, this->keep_alive_interval);
+    iret = libssh2_keepalive_send(this->ssh2_sess, &second_to_next);
+    q_debug()<<iret<<second_to_next;
+    if (iret == LIBSSH2_ERROR_SOCKET_SEND) {
+        // should be close state
+        // return to old method
+        // this->dir_retriver->slot_execute_command(0, 0, SSH2_FXP_KEEP_ALIVE, "");
+    }
 }
 QString RemoteDirModel::filePath(const QModelIndex &index) const
 {

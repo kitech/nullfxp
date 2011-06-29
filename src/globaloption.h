@@ -1,7 +1,7 @@
 /* globaloption.h --- 
  * 
  * Author: liuguangzhao
- * Copyright (C) 2007-2010 liuguangzhao@users.sf.net
+ * Copyright (C) 2007-2012 liuguangzhao@users.sf.net
  * URL: http://www.qtchina.net http://nullget.sourceforge.net
  * Created: 2007-05-17 11:04:33 +0800
  * Version: $Id$
@@ -15,30 +15,33 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <QObject>
 
 
 class QTextCodec;
 
-class GlobalOption 
+// add realtime signal option change feature
+class GlobalOption : public QObject
 {
+    Q_OBJECT;
 public:
     static GlobalOption *instance();
-    ~GlobalOption();
+    virtual ~GlobalOption();
 
     enum {FLV_DETAIL, FLV_LIST, FLV_SMALL_ICON, FLV_LARGE_ICON, FLV_BOTH_VIEW};
     
     //options
-    QTextCodec *remote_codec ;
-    QTextCodec *locale_codec ;
-	QTextCodec *test_codec ;
-    bool        keep_alive ;
-    bool        kepp_alive_internal ;
+    QTextCodec *remote_codec;
+    QTextCodec *locale_codec;
+	QTextCodec *test_codec;
+    bool        keep_alive;
+    int        kepp_alive_internal;
     unsigned char file_list_view_mode;
 
     void set_remote_codec(const char *codes);
     
 private:
-    GlobalOption();
+    GlobalOption(QObject *parent = 0);
     static GlobalOption *mInstance;
     
 };

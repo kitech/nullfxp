@@ -19,13 +19,13 @@ class FTPConnection : public Connection
     Q_OBJECT;
 public:
     FTPConnection(QObject *parent = 0);
-    ~FTPConnection();
+    virtual ~FTPConnection();
 
     virtual int connect();
     virtual int disconnect();
     virtual int reconnect();
-    virtual bool isConnected();
-    virtual bool isRealConnected();
+    // virtual bool isConnected();
+    // virtual bool isRealConnected();
 
     virtual QTextCodec *codecForEnv(QString env);
 

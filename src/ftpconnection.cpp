@@ -84,14 +84,15 @@ int FTPConnection::reconnect()
     this->ftp = NULL;
     return this->connect();
 }
-bool FTPConnection::isConnected()
-{
-    return Connection::isConnected();
-}
-bool FTPConnection::isRealConnected()
-{
-    return Connection::isRealConnected();
-}
+
+// bool FTPConnection::isConnected()
+// {
+//     return Connection::isConnected();
+// }
+// bool FTPConnection::isRealConnected()
+// {
+//     return Connection::isRealConnected();
+// }
 
 int FTPConnection::alivePing()
 {

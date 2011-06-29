@@ -12,12 +12,15 @@
 Connection::Connection(QObject *parent)
     : QObject(parent), connected(false)
 {
+    this->mPingTimer = NULL;
+    this->mPingInterval = 3; // in secs
     this->sock = -1;
     this->dsock = -1;
     this->qsock = NULL;
     this->qdsock = NULL;
     this->user_canceled = false;
     this->codec = NULL;
+
 }
 Connection::~Connection()
 {
@@ -25,6 +28,7 @@ Connection::~Connection()
 
 int Connection::alivePing()
 {
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__;
     return 0;
 }
 
@@ -44,9 +48,15 @@ bool Connection::isConnected()
 {
     return this->connected;
 }
-bool Connection::isRealConnected()
+
+// bool Connection::isRealConnected()
+// {
+//     return this->connected;
+// }
+
+bool Connection::isProtocolConnected()
 {
-    return this->connected;
+    return this->protocolConnected;
 }
 
 bool Connection::setUserCanceled()
@@ -139,7 +149,7 @@ QString Connection::get_status_desc(int status)
     }
 }
 
-QTextCodec *Connection::codecForEnv(QString env)
+QTextCodec *Connection::codecForEnv(const QString &env)
 {
     return NULL;
 }
