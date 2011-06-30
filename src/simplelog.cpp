@@ -12,7 +12,7 @@
 
 #include "simplelog.h"
 
-#ifdef WIN32
+#if defined(WIN32) || !defined(STDIN_FILENO)
 #define STDIN_FILENO 0
 #define STDOUT_FILENO 1
 #define STDERR_FILENO  2

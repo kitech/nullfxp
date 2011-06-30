@@ -383,6 +383,24 @@ void RemoteView::closeEvent(QCloseEvent *event)
         delete this ;
     }
 }
+
+void RemoteView::keyPressEvent(QKeyEvent * e)
+{
+    switch(e->key()) {
+#ifdef Q_WS_MAC
+    case Qt::Key_Enter:
+#else
+    case Qt::Key_F2:
+#endif
+        QTimer::singleShot(1, this, SLOT(slot_rename()));
+        // QTimer::singleShot(1, this, SLOT(slot_edit_selected_host()));
+        break;
+    default:
+        QWidget::keyPressEvent(e);
+        break;
+    }
+}
+
 void RemoteView::slot_custom_ui_area()
 {
     qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;

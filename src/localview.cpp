@@ -486,6 +486,26 @@ void LocalView::closeEvent(QCloseEvent *event)
     this->showMinimized();
 }
 
+void LocalView::keypressEvent(QKeyEvent *e)
+{
+    QWidget::keyPressEvent(e);
+    return;
+   
+    switch(e->key()) {
+#ifdef Q_WS_MAC
+    case Qt::Key_Enter:
+#else
+    case Qt::Key_F2:
+#endif
+        QTimer::singleShot(1, this, SLOT(slot_rename()));
+        // QTimer::singleShot(1, this, SLOT(slot_edit_selected_host()));
+        break;
+    default:
+        QWidget::keyPressEvent(e);
+        break;
+    }
+}
+
 void LocalView::slot_dir_tree_item_clicked(const QModelIndex &index)
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
@@ -842,7 +862,7 @@ void LocalView::slot_remove()
 
 void LocalView::slot_rename()
 {
-    //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
     QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     // QModelIndexList mil;
     QModelIndex cidx, idx;

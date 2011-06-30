@@ -44,8 +44,9 @@ public:
     }
 };
 
-// 不错
-#define qLogx() XQDebug(FileLog::instance()->stream())<<"["<<QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz")<<"]"<<__FILE__<<__LINE__<<__FUNCTION__
+// nice
+//#define qLogx() XQDebug(FileLog::instance()->stream())<<"["<<QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz")<<"]"<<__FILE__<<__LINE__<<__FUNCTION__
+#define qLogx() XQDebug(FileLog::instance()->stream())<<"["<<QDateTime::currentDateTime().toString("hh:mm:ss.zzz")<<"]"<<__FILE__<<__LINE__<<__FUNCTION__
 
 #endif /* _LOG_H_ */
 

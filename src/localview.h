@@ -80,7 +80,8 @@ private slots:
 
 protected:
     virtual void closeEvent ( QCloseEvent * event );
-        
+    virtual void keypressEvent(QKeyEvent *e);
+
 private:
     QMdiArea   *main_mdi_area; // from NullFXP class
     QStatusBar *status_bar;

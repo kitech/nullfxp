@@ -807,9 +807,16 @@ void SFTPView::rm_file_or_directory_recursively()
 
 void SFTPView::slot_rename()
 {
-    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    
-    QItemSelectionModel *ism = this->curr_item_view->selectionModel();
+    // qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+    // q_debug()<<this->uiw->tableView->hasFocus()<<this->uiw->treeView->hasFocus();
+    QAbstractItemView *curr_view = this->uiw->treeView->hasFocus() ? (QAbstractItemView*)this->uiw->treeView
+        : (this->uiw->tableView->hasFocus() ? (QAbstractItemView*)this->uiw->tableView : NULL);
+    if (curr_view == NULL) {
+        q_debug()<<"no focus view.";
+        return;
+    }
+    QItemSelectionModel *ism = curr_view->selectionModel();
+    // QItemSelectionModel *ism = this->curr_item_view->selectionModel();
     QModelIndex cidx, idx;
     
     if (ism == 0) {
@@ -833,7 +840,8 @@ void SFTPView::slot_rename()
     }
     cidx = ism->currentIndex();
     idx = ism->model()->index(cidx.row(), 0, cidx.parent());
-    this->curr_item_view->edit(idx);
+    // this->curr_item_view->edit(idx);
+    curr_view->edit(idx);
 }
 void SFTPView::slot_copy_path()
 {

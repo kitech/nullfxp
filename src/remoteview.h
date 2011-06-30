@@ -156,6 +156,7 @@ private slots:
         
 protected:
     virtual void closeEvent(QCloseEvent *event);
+    virtual void keyPressEvent(QKeyEvent * e);
     virtual QMenu *encodingMenu();
 };
 
