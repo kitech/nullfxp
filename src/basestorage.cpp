@@ -60,7 +60,23 @@ QString BaseStorage::getConfigPath()
     return QDir(this->storagePath+"/..").absolutePath();
 }
 
-bool BaseStorage::addHost(QMap<QString, QString> host, QString catPath)
+/*
+  forward.db is ini format
+  [fwd_sess_name]
+  ref_sess_name=
+  remote_port=
+  remote_host=
+  dest_host=
+  dest_port=
+  ctime=
+  mtime=
+ */
+QString BaseStorage::getForwardConfigFilePath()
+{
+    return this->getConfigPath() + "/forward.db";
+}
+
+bool BaseStorage::addHost(const QMap<QString, QString> &host, const QString &catPath)
 {
     if (catPath != QString::null && !QDir().mkpath(catPath)) {
         return false;
@@ -69,7 +85,7 @@ bool BaseStorage::addHost(QMap<QString, QString> host, QString catPath)
     QString sessFile = (catPath == QString::null ? this->storagePath : catPath) + "/" + sessName;
     QSettings settings(sessFile, QSettings::IniFormat);
 
-    QMap<QString, QString>::iterator it;
+    QMap<QString, QString>::const_iterator it;
     for (it = host.begin(); it != host.end(); it++) {
         settings.setValue(it.key(), it.value());
     }

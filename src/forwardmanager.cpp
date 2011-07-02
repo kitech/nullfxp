@@ -102,6 +102,7 @@ void ForwardManager::slot_forward_connect_start()
 
 void ForwardManager::slot_forward_connect_stop()
 {
+    int rn = 0;
     
 }
 

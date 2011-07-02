@@ -1,0 +1,14 @@
+ In the list of features (http://curl.haxx.se/docs/features.html), one can read : 
+      FTPS (*1) 
+     - explicit ftps:// support that use SSL on both connections 
+    - implicit "AUTH TSL" and "AUTH SSL" usage to "upgrade" plain ftp:// 
+      connection to use SSL for both or one of the connections 
+Are you sure you use the correct terms ? 
+  
+ From http://www.ford-hutchinson.com/~fh-1-pfh/ftps-ext.html : 
+  - the SSL connect mode (with port 990) is implicit 
+  - the AUTH SSL using normally port 21 is implicit 
+  - the AUTH TLS using normally port 21 is not implicit 
+  - The prefered mode is AUTH TLS which is NOT implicit 
+
+

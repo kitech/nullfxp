@@ -17,7 +17,7 @@ public:
     ~BaseStorage();
 
     // host session method
-    bool addHost(QMap<QString, QString> host, QString catPath = QString::null);
+    bool addHost(const QMap<QString, QString> &host, const QString &catPath = QString::null);
     bool removeHost(QString show_name, QString catPath = QString::null);
     bool updateHost(QMap<QString,QString> host, QString newName = QString::null, QString catPath = QString::null);
     bool clearHost(QString catPath = QString::null);
@@ -32,6 +32,9 @@ public:
 
     QString getSessionPath();
     QString getConfigPath();
+    QString getForwardConfigFilePath();
+
+    // forward settings
 
     // global options method
     bool saveOptions(QMap<QString, QMap<QString, QString> > options);
