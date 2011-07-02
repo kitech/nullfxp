@@ -20,9 +20,9 @@ class Connector : public QThread
     Q_OBJECT;
 public:
     Connector(QObject *parent = 0);
-    ~Connector();
+    virtual ~Connector();
 
-    void setHostInfo(QMap<QString, QString> host);
+    void setHostInfo(const QMap<QString, QString> &host);
     QString get_status_desc(int status);
     void setUserCanceled();
     QString errorString();
@@ -33,7 +33,7 @@ private slots:
     void slot_finished();
 
 signals:
-    void connect_state_changed(QString state_desc);
+    void connect_state_changed(const QString &state_desc);
     void connect_finished(int status, Connection *conn);
 
 private:

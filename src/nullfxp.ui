@@ -80,6 +80,7 @@
     </property>
     <addaction name="actionTransfer_queue"/>
     <addaction name="actionShow_log"/>
+    <addaction name="actionConsole"/>
     <addaction name="separator"/>
     <addaction name="actionLar_ge_Icons"/>
     <addaction name="actionS_mall_Icons"/>
@@ -282,6 +283,14 @@
   <action name="actionRecent_Connections">
    <property name="text">
     <string>Recent Connections</string>
+   </property>
+  </action>
+  <action name="actionConsole">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Console(tty)</string>
    </property>
   </action>
  </widget>

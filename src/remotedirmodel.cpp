@@ -1013,6 +1013,10 @@ void RemoteDirModel::set_keep_alive(bool keep_alive,int time_out)
 void RemoteDirModel::slot_keep_alive_time_out()
 {
     //qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
+
+    // core keep alive impled, not needed here
+    return;
+
     // this->dir_retriver->slot_execute_command(0, 0, SSH2_FXP_KEEP_ALIVE, "");
 
     // Using libssh2 core keep alive method now

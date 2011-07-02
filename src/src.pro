@@ -12,7 +12,7 @@ CONFIG += qt thread console warn_on ordered
 TARGET = nullfxp
 DESTDIR = ../bin
 
-VERSION=2.1.1.87  # using in nullfxp-version.h
+VERSION=2.1.1.88  # using in nullfxp-version.h
 
 # install vars, unix xdg
 include(../install.pri)
@@ -51,6 +51,7 @@ FORMS += nullfxp.ui \
  forwardconnectdaemon.ui \
  forwarddebugwindow.ui \
  forwardconnectinfodialog.ui \
+ ui/forwardmanager.ui  \
  ui/hostlistdialog.ui \
  ui/encryptiondetaildialog.ui \
  ui/fileexistaskdialog.ui \
@@ -89,6 +90,9 @@ SOURCES += main.cpp \
  forwardconnectdaemon.cpp \
  forwarddebugwindow.cpp \
  forwardconnectinfodialog.cpp \
+ forwardmanager.cpp  \
+ forwardportworker.cpp \
+ forwardstorage.cpp \
  basestorage.cpp \
  sessiondialog.cpp \
  fileexistaskdialog.cpp \
@@ -153,6 +157,9 @@ HEADERS += nullfxp.h \
  forwardconnectdaemon.h \
  forwarddebugwindow.h \
  forwardconnectinfodialog.h \
+ forwardmanager.h \
+ forwardportworker.h \
+ forwardstorage.h \
  basestorage.h \
  sessiondialog.h \
  fileexistaskdialog.h \
@@ -242,9 +249,11 @@ macx-g++* {
     static_libcurl=$$system("pkg-config --static --libs libcurl")
     message($$static_libcurl)
     LIBS += -Wl,-Bstatic -lcurl -lexpat #-lssh2
-    contains($$static_libcurl, ssh2) {
-        LIbS += -lssh2
+    contains(static_libcurl, "-lssh2") {
+        LIBS += -lssh2
+    } else {
     }
+
     #LIBS += -lssh2 # ARCH Linux's curl already contains ssh2, and should explict it here 
     # LIBS += -Wl,-Bstatic -lcurl -lexpat 
     # LIBS += -Wl,-Bdynamic -lssl -lcrypto -lfontconfig

@@ -34,6 +34,7 @@
 #include "quickconnectinfodialog.h"
 #include "remotehostconnectthread.h"
 #include "forwardconnectdaemon.h"
+#include "forwardmanager.h"
 
 #include "synchronizeoptiondialog.h"
 #include "synchronizewindow.h"
@@ -41,20 +42,30 @@
 void NullFXP::slot_forward_connect(bool show)
 {
     //qDebug() <<__FUNCTION__<<": "<<__LINE__<<":"<< __FILE__;
-    if (fcd == 0) {
-        fcd = new ForwardConnectDaemon(this);
-        fcd->setObjectName("out");
+
+    if (this->fman == NULL) {
+        this->fman = new ForwardManager(this);
+        this->fman->setObjectName("fman");
     }
-    //fcd->show();
-    if (fcd->objectName() == "out" && show) {
-        this->statusBar()->addPermanentWidget(fcd);
-        fcd->setObjectName("in");
-        if(!fcd->isVisible()) fcd->show();
-    }
-    if (fcd->objectName() == "in" && !show) {
-        this->statusBar()->removeWidget(fcd);
-        fcd->setObjectName("out");
-    }
+    
+
+    this->fman->setVisible(show);
+
+    // if (fcd == 0) {
+    //     fcd = new ForwardConnectDaemon(this);
+    //     fcd->setObjectName("out");
+    // }
+    // //fcd->show();
+    // if (fcd->objectName() == "out" && show) {
+    //     this->statusBar()->addPermanentWidget(fcd);
+    //     fcd->setObjectName("in");
+    //     if(!fcd->isVisible()) fcd->show();
+    // }
+    // if (fcd->objectName() == "in" && !show) {
+    //     this->statusBar()->removeWidget(fcd);
+    //     fcd->setObjectName("out");
+    // }
+
 }
 
 void NullFXP::slot_synchronize_file()

@@ -28,7 +28,7 @@ Connector::Connector(QObject *parent)
 Connector::~Connector()
 {
 }
-void Connector::setHostInfo(QMap<QString, QString> host)
+void Connector::setHostInfo(const QMap<QString, QString> &host)
 {
     QString protocol = host["protocol"];
     if (this->conn == NULL) {

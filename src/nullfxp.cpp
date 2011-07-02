@@ -51,11 +51,12 @@ NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
     this->setWindowIcon(QIcon(":/icons/nullget-1.png")); 
 
     //////////////////////////
-    central_splitter_widget = new QSplitter(Qt::Vertical);
-    this->fcd = 0;
+    this->fcd = NULL;
+    this->fman = NULL;
     this->connector = NULL;
 
     //
+    this->central_splitter_widget = new QSplitter(Qt::Vertical);
     this->mdiArea = new QMdiArea;
     this->mdiArea->setWindowIcon(QIcon(":/icons/nullget-2.png")); 
     QObject::connect(this->mUIMain->actionTransfer_queue, SIGNAL(triggered(bool)),
@@ -234,7 +235,7 @@ void NullFXP::connect_to_remote_host()
 
 }
 
-void NullFXP::connect_to_remote_host(QMap<QString, QString> host)
+void NullFXP::connect_to_remote_host(const QMap<QString, QString> &host)
 {
     QString protocol;
     protocol = host["protocol"];
@@ -254,7 +255,7 @@ void NullFXP::connect_to_remote_host(QMap<QString, QString> host)
     }
 }
 
-void NullFXP::connect_to_remote_host2(QMap<QString, QString> host)
+void NullFXP::connect_to_remote_host2(const QMap<QString, QString> &host)
 {
     q_debug()<<"";
     QString username;

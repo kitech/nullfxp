@@ -41,7 +41,7 @@ public:
     // virtual bool isRealConnected();
     virtual bool isProtocolConnected();
     virtual bool setUserCanceled();
-    void setHostInfo(QMap<QString, QString> host);
+    void setHostInfo(const QMap<QString, QString> &host);
     QMap<QString, QString> hostInfo();
     QString userHomePath();
     int protocolType();

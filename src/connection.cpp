@@ -65,7 +65,7 @@ bool Connection::setUserCanceled()
     return true;
 }
 
-void Connection::setHostInfo(QMap<QString, QString> host)
+void Connection::setHostInfo(const QMap<QString, QString> &host)
 {
     this->protocol = host["protocol"];
     this->userName = host["user_name"];

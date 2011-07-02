@@ -70,6 +70,10 @@ src/forwardconnectinfodialog.ui -text
 src/forwarddebugwindow.cpp -text
 src/forwarddebugwindow.h -text
 src/forwarddebugwindow.ui -text
+src/forwardmanager.cpp -text
+src/forwardmanager.h -text
+src/forwardportworker.cpp -text
+src/forwardportworker.h -text
 src/ftpfileinfo.cpp -text
 src/ftpfileinfo.h -text
 src/ftphostinfodialog.cpp -text
@@ -600,6 +604,7 @@ src/simplelog.h -text
 src/sqlite/sqlite3.c -text
 src/sqlite/sqlite3.h -text
 src/src.pro -text
+src/sshconnection.cpp svneol=native#unset
 src/sshdirretriver.cpp -text
 src/sshdirretriver.h -text
 src/sshfileinfo.cpp -text
@@ -628,6 +633,7 @@ src/tmpmain.cpp -text
 src/ui/dirnavbar.ui -text
 src/ui/encryptiondetaildialog.ui -text
 src/ui/fileexistaskdialog.ui -text
+src/ui/forwardmanager.ui -text
 src/ui/ftphostinfodialog.ui -text
 src/ui/hostlistdialog.ui -text
 src/ui/systeminfodialog.ui -text

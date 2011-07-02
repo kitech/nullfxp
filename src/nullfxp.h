@@ -28,6 +28,7 @@ class RemoteView;
 class ConnectingStatusDialog;
 class QuickConnectInfoDialog;
 class ForwardConnectDaemon;
+class ForwardManager;
 class Connection;
 class Connector;
 class TaskQueueView;
@@ -46,8 +47,8 @@ public slots:
     void slot_about_nullfxp();
         
     void connect_to_remote_host();
-    void connect_to_remote_host(QMap<QString, QString> host);
-    void connect_to_remote_host2(QMap<QString, QString> host);
+    void connect_to_remote_host(const QMap<QString, QString> &host);
+    void connect_to_remote_host2(const QMap<QString, QString> &host);
     void slot_disconnect_from_remote_host();
     void slot_cancel_connect();
 
@@ -94,6 +95,7 @@ private:
     Connector *connector;
 
     ForwardConnectDaemon *fcd;
+    ForwardManager *fman;
 
     QDesktopWidget *desktop;
 };
