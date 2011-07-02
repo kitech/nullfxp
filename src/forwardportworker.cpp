@@ -22,9 +22,11 @@
 
   
  */
-ForwardPortWorker::ForwardPortWorker(LIBSSH2_LISTENER *lsner, QObject *parent)
+ForwardPortWorker::ForwardPortWorker(LIBSSH2_LISTENER *lsner,  const QString &dest_host, int dest_port, QObject *parent)
     : QThread(parent)
     , mlsner(lsner)
+    , dest_host(dest_host)
+    , dest_port(dest_port)
 {
 }
 

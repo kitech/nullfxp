@@ -19,7 +19,7 @@ class ForwardPortWorker : public QThread
 {
     Q_OBJECT;
 public:
-    ForwardPortWorker(LIBSSH2_LISTENER *lsner, QObject *parent = 0);
+    ForwardPortWorker(LIBSSH2_LISTENER *lsner, const QString &dest_host, int dest_port, QObject *parent = 0);
     virtual ~ForwardPortWorker();
 
     virtual void run();
@@ -41,6 +41,8 @@ private:
     QVector<QPair<QTcpSocket*, LIBSSH2_CHANNEL*> > mfwds;
 
     QTcpSocket *mlsnsock;
+    QString dest_host;
+    int dest_port;
 };
 
 #endif /* _FORWARDPORTWORKER_H_ */

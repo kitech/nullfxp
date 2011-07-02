@@ -74,6 +74,8 @@ src/forwardmanager.cpp -text
 src/forwardmanager.h -text
 src/forwardportworker.cpp -text
 src/forwardportworker.h -text
+src/forwardstorage.cpp -text
+src/forwardstorage.h -text
 src/ftpfileinfo.cpp -text
 src/ftpfileinfo.h -text
 src/ftphostinfodialog.cpp -text

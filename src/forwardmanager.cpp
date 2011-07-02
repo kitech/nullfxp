@@ -62,7 +62,7 @@ void ForwardManager::slot_session_item_selected()
 {
     QAction *a = static_cast<QAction *>(sender());
     this->uiw->lineEdit_6->setText(a->text());
-    this->uiw->lineEdit_4->setText(a->text());
+    this->uiw->lineEdit_2->setText(a->text());
 }
 
 // OK
@@ -78,10 +78,6 @@ void ForwardManager::slot_forward_connect_start()
     
     QString sess_name;
     QString fsess_name;
-    QString local_hostname;
-    QString remote_hostname;
-    unsigned short local_port;
-    unsigned short remote_port;
 
     sess_name = this->uiw->lineEdit_6->text();
 
@@ -116,14 +112,32 @@ void ForwardManager::slot_connect_remote_host_finished (int eno, Connection *con
     int iret = -1;
     LIBSSH2_LISTENER *lsner = NULL;
     int bound_port = 0;
+    int src_port;
+    QString dest_hostname;
+    int dest_port;
 
     this->mconn = conn;
-    lsner = libssh2_channel_forward_listen_ex(conn->sess, "192.168.1.103", 1234, &bound_port, 10);
-    qLogx()<<lsner<<libssh2_session_last_errno(conn->sess);
-    Q_ASSERT(1234 == bound_port);
 
-    ForwardPortWorker *fwp = new ForwardPortWorker(lsner);
-    fwp->start();
+    src_port = this->uiw->lineEdit_3->text().toInt();
+    // lsner = libssh2_channel_forward_listen_ex(conn->sess, NULL, 1234, &bound_port, 10);
+    lsner = libssh2_channel_forward_listen_ex(conn->sess, NULL, src_port, &bound_port, 10);
+    qLogx()<<lsner<<libssh2_session_last_errno(conn->sess);
+    if (lsner == NULL) {
+        int eno = libssh2_session_last_errno(conn->sess);
+        if (eno == LIBSSH2_ERROR_REQUEST_DENIED) {
+            qLogx()<<"Remote server denied forward port request.";
+        } else {
+            qLogx()<<"Unknown ssh channel error:"<<eno;
+        }
+    } else {
+        // Q_ASSERT(1234 == bound_port);
+        Q_ASSERT(src_port == bound_port);
+
+        dest_hostname = this->uiw->lineEdit_4->text();
+        dest_port = this->uiw->lineEdit_5->text().toInt();
+        ForwardPortWorker *fwp = new ForwardPortWorker(lsner, dest_hostname, dest_port);
+        fwp->start();
+    }
 
     sender()->deleteLater();
 }
