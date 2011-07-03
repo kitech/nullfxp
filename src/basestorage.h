@@ -35,6 +35,9 @@ public:
     QString getForwardConfigFilePath();
 
     // forward settings
+    bool addForwarder(const QMap<QString, QString> &fwd);
+    const QMap<QString, QString> getForwarder(const QString &name);
+    const QStringList getForwarderNames();
 
     // global options method
     bool saveOptions(QMap<QString, QMap<QString, QString> > options);

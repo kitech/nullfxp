@@ -63,6 +63,7 @@ QString BaseStorage::getConfigPath()
 /*
   forward.db is ini format
   [fwd_sess_name]
+  fwd_sess_name=
   ref_sess_name=
   remote_port=
   remote_host=
@@ -192,6 +193,102 @@ bool BaseStorage::clearHost(QString catPath)
     return true;
 }
 
+bool BaseStorage::addForwarder(const QMap<QString, QString> &fwd)
+{
+    QString forward_file_path = this->getForwardConfigFilePath();
+    QSettings forward_settings(forward_file_path, QSettings::IniFormat);
+
+    QString fwd_sess_name;
+    QString ref_sess_name;
+    QString remote_host;
+    QString remote_port;
+    QString dest_host;
+    QString dest_port;
+    QString ctime;
+    QString mtime;
+
+    fwd_sess_name = fwd["fwd_sess_name"];
+    ref_sess_name = fwd["ref_sess_name"];
+    remote_host = fwd["remote_host"];
+    remote_port = fwd["remote_port"];
+    dest_host = fwd["dest_host"];
+    dest_port = fwd["dest_port"];
+    mtime = QDateTime::currentDateTime().toString();
+
+    forward_settings.beginGroup(fwd_sess_name);
+
+    QStringList groups = forward_settings.childGroups();
+    if (groups.contains(fwd_sess_name)) {
+        ctime = forward_settings.value("ctime").toString();
+    } else {
+        ctime = mtime;
+    }
+
+    // forward_settings.beginGroup(fwd_sess_name);
+    forward_settings.setValue("fwd_sess_name", fwd_sess_name);
+    forward_settings.setValue("ref_sess_name", ref_sess_name);
+    forward_settings.setValue("remote_host", remote_host);
+    forward_settings.setValue("remote_port", remote_port);
+    forward_settings.setValue("dest_host", dest_host);
+    forward_settings.setValue("dest_port", dest_port);
+    forward_settings.setValue("ctime", ctime);
+    forward_settings.setValue("mtime", mtime);
+
+    return true;
+}
+
+const QMap<QString, QString> BaseStorage::getForwarder(const QString &name)
+{
+    QMap<QString, QString> fwd;
+
+    QString forward_file_path = this->getForwardConfigFilePath();
+    QSettings forward_settings(forward_file_path, QSettings::IniFormat);
+
+    QString fwd_sess_name;
+    QString ref_sess_name;
+    QString remote_host;
+    QString remote_port;
+    QString dest_host;
+    QString dest_port;
+    QString ctime;
+    QString mtime;
+
+    QStringList groups = forward_settings.childGroups();
+    if (groups.contains(name)) {
+    } else {
+        return fwd;
+    }
+    
+    forward_settings.beginGroup(name);
+    fwd_sess_name = forward_settings.value("fwd_sess_name").toString();
+    ref_sess_name = forward_settings.value("ref_sess_name").toString();
+    remote_host = forward_settings.value("remote_host").toString();
+    remote_port = forward_settings.value("remote_port").toString();
+    dest_host = forward_settings.value("dest_host").toString();
+    dest_port = forward_settings.value("dest_port").toString();
+    ctime = forward_settings.value("ctime").toString();
+    mtime = forward_settings.value("mtime").toString();
+
+    fwd["fwd_sess_name"] = fwd_sess_name;
+    fwd["ref_sess_name"] = ref_sess_name;
+    fwd["remote_host"] = remote_host;
+    fwd["remote_port"] = remote_port;
+    fwd["dest_host"] = dest_host;
+    fwd["dest_port"] = dest_port;
+    fwd["ctime"] = ctime;
+    fwd["mtime"] = mtime;
+    
+    return fwd;
+}
+
+const QStringList BaseStorage::getForwarderNames()
+{
+    QString forward_file_path = this->getForwardConfigFilePath();
+    QSettings forward_settings(forward_file_path, QSettings::IniFormat);
+    QStringList groups = forward_settings.childGroups();
+
+    return groups;
+}
 
 // global options method
 bool BaseStorage::saveOptions(QMap<QString, QMap<QString, QString> > options)

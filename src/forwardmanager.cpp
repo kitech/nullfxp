@@ -24,8 +24,15 @@ ForwardManager::ForwardManager(QWidget *parent)
     this->uiw->setupUi(this);
 
     QObject::connect(this->uiw->toolButton_2, SIGNAL(clicked()), this, SLOT(slot_show_session_menu()));
-
     QObject::connect(this->uiw->pushButton_6, SIGNAL(clicked()), this, SLOT(slot_forward_connect_start()));
+
+    /////
+    QObject::connect(this->uiw->pushButton, SIGNAL(clicked()), this, SLOT(slot_new_forward_session()));
+    QObject::connect(this->uiw->pushButton_3, SIGNAL(clicked()), this, SLOT(slot_save_forward_session()));
+
+    QTimer::singleShot(5, this, SLOT(slot_load_forwarder_list()));
+    QObject::connect(this->uiw->listWidget, SIGNAL(currentItemChanged(QListWidgetItem*, QListWidgetItem*)),
+                     this, SLOT(slot_forward_session_item_changed(QListWidgetItem*, QListWidgetItem*)));
 }
 
 ForwardManager::~ForwardManager()
@@ -75,11 +82,17 @@ void ForwardManager::slot_session_list_menu_hide()
 
 void ForwardManager::slot_forward_connect_start()
 {
-    
     QString sess_name;
     QString fsess_name;
-
+    
     sess_name = this->uiw->lineEdit_6->text();
+    fsess_name = this->uiw->lineEdit->text();
+
+    // check current status
+    if (this->mfwdstate.contains(fsess_name)) {
+        this->slot_forward_connect_stop();
+        return;
+    }
 
     QMap<QString, QString> host;
     host = BaseStorage::instance()->getHost(sess_name);
@@ -93,6 +106,8 @@ void ForwardManager::slot_forward_connect_start()
     QObject::connect(this->mconnector, SIGNAL(connect_finished(int, Connection *)),
                      this, SLOT(slot_connect_remote_host_finished (int, Connection *)));
 
+    ForwardState st(this->mconnector, 0, 0);
+    this->mfwdstate.insert(fsess_name, st);
     // QObject::connect(this->connector, SIGNAL(connect_state_changed(QString)),
     //                  this->connect_status_dailog, SLOT(slot_connect_state_changed(QString)));
 
@@ -103,7 +118,33 @@ void ForwardManager::slot_forward_connect_start()
 void ForwardManager::slot_forward_connect_stop()
 {
     int rn = 0;
+    QString sess_name;
+    QString fsess_name;
     
+    sess_name = this->uiw->lineEdit_6->text();
+    fsess_name = this->uiw->lineEdit->text();
+
+    Connection *conn = NULL;
+    ForwardPortWorker *worker = NULL;
+    LIBSSH2_LISTENER *lsner = NULL;
+    // check current status
+    if (this->mfwdstate.contains(fsess_name)) {
+        conn = this->mfwdstate.value(fsess_name).conn;
+        worker = this->mfwdstate.value(fsess_name).worker;
+        lsner = this->mfwdstate.value(fsess_name).lsner;
+        
+        qLogx()<<"stop worker:"<<worker;
+        if (lsner) {
+            this->mfwdstate[fsess_name].lsner = NULL;
+            rn = libssh2_channel_forward_cancel(lsner);
+        }
+        if (worker) {
+            worker->quit();
+        } else {
+        }
+    } else {
+
+    }
 }
 
 void ForwardManager::slot_connect_remote_host_finished (int eno, Connection *conn)
@@ -116,8 +157,23 @@ void ForwardManager::slot_connect_remote_host_finished (int eno, Connection *con
     int src_port;
     QString dest_hostname;
     int dest_port;
+    QString fsess_name;
 
+    Connector *aconnector = static_cast<Connector*>(sender());
+    Connection *aconn = conn;
+    // check connection status
     this->mconn = conn;
+
+    QHash<QString, ForwardState>::iterator it;
+    for (it = this->mfwdstate.begin(); it != this->mfwdstate.end(); it++) {
+        if (it.value().connector == aconnector) {
+            fsess_name = it.key();
+            it.value().conn = conn;
+            break;
+        }
+    }
+
+    Q_ASSERT(!fsess_name.isEmpty());
 
     src_port = this->uiw->lineEdit_3->text().toInt();
     // lsner = libssh2_channel_forward_listen_ex(conn->sess, NULL, 1234, &bound_port, 10);
@@ -133,12 +189,158 @@ void ForwardManager::slot_connect_remote_host_finished (int eno, Connection *con
     } else {
         // Q_ASSERT(1234 == bound_port);
         Q_ASSERT(src_port == bound_port);
+        this->mfwdstate[fsess_name].lsner = lsner;
 
         dest_hostname = this->uiw->lineEdit_4->text();
         dest_port = this->uiw->lineEdit_5->text().toInt();
+
         ForwardPortWorker *fwp = new ForwardPortWorker(lsner, dest_hostname, dest_port);
+        this->mfwdstate[fsess_name].worker = fwp;
+        QObject::connect(fwp, SIGNAL(finished()), this, SLOT(slot_forward_worker_finished()));
         fwp->start();
     }
 
+    this->mfwdstate[fsess_name].connector = NULL;
     sender()->deleteLater();
+}
+
+void ForwardManager::slot_forward_worker_finished()
+{
+    qLogx()<<""<<sender();
+
+    QString fsess_name;
+    Connection *conn = NULL;
+    ForwardPortWorker *worker = NULL;
+
+    worker = static_cast<ForwardPortWorker*>(sender());
+    QHash<QString, ForwardState>::const_iterator it;
+    for (it = this->mfwdstate.begin(); it != this->mfwdstate.end(); it++) {
+        if (it.value().worker == worker) {
+            fsess_name = it.key();
+            conn = it.value().conn;
+        }
+    }
+    qLogx()<<"Disconnect remote state for:"<<fsess_name;
+    Q_ASSERT(!fsess_name.isEmpty());
+    this->mfwdstate.remove(fsess_name);
+
+    worker->deleteLater();
+    conn->disconnect();
+    delete conn;
+}
+
+void ForwardManager::slot_new_forward_session()
+{
+    qLogx()<<"";
+
+    this->uiw->lineEdit->setText("");
+    this->uiw->lineEdit_6->setText("");
+    this->uiw->lineEdit_2->setText("");
+    this->uiw->lineEdit_3->setText("");
+    this->uiw->lineEdit_4->setText("");
+    this->uiw->lineEdit_5->setText("");
+}
+
+void ForwardManager::slot_load_forwarder_list()
+{
+    QString fwd_sess_name;
+    QString ref_sess_name;
+    QString remote_host;
+    QString remote_port;
+    QString dest_host;
+    QString dest_port;
+    QString ctime;
+    QString mtime;
+
+    QMap<QString, QString> fwd;
+    QStringList forwarders = BaseStorage::instance()->getForwarderNames();
+
+    for (int i = 0; i < forwarders.count(); i ++) {
+        fwd = BaseStorage::instance()->getForwarder(forwarders.at(i));
+        
+        fwd_sess_name = fwd["fwd_sess_name"];
+        ref_sess_name = fwd["ref_sess_name"];
+        remote_host = fwd["remote_host"];
+        remote_port = fwd["remote_port"];
+        dest_host = fwd["dest_host"];
+        dest_port = fwd["dest_port"];
+        ctime = fwd["ctime"];
+        mtime = fwd["mtime"];
+
+        // QListWidgetItem *item = new QListWidgetItem(fwd_sess_name);
+
+        this->uiw->listWidget->addItem(fwd_sess_name);
+    }
+
+}
+
+void ForwardManager::slot_save_forward_session()
+{
+    qLogx()<<"";
+    QMap<QString, QString> fwd;
+
+    QString fwd_sess_name;
+    QString ref_sess_name;
+    QString remote_host;
+    QString remote_port;
+    QString dest_host;
+    QString dest_port;
+    QString ctime;
+    QString mtime;
+
+    fwd_sess_name = this->uiw->lineEdit->text();
+    ref_sess_name = this->uiw->lineEdit_6->text();
+    remote_host = this->uiw->lineEdit_2->text();
+    remote_port = this->uiw->lineEdit_3->text();
+    dest_host = this->uiw->lineEdit_4->text();
+    dest_port = this->uiw->lineEdit_5->text();
+
+    fwd["fwd_sess_name"] = fwd_sess_name;
+    fwd["ref_sess_name"] = ref_sess_name;
+    fwd["remote_host"] = remote_host;
+    fwd["remote_port"] = remote_port;
+    fwd["dest_host"] = dest_host;
+    fwd["dest_port"] = dest_port;
+    
+    if (!BaseStorage::instance()->addForwarder(fwd)) {
+        qLogx()<<"add forwarder error.";
+    } else {
+        
+    }
+}
+
+void ForwardManager::slot_forward_session_item_changed(QListWidgetItem * current, QListWidgetItem * previous)
+{
+    qLogx()<<current<<previous;
+    QString curr_fwd_sess_name = current->text();
+    QString prev_fwd_sess_name = previous ? previous->text() : QString();
+    QMap<QString, QString> curr_fwd, prev_fwd;
+
+    QString fwd_sess_name;
+    QString ref_sess_name;
+    QString remote_host;
+    QString remote_port;
+    QString dest_host;
+    QString dest_port;
+    QString ctime;
+    QString mtime;
+
+    curr_fwd = BaseStorage::instance()->getForwarder(curr_fwd_sess_name);
+
+    fwd_sess_name = curr_fwd["fwd_sess_name"];
+    ref_sess_name = curr_fwd["ref_sess_name"];
+    remote_host = curr_fwd["remote_host"];
+    remote_port = curr_fwd["remote_port"];
+    dest_port = curr_fwd["dest_host"];
+    dest_port = curr_fwd["dest_port"];
+
+
+    this->uiw->lineEdit->setText(fwd_sess_name);
+    this->uiw->lineEdit_6->setText(ref_sess_name);
+    this->uiw->lineEdit_2->setText(remote_host);
+    this->uiw->lineEdit_3->setText(remote_port);
+    this->uiw->lineEdit_4->setText(dest_host);
+    this->uiw->lineEdit_5->setText(dest_port);
+
+    
 }

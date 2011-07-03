@@ -45,6 +45,7 @@ public:
 
 public slots:
     virtual int alivePing();
+    int listSessionMethords();
 
 private:
     int initSocket();

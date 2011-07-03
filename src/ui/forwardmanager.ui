@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>708</width>
+    <width>653</width>
     <height>439</height>
    </rect>
   </property>
@@ -189,7 +189,7 @@
      <item>
       <widget class="QGroupBox" name="groupBox_3">
        <property name="title">
-        <string>Local</string>
+        <string>DESTINATION</string>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_6">
         <item>
@@ -262,6 +262,10 @@
          <property name="text">
           <string>S</string>
          </property>
+         <property name="icon">
+          <iconset resource="../nullfxp.qrc">
+           <normaloff>:/icons/network-disconnect.png</normaloff>:/icons/network-disconnect.png</iconset>
+         </property>
         </widget>
        </item>
        <item>
@@ -312,19 +316,14 @@
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QPushButton" name="pushButton_5">
-         <property name="text">
-          <string>Add</string>
-         </property>
-        </widget>
-       </item>
       </layout>
      </item>
     </layout>
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../nullfxp.qrc"/>
+ </resources>
  <connections/>
 </ui>

@@ -325,6 +325,7 @@ src/icons/mimetypes/x-office-contact.png -text
 src/icons/mimetypes/x-office-document.png -text
 src/icons/mimetypes/x-office-spreadsheet.png -text
 src/icons/network-connect.png -text
+src/icons/network-disconnect.png -text
 src/icons/nullget-1.png -text
 src/icons/nullget-2.png -text
 src/icons/os/Distro_arch_48.png -text

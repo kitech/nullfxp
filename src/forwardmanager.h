@@ -12,8 +12,11 @@
 
 #include <QtGui>
 
+#include "libssh2.h"
+
 class Connector;
 class Connection;
+class ForwardPortWorker;
 
 namespace Ui {
     class ForwardManager;
@@ -35,11 +38,38 @@ public slots:
 
     void slot_connect_remote_host_finished (int eno, Connection *conn);
 
+    void slot_forward_worker_finished();
+
+private slots:
+    void slot_new_forward_session();
+    void slot_load_forwarder_list();
+    void slot_save_forward_session();
+    void slot_forward_session_item_changed(QListWidgetItem * current, QListWidgetItem * previous );
+
 private:
     Ui::ForwardManager *uiw;
 
     Connector *mconnector;
     Connection *mconn;
+
+    enum StateKey {
+        KEY_MIN = 0,
+        KEY_CONNECTOR,
+        KEY_CONNECTION,
+        KEY_WORKER,
+        KEY_MAX
+    };
+    class ForwardState {
+    public:
+        ForwardState(Connector *a, Connection *b, ForwardPortWorker *c)
+            : connector(a), conn(b), worker(c), lsner(NULL) {}
+        ForwardState(){}
+        Connector *connector;
+        Connection *conn;
+        ForwardPortWorker *worker;
+        LIBSSH2_LISTENER *lsner;
+    };
+    QHash<QString, ForwardState> mfwdstate;
 };
 
 

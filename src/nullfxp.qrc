@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="/">
+    <file>icons/network-disconnect.png</file>
     <file>icons/quickopen.png</file>
     <file>icons/network-connect.png</file>
     <file>icons/zoom-in.png</file>
