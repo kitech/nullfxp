@@ -12,7 +12,7 @@ CONFIG += qt thread console warn_on ordered
 TARGET = nullfxp
 DESTDIR = ../bin
 
-VERSION=2.1.1.88  # using in nullfxp-version.h
+VERSION=2.1.1.89  # using in nullfxp-version.h
 
 # install vars, unix xdg
 include(../install.pri)
@@ -303,7 +303,7 @@ win32-g++ {
      DEFINES += LIBSSH2_WIN32 _CRT_SECURE_NO_DEPRECATE GCC_MV=\"\\\"MSVC-2010-Express-Edition\\\"\"
      RC_FILE = nullfxp.rc 
 } else {
-#  QMAKE_CXXFLAGS += -std=c++0x
+#     QMAKE_CXXFLAGS += -std=c++0x
 }
 
 !win32 {

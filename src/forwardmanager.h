@@ -45,12 +45,20 @@ private slots:
     void slot_load_forwarder_list();
     void slot_save_forward_session();
     void slot_forward_session_item_changed(QListWidgetItem * current, QListWidgetItem * previous );
+    void slot_set_ui_state(int state);
 
 private:
     Ui::ForwardManager *uiw;
 
-    Connector *mconnector;
-    Connection *mconn;
+    enum UiState {
+        S_MIN = 0,
+        S_NEW_SESS,
+        S_START_READY,
+        S_STARTING,
+        S_STOP_READY,
+        S_STOPPING,
+        S_MAX
+    };
 
     enum StateKey {
         KEY_MIN = 0,
@@ -61,9 +69,11 @@ private:
     };
     class ForwardState {
     public:
+#if !defined(NS_HAS_CXX0X)
         ForwardState(Connector *a, Connection *b, ForwardPortWorker *c)
-            : connector(a), conn(b), worker(c), lsner(NULL) {}
+             : connector(a), conn(b), worker(c), lsner(NULL) {}
         ForwardState(){}
+#endif
         Connector *connector;
         Connection *conn;
         ForwardPortWorker *worker;

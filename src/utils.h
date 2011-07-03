@@ -89,7 +89,7 @@
  #define S_IXUSR _S_IEXEC
 #endif
 
-#ifdef __cplusplush
+#ifdef __cplusplus
 extern "C"{
 #endif
     
@@ -136,10 +136,20 @@ extern "C"{
 
 #define q_fetal()  qFetal()<<"DEBUG: "<<__FUNCTION__<<" at "<<__FILE__<<" on "<<__LINE__<<"\n    "
 
+#if ((__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)) && __GXX_EXPERIMENTAL_CXX0X__)
+    // typedef decltype(exp) 方式
+#define NS_HAS_CXX0X 1
+#else
+    // typeof(exp) 方式。
+    // VC10+
+#if (_MSC_VER >= 1600)
+    #define NS_HAS_CXX0X 1
+#endif
+#endif
 
 /************* log end ********/
 
-#ifdef __cplusplush
+#ifdef __cplusplus
 };
 #endif
 

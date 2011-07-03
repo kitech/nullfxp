@@ -86,14 +86,17 @@ src/globaloption.h -text
 src/globaloptionsdialog.cpp -text
 src/globaloptionsdialog.h -text
 src/globaloptionsdialog.ui -text
+src/icons/appointment-new.png -text
 src/icons/appointment-recurring.png -text
 src/icons/computer.png -text
+src/icons/dialog-ok-apply.png -text
 src/icons/document-encrypt.png -text
 src/icons/document-properties.png -text
 src/icons/edit-copy.png -text
 src/icons/edit-cut.png -text
 src/icons/edit-delete.png -text
 src/icons/edit-paste.png -text
+src/icons/edit-undo.png -text
 src/icons/emblem-symbolic-link.png -text
 src/icons/folder-favorites.png -text
 src/icons/folder-new.png -text

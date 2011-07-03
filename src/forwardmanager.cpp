@@ -7,6 +7,7 @@
 // Version: $Id$
 // 
 
+#include "utils.h"
 #include "simplelog.h"
 #include "basestorage.h"
 
@@ -88,6 +89,11 @@ void ForwardManager::slot_forward_connect_start()
     sess_name = this->uiw->lineEdit_6->text();
     fsess_name = this->uiw->lineEdit->text();
 
+    if (fsess_name.isEmpty() || sess_name.isEmpty()) {
+        qLogx()<<"session name empty:";
+        return;
+    }
+
     // check current status
     if (this->mfwdstate.contains(fsess_name)) {
         this->slot_forward_connect_stop();
@@ -101,17 +107,26 @@ void ForwardManager::slot_forward_connect_start()
     // QObject::connect(this->connect_status_dailog, SIGNAL(cancel_connect()),
     //                  this, SLOT(slot_cancel_connect()));
 
-    this->mconnector = new Connector();
-    this->mconnector->setHostInfo(host);
-    QObject::connect(this->mconnector, SIGNAL(connect_finished(int, Connection *)),
+    Connector *connector = new Connector();
+    connector->setHostInfo(host);
+    QObject::connect(connector, SIGNAL(connect_finished(int, Connection *)),
                      this, SLOT(slot_connect_remote_host_finished (int, Connection *)));
 
-    ForwardState st(this->mconnector, 0, 0);
+#if  defined(NS_HAS_CXX0X) 
+    //    #warning "modern c++0x mode"
+    this->mfwdstate.insert(fsess_name, {connector, 0, 0, 0});
+#else
+    //    #warning "basic c++ mode"
+    ForwardState st(connector, 0, 0); 
     this->mfwdstate.insert(fsess_name, st);
+#endif
     // QObject::connect(this->connector, SIGNAL(connect_state_changed(QString)),
     //                  this->connect_status_dailog, SLOT(slot_connect_state_changed(QString)));
 
-    this->mconnector->start();
+    // carefully set ui status
+    this->slot_set_ui_state(S_STARTING);
+
+    connector->start();
     // this->connect_status_dailog->exec();
 }
 
@@ -139,6 +154,8 @@ void ForwardManager::slot_forward_connect_stop()
             rn = libssh2_channel_forward_cancel(lsner);
         }
         if (worker) {
+            this->slot_set_ui_state(S_STOPPING);
+
             worker->quit();
         } else {
         }
@@ -162,9 +179,12 @@ void ForwardManager::slot_connect_remote_host_finished (int eno, Connection *con
     Connector *aconnector = static_cast<Connector*>(sender());
     Connection *aconn = conn;
     // check connection status
-    this->mconn = conn;
 
+#if defined(NS_HAS_CXX0X)
+    auto it = this->mfwdstate.begin();
+#else
     QHash<QString, ForwardState>::iterator it;
+#endif
     for (it = this->mfwdstate.begin(); it != this->mfwdstate.end(); it++) {
         if (it.value().connector == aconnector) {
             fsess_name = it.key();
@@ -174,6 +194,7 @@ void ForwardManager::slot_connect_remote_host_finished (int eno, Connection *con
     }
 
     Q_ASSERT(!fsess_name.isEmpty());
+    this->mfwdstate[fsess_name].connector = NULL;
 
     src_port = this->uiw->lineEdit_3->text().toInt();
     // lsner = libssh2_channel_forward_listen_ex(conn->sess, NULL, 1234, &bound_port, 10);
@@ -186,6 +207,12 @@ void ForwardManager::slot_connect_remote_host_finished (int eno, Connection *con
         } else {
             qLogx()<<"Unknown ssh channel error:"<<eno;
         }
+
+        conn->disconnect();
+        delete conn;
+        this->mfwdstate.remove(fsess_name);
+
+        this->slot_set_ui_state(S_START_READY);
     } else {
         // Q_ASSERT(1234 == bound_port);
         Q_ASSERT(src_port == bound_port);
@@ -198,9 +225,10 @@ void ForwardManager::slot_connect_remote_host_finished (int eno, Connection *con
         this->mfwdstate[fsess_name].worker = fwp;
         QObject::connect(fwp, SIGNAL(finished()), this, SLOT(slot_forward_worker_finished()));
         fwp->start();
+
+        this->slot_set_ui_state(S_STOP_READY);
     }
 
-    this->mfwdstate[fsess_name].connector = NULL;
     sender()->deleteLater();
 }
 
@@ -227,6 +255,8 @@ void ForwardManager::slot_forward_worker_finished()
     worker->deleteLater();
     conn->disconnect();
     delete conn;
+
+    this->slot_set_ui_state(S_START_READY);
 }
 
 void ForwardManager::slot_new_forward_session()
@@ -239,6 +269,8 @@ void ForwardManager::slot_new_forward_session()
     this->uiw->lineEdit_3->setText("");
     this->uiw->lineEdit_4->setText("");
     this->uiw->lineEdit_5->setText("");
+
+    this->slot_set_ui_state(S_NEW_SESS);
 }
 
 void ForwardManager::slot_load_forwarder_list()
@@ -342,5 +374,53 @@ void ForwardManager::slot_forward_session_item_changed(QListWidgetItem * current
     this->uiw->lineEdit_4->setText(dest_host);
     this->uiw->lineEdit_5->setText(dest_port);
 
-    
+    // restore status
+    Connection *conn = NULL;
+    ForwardPortWorker *worker = NULL;
+    if (this->mfwdstate.contains(fwd_sess_name)) {
+        this->slot_set_ui_state(S_STOP_READY);
+    } else {
+        this->slot_set_ui_state(S_START_READY);
+    }
+}
+
+void ForwardManager::slot_set_ui_state(int state)
+{
+    Q_ASSERT (state > S_MIN && state < S_MAX);
+
+    switch (state) {
+    case S_NEW_SESS:
+        this->uiw->pushButton_6->setEnabled(true);
+        this->uiw->pushButton_6->setText(tr("Start"));
+        this->uiw->toolButton->setIcon(QIcon(":/icons/network-disconnect.png"));
+        this->uiw->label_12->setText(tr("New..."));
+        break;
+    case S_START_READY:
+        this->uiw->pushButton_6->setEnabled(true);
+        this->uiw->pushButton_6->setText(tr("Start"));
+        this->uiw->toolButton->setIcon(QIcon(":/icons/network-disconnect.png"));
+        this->uiw->label_12->setText(tr("Ready Start"));
+        break;
+    case S_STARTING:
+        this->uiw->pushButton_6->setEnabled(false);
+        this->uiw->pushButton_6->setText(tr("Starting..."));
+        this->uiw->toolButton->setIcon(QIcon(":/icons/network-disconnect.png"));
+        this->uiw->label_12->setText(tr("Starting..."));
+        break;
+    case S_STOP_READY:
+        this->uiw->pushButton_6->setEnabled(true);
+        this->uiw->pushButton_6->setText(tr("Stop"));
+        this->uiw->toolButton->setIcon(QIcon(":/icons/network-connect.png"));
+        this->uiw->label_12->setText(tr("Started"));
+        break;
+    case S_STOPPING:
+        this->uiw->pushButton_6->setEnabled(false);
+        this->uiw->pushButton_6->setText(tr("Stopping..."));
+        this->uiw->toolButton->setIcon(QIcon(":/icons/network-disconnect.png"));
+        this->uiw->label_12->setText(tr("Stopping..."));
+        break;
+    default:
+        Q_ASSERT(1==2);
+        break;
+    };
 }

@@ -21,6 +21,10 @@
        <property name="text">
         <string>New Port Forward Setting</string>
        </property>
+       <property name="icon">
+        <iconset resource="../nullfxp.qrc">
+         <normaloff>:/icons/appointment-new.png</normaloff>:/icons/appointment-new.png</iconset>
+       </property>
       </widget>
      </item>
      <item>
@@ -271,7 +275,7 @@
        <item>
         <widget class="QLabel" name="label_12">
          <property name="text">
-          <string>TextLabel</string>
+          <string>Unknwon</string>
          </property>
         </widget>
        </item>
@@ -291,7 +295,7 @@
        <item>
         <widget class="QPushButton" name="pushButton_6">
          <property name="text">
-          <string>(Dis)Connect</string>
+          <string>Start/Stop</string>
          </property>
         </widget>
        </item>
@@ -300,6 +304,10 @@
          <property name="text">
           <string>Reset</string>
          </property>
+         <property name="icon">
+          <iconset resource="../nullfxp.qrc">
+           <normaloff>:/icons/edit-undo.png</normaloff>:/icons/edit-undo.png</iconset>
+         </property>
         </widget>
        </item>
        <item>
@@ -307,12 +315,20 @@
          <property name="text">
           <string>Save</string>
          </property>
+         <property name="icon">
+          <iconset resource="../nullfxp.qrc">
+           <normaloff>:/icons/dialog-ok-apply.png</normaloff>:/icons/dialog-ok-apply.png</iconset>
+         </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="pushButton_4">
          <property name="text">
           <string>Delete</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../nullfxp.qrc">
+           <normaloff>:/icons/edit-delete.png</normaloff>:/icons/edit-delete.png</iconset>
          </property>
         </widget>
        </item>
