@@ -24,16 +24,34 @@ ForwardManager::ForwardManager(QWidget *parent)
 {
     this->uiw->setupUi(this);
 
+    //
+    this->meditstate = S_NEW_SESS;
+
     QObject::connect(this->uiw->toolButton_2, SIGNAL(clicked()), this, SLOT(slot_show_session_menu()));
     QObject::connect(this->uiw->pushButton_6, SIGNAL(clicked()), this, SLOT(slot_forward_connect_start()));
 
     /////
     QObject::connect(this->uiw->pushButton, SIGNAL(clicked()), this, SLOT(slot_new_forward_session()));
+    QObject::connect(this->uiw->pushButton_2, SIGNAL(clicked()), this, SLOT(slot_reset_forward_session()));
     QObject::connect(this->uiw->pushButton_3, SIGNAL(clicked()), this, SLOT(slot_save_forward_session()));
+    QObject::connect(this->uiw->pushButton_4, SIGNAL(clicked()), this, SLOT(slot_delete_forward_session()));
 
     QTimer::singleShot(5, this, SLOT(slot_load_forwarder_list()));
     QObject::connect(this->uiw->listWidget, SIGNAL(currentItemChanged(QListWidgetItem*, QListWidgetItem*)),
                      this, SLOT(slot_forward_session_item_changed(QListWidgetItem*, QListWidgetItem*)));
+
+    QObject::connect(this->uiw->lineEdit, SIGNAL(textEdited(const QString &)), 
+                     this, SLOT(slot_setting_change(const QString &)));
+    QObject::connect(this->uiw->lineEdit_3, SIGNAL(textEdited(const QString &)), 
+                     this, SLOT(slot_setting_change(const QString &)));
+    QObject::connect(this->uiw->lineEdit_4, SIGNAL(textEdited(const QString &)), 
+                     this, SLOT(slot_setting_change(const QString &)));
+    QObject::connect(this->uiw->lineEdit_5, SIGNAL(textEdited(const QString &)), 
+                     this, SLOT(slot_setting_change(const QString &)));
+    QObject::connect(this->uiw->lineEdit_6, SIGNAL(textEdited(const QString &)), 
+                     this, SLOT(slot_setting_change(const QString &)));
+
+    QObject::connect(this->uiw->checkBox_2, SIGNAL(stateChanged(int)), this, SLOT(slot_mannual_set_dest_ipaddr(int)));
 }
 
 ForwardManager::~ForwardManager()
@@ -221,10 +239,12 @@ void ForwardManager::slot_connect_remote_host_finished (int eno, Connection *con
         dest_hostname = this->uiw->lineEdit_4->text();
         dest_port = this->uiw->lineEdit_5->text().toInt();
 
-        ForwardPortWorker *fwp = new ForwardPortWorker(lsner, dest_hostname, dest_port);
-        this->mfwdstate[fsess_name].worker = fwp;
-        QObject::connect(fwp, SIGNAL(finished()), this, SLOT(slot_forward_worker_finished()));
-        fwp->start();
+        ForwardPortWorker *worker = new ForwardPortWorker(lsner, dest_hostname, dest_port);
+        this->mfwdstate[fsess_name].worker = worker;
+        QObject::connect(worker, SIGNAL(finished()), this, SLOT(slot_forward_worker_finished()));
+        QObject::connect(worker, SIGNAL(listen_channel_error(int)),
+                         this, SLOT(slot_listen_channel_error(int)));
+        worker->start();
 
         this->slot_set_ui_state(S_STOP_READY);
     }
@@ -239,6 +259,7 @@ void ForwardManager::slot_forward_worker_finished()
     QString fsess_name;
     Connection *conn = NULL;
     ForwardPortWorker *worker = NULL;
+    bool want_reconn = false;
 
     worker = static_cast<ForwardPortWorker*>(sender());
     QHash<QString, ForwardState>::const_iterator it;
@@ -246,6 +267,7 @@ void ForwardManager::slot_forward_worker_finished()
         if (it.value().worker == worker) {
             fsess_name = it.key();
             conn = it.value().conn;
+            want_reconn = it.value().want_reconn;
         }
     }
     qLogx()<<"Disconnect remote state for:"<<fsess_name;
@@ -257,6 +279,122 @@ void ForwardManager::slot_forward_worker_finished()
     delete conn;
 
     this->slot_set_ui_state(S_START_READY);
+
+    // check if we should reconnect it automatically
+    if (want_reconn) {
+        qLogx()<<"should auto reconnect forward session:"<<fsess_name;
+        QListWidgetItem *curr_item = this->uiw->listWidget->currentItem();
+        QList<QListWidgetItem*> res = this->uiw->listWidget->findItems(fsess_name, Qt::MatchExactly);
+        if (res.count() == 0) {
+            ////////
+        } else if (res.count() == 1) {
+            qLogx()<<"Automatically reconnect forward session:"<<fsess_name;
+            if (curr_item == res.at(0)) {
+            } else {
+                this->uiw->listWidget->setCurrentItem(res.at(0), QItemSelectionModel::Select);
+            }
+            this->slot_forward_session_item_changed(res.at(0), curr_item);
+        } else {
+            Q_ASSERT(res.count() <= 1);
+        }
+    }
+}
+
+void ForwardManager::slot_listen_channel_error(int eno)
+{
+    qLogx()<<eno;
+
+    int rn = 0;
+    QString fsess_name;
+    Connection *conn = NULL;
+    ForwardPortWorker *worker = NULL;
+    LIBSSH2_LISTENER *lsner = NULL, *new_lsner = NULL;
+    
+    worker = static_cast<ForwardPortWorker*>(sender());
+
+    QHash<QString, ForwardState>::const_iterator it;
+    for (it = this->mfwdstate.begin(); it != this->mfwdstate.end(); it++) {
+        if (it.value().worker == worker) {
+            fsess_name = it.key();
+            conn = it.value().conn;
+            lsner = it.value().lsner;
+
+            Q_ASSERT(worker == it.value().worker);
+        }
+    }
+    qLogx()<<"Listen channel error state for:"<<fsess_name<<eno;
+    Q_ASSERT(!fsess_name.isEmpty());
+        
+    rn = libssh2_channel_forward_cancel(lsner);
+    if (rn != 0) {
+        qLogx()<<"forward channel cancel error:"<<libssh2_session_last_errno(conn->sess);
+        if (rn == LIBSSH2_ERROR_SOCKET_SEND) {
+            // must reconnect connection
+            qLogx()<<"Error: LIBSSH2_ERROR_SOCKET_SEND, must retry connect, rather than relisten."<<rn;
+    
+            this->mfwdstate[fsess_name].want_reconn = true;
+            // QObject::disconnect(worker, SIGNAL(finished()));
+            // QObject::disconnect(worker, SIGNAL(finished()), this, SLOT(slot_forward_worker_finished()));
+            worker->quit();
+            worker->terminate();
+        } else {
+            qLogx()<<"Error: Unknown, must retry connect, rather than relisten."<<rn;
+            this->mfwdstate[fsess_name].want_reconn = true;
+            // QObject::disconnect(worker, SIGNAL(finished()));
+            // QObject::disconnect(worker, SIGNAL(finished()), this, SLOT(slot_forward_worker_finished()));
+            worker->quit();
+            worker->terminate();
+        }
+        Q_ASSERT(rn == 0);
+    } else {
+        QObject::disconnect(worker, SIGNAL(finished()));
+        // QObject::disconnect(worker, SIGNAL(finished()), this, SLOT(slot_forward_worker_finished()));
+        worker->quit();
+        worker->terminate();
+
+        QMap<QString, QString> fwd = BaseStorage::instance()->getForwarder(fsess_name);
+        int src_port = fwd["remote_port"].toInt();
+        int bound_port = src_port;
+        new_lsner = libssh2_channel_forward_listen_ex(conn->sess, NULL, src_port, &bound_port, 10);
+
+        qLogx()<<lsner<<libssh2_session_last_errno(conn->sess);
+        if (new_lsner == NULL) {
+            int eno = libssh2_session_last_errno(conn->sess);
+            if (eno == LIBSSH2_ERROR_REQUEST_DENIED) {
+                qLogx()<<"Remote server denied forward port request.";
+            } else {
+                qLogx()<<"Unknown ssh channel error:"<<eno;
+            }
+
+            conn->disconnect();
+            delete conn;
+            this->mfwdstate.remove(fsess_name);
+
+            this->slot_set_ui_state(S_START_READY);
+        } else {
+            // Q_ASSERT(1234 == bound_port);
+            Q_ASSERT(src_port == bound_port);
+            this->mfwdstate[fsess_name].lsner = new_lsner;
+
+            worker->set_listener(new_lsner);
+
+            QObject::connect(worker, SIGNAL(finished()), this, SLOT(slot_forward_worker_finished()));
+            worker->start();
+
+            // dest_hostname = this->uiw->lineEdit_4->text();
+            // dest_port = this->uiw->lineEdit_5->text().toInt();
+
+            // ForwardPortWorker *fwp = new ForwardPortWorker(lsner, dest_hostname, dest_port);
+            // this->mfwdstate[fsess_name].worker = fwp;
+            // QObject::connect(fwp, SIGNAL(finished()), this, SLOT(slot_forward_worker_finished()));
+            // fwp->start();
+
+            // this->slot_set_ui_state(S_STOP_READY);
+        }
+    }
+    
+    // QObject::connect(fwp, SIGNAL(finished()), this, SLOT(slot_forward_worker_finished()));
+    // worker->start();
 }
 
 void ForwardManager::slot_new_forward_session()
@@ -341,6 +479,48 @@ void ForwardManager::slot_save_forward_session()
     }
 }
 
+// maybe should use window edit state machinism.
+void ForwardManager::slot_reset_forward_session()
+{
+    qLogx()<<"";
+
+    QString fsess_name;
+    QList<QListWidgetItem*> selects = this->uiw->listWidget->selectedItems();
+
+    if (selects.count() == 0) {
+        // now should be new session state
+        fsess_name = this->uiw->lineEdit->text();
+    } else {
+        Q_ASSERT(selects.count() == 1);
+        fsess_name = selects.at(0)->text();
+
+        //TODO message dialog here
+        
+        
+        this->slot_forward_session_item_changed(selects.at(0), NULL);
+    }
+}
+
+void ForwardManager::slot_delete_forward_session()
+{
+    qLogx()<<"";
+    QString fsess_name;
+    
+    fsess_name = this->uiw->lineEdit->text();
+    if (this->mfwdstate.contains(fsess_name)) {
+        Q_ASSERT(1==2);
+    }
+
+    QList<QListWidgetItem*> res = this->uiw->listWidget->findItems(fsess_name, Qt::MatchExactly);
+    
+    if (res.count() != 1) {
+        Q_ASSERT(res.count() == 1);
+    } else {
+        QListWidgetItem *item = res.at(0);
+        this->uiw->listWidget->removeItemWidget(item);
+    }
+}
+
 void ForwardManager::slot_forward_session_item_changed(QListWidgetItem * current, QListWidgetItem * previous)
 {
     qLogx()<<current<<previous;
@@ -363,7 +543,7 @@ void ForwardManager::slot_forward_session_item_changed(QListWidgetItem * current
     ref_sess_name = curr_fwd["ref_sess_name"];
     remote_host = curr_fwd["remote_host"];
     remote_port = curr_fwd["remote_port"];
-    dest_port = curr_fwd["dest_host"];
+    dest_host = curr_fwd["dest_host"];
     dest_port = curr_fwd["dest_port"];
 
 
@@ -394,33 +574,100 @@ void ForwardManager::slot_set_ui_state(int state)
         this->uiw->pushButton_6->setText(tr("Start"));
         this->uiw->toolButton->setIcon(QIcon(":/icons/network-disconnect.png"));
         this->uiw->label_12->setText(tr("New..."));
+        this->uiw->pushButton_2->setEnabled(false);
+        this->uiw->pushButton_3->setEnabled(true);
+        this->uiw->pushButton_4->setEnabled(false);
         break;
     case S_START_READY:
         this->uiw->pushButton_6->setEnabled(true);
         this->uiw->pushButton_6->setText(tr("Start"));
         this->uiw->toolButton->setIcon(QIcon(":/icons/network-disconnect.png"));
         this->uiw->label_12->setText(tr("Ready Start"));
+        this->uiw->pushButton_2->setEnabled(false);
+        this->uiw->pushButton_3->setEnabled(false);
+        this->uiw->pushButton_4->setEnabled(true);
         break;
     case S_STARTING:
         this->uiw->pushButton_6->setEnabled(false);
         this->uiw->pushButton_6->setText(tr("Starting..."));
         this->uiw->toolButton->setIcon(QIcon(":/icons/network-disconnect.png"));
         this->uiw->label_12->setText(tr("Starting..."));
+        this->uiw->pushButton_2->setEnabled(false);
+        this->uiw->pushButton_3->setEnabled(false);
+        this->uiw->pushButton_4->setEnabled(false);
         break;
     case S_STOP_READY:
         this->uiw->pushButton_6->setEnabled(true);
         this->uiw->pushButton_6->setText(tr("Stop"));
         this->uiw->toolButton->setIcon(QIcon(":/icons/network-connect.png"));
         this->uiw->label_12->setText(tr("Started"));
+        this->uiw->pushButton_2->setEnabled(false);
+        this->uiw->pushButton_3->setEnabled(false);
+        this->uiw->pushButton_4->setEnabled(false);
         break;
     case S_STOPPING:
         this->uiw->pushButton_6->setEnabled(false);
         this->uiw->pushButton_6->setText(tr("Stopping..."));
         this->uiw->toolButton->setIcon(QIcon(":/icons/network-disconnect.png"));
         this->uiw->label_12->setText(tr("Stopping..."));
+
+        this->uiw->pushButton_2->setEnabled(false);
+        this->uiw->pushButton_3->setEnabled(false);
+        this->uiw->pushButton_4->setEnabled(false);
+
         break;
     default:
         Q_ASSERT(1==2);
         break;
     };
+
+    this->meditstate = state;
+}
+
+/*
+  怎么能安全的设置这个值呢？
+ */
+void ForwardManager::slot_setting_change()
+{
+    int state = this->meditstate;
+
+    switch (state) {
+    case S_NEW_SESS:
+        this->setWindowModified(true);
+        this->uiw->pushButton_2->setEnabled(true);
+        this->uiw->pushButton_3->setEnabled(true);
+        this->uiw->pushButton_4->setEnabled(false);
+        break;
+    case S_START_READY:
+        this->setWindowModified(true);
+        this->uiw->pushButton_2->setEnabled(true);
+        this->uiw->pushButton_3->setEnabled(true);
+        this->uiw->pushButton_4->setEnabled(false);
+        break;
+    case S_STARTING:
+        break;
+    case S_STOP_READY:
+        break;
+    case S_STOPPING:
+        break;
+    default:
+        Q_ASSERT(1==2);
+        break;
+    };
+    
+
+}
+
+void ForwardManager::slot_setting_change(const QString &value)
+{
+    this->slot_setting_change();
+}
+
+void ForwardManager::slot_mannual_set_dest_ipaddr(int state)
+{
+    if (state == Qt::Checked) {
+        this->uiw->lineEdit_4->setReadOnly(false);
+    } else {
+        this->uiw->lineEdit_4->setReadOnly(true);
+    }
 }

@@ -21,6 +21,7 @@
   Disconnecting: Packet corrupt
 
   
+  问题还不少，处理前几个连接之后，不能接收新的连接了。
  */
 ForwardPortWorker::ForwardPortWorker(LIBSSH2_LISTENER *lsner,  const QString &dest_host, int dest_port, QObject *parent)
     : QThread(parent)
@@ -81,13 +82,46 @@ void ForwardPortWorker::run()
     this->exec();
 }
 
-LIBSSH2_CHANNEL *ach = NULL;
-QTcpSocket *asock = NULL;
+void ForwardPortWorker::set_listener(LIBSSH2_LISTENER *lsner)
+{
+    int rn = 0;
+    LIBSSH2_CHANNEL *chan = NULL;
+    QTcpSocket *sock = NULL;
+
+    QVector<QPair<QTcpSocket*, LIBSSH2_CHANNEL*> > tfwds = this->mfwds;
+    this->mfwds.clear();
+    QVector<QPair<QTcpSocket*, LIBSSH2_CHANNEL*> >::iterator it;
+    for (it = tfwds.begin(); it != tfwds.end(); it++) {
+        sock = it->first;
+        chan = it->second;
+
+        //////
+        rn = libssh2_channel_close(chan);
+        rn = libssh2_channel_free(chan);
+        chan = NULL;
+
+        ////////
+        QObject::disconnect(sock);
+        // QObject::disconnect(sock, SIGNAL(connected()), this, SLOT(slot_forward_dest_connected()));
+        // QObject::disconnect(sock, SIGNAL(disconnected()), this, SLOT(slot_forward_dest_disconnected()));
+        // QObject::disconnect(sock, SIGNAL(readyRead()), this, SLOT(slot_forward_dest_socket_ready_read()));     
+        // QObject::disconnect(sock, SIGNAL(error(QAbstractSocket::SocketError)), 
+        //                     this, SLOT(slot_forward_dest_socket_error(QAbstractSocket::SocketError)));     
+
+        sock->close();
+        delete sock;
+        sock = NULL;
+    }
+
+    this->mlsner = lsner;
+    
+}
+
 void ForwardPortWorker::slot_poll_timeout()
 {
     // qLogx()<<"";
 
-    int rn = 0;
+    int rn = 0, eno = 0;
     ssize_t rlen = 0, wlen = 0;
     char rbuf[1000] = {0};
     LIBSSH2_CHANNEL *chan = NULL;
@@ -96,25 +130,38 @@ void ForwardPortWorker::slot_poll_timeout()
     chan = libssh2_channel_forward_accept(this->mlsner);
     if (chan == NULL) {
         // qLogx()<<"accept null"<<libssh2_session_last_errno(this->mlsner->session);
-        if (libssh2_session_last_errno(this->mlsner->session) == LIBSSH2_ERROR_EAGAIN) {
+        eno = libssh2_session_last_errno(this->mlsner->session);
+        if (eno == LIBSSH2_ERROR_EAGAIN) {
             // this->msleep(20);
+        } else if (eno == LIBSSH2_ERROR_CHANNEL_UNKNOWN) {
+            qLogx()<<"Try restarting listen channel..."<<eno;
+            // 
+            emit listen_channel_error(eno);
+        } else {
+            qLogx()<<"accept null"<<libssh2_session_last_errno(this->mlsner->session);
         }
     } else {
         qLogx()<<"new forward channel connected in.";
         sock = new QTcpSocket();
-        asock = sock;
         QObject::connect(sock, SIGNAL(connected()), this, SLOT(slot_forward_dest_connected()));
         QObject::connect(sock, SIGNAL(disconnected()), this, SLOT(slot_forward_dest_disconnected()));
         QObject::connect(sock, SIGNAL(readyRead()), this, SLOT(slot_forward_dest_socket_ready_read()));     
+        QObject::connect(sock, SIGNAL(error(QAbstractSocket::SocketError)), 
+                         this, SLOT(slot_forward_dest_socket_error(QAbstractSocket::SocketError)));     
             
         this->mfwds.append(QPair<QTcpSocket*, LIBSSH2_CHANNEL*>(sock, chan));
 
-        sock->connectToHost("localhost", 22);
+        // sock->connectToHost("localhost", 22);
+        if (!this->dest_host.isEmpty()) {
+            qLogx()<<"Connect to dest host:"<<this->dest_host<<this->dest_port;
+            sock->connectToHost(this->dest_host, this->dest_port);
+        } else {
+            // for test only
+            sock->connectToHost("localhost", 22);
+        }
         
         // 
         libssh2_channel_set_blocking(chan, 0);
-
-        ach = chan;
     }
     
     int inv_cnt = 0;
@@ -149,20 +196,6 @@ void ForwardPortWorker::slot_poll_timeout()
     for (int i = 0; i < inv_cnt; i++) {
         this->remove_forward_by_channel(inv_chans[i]);
     }
-
-    // if (ach != NULL) {
-    //     // read 
-    //     rlen = libssh2_channel_read(ach, rbuf, sizeof(rbuf));
-    //     if (rlen == LIBSSH2_ERROR_EAGAIN) {
-
-    //     } else if (rlen > 0)  {
-    //         if (asock != NULL) {
-    //             asock->write(rbuf, rlen);
-    //         }
-    //     } else {
-    //         qLogx()<<"Unknwon channel read error"<<libssh2_session_last_errno(this->mlsner->session);
-    //     }
-    // }
 }
 
 bool ForwardPortWorker::remove_forward_by_channel(LIBSSH2_CHANNEL *pchan)
@@ -189,10 +222,11 @@ bool ForwardPortWorker::remove_forward_by_channel(LIBSSH2_CHANNEL *pchan)
 
         rn = libssh2_channel_close(chan);
         rn = libssh2_channel_free(chan);
-        
-        QObject::disconnect(sock, SIGNAL(connected()), this, SLOT(slot_forward_dest_connected()));
-        QObject::disconnect(sock, SIGNAL(disconnected()), this, SLOT(slot_forward_dest_disconnected()));
-        QObject::disconnect(sock, SIGNAL(readyRead()), this, SLOT(slot_forward_dest_socket_ready_read()));     
+
+        QObject::disconnect(sock);
+        // QObject::disconnect(sock, SIGNAL(connected()), this, SLOT(slot_forward_dest_connected()));
+        // QObject::disconnect(sock, SIGNAL(disconnected()), this, SLOT(slot_forward_dest_disconnected()));
+        // QObject::disconnect(sock, SIGNAL(readyRead()), this, SLOT(slot_forward_dest_socket_ready_read()));     
 
         sock->close();
         delete sock;
@@ -248,19 +282,19 @@ void ForwardPortWorker::slot_forward_dest_socket_ready_read()
     
     QVector<QPair<QTcpSocket*, LIBSSH2_CHANNEL*> >::iterator it;
 
-    // for (it = this->mfwds.begin(); it != this->mfwds.end(); it++) {
-    //     if (it->first == sock) {
-    //         chan = it->second;
-    //         break;
-    //     }
-    // }
-    // if (chan == NULL) {
-    //     Q_ASSERT(chan != NULL);
-    // }
+    for (it = this->mfwds.begin(); it != this->mfwds.end(); it++) {
+        if (it->first == sock) {
+            chan = it->second;
+            break;
+        }
+    }
+    if (chan == NULL) {
+        Q_ASSERT(chan != NULL);
+    }
 
     ////////
     QByteArray ba = sock->readAll();
-    wlen = libssh2_channel_write(ach, ba.data(), ba.length());
+    wlen = libssh2_channel_write(chan, ba.data(), ba.length());
     qLogx()<<"sock -> ssh, wlen:"<<wlen<<ba.length();
 }
 

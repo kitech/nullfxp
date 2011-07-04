@@ -216,12 +216,14 @@ win32 {
              # from qt 4.7, use QMAKE_LIBDIR instead of LIBPATH
              LIBPATH += Z:/librarys/vc-ssl-x86/lib Z:/librarys/vc-zlib/static32   # depcreated
              QMAKE_LIBDIR += Z:/librarys/vc-ssl-x86/lib Z:/librarys/vc-zlib/static32
+             INCLUDEPATH += Z:/librarys/vc-ssl-x86/include Z:/librarys/vc-zlib/include
              LIBS += -lcurllib
              LIBS += /NODEFAULTLIB:msvcrt.lib
         } else {
              LIBPATH += Z:/librarys/vc-ssl-x64/lib Z:/librarys/vc-zlib/staticx64 # depcreated
              QMAKE_LIBDIR += Z:/librarys/vc-ssl-x64/lib Z:/librarys/vc-zlib/staticx64
              QMAKE_LIBDIR += Z:/librarys/libcurl/dllx64
+             INCLUDEPATH += Z:/librarys/vc-ssl-x64/include Z:/librarys/vc-zlib/include
              LIBS += -llibcurl_imp
         }
         LIBPATH += ./libssh2/src/release             # depcreated

@@ -146,7 +146,7 @@ QString digit_mode(int mode)
         S_IROTH,
         S_IWOTH,
         S_IXOTH,
-        NULL
+        -1
     };
     char dmode[16] = {0};
     int i = 0, v = 0;;
@@ -178,7 +178,6 @@ int is_reg(char *path)
 #ifdef _MSC_VER
 void  fxp_local_do_ls( QString args , QVector<QMap<char, QString> > & fileinfos )
 {
-    int sz ;
     QMap<char,QString> thefile;
     char file_size[32];
     char file_date[64];
@@ -235,7 +234,7 @@ void fxp_local_do_ls( QString args , QVector<QMap<char, QString> > & fileinfos)
     
     while ((entry = readdir(dh)) != NULL) {
         thefile.clear();
-        memset(&thestat,0,sizeof(thestat));
+        memset(&thestat, 0, sizeof(thestat));
         //strcpy(the_path,args);
         //strcat(the_path,"/");
         //strcat(the_path,entry->d_name);
@@ -246,19 +245,21 @@ void fxp_local_do_ls( QString args , QVector<QMap<char, QString> > & fileinfos)
         if (stat(GlobalOption::instance()->locale_codec->fromUnicode(the_path), &thestat) != 0) continue;
         ltime = localtime(&thestat.st_mtime);
         
-        sprintf(file_size,"%llu", thestat.st_size);
-        strmode(thestat.st_mode,file_type);
+        sprintf(file_size,"%llu", (long long)thestat.st_size);
+        strmode(thestat.st_mode, file_type);
         if (ltime != NULL) {
             if (time(NULL) - thestat.st_mtime < (365*24*60*60)/2)
                 sz = strftime(file_date, sizeof file_date, "%Y/%m/%d %H:%M:%S", ltime);
             else
                 sz = strftime(file_date, sizeof file_date, "%Y/%m/%d %H:%M:%S", ltime);
+            if (sz == 0) {
+            }
         } 
-        strcpy(fname,entry->d_name);
-        thefile.insert( 'N',GlobalOption::instance()->locale_codec->toUnicode(fname) );
-        thefile.insert( 'T',QString(file_type) );
-        thefile.insert( 'S',QString(file_size ) );
-        thefile.insert( 'D',QString( file_date ) );
+        strcpy(fname, entry->d_name);
+        thefile.insert( 'N', GlobalOption::instance()->locale_codec->toUnicode(fname) );
+        thefile.insert( 'T', QString(file_type) );
+        thefile.insert( 'S', QString(file_size ) );
+        thefile.insert( 'D', QString( file_date ) );
         
         fileinfos.push_back(thefile);
         
@@ -297,11 +298,17 @@ int set_sock_nonblock (int sock)
 int set_sock_block(int sock)
 {
     unsigned long flags = 0;
+    int rno = -1;
 #ifdef WIN32
 
 #else
-    flags = fcntl(sock, F_GETFL, NULL);
-    assert(flags >= 0);
+    rno = fcntl(sock, F_GETFL, NULL);
+    if (rno == -1) {
+        assert(rno >= 0);
+    } else {
+        flags = rno;
+    }
+
     flags |= (~O_NONBLOCK);
     return (fcntl(sock, F_SETFL, flags) >=0);
 #endif

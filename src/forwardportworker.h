@@ -24,6 +24,7 @@ public:
 
     virtual void run();
 
+    void set_listener(LIBSSH2_LISTENER *lsner);
 public slots:
     void slot_poll_timeout();
     ///////
@@ -35,12 +36,17 @@ public slots:
 protected:
     bool remove_forward_by_channel(LIBSSH2_CHANNEL *chan);
 
+signals:
+    void listen_channel_error(int eno);
+
 private:
     LIBSSH2_LISTENER *mlsner;
+    QTimer *msrvtimer;
 
+    // TODO if only two part, use QBiHash is better.
     QVector<QPair<QTcpSocket*, LIBSSH2_CHANNEL*> > mfwds;
 
-    QTcpSocket *mlsnsock;
+    // QTcpSocket *mlsnsock;
     QString dest_host;
     int dest_port;
 };

@@ -142,9 +142,9 @@ extern "C"{
 #else
     // typeof(exp) 方式。
     // VC10+
-#if (_MSC_VER >= 1600)
-    #define NS_HAS_CXX0X 1
-#endif
+    // #if (_MSC_VER >= 1600)
+    //     #define NS_HAS_CXX0X 1
+    // #endif
 #endif
 
 /************* log end ********/

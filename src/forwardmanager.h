@@ -39,13 +39,20 @@ public slots:
     void slot_connect_remote_host_finished (int eno, Connection *conn);
 
     void slot_forward_worker_finished();
+    void slot_listen_channel_error(int eno);
 
 private slots:
     void slot_new_forward_session();
     void slot_load_forwarder_list();
     void slot_save_forward_session();
+    void slot_reset_forward_session();
+    void slot_delete_forward_session();
     void slot_forward_session_item_changed(QListWidgetItem * current, QListWidgetItem * previous );
     void slot_set_ui_state(int state);
+    void slot_setting_change();
+    void slot_setting_change(const QString &value);
+    // void slot_setting_change(int value);
+    void slot_mannual_set_dest_ipaddr(int state);
 
 private:
     Ui::ForwardManager *uiw;
@@ -71,15 +78,17 @@ private:
     public:
 #if !defined(NS_HAS_CXX0X)
         ForwardState(Connector *a, Connection *b, ForwardPortWorker *c)
-             : connector(a), conn(b), worker(c), lsner(NULL) {}
+            : connector(a), conn(b), worker(c), lsner(NULL), want_reconn(false) {}
         ForwardState(){}
 #endif
         Connector *connector;
         Connection *conn;
         ForwardPortWorker *worker;
         LIBSSH2_LISTENER *lsner;
+        bool want_reconn;
     };
     QHash<QString, ForwardState> mfwdstate;
+    int meditstate;
 };
 
 
