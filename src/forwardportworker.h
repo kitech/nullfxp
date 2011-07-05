@@ -49,6 +49,16 @@ private:
     // QTcpSocket *mlsnsock;
     QString dest_host;
     int dest_port;
+
+    /// 统计
+    int mconn_count;
+    int mrecv_len; // from network
+    int msend_len; // from SSH channel
+    QDateTime mctime; // 启动时间
+    float mavg_speed;
+
+    int mreconn_times;
+    int mrelisten_times;
 };
 
 #endif /* _FORWARDPORTWORKER_H_ */

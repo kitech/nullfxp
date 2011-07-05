@@ -193,10 +193,12 @@ void ForwardManager::slot_connect_remote_host_finished (int eno, Connection *con
     QString dest_hostname;
     int dest_port;
     QString fsess_name;
-
+    QMap<QString, QString> fwd;
     Connector *aconnector = static_cast<Connector*>(sender());
     Connection *aconn = conn;
     // check connection status
+
+    sender()->deleteLater();
 
 #if defined(NS_HAS_CXX0X)
     auto it = this->mfwdstate.begin();
@@ -213,6 +215,11 @@ void ForwardManager::slot_connect_remote_host_finished (int eno, Connection *con
 
     Q_ASSERT(!fsess_name.isEmpty());
     this->mfwdstate[fsess_name].connector = NULL;
+    fwd = BaseStorage::instance()->getForwarder(fsess_name);
+
+    if (fwd["ref_sess_name"] == "") {
+        qLogx()<<"maybe session have not saved.";
+    }
 
     src_port = this->uiw->lineEdit_3->text().toInt();
     // lsner = libssh2_channel_forward_listen_ex(conn->sess, NULL, 1234, &bound_port, 10);
@@ -221,7 +228,42 @@ void ForwardManager::slot_connect_remote_host_finished (int eno, Connection *con
     if (lsner == NULL) {
         int eno = libssh2_session_last_errno(conn->sess);
         if (eno == LIBSSH2_ERROR_REQUEST_DENIED) {
+            // 这种情况有可能是前一个forward_listen没有正确退出，导致服务器端的监听仍旧在运行，监听端口没有关闭
+            // 这只是一种可能而已
+            // 另还有一种情况，确实是服务器不支持这种操作
+            // 目前还没有办法区分这两种情况。
+            // 这种情况怎么能解决呢？
+            // 一种方法，尝试执行远程命令，查看是否在有相应的监听端口,不过这种方法对windows无效
+            // 
             qLogx()<<"Remote server denied forward port request.";
+            const char *netstat = "netstat -ant";
+            SSHConnection *sconn = (SSHConnection *)conn;
+            QString result = sconn->get_server_env_vars(netstat);
+            // qLogx()<<netstat<<" --> "<< result;
+            bool listen_exist = false;
+            QStringList state_lines = result.split("\n");
+            QStringList state_fields;
+            for (int i = 0; i < state_lines.count(); i ++) {
+                state_fields = state_lines.at(i).split(" ", QString::SkipEmptyParts);
+                // qLogx()<<state_fields;
+                if (state_fields[0] == "tcp") {
+                    if (state_fields[3].endsWith(QString(":%1").arg(src_port))
+                        && state_fields[5] == "LISTEN") {
+                        listen_exist = true;
+                        break;
+                    }
+                }
+            }
+            if (listen_exist) {
+                qLogx()<<"listen socket already exist, but connot control it, try drop this connection.";
+                if (this->mfwdstate[fsess_name].want_reconn) {
+                    // should run full restart
+                } else {
+                    // only run paritial restart 
+                }
+            } else {
+                qLogx()<<"Maybe server can not support this forward port feature.";
+            }
         } else {
             qLogx()<<"Unknown ssh channel error:"<<eno;
         }
@@ -248,17 +290,17 @@ void ForwardManager::slot_connect_remote_host_finished (int eno, Connection *con
 
         this->slot_set_ui_state(S_STOP_READY);
     }
-
-    sender()->deleteLater();
 }
 
 void ForwardManager::slot_forward_worker_finished()
 {
     qLogx()<<""<<sender();
 
+    int rn = 0;
     QString fsess_name;
     Connection *conn = NULL;
     ForwardPortWorker *worker = NULL;
+    LIBSSH2_LISTENER *lsner = NULL;
     bool want_reconn = false;
 
     worker = static_cast<ForwardPortWorker*>(sender());
@@ -267,6 +309,7 @@ void ForwardManager::slot_forward_worker_finished()
         if (it.value().worker == worker) {
             fsess_name = it.key();
             conn = it.value().conn;
+            lsner = it.value().lsner;
             want_reconn = it.value().want_reconn;
         }
     }
@@ -275,6 +318,8 @@ void ForwardManager::slot_forward_worker_finished()
     this->mfwdstate.remove(fsess_name);
 
     worker->deleteLater();
+    
+    rn = libssh2_channel_forward_cancel(lsner);
     conn->disconnect();
     delete conn;
 
@@ -292,8 +337,9 @@ void ForwardManager::slot_forward_worker_finished()
             if (curr_item == res.at(0)) {
             } else {
                 this->uiw->listWidget->setCurrentItem(res.at(0), QItemSelectionModel::Select);
+                this->slot_forward_session_item_changed(res.at(0), curr_item);
             }
-            this->slot_forward_session_item_changed(res.at(0), curr_item);
+            this->uiw->pushButton_6->click();
         } else {
             Q_ASSERT(res.count() <= 1);
         }
@@ -347,11 +393,12 @@ void ForwardManager::slot_listen_channel_error(int eno)
         }
         Q_ASSERT(rn == 0);
     } else {
-        QObject::disconnect(worker, SIGNAL(finished()));
+        // QObject::disconnect(worker, SIGNAL(finished()));
         // QObject::disconnect(worker, SIGNAL(finished()), this, SLOT(slot_forward_worker_finished()));
-        worker->quit();
-        worker->terminate();
+        // worker->quit();
+        // worker->terminate();
 
+        bool full_restart = false;
         QMap<QString, QString> fwd = BaseStorage::instance()->getForwarder(fsess_name);
         int src_port = fwd["remote_port"].toInt();
         int bound_port = src_port;
@@ -362,15 +409,57 @@ void ForwardManager::slot_listen_channel_error(int eno)
             int eno = libssh2_session_last_errno(conn->sess);
             if (eno == LIBSSH2_ERROR_REQUEST_DENIED) {
                 qLogx()<<"Remote server denied forward port request.";
+
+                // 这种情况有可能是前一个forward_listen没有正确退出，导致服务器端的监听仍旧在运行，监听端口没有关闭
+                // 这只是一种可能而已
+                // 另还有一种情况，确实是服务器不支持这种操作
+                // 目前还没有办法区分这两种情况。
+                // 这种情况怎么能解决呢？
+                // 一种方法，尝试执行远程命令，查看是否在有相应的监听端口,不过这种方法对windows无效
+                // 
+                qLogx()<<"Remote server denied forward port request.";
+                const char *netstat = "netstat -ant";
+                SSHConnection *sconn = (SSHConnection *)conn;
+                QString result = sconn->get_server_env_vars(netstat);
+                // qLogx()<<netstat<<" --> "<< result;
+                bool listen_exist = false;
+                QStringList state_lines = result.split("\n");
+                QStringList state_fields;
+                for (int i = 0; i < state_lines.count(); i ++) {
+                    state_fields = state_lines.at(i).split(" ", QString::SkipEmptyParts);
+                    // qLogx()<<state_fields;
+                    if (state_fields[0] == "tcp") {
+                        if (state_fields[3].endsWith(QString(":%1").arg(src_port))
+                            && state_fields[5] == "LISTEN") {
+                            listen_exist = true;
+                            break;
+                        }
+                    }
+                }
+                if (listen_exist) {
+                    qLogx()<<"listen socket already exist, but connot control it, try drop this connection.";
+                    full_restart = true;
+                } else {
+                    qLogx()<<"Maybe server can not support this forward port feature.";
+                }
+
             } else {
                 qLogx()<<"Unknown ssh channel error:"<<eno;
             }
 
-            conn->disconnect();
-            delete conn;
-            this->mfwdstate.remove(fsess_name);
+            if (full_restart) {
+                this->mfwdstate[fsess_name].want_reconn = true;
+                // QObject::disconnect(worker, SIGNAL(finished()));
+                // QObject::disconnect(worker, SIGNAL(finished()), this, SLOT(slot_forward_worker_finished()));
+                worker->quit();
+                worker->terminate();
+            } else {
+                conn->disconnect();
+                delete conn;
+                this->mfwdstate.remove(fsess_name);
 
-            this->slot_set_ui_state(S_START_READY);
+                this->slot_set_ui_state(S_START_READY);
+            }
         } else {
             // Q_ASSERT(1234 == bound_port);
             Q_ASSERT(src_port == bound_port);

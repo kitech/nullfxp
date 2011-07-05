@@ -611,7 +611,6 @@ src/simplelog.h -text
 src/sqlite/sqlite3.c -text
 src/sqlite/sqlite3.h -text
 src/src.pro -text
-src/sshconnection.cpp svneol=native#unset
 src/sshdirretriver.cpp -text
 src/sshdirretriver.h -text
 src/sshfileinfo.cpp -text

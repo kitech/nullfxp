@@ -86,6 +86,16 @@ private:
         ForwardPortWorker *worker;
         LIBSSH2_LISTENER *lsner;
         bool want_reconn;
+
+        /// 统计
+        int mconn_count;
+        int mrecv_len; // from network
+        int msend_len; // from SSH channel
+        QDateTime mctime; // 启动时间
+        float mavg_speed;
+
+        int mreconn_times;
+        int mrelisten_times;
     };
     QHash<QString, ForwardState> mfwdstate;
     int meditstate;

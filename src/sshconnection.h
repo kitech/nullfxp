@@ -43,6 +43,8 @@ public:
                                       int message_len, const char *language, int language_len, 
                                       void **abstract);
 
+    QString get_server_env_vars(const char *cmd);
+
 public slots:
     virtual int alivePing();
     int listSessionMethords();
@@ -53,7 +55,7 @@ private:
     int initSSHSession();
     int sshAuth();
     int sshHomePath();
-    QString get_server_env_vars(const char *cmd);
+    // QString get_server_env_vars(const char *cmd);
     QString libssh2SessionLastErrorString();
     int setCallbacks();
 

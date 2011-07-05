@@ -7,6 +7,8 @@
 // Version: $Id$
 // 
 
+#include <iostream>
+
 #include "libssh2/src/libssh2_priv.h"
 // #include "libssh2.h"
 
@@ -123,7 +125,7 @@ void ForwardPortWorker::slot_poll_timeout()
 
     int rn = 0, eno = 0;
     ssize_t rlen = 0, wlen = 0;
-    char rbuf[1000] = {0};
+    char rbuf[5120] = {0};
     LIBSSH2_CHANNEL *chan = NULL;
     QTcpSocket *sock = NULL;
 
@@ -176,7 +178,10 @@ void ForwardPortWorker::slot_poll_timeout()
         if (rlen > 0)  {
             if (sock != NULL) {
                 wlen = sock->write(rbuf, rlen);
-                qLogx()<<"ssh -> sock, wlen:"<<wlen<<rlen;                
+                // qLogx()<<"ssh -> sock, wlen:"<<wlen<<rlen;
+                // std::cout<<"L";
+                fprintf(stdout, "L");
+                fflush(stdout);
             } else {
             }
         } else {
@@ -274,10 +279,10 @@ void ForwardPortWorker::slot_forward_dest_disconnected()
 
 void ForwardPortWorker::slot_forward_dest_socket_ready_read()
 {
-    qLogx()<<"";
+    // qLogx()<<"";
     ssize_t wlen = 0;
     LIBSSH2_CHANNEL *chan = NULL;
-    char rbuf[1000] = {0};
+    // char rbuf[1000] = {0};
     QTcpSocket *sock = static_cast<QTcpSocket*>(sender());
     
     QVector<QPair<QTcpSocket*, LIBSSH2_CHANNEL*> >::iterator it;
@@ -289,13 +294,32 @@ void ForwardPortWorker::slot_forward_dest_socket_ready_read()
         }
     }
     if (chan == NULL) {
+        qLogx()<<"Can not find correspode sock:"<<sock;
         Q_ASSERT(chan != NULL);
     }
 
     ////////
     QByteArray ba = sock->readAll();
     wlen = libssh2_channel_write(chan, ba.data(), ba.length());
-    qLogx()<<"sock -> ssh, wlen:"<<wlen<<ba.length();
+    // qLogx()<<"sock -> ssh, wlen:"<<wlen<<ba.length();
+
+    if (wlen < 0) {
+        if (wlen == LIBSSH2_ERROR_BAD_USE) {
+            // should close this channel.
+            qLogx()<<"Channel write error 123:"<<wlen;            
+        } else if (wlen == LIBSSH2_ERROR_EAGAIN) {
+            int max_retry = 100;
+            do {
+                wlen = libssh2_channel_write(chan, ba.data(), ba.length());
+            } while (wlen == LIBSSH2_ERROR_EAGAIN && max_retry -- >= 0);
+        } else {
+            qLogx()<<"Channel write error:"<<wlen;
+        }
+    } else if (wlen == 0) {
+    } else {
+        fprintf(stdout, "R");
+        fflush(stdout);
+    }
 }
 
 void ForwardPortWorker::slot_forward_dest_socket_error(QAbstractSocket::SocketError socketError)
