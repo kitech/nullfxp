@@ -25,11 +25,11 @@
   
   问题还不少，处理前几个连接之后，不能接收新的连接了。
  */
-ForwardPortWorker::ForwardPortWorker(LIBSSH2_LISTENER *lsner,  const QString &dest_host, int dest_port, QObject *parent)
+ForwardPortWorker::ForwardPortWorker(LIBSSH2_LISTENER *lsner,  const QString &dest_host, int dest_ports, QObject *parent)
     : QThread(parent)
     , mlsner(lsner)
     , dest_host(dest_host)
-    , dest_port(dest_port)
+    , dest_ports(dest_ports)
 {
 }
 
@@ -155,8 +155,8 @@ void ForwardPortWorker::slot_poll_timeout()
 
         // sock->connectToHost("localhost", 22);
         if (!this->dest_host.isEmpty()) {
-            qLogx()<<"Connect to dest host:"<<this->dest_host<<this->dest_port;
-            sock->connectToHost(this->dest_host, this->dest_port);
+            qLogx()<<"Connect to dest host:"<<this->dest_host<<this->dest_ports;
+            sock->connectToHost(this->dest_host, this->dest_ports);
         } else {
             // for test only
             sock->connectToHost("localhost", 22);
@@ -192,6 +192,17 @@ void ForwardPortWorker::slot_poll_timeout()
                     qLogx()<<"Channel already closed by peer."<<chan;
                     inv_chans[inv_cnt++] = chan;
                 }
+            } else if (rn == LIBSSH2_ERROR_OUT_OF_BOUNDARY) {
+                // 这么处理会导致程序崩溃
+                // emit listen_channel_error(rn);
+
+                // 下一种处理办法。
+                rn = libssh2_channel_eof(chan);
+                if (rn == 1) {
+                    qLogx()<<"Channel already closed by peer."<<chan;
+                    inv_chans[inv_cnt++] = chan;
+                }
+                break;
             } else {
                 qLogx()<<"Unknwon channel read error"<<rlen<<libssh2_session_last_errno(this->mlsner->session);
             }
@@ -228,10 +239,14 @@ bool ForwardPortWorker::remove_forward_by_channel(LIBSSH2_CHANNEL *pchan)
         rn = libssh2_channel_close(chan);
         rn = libssh2_channel_free(chan);
 
-        QObject::disconnect(sock);
-        // QObject::disconnect(sock, SIGNAL(connected()), this, SLOT(slot_forward_dest_connected()));
-        // QObject::disconnect(sock, SIGNAL(disconnected()), this, SLOT(slot_forward_dest_disconnected()));
-        // QObject::disconnect(sock, SIGNAL(readyRead()), this, SLOT(slot_forward_dest_socket_ready_read()));     
+        // QObject::disconnect(sock);
+        QObject::disconnect(sock, SIGNAL(connected()));
+        QObject::disconnect(sock, SIGNAL(disconnected()));
+        QObject::disconnect(sock, SIGNAL(readyRead()));
+
+        QObject::disconnect(sock, SIGNAL(connected()), this, SLOT(slot_forward_dest_connected()));
+        QObject::disconnect(sock, SIGNAL(disconnected()), this, SLOT(slot_forward_dest_disconnected()));
+        QObject::disconnect(sock, SIGNAL(readyRead()), this, SLOT(slot_forward_dest_socket_ready_read()));     
 
         sock->close();
         delete sock;

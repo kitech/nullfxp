@@ -52,6 +52,8 @@ ForwardManager::ForwardManager(QWidget *parent)
                      this, SLOT(slot_setting_change(const QString &)));
 
     QObject::connect(this->uiw->checkBox_2, SIGNAL(stateChanged(int)), this, SLOT(slot_mannual_set_dest_ipaddr(int)));
+
+    QObject::connect(this->uiw->toolButton_3, SIGNAL(clicked()), this, SLOT(slot_statistic_window_switch()));
 }
 
 ForwardManager::~ForwardManager()
@@ -66,7 +68,7 @@ void ForwardManager::slot_show_session_menu()
 
     QAction *action;
 
-    BaseStorage * storage = BaseStorage::instance();
+    BaseStorage *storage = BaseStorage::instance();
     
     QStringList nlist = storage->getNameList();
 
@@ -191,7 +193,7 @@ void ForwardManager::slot_connect_remote_host_finished (int eno, Connection *con
     int bound_port = 0;
     int src_port;
     QString dest_hostname;
-    int dest_port;
+    int dest_ports;
     QString fsess_name;
     QMap<QString, QString> fwd;
     Connector *aconnector = static_cast<Connector*>(sender());
@@ -279,9 +281,9 @@ void ForwardManager::slot_connect_remote_host_finished (int eno, Connection *con
         this->mfwdstate[fsess_name].lsner = lsner;
 
         dest_hostname = this->uiw->lineEdit_4->text();
-        dest_port = this->uiw->lineEdit_5->text().toInt();
+        dest_ports = this->uiw->lineEdit_5->text().toInt();
 
-        ForwardPortWorker *worker = new ForwardPortWorker(lsner, dest_hostname, dest_port);
+        ForwardPortWorker *worker = new ForwardPortWorker(lsner, dest_hostname, dest_ports);
         this->mfwdstate[fsess_name].worker = worker;
         QObject::connect(worker, SIGNAL(finished()), this, SLOT(slot_forward_worker_finished()));
         QObject::connect(worker, SIGNAL(listen_channel_error(int)),
@@ -471,9 +473,9 @@ void ForwardManager::slot_listen_channel_error(int eno)
             worker->start();
 
             // dest_hostname = this->uiw->lineEdit_4->text();
-            // dest_port = this->uiw->lineEdit_5->text().toInt();
+            // dest_ports = this->uiw->lineEdit_5->text().toInt();
 
-            // ForwardPortWorker *fwp = new ForwardPortWorker(lsner, dest_hostname, dest_port);
+            // ForwardPortWorker *fwp = new ForwardPortWorker(lsner, dest_hostname, dest_ports);
             // this->mfwdstate[fsess_name].worker = fwp;
             // QObject::connect(fwp, SIGNAL(finished()), this, SLOT(slot_forward_worker_finished()));
             // fwp->start();
@@ -507,7 +509,7 @@ void ForwardManager::slot_load_forwarder_list()
     QString remote_host;
     QString remote_port;
     QString dest_host;
-    QString dest_port;
+    QString dest_ports;
     QString ctime;
     QString mtime;
 
@@ -522,7 +524,7 @@ void ForwardManager::slot_load_forwarder_list()
         remote_host = fwd["remote_host"];
         remote_port = fwd["remote_port"];
         dest_host = fwd["dest_host"];
-        dest_port = fwd["dest_port"];
+        dest_ports = fwd["dest_ports"];
         ctime = fwd["ctime"];
         mtime = fwd["mtime"];
 
@@ -543,7 +545,7 @@ void ForwardManager::slot_save_forward_session()
     QString remote_host;
     QString remote_port;
     QString dest_host;
-    QString dest_port;
+    QString dest_ports;
     QString ctime;
     QString mtime;
 
@@ -552,14 +554,14 @@ void ForwardManager::slot_save_forward_session()
     remote_host = this->uiw->lineEdit_2->text();
     remote_port = this->uiw->lineEdit_3->text();
     dest_host = this->uiw->lineEdit_4->text();
-    dest_port = this->uiw->lineEdit_5->text();
+    dest_ports = this->uiw->lineEdit_5->text();
 
     fwd["fwd_sess_name"] = fwd_sess_name;
     fwd["ref_sess_name"] = ref_sess_name;
     fwd["remote_host"] = remote_host;
     fwd["remote_port"] = remote_port;
     fwd["dest_host"] = dest_host;
-    fwd["dest_port"] = dest_port;
+    fwd["dest_ports"] = dest_ports;
     
     if (!BaseStorage::instance()->addForwarder(fwd)) {
         qLogx()<<"add forwarder error.";
@@ -622,7 +624,7 @@ void ForwardManager::slot_forward_session_item_changed(QListWidgetItem * current
     QString remote_host;
     QString remote_port;
     QString dest_host;
-    QString dest_port;
+    QString dest_ports;
     QString ctime;
     QString mtime;
 
@@ -633,7 +635,7 @@ void ForwardManager::slot_forward_session_item_changed(QListWidgetItem * current
     remote_host = curr_fwd["remote_host"];
     remote_port = curr_fwd["remote_port"];
     dest_host = curr_fwd["dest_host"];
-    dest_port = curr_fwd["dest_port"];
+    dest_ports = curr_fwd["dest_ports"];
 
 
     this->uiw->lineEdit->setText(fwd_sess_name);
@@ -641,7 +643,7 @@ void ForwardManager::slot_forward_session_item_changed(QListWidgetItem * current
     this->uiw->lineEdit_2->setText(remote_host);
     this->uiw->lineEdit_3->setText(remote_port);
     this->uiw->lineEdit_4->setText(dest_host);
-    this->uiw->lineEdit_5->setText(dest_port);
+    this->uiw->lineEdit_5->setText(dest_ports);
 
     // restore status
     Connection *conn = NULL;
@@ -758,5 +760,14 @@ void ForwardManager::slot_mannual_set_dest_ipaddr(int state)
         this->uiw->lineEdit_4->setReadOnly(false);
     } else {
         this->uiw->lineEdit_4->setReadOnly(true);
+    }
+}
+
+void ForwardManager::slot_statistic_window_switch()
+{
+    if (this->uiw->widget->isVisible()) {
+        this->uiw->widget->setVisible(false);
+    } else {
+        this->uiw->widget->setVisible(true);
     }
 }

@@ -203,7 +203,7 @@ bool BaseStorage::addForwarder(const QMap<QString, QString> &fwd)
     QString remote_host;
     QString remote_port;
     QString dest_host;
-    QString dest_port;
+    QString dest_ports;
     QString ctime;
     QString mtime;
 
@@ -212,7 +212,7 @@ bool BaseStorage::addForwarder(const QMap<QString, QString> &fwd)
     remote_host = fwd["remote_host"];
     remote_port = fwd["remote_port"];
     dest_host = fwd["dest_host"];
-    dest_port = fwd["dest_port"];
+    dest_ports = fwd["dest_ports"];
     mtime = QDateTime::currentDateTime().toString();
 
     forward_settings.beginGroup(fwd_sess_name);
@@ -230,7 +230,7 @@ bool BaseStorage::addForwarder(const QMap<QString, QString> &fwd)
     forward_settings.setValue("remote_host", remote_host);
     forward_settings.setValue("remote_port", remote_port);
     forward_settings.setValue("dest_host", dest_host);
-    forward_settings.setValue("dest_port", dest_port);
+    forward_settings.setValue("dest_ports", dest_ports);
     forward_settings.setValue("ctime", ctime);
     forward_settings.setValue("mtime", mtime);
 
@@ -249,7 +249,7 @@ const QMap<QString, QString> BaseStorage::getForwarder(const QString &name)
     QString remote_host;
     QString remote_port;
     QString dest_host;
-    QString dest_port;
+    QString dest_ports;
     QString ctime;
     QString mtime;
 
@@ -265,7 +265,7 @@ const QMap<QString, QString> BaseStorage::getForwarder(const QString &name)
     remote_host = forward_settings.value("remote_host").toString();
     remote_port = forward_settings.value("remote_port").toString();
     dest_host = forward_settings.value("dest_host").toString();
-    dest_port = forward_settings.value("dest_port").toString();
+    dest_ports = forward_settings.value("dest_ports").toString();
     ctime = forward_settings.value("ctime").toString();
     mtime = forward_settings.value("mtime").toString();
 
@@ -274,7 +274,7 @@ const QMap<QString, QString> BaseStorage::getForwarder(const QString &name)
     fwd["remote_host"] = remote_host;
     fwd["remote_port"] = remote_port;
     fwd["dest_host"] = dest_host;
-    fwd["dest_port"] = dest_port;
+    fwd["dest_ports"] = dest_ports;
     fwd["ctime"] = ctime;
     fwd["mtime"] = mtime;
     

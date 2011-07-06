@@ -54,6 +54,8 @@ private slots:
     // void slot_setting_change(int value);
     void slot_mannual_set_dest_ipaddr(int state);
 
+    void slot_statistic_window_switch();
+
 private:
     Ui::ForwardManager *uiw;
 
