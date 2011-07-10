@@ -119,8 +119,8 @@ SOURCES += main.cpp \
  ftpdirretriver.cpp \
  sshdirretriver.cpp \
  libftp/libftp.cpp \
- libftp/curlftp.cpp \
- libftp/curlftp_callback.cpp \
+ # libftp/curlftp.cpp \
+ # libftp/curlftp_callback.cpp \
  updatedialog.cpp \
  systeminfodialog.cpp \
  ftphostinfodialog.cpp \
@@ -182,7 +182,7 @@ HEADERS += nullfxp.h \
  ftpdirretriver.h \
  sshdirretriver.h \
  libftp/libftp.h \
- libftp/curlftp.h \
+ # libftp/curlftp.h \
  updatedialog.h \
  systeminfodialog.h \
  ftphostinfodialog.h \
@@ -237,7 +237,7 @@ win32 {
     LIBS += -lssh2 -lws2_32  -lgdi32 
     #-lgcrypt -lgpg-error 
 } else {
-    LIBS += libssh2/src/libssh2.a -lssl -lcrypto -lz
+    LIBS += libssh2/src/libssh2.a   -lz
 #    LIBS += -lcurl
 #    TARGETDEPS += libssh2/src/libssh2.a            # depcreated
     POST_TARGETDEPS += libssh2/src/libssh2.a
@@ -275,6 +275,9 @@ macx-g++* {
 } else {
     message("Unsupported compile platform detected.")
 }
+
+INCLUDEPATH += ../openssl-android/include
+LIBS += -L../../nullfxp-svn/openssl-android/libs/armeabi -lcrypto_static -lssl_static
 
 # fix static compiled version cjk problem.
 exists($$[QT_INSTALL_PLUGINS]/codecs/libqcncodecs.a) {
@@ -355,3 +358,24 @@ message($$[QT_INSTALL_PLUGINS])
 static {
     message("execute pure static build.")
 }
+
+OTHER_FILES += \
+    android/res/drawable-hdpi/icon.png \
+    android/res/drawable-ldpi/icon.png \
+    android/res/drawable-mdpi/icon.png \
+    android/res/values/libs.xml \
+    android/res/values/strings.xml \
+    android/src/eu/licentia/necessitas/ministro/IMinistro.aidl \
+    android/src/eu/licentia/necessitas/ministro/IMinistroCallback.aidl \
+    android/src/eu/licentia/necessitas/mobile/QtAndroidContacts.java \
+    android/src/eu/licentia/necessitas/mobile/QtCamera.java \
+    android/src/eu/licentia/necessitas/mobile/QtFeedback.java \
+    android/src/eu/licentia/necessitas/mobile/QtLocation.java \
+    android/src/eu/licentia/necessitas/mobile/QtMediaPlayer.java \
+    android/src/eu/licentia/necessitas/mobile/QtSensors.java \
+    android/src/eu/licentia/necessitas/mobile/QtSystemInfo.java \
+    android/src/eu/licentia/necessitas/industrius/QtSurface.java \
+    android/src/eu/licentia/necessitas/industrius/QtActivity.java \
+    android/src/eu/licentia/necessitas/industrius/QtApplication.java \
+    android/src/eu/licentia/necessitas/industrius/QtLayout.java \
+    android/AndroidManifest.xml

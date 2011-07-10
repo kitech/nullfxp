@@ -17,8 +17,8 @@ isEmpty( ISQT4 ) {
 
 SUBDIRS +=  \
  src/libssh2 \
- src \
- src/unitest
+ src #\
+ #src/unitest
 
 TEMPLATE = subdirs 
 CONFIG = ordered

@@ -49,21 +49,24 @@ AboutNullFXP::~AboutNullFXP()
 {
 }
 
-#ifndef Q_OS_WIN
-#ifndef Q_OS_MAC
-#include <fontconfig/fontconfig.h>
-#endif
-#endif
 
-void AboutNullFXP::dummyDepend()
-{
+// android compile faild
 
-#ifndef Q_OS_WIN
-#ifndef Q_OS_MAC
-    // force link fontconfig lib, can not strip 
-    FcObjectSet *fco = FcObjectSetCreate();
-    FcObjectSetDestroy(fco);
-#endif
-#endif
+//#ifndef Q_OS_WIN
+//#ifndef Q_OS_MAC
+//#include <fontconfig/fontconfig.h>
+//#endif
+//#endif
 
-}
+//void AboutNullFXP::dummyDepend()
+//{
+
+//#ifndef Q_OS_WIN
+//#ifndef Q_OS_MAC
+//    // force link fontconfig lib, can not strip
+//    FcObjectSet *fco = FcObjectSetCreate();
+//    FcObjectSetDestroy(fco);
+//#endif
+//#endif
+
+//}

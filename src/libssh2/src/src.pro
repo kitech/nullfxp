@@ -91,3 +91,4 @@ QMAKE_CXXFLAGS_RELEASE += -g
 
 INCLUDEPATH += ../include/
 INCLUDEPATH += $$[QMAKE_INCDIR]
+INCLUDEPATH += ../../../openssl-android/include

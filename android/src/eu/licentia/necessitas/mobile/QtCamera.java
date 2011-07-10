@@ -14,584 +14,584 @@ THIS SOFTWARE IS PROVIDED BY Elektrobit (EB) ''AS IS'' AND ANY EXPRESS OR IMPLIE
 package eu.licentia.necessitas.mobile;
 
 //@ANDROID-8
-//QtCreator import java.io.ByteArrayOutputStream;
-//QtCreator import java.io.IOException;
-//QtCreator 
-//QtCreator import android.app.Activity;
-//QtCreator import android.content.BroadcastReceiver;
-//QtCreator import android.content.Context;
-//QtCreator import android.content.Intent;
-//QtCreator import android.content.IntentFilter;
-//QtCreator import android.graphics.Bitmap;
-//QtCreator import android.graphics.Bitmap.CompressFormat;
-//QtCreator import android.graphics.BitmapFactory;
-//QtCreator import android.graphics.ImageFormat;
-//QtCreator import android.graphics.Rect;
-//QtCreator import android.graphics.YuvImage;
-//QtCreator import android.hardware.Camera;
-//QtCreator import android.hardware.Camera.Parameters;
-//QtCreator import android.hardware.Camera.PictureCallback;
-//QtCreator import android.hardware.Camera.PreviewCallback;
-//QtCreator import android.hardware.Camera.ShutterCallback;
-//QtCreator import android.hardware.Camera.Size;
-//QtCreator import android.media.MediaRecorder;
-//QtCreator import android.util.Log;
-//QtCreator import android.view.SurfaceHolder;
-//QtCreator import android.view.SurfaceHolder.Callback;
-//QtCreator import android.view.SurfaceView;
-//QtCreator import eu.licentia.necessitas.industrius.QtApplication;
-//QtCreator import eu.licentia.necessitas.industrius.QtLayout;
-//QtCreator 
-//QtCreator public class QtCamera implements PreviewCallback, Callback{
-//QtCreator     private static Camera m_camera;
-//QtCreator     public ShutterCallback shutterCallback;
-//QtCreator     public PictureCallback rawCallback;
-//QtCreator     public PictureCallback jpegCallback;
-//QtCreator     private static Activity m_activity = null;
-//QtCreator     String[] m_sceneList;
-//QtCreator     String[] m_focusModes;
-//QtCreator     String[] m_flashModes;
-//QtCreator     String[] m_whiteBalanceModes;
-//QtCreator     static String m_currentFocusMode;
-//QtCreator     int[] m_imageFormats;
-//QtCreator     int[] m_imageResolutions;
-//QtCreator     private Parameters m_params;
-//QtCreator     public static PreviewCallback m_previewCallback;
-//QtCreator     private int m_width;
-//QtCreator     private int m_height;
-//QtCreator     public static MediaRecorder m_recorder=null;
-//QtCreator     private SurfaceView m_surfaceView;
-//QtCreator     private String m_videoOutputPath = null;
-//QtCreator     private int m_videoOutFormat = MediaRecorder.OutputFormat.MPEG_4;
-//QtCreator     private int m_videoFrameRate = 30;
-//QtCreator     private int[] m_videoFramesize = new int[2];
-//QtCreator     private long m_maxVideoFileSize=0;
-//QtCreator     private int m_videoEncodingBitrate=0;
-//QtCreator     private int m_audioBitRate=0;
-//QtCreator     private int m_audioChannelsCount=0;
-//QtCreator     int[] m_videoPreviewParams;
-//QtCreator     public boolean m_screenOff = false;
-//QtCreator     private int m_surfaceDestroyedOff = 0;
-//QtCreator     public boolean m_surfaceDestroyed = false;
-//QtCreator     QtCamera()
-//QtCreator     {
-//QtCreator         setActivity();
-//QtCreator         m_previewCallback = this;
-//QtCreator         m_videoFramesize[0] = 480;
-//QtCreator         m_videoFramesize[1] = 360;
-//QtCreator         m_videoPreviewParams = new int[4];
-//QtCreator         IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
-//QtCreator         BroadcastReceiver mReceiver = new ScreenReceiver();
-//QtCreator         QtApplication.mainActivity().registerReceiver(mReceiver, filter);
-//QtCreator         m_surfaceView = new SurfaceView(QtApplication.mainActivity());
-//QtCreator         m_surfaceView.getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-//QtCreator         m_surfaceView.getHolder().addCallback(this);
-//QtCreator         m_surfaceView.setFocusable(true);
-//QtCreator         QtApplication.mainActivity().getQtLayout().addView(m_surfaceView,1,new QtLayout.LayoutParams(0,0,1,1));
-//QtCreator     }
-//QtCreator 
-//QtCreator     public static Camera getCamera()
-//QtCreator     {
-//QtCreator         return m_camera;
-//QtCreator     }
-//QtCreator 
-//QtCreator     public void setOutputFile(String filename)
-//QtCreator     {
-//QtCreator         m_videoOutputPath = filename;
-//QtCreator     }
-//QtCreator 
-//QtCreator     public void setOutputFormat(int format)
-//QtCreator     {
-//QtCreator         m_videoOutFormat = format;
-//QtCreator     }
-//QtCreator 
-//QtCreator     public void setVideoEncodingBitrate(int rate)
-//QtCreator     {
-//QtCreator         m_videoEncodingBitrate = rate;
-//QtCreator     }
-//QtCreator 
-//QtCreator     public void setMaxVideoSize(long size)
-//QtCreator     {
-//QtCreator         m_maxVideoFileSize = size;
-//QtCreator     }
-//QtCreator 
-//QtCreator     public void setVideoSettings(int[] settings)
-//QtCreator     {
-//QtCreator         m_videoFrameRate = settings[0];
-//QtCreator         m_videoFramesize[0] = settings[1];
-//QtCreator         m_videoFramesize[1] = settings[2];
-//QtCreator     }
-//QtCreator 
-//QtCreator     public void setAudioBitRate(int rate)
-//QtCreator     {
-//QtCreator         m_audioBitRate = rate;
-//QtCreator     }
-//QtCreator 
-//QtCreator 
-//QtCreator     public void setAudioChannelsCount(int count)
-//QtCreator     {
-//QtCreator         m_audioChannelsCount = count;
-//QtCreator     }
-//QtCreator 
-//QtCreator     public void startRecording()
-//QtCreator     {
-//QtCreator         m_activity.runOnUiThread(new Runnable() {
-//QtCreator             @Override
-//QtCreator             public void run() {
-//QtCreator                 QtApplication.mainActivity().getQtLayout().updateViewLayout(m_surfaceView, new QtLayout.LayoutParams(m_videoPreviewParams[0],m_videoPreviewParams[1],m_videoPreviewParams[2],m_videoPreviewParams[3]));
-//QtCreator             }
-//QtCreator         });
-//QtCreator         m_camera.stopPreview();
-//QtCreator         m_camera.unlock();
-//QtCreator 
-//QtCreator         if(m_recorder == null)
-//QtCreator         {
-//QtCreator             m_recorder = new MediaRecorder();
-//QtCreator         }
-//QtCreator         m_recorder.setCamera(m_camera);
-//QtCreator         m_recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-//QtCreator         m_recorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
-//QtCreator         m_recorder.setOutputFormat(m_videoOutFormat);
-//QtCreator 
-//QtCreator         long currentDateTimeString = System.currentTimeMillis();
-//QtCreator         String filePath;
-//QtCreator 
-//QtCreator         // WARNING unsafe hardcoded path !!!
-//QtCreator         if(m_videoOutputPath == null)
-//QtCreator         {
-//QtCreator             if(m_videoOutFormat == 1)
-//QtCreator             {
-//QtCreator                 filePath = "/sdcard/"+currentDateTimeString+".3gp";
-//QtCreator             }
-//QtCreator             else
-//QtCreator             {
-//QtCreator                 filePath = "/sdcard/"+currentDateTimeString+".mp4";
-//QtCreator             }
-//QtCreator         }
-//QtCreator         else
-//QtCreator         {
-//QtCreator             if(m_videoOutFormat == 1)
-//QtCreator             {
-//QtCreator                 filePath = m_videoOutputPath+currentDateTimeString+".3gp";
-//QtCreator             }
-//QtCreator             else
-//QtCreator             {
-//QtCreator                 filePath = m_videoOutputPath+currentDateTimeString+".mp4";
-//QtCreator             }
-//QtCreator         }
-//QtCreator 
-//QtCreator         m_recorder.setOutputFile(filePath);
-//QtCreator 
-//QtCreator         if(m_maxVideoFileSize != 0)
-//QtCreator         {
-//QtCreator             m_recorder.setMaxFileSize(m_maxVideoFileSize);
-//QtCreator         }
-//QtCreator         m_recorder.setVideoEncoder(MediaRecorder.VideoEncoder.H263);
-//QtCreator         m_recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-//QtCreator         m_recorder.setVideoFrameRate(m_videoFrameRate);
-//QtCreator         m_recorder.setVideoSize(m_videoFramesize[0], m_videoFramesize[1]);
-//QtCreator 
-//QtCreator         if(m_videoEncodingBitrate != 0)
-//QtCreator         {
-//QtCreator             m_recorder.setVideoEncodingBitRate(m_videoEncodingBitrate);
-//QtCreator         }
-//QtCreator 
-//QtCreator         if(m_audioBitRate != 0)
-//QtCreator         {
-//QtCreator             m_recorder.setAudioEncodingBitRate(m_audioBitRate);
-//QtCreator         }
-//QtCreator 
-//QtCreator         if(m_audioChannelsCount != 0)
-//QtCreator         {
-//QtCreator             m_recorder.setAudioChannels(m_audioChannelsCount);
-//QtCreator         }
-//QtCreator 
-//QtCreator         m_recorder.setPreviewDisplay(m_surfaceView.getHolder().getSurface());
-//QtCreator         if (m_recorder != null) {
-//QtCreator             try {
-//QtCreator                 m_recorder.prepare();
-//QtCreator                 m_recorder.start();
-//QtCreator             } catch (IllegalStateException e) {
-//QtCreator                 e.printStackTrace();
-//QtCreator             } catch (IOException e) {
-//QtCreator                 e.printStackTrace();
-//QtCreator             }
-//QtCreator         }
-//QtCreator     }
-//QtCreator 
-//QtCreator     public void stopRecording()
-//QtCreator     {
-//QtCreator         Log.i("Stop Record  called", "in stopRecording");
-//QtCreator         if(m_recorder != null)
-//QtCreator         {
-//QtCreator 
-//QtCreator             m_recorder.stop();
-//QtCreator             m_recorder.reset();
-//QtCreator             m_recorder.release();
-//QtCreator             m_recorder = null;
-//QtCreator         }
-//QtCreator         m_activity.runOnUiThread(new Runnable() {
-//QtCreator             public void run() {
-//QtCreator                 QtApplication.mainActivity().getQtLayout().updateViewLayout(m_surfaceView, new QtLayout.LayoutParams(0,0,1,1));
-//QtCreator             }
-//QtCreator         });
-//QtCreator 
-//QtCreator         try {
-//QtCreator             m_camera.reconnect();
-//QtCreator         } catch (IOException e) {
-//QtCreator             e.printStackTrace();
-//QtCreator         }
-//QtCreator         m_params = m_camera.getParameters();
-//QtCreator         m_params.setPreviewSize(m_width,m_height);
-//QtCreator         m_camera.setParameters(m_params);
-//QtCreator         m_camera.setPreviewCallback(this);
-//QtCreator         try {
-//QtCreator             m_camera.setPreviewDisplay(null);
-//QtCreator         } catch (IOException e) {
-//QtCreator             e.printStackTrace();
-//QtCreator         }
-//QtCreator         m_camera.startPreview();
-//QtCreator     }
-//QtCreator 
-//QtCreator 
-//QtCreator     public static void setActivity()
-//QtCreator     {
-//QtCreator         m_activity = QtApplication.mainActivity();
-//QtCreator     }
-//QtCreator 
-//QtCreator     public void setCameraState(int state)
-//QtCreator     {
-//QtCreator         switch(state)
-//QtCreator         {
-//QtCreator 
-//QtCreator         case 0:
-//QtCreator             openCamera();
-//QtCreator             m_params = m_camera.getParameters();
-//QtCreator             m_params.setPreviewFormat(ImageFormat.NV21);
-//QtCreator             m_camera.setParameters(m_params);
-//QtCreator             getSupportedModes();
-//QtCreator             getSupportedImageFormats();
-//QtCreator             getSupportedImageResolutions();
-//QtCreator             break;
-//QtCreator 
-//QtCreator         case 1:
-//QtCreator             m_camera.release();
-//QtCreator             m_camera = null;
-//QtCreator             break;
-//QtCreator 
-//QtCreator         case 2:
-//QtCreator             Log.i("tag", "stopping the preview************");
-//QtCreator             m_camera.setPreviewCallback(this);
-//QtCreator             try {
-//QtCreator                     m_camera.setPreviewDisplay(null);
-//QtCreator             } catch (IOException e) {
-//QtCreator                     e.printStackTrace();
-//QtCreator             }
-//QtCreator             m_camera.startPreview();
-//QtCreator             callBacks();
-//QtCreator             startFocus();
-//QtCreator             break;
-//QtCreator 
-//QtCreator         case 3:
-//QtCreator             stopFocus();
-//QtCreator             m_camera.stopPreview();
-//QtCreator             break;
-//QtCreator 
-//QtCreator         default:
-//QtCreator                 break;
-//QtCreator         }
-//QtCreator     }
-//QtCreator 
-//QtCreator     public static void openCamera()
-//QtCreator     {
-//QtCreator         if(m_camera == null)
-//QtCreator         {
-//QtCreator             m_camera = Camera.open();
-//QtCreator         }
-//QtCreator     }
-//QtCreator 
-//QtCreator     public void takePicture()
-//QtCreator     {
-//QtCreator         m_camera.stopPreview();
-//QtCreator         m_camera.takePicture(null,null,jpegCallback);
-//QtCreator     }
-//QtCreator 
-//QtCreator     public void callBacks()
-//QtCreator     {
-//QtCreator         /** Handles data for jpeg picture */
-//QtCreator         jpegCallback = new PictureCallback() {
-//QtCreator             public void onPictureTaken(byte[] data, Camera camera) {
-//QtCreator                 getImage(data);
-//QtCreator                 m_camera.setPreviewCallback(m_previewCallback);
-//QtCreator                 m_camera.startPreview();
-//QtCreator                 Log.i("Camera", "onPictureTaken - jpeg"+m_params.getPictureSize().height+m_params.getPictureSize().width);
-//QtCreator             }
-//QtCreator         };
-//QtCreator     }
-//QtCreator 
-//QtCreator     public void setSceneMode(String mode)
-//QtCreator     {
-//QtCreator         m_params.setSceneMode(mode);
-//QtCreator         m_camera.setParameters(m_params);
-//QtCreator     }
-//QtCreator 
-//QtCreator     public int[] getCompensationRange()
-//QtCreator     {
-//QtCreator         int[] range = {0,0};
-//QtCreator         range[0] = (int)(m_params.getMinExposureCompensation() * m_params.getExposureCompensationStep());
-//QtCreator         range[1] = (int)(m_params.getMaxExposureCompensation() * m_params.getExposureCompensationStep());
-//QtCreator         return range;
-//QtCreator     }
-//QtCreator 
-//QtCreator     public void setCompensation(int value)
-//QtCreator     {
-//QtCreator         int compensationIndex =(int) (value/m_params.getExposureCompensationStep());
-//QtCreator         m_params.setExposureCompensation(compensationIndex);
-//QtCreator         m_camera.setParameters(m_params);
-//QtCreator     }
-//QtCreator 
-//QtCreator     public void setFocusMode(String mode)
-//QtCreator     {
-//QtCreator         m_currentFocusMode = mode;
-//QtCreator         m_params.setFocusMode(mode);
-//QtCreator         m_camera.setParameters(m_params);
-//QtCreator     }
-//QtCreator 
-//QtCreator     public void startFocus()
-//QtCreator     {
-//QtCreator         if(m_currentFocusMode != null)
-//QtCreator         {
-//QtCreator             if(m_currentFocusMode.contains("auto" ) || m_currentFocusMode.contains("macro"))
-//QtCreator             {
-//QtCreator                 m_camera.autoFocus(null);
-//QtCreator             }
-//QtCreator         }
-//QtCreator     }
-//QtCreator 
-//QtCreator     public void stopFocus()
-//QtCreator     {
-//QtCreator         if(m_currentFocusMode != null)
-//QtCreator         {
-//QtCreator             if(m_currentFocusMode.contains("auto" ) || m_currentFocusMode.contains("macro"))
-//QtCreator             {
-//QtCreator                 m_camera.cancelAutoFocus();
-//QtCreator             }
-//QtCreator         }
-//QtCreator     }
-//QtCreator 
-//QtCreator 
-//QtCreator     public void getSupportedModes()
-//QtCreator     {
-//QtCreator         m_sceneList = new String[m_params.getSupportedSceneModes().size()];
-//QtCreator         for(int i =0;i < m_params.getSupportedSceneModes().size();i++ )
-//QtCreator         {
-//QtCreator             m_sceneList[i] = m_params.getSupportedSceneModes().get(i);
-//QtCreator         }
-//QtCreator 
-//QtCreator 
-//QtCreator         m_focusModes = new String[m_params.getSupportedFocusModes().size()];
-//QtCreator         if(m_params.getSupportedFocusModes() == null)
-//QtCreator         {
-//QtCreator             m_focusModes[0] = "Not Supported";
-//QtCreator         }
-//QtCreator         else
-//QtCreator         {
-//QtCreator             for(int i =0;i < m_params.getSupportedFocusModes().size();i++ )
-//QtCreator             {
-//QtCreator                 m_focusModes[i] = "";
-//QtCreator                 m_focusModes[i] = m_params.getSupportedFocusModes().get(i);
-//QtCreator             }
-//QtCreator         }
-//QtCreator 
-//QtCreator         m_flashModes = new String[m_params.getSupportedFlashModes().size()];
-//QtCreator         if(m_params.getSupportedFlashModes() == null)
-//QtCreator         {
-//QtCreator             m_flashModes[0] = "Not Supported";
-//QtCreator         }
-//QtCreator         else
-//QtCreator         {
-//QtCreator             for(int i =0;i < m_params.getSupportedFlashModes().size();i++ )
-//QtCreator             {
-//QtCreator                 m_flashModes[i] = m_params.getSupportedFlashModes().get(i);
-//QtCreator             }
-//QtCreator         }
-//QtCreator 
-//QtCreator         m_whiteBalanceModes = new String[m_params.getSupportedWhiteBalance().size()];
-//QtCreator         if(m_params.getSupportedWhiteBalance() == null)
-//QtCreator         {
-//QtCreator             m_whiteBalanceModes[0] = "Not Supported";
-//QtCreator         }
-//QtCreator         else
-//QtCreator         {
-//QtCreator             for(int i =0;i < m_params.getSupportedWhiteBalance().size();i++ )
-//QtCreator             {
-//QtCreator                 m_whiteBalanceModes[i] = m_params.getSupportedWhiteBalance().get(i);
-//QtCreator             }
-//QtCreator         }
-//QtCreator     }
-//QtCreator 
-//QtCreator     public int[] getSupportedImageResolutions()
-//QtCreator     {
-//QtCreator         m_imageResolutions = new int[2*m_params.getSupportedPictureSizes().size()];
-//QtCreator         for(int i =0;i < m_params.getSupportedPictureSizes().size();i=i+2 )
-//QtCreator         {
-//QtCreator             Size size = m_params.getSupportedPictureSizes().get(i);
-//QtCreator             m_imageResolutions[i] = size.width;
-//QtCreator             m_imageResolutions[i+1] = size.height;
-//QtCreator         }
-//QtCreator         return m_imageResolutions;
-//QtCreator     }
-//QtCreator 
-//QtCreator     public int[] getSupportedImageFormats()
-//QtCreator     {
-//QtCreator         m_imageFormats = new int[m_params.getSupportedPictureFormats().size()];
-//QtCreator         for(int i =0;i < m_params.getSupportedPictureFormats().size();i++ )
-//QtCreator         {
-//QtCreator             m_imageFormats[i] = m_params.getSupportedPictureFormats().get(i);
-//QtCreator         }
-//QtCreator         return m_imageFormats;
-//QtCreator     }
-//QtCreator 
-//QtCreator 
-//QtCreator     public int getMaxZoom()
-//QtCreator     {
-//QtCreator         if(m_params.isZoomSupported())
-//QtCreator         {
-//QtCreator             return m_params.getMaxZoom();
-//QtCreator         }
-//QtCreator         return 0;
-//QtCreator     }
-//QtCreator 
-//QtCreator     public int getZoom()
-//QtCreator     {
-//QtCreator         if(m_params.isZoomSupported())
-//QtCreator         {
-//QtCreator             return m_params.getZoom();
-//QtCreator         }
-//QtCreator         return 0;
-//QtCreator     }
-//QtCreator 
-//QtCreator     public void setZoom(int zoom)
-//QtCreator     {
-//QtCreator         if(m_params.isZoomSupported())
-//QtCreator         {
-//QtCreator             m_params.setZoom(zoom);
-//QtCreator             m_camera.setParameters(m_params);
-//QtCreator         }
-//QtCreator     }
-//QtCreator 
-//QtCreator     public void setFlashMode(String mode)
-//QtCreator     {
-//QtCreator         m_params.setFlashMode(mode);
-//QtCreator         m_camera.setParameters(m_params);
-//QtCreator     }
-//QtCreator 
-//QtCreator     public void setWhiteBalanceMode(String mode)
-//QtCreator     {
-//QtCreator         m_params.setWhiteBalance(mode);
-//QtCreator         m_camera.setParameters(m_params);
-//QtCreator     }
-//QtCreator 
-//QtCreator     public void setImageSettings(int[] settings)
-//QtCreator     {
-//QtCreator         m_params.setPictureFormat(settings[0]);
-//QtCreator         m_params.setPictureSize(settings[1],settings[2]);
-//QtCreator         m_camera.setParameters(m_params);
-//QtCreator     }
-//QtCreator 
-//QtCreator     public void onPreviewFrame(byte[] data, Camera camera) {
-//QtCreator         m_width= m_params.getPreviewSize().width;
-//QtCreator         m_height = m_params.getPreviewSize().height;
-//QtCreator         ByteArrayOutputStream output_stream = new ByteArrayOutputStream();
-//QtCreator         YuvImage image =new YuvImage(data,ImageFormat.NV21,m_width,m_height,null);
-//QtCreator         image.compressToJpeg(new Rect(0,0,m_width,m_height),60, output_stream);
-//QtCreator         Bitmap bitmap = BitmapFactory.decodeByteArray(output_stream.toByteArray(), 0, output_stream.size());
-//QtCreator         Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, m_width/2, m_height/2, true);//Optimization of preview data sent
-//QtCreator         ByteArrayOutputStream imageStream = new ByteArrayOutputStream();
-//QtCreator         scaledBitmap.compress(CompressFormat.JPEG,60, imageStream);
-//QtCreator         getPreviewBuffers(imageStream.toByteArray());
-//QtCreator     }
-//QtCreator 
-//QtCreator     public static native void getImage(byte[] data);
-//QtCreator     public static native void getPreviewBuffers(byte[] data);
-//QtCreator     public static native void stopRecord();
-//QtCreator 
-//QtCreator 
-//QtCreator     public class ScreenReceiver extends BroadcastReceiver {
-//QtCreator         @Override
-//QtCreator         public void onReceive(Context context, Intent intent) {
-//QtCreator             if (intent.getAction().equals(Intent.ACTION_SCREEN_OFF))
-//QtCreator             {
-//QtCreator                 if(m_recorder != null)
-//QtCreator                 {
-//QtCreator                     m_recorder.stop();
-//QtCreator                     m_recorder.reset();
-//QtCreator                     m_recorder.release();
-//QtCreator                     m_recorder = null;
-//QtCreator                     stopRecord();
-//QtCreator                 }
-//QtCreator                 m_screenOff = true;
-//QtCreator                 QtApplication.mainActivity().unregisterReceiver(this);
-//QtCreator             }
-//QtCreator         }
-//QtCreator     }
-//QtCreator 
-//QtCreator     @Override
-//QtCreator     public void surfaceChanged(SurfaceHolder holder, int format, int width,
-//QtCreator             int height)
-//QtCreator     {
-//QtCreator         if((m_screenOff == true && m_surfaceDestroyedOff == 2) || m_surfaceDestroyed == true)
-//QtCreator         {
-//QtCreator             m_camera = QtCamera.getCamera();
-//QtCreator             if (m_camera!=null)
-//QtCreator             {
-//QtCreator                 try {
-//QtCreator                         m_camera.reconnect();
-//QtCreator                 } catch (IOException e) {
-//QtCreator                         e.printStackTrace();
-//QtCreator                 }
-//QtCreator                 m_params = m_camera.getParameters();
-//QtCreator                 m_params.setPreviewSize(720,480);
-//QtCreator                 m_camera.setParameters(m_params);
-//QtCreator                 m_camera.setPreviewCallback(QtCamera.m_previewCallback);
-//QtCreator                 try {
-//QtCreator                     m_camera.setPreviewDisplay(null);
-//QtCreator                 } catch (IOException e) {
-//QtCreator                         e.printStackTrace();
-//QtCreator                 }
-//QtCreator                 m_camera.startPreview();
-//QtCreator             }
-//QtCreator             m_screenOff = false;
-//QtCreator             m_surfaceDestroyedOff = 0;
-//QtCreator             m_surfaceDestroyed = false;
-//QtCreator         }
-//QtCreator     }
-//QtCreator 
-//QtCreator     @Override
-//QtCreator     public void surfaceCreated(SurfaceHolder holder) {
-//QtCreator     // TODO Auto-generated method stub
-//QtCreator 
-//QtCreator     }
-//QtCreator 
-//QtCreator     @Override
-//QtCreator     public void surfaceDestroyed(SurfaceHolder holder) {
-//QtCreator 
-//QtCreator         if(m_screenOff == true)
-//QtCreator         {
-//QtCreator                 m_surfaceDestroyedOff++;
-//QtCreator         }
-//QtCreator         else
-//QtCreator         {
-//QtCreator                 m_surfaceDestroyed = true;
-//QtCreator                 if(QtCamera.m_recorder != null)
-//QtCreator                 {
-//QtCreator                         QtCamera.m_recorder.stop();
-//QtCreator                         QtCamera.m_recorder.reset();
-//QtCreator                         QtCamera.m_recorder.release();
-//QtCreator                         QtCamera.m_recorder = null;
-//QtCreator                         QtCamera.stopRecord();
-//QtCreator                 }
-//QtCreator         }
-//QtCreator     }
-//QtCreator }
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
+import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
+import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
+import android.graphics.Rect;
+import android.graphics.YuvImage;
+import android.hardware.Camera;
+import android.hardware.Camera.Parameters;
+import android.hardware.Camera.PictureCallback;
+import android.hardware.Camera.PreviewCallback;
+import android.hardware.Camera.ShutterCallback;
+import android.hardware.Camera.Size;
+import android.media.MediaRecorder;
+import android.util.Log;
+import android.view.SurfaceHolder;
+import android.view.SurfaceHolder.Callback;
+import android.view.SurfaceView;
+import eu.licentia.necessitas.industrius.QtApplication;
+import eu.licentia.necessitas.industrius.QtLayout;
+
+public class QtCamera implements PreviewCallback, Callback{
+    private static Camera m_camera;
+    public ShutterCallback shutterCallback;
+    public PictureCallback rawCallback;
+    public PictureCallback jpegCallback;
+    private static Activity m_activity = null;
+    String[] m_sceneList;
+    String[] m_focusModes;
+    String[] m_flashModes;
+    String[] m_whiteBalanceModes;
+    static String m_currentFocusMode;
+    int[] m_imageFormats;
+    int[] m_imageResolutions;
+    private Parameters m_params;
+    public static PreviewCallback m_previewCallback;
+    private int m_width;
+    private int m_height;
+    public static MediaRecorder m_recorder=null;
+    private SurfaceView m_surfaceView;
+    private String m_videoOutputPath = null;
+    private int m_videoOutFormat = MediaRecorder.OutputFormat.MPEG_4;
+    private int m_videoFrameRate = 30;
+    private int[] m_videoFramesize = new int[2];
+    private long m_maxVideoFileSize=0;
+    private int m_videoEncodingBitrate=0;
+    private int m_audioBitRate=0;
+    private int m_audioChannelsCount=0;
+    int[] m_videoPreviewParams;
+    public boolean m_screenOff = false;
+    private int m_surfaceDestroyedOff = 0;
+    public boolean m_surfaceDestroyed = false;
+    QtCamera()
+    {
+        setActivity();
+        m_previewCallback = this;
+        m_videoFramesize[0] = 480;
+        m_videoFramesize[1] = 360;
+        m_videoPreviewParams = new int[4];
+        IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
+        BroadcastReceiver mReceiver = new ScreenReceiver();
+        QtApplication.mainActivity().registerReceiver(mReceiver, filter);
+        m_surfaceView = new SurfaceView(QtApplication.mainActivity());
+        m_surfaceView.getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+        m_surfaceView.getHolder().addCallback(this);
+        m_surfaceView.setFocusable(true);
+        QtApplication.mainActivity().getQtLayout().addView(m_surfaceView,1,new QtLayout.LayoutParams(0,0,1,1));
+    }
+
+    public static Camera getCamera()
+    {
+        return m_camera;
+    }
+
+    public void setOutputFile(String filename)
+    {
+        m_videoOutputPath = filename;
+    }
+
+    public void setOutputFormat(int format)
+    {
+        m_videoOutFormat = format;
+    }
+
+    public void setVideoEncodingBitrate(int rate)
+    {
+        m_videoEncodingBitrate = rate;
+    }
+
+    public void setMaxVideoSize(long size)
+    {
+        m_maxVideoFileSize = size;
+    }
+
+    public void setVideoSettings(int[] settings)
+    {
+        m_videoFrameRate = settings[0];
+        m_videoFramesize[0] = settings[1];
+        m_videoFramesize[1] = settings[2];
+    }
+
+    public void setAudioBitRate(int rate)
+    {
+        m_audioBitRate = rate;
+    }
+
+
+    public void setAudioChannelsCount(int count)
+    {
+        m_audioChannelsCount = count;
+    }
+
+    public void startRecording()
+    {
+        m_activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                QtApplication.mainActivity().getQtLayout().updateViewLayout(m_surfaceView, new QtLayout.LayoutParams(m_videoPreviewParams[0],m_videoPreviewParams[1],m_videoPreviewParams[2],m_videoPreviewParams[3]));
+            }
+        });
+        m_camera.stopPreview();
+        m_camera.unlock();
+
+        if(m_recorder == null)
+        {
+            m_recorder = new MediaRecorder();
+        }
+        m_recorder.setCamera(m_camera);
+        m_recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        m_recorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
+        m_recorder.setOutputFormat(m_videoOutFormat);
+
+        long currentDateTimeString = System.currentTimeMillis();
+        String filePath;
+
+        // WARNING unsafe hardcoded path !!!
+        if(m_videoOutputPath == null)
+        {
+            if(m_videoOutFormat == 1)
+            {
+                filePath = "/sdcard/"+currentDateTimeString+".3gp";
+            }
+            else
+            {
+                filePath = "/sdcard/"+currentDateTimeString+".mp4";
+            }
+        }
+        else
+        {
+            if(m_videoOutFormat == 1)
+            {
+                filePath = m_videoOutputPath+currentDateTimeString+".3gp";
+            }
+            else
+            {
+                filePath = m_videoOutputPath+currentDateTimeString+".mp4";
+            }
+        }
+
+        m_recorder.setOutputFile(filePath);
+
+        if(m_maxVideoFileSize != 0)
+        {
+            m_recorder.setMaxFileSize(m_maxVideoFileSize);
+        }
+        m_recorder.setVideoEncoder(MediaRecorder.VideoEncoder.H263);
+        m_recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+        m_recorder.setVideoFrameRate(m_videoFrameRate);
+        m_recorder.setVideoSize(m_videoFramesize[0], m_videoFramesize[1]);
+
+        if(m_videoEncodingBitrate != 0)
+        {
+            m_recorder.setVideoEncodingBitRate(m_videoEncodingBitrate);
+        }
+
+        if(m_audioBitRate != 0)
+        {
+            m_recorder.setAudioEncodingBitRate(m_audioBitRate);
+        }
+
+        if(m_audioChannelsCount != 0)
+        {
+            m_recorder.setAudioChannels(m_audioChannelsCount);
+        }
+
+        m_recorder.setPreviewDisplay(m_surfaceView.getHolder().getSurface());
+        if (m_recorder != null) {
+            try {
+                m_recorder.prepare();
+                m_recorder.start();
+            } catch (IllegalStateException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void stopRecording()
+    {
+        Log.i("Stop Record  called", "in stopRecording");
+        if(m_recorder != null)
+        {
+
+            m_recorder.stop();
+            m_recorder.reset();
+            m_recorder.release();
+            m_recorder = null;
+        }
+        m_activity.runOnUiThread(new Runnable() {
+            public void run() {
+                QtApplication.mainActivity().getQtLayout().updateViewLayout(m_surfaceView, new QtLayout.LayoutParams(0,0,1,1));
+            }
+        });
+
+        try {
+            m_camera.reconnect();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        m_params = m_camera.getParameters();
+        m_params.setPreviewSize(m_width,m_height);
+        m_camera.setParameters(m_params);
+        m_camera.setPreviewCallback(this);
+        try {
+            m_camera.setPreviewDisplay(null);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        m_camera.startPreview();
+    }
+
+
+    public static void setActivity()
+    {
+        m_activity = QtApplication.mainActivity();
+    }
+
+    public void setCameraState(int state)
+    {
+        switch(state)
+        {
+
+        case 0:
+            openCamera();
+            m_params = m_camera.getParameters();
+            m_params.setPreviewFormat(ImageFormat.NV21);
+            m_camera.setParameters(m_params);
+            getSupportedModes();
+            getSupportedImageFormats();
+            getSupportedImageResolutions();
+            break;
+
+        case 1:
+            m_camera.release();
+            m_camera = null;
+            break;
+
+        case 2:
+            Log.i("tag", "stopping the preview************");
+            m_camera.setPreviewCallback(this);
+            try {
+                    m_camera.setPreviewDisplay(null);
+            } catch (IOException e) {
+                    e.printStackTrace();
+            }
+            m_camera.startPreview();
+            callBacks();
+            startFocus();
+            break;
+
+        case 3:
+            stopFocus();
+            m_camera.stopPreview();
+            break;
+
+        default:
+                break;
+        }
+    }
+
+    public static void openCamera()
+    {
+        if(m_camera == null)
+        {
+            m_camera = Camera.open();
+        }
+    }
+
+    public void takePicture()
+    {
+        m_camera.stopPreview();
+        m_camera.takePicture(null,null,jpegCallback);
+    }
+
+    public void callBacks()
+    {
+        /** Handles data for jpeg picture */
+        jpegCallback = new PictureCallback() {
+            public void onPictureTaken(byte[] data, Camera camera) {
+                getImage(data);
+                m_camera.setPreviewCallback(m_previewCallback);
+                m_camera.startPreview();
+                Log.i("Camera", "onPictureTaken - jpeg"+m_params.getPictureSize().height+m_params.getPictureSize().width);
+            }
+        };
+    }
+
+    public void setSceneMode(String mode)
+    {
+        m_params.setSceneMode(mode);
+        m_camera.setParameters(m_params);
+    }
+
+    public int[] getCompensationRange()
+    {
+        int[] range = {0,0};
+        range[0] = (int)(m_params.getMinExposureCompensation() * m_params.getExposureCompensationStep());
+        range[1] = (int)(m_params.getMaxExposureCompensation() * m_params.getExposureCompensationStep());
+        return range;
+    }
+
+    public void setCompensation(int value)
+    {
+        int compensationIndex =(int) (value/m_params.getExposureCompensationStep());
+        m_params.setExposureCompensation(compensationIndex);
+        m_camera.setParameters(m_params);
+    }
+
+    public void setFocusMode(String mode)
+    {
+        m_currentFocusMode = mode;
+        m_params.setFocusMode(mode);
+        m_camera.setParameters(m_params);
+    }
+
+    public void startFocus()
+    {
+        if(m_currentFocusMode != null)
+        {
+            if(m_currentFocusMode.contains("auto" ) || m_currentFocusMode.contains("macro"))
+            {
+                m_camera.autoFocus(null);
+            }
+        }
+    }
+
+    public void stopFocus()
+    {
+        if(m_currentFocusMode != null)
+        {
+            if(m_currentFocusMode.contains("auto" ) || m_currentFocusMode.contains("macro"))
+            {
+                m_camera.cancelAutoFocus();
+            }
+        }
+    }
+
+
+    public void getSupportedModes()
+    {
+        m_sceneList = new String[m_params.getSupportedSceneModes().size()];
+        for(int i =0;i < m_params.getSupportedSceneModes().size();i++ )
+        {
+            m_sceneList[i] = m_params.getSupportedSceneModes().get(i);
+        }
+
+
+        m_focusModes = new String[m_params.getSupportedFocusModes().size()];
+        if(m_params.getSupportedFocusModes() == null)
+        {
+            m_focusModes[0] = "Not Supported";
+        }
+        else
+        {
+            for(int i =0;i < m_params.getSupportedFocusModes().size();i++ )
+            {
+                m_focusModes[i] = "";
+                m_focusModes[i] = m_params.getSupportedFocusModes().get(i);
+            }
+        }
+
+        m_flashModes = new String[m_params.getSupportedFlashModes().size()];
+        if(m_params.getSupportedFlashModes() == null)
+        {
+            m_flashModes[0] = "Not Supported";
+        }
+        else
+        {
+            for(int i =0;i < m_params.getSupportedFlashModes().size();i++ )
+            {
+                m_flashModes[i] = m_params.getSupportedFlashModes().get(i);
+            }
+        }
+
+        m_whiteBalanceModes = new String[m_params.getSupportedWhiteBalance().size()];
+        if(m_params.getSupportedWhiteBalance() == null)
+        {
+            m_whiteBalanceModes[0] = "Not Supported";
+        }
+        else
+        {
+            for(int i =0;i < m_params.getSupportedWhiteBalance().size();i++ )
+            {
+                m_whiteBalanceModes[i] = m_params.getSupportedWhiteBalance().get(i);
+            }
+        }
+    }
+
+    public int[] getSupportedImageResolutions()
+    {
+        m_imageResolutions = new int[2*m_params.getSupportedPictureSizes().size()];
+        for(int i =0;i < m_params.getSupportedPictureSizes().size();i=i+2 )
+        {
+            Size size = m_params.getSupportedPictureSizes().get(i);
+            m_imageResolutions[i] = size.width;
+            m_imageResolutions[i+1] = size.height;
+        }
+        return m_imageResolutions;
+    }
+
+    public int[] getSupportedImageFormats()
+    {
+        m_imageFormats = new int[m_params.getSupportedPictureFormats().size()];
+        for(int i =0;i < m_params.getSupportedPictureFormats().size();i++ )
+        {
+            m_imageFormats[i] = m_params.getSupportedPictureFormats().get(i);
+        }
+        return m_imageFormats;
+    }
+
+
+    public int getMaxZoom()
+    {
+        if(m_params.isZoomSupported())
+        {
+            return m_params.getMaxZoom();
+        }
+        return 0;
+    }
+
+    public int getZoom()
+    {
+        if(m_params.isZoomSupported())
+        {
+            return m_params.getZoom();
+        }
+        return 0;
+    }
+
+    public void setZoom(int zoom)
+    {
+        if(m_params.isZoomSupported())
+        {
+            m_params.setZoom(zoom);
+            m_camera.setParameters(m_params);
+        }
+    }
+
+    public void setFlashMode(String mode)
+    {
+        m_params.setFlashMode(mode);
+        m_camera.setParameters(m_params);
+    }
+
+    public void setWhiteBalanceMode(String mode)
+    {
+        m_params.setWhiteBalance(mode);
+        m_camera.setParameters(m_params);
+    }
+
+    public void setImageSettings(int[] settings)
+    {
+        m_params.setPictureFormat(settings[0]);
+        m_params.setPictureSize(settings[1],settings[2]);
+        m_camera.setParameters(m_params);
+    }
+
+    public void onPreviewFrame(byte[] data, Camera camera) {
+        m_width= m_params.getPreviewSize().width;
+        m_height = m_params.getPreviewSize().height;
+        ByteArrayOutputStream output_stream = new ByteArrayOutputStream();
+        YuvImage image =new YuvImage(data,ImageFormat.NV21,m_width,m_height,null);
+        image.compressToJpeg(new Rect(0,0,m_width,m_height),60, output_stream);
+        Bitmap bitmap = BitmapFactory.decodeByteArray(output_stream.toByteArray(), 0, output_stream.size());
+        Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, m_width/2, m_height/2, true);//Optimization of preview data sent
+        ByteArrayOutputStream imageStream = new ByteArrayOutputStream();
+        scaledBitmap.compress(CompressFormat.JPEG,60, imageStream);
+        getPreviewBuffers(imageStream.toByteArray());
+    }
+
+    public static native void getImage(byte[] data);
+    public static native void getPreviewBuffers(byte[] data);
+    public static native void stopRecord();
+
+
+    public class ScreenReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(Intent.ACTION_SCREEN_OFF))
+            {
+                if(m_recorder != null)
+                {
+                    m_recorder.stop();
+                    m_recorder.reset();
+                    m_recorder.release();
+                    m_recorder = null;
+                    stopRecord();
+                }
+                m_screenOff = true;
+                QtApplication.mainActivity().unregisterReceiver(this);
+            }
+        }
+    }
+
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width,
+            int height)
+    {
+        if((m_screenOff == true && m_surfaceDestroyedOff == 2) || m_surfaceDestroyed == true)
+        {
+            m_camera = QtCamera.getCamera();
+            if (m_camera!=null)
+            {
+                try {
+                        m_camera.reconnect();
+                } catch (IOException e) {
+                        e.printStackTrace();
+                }
+                m_params = m_camera.getParameters();
+                m_params.setPreviewSize(720,480);
+                m_camera.setParameters(m_params);
+                m_camera.setPreviewCallback(QtCamera.m_previewCallback);
+                try {
+                    m_camera.setPreviewDisplay(null);
+                } catch (IOException e) {
+                        e.printStackTrace();
+                }
+                m_camera.startPreview();
+            }
+            m_screenOff = false;
+            m_surfaceDestroyedOff = 0;
+            m_surfaceDestroyed = false;
+        }
+    }
+
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+    // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+
+        if(m_screenOff == true)
+        {
+                m_surfaceDestroyedOff++;
+        }
+        else
+        {
+                m_surfaceDestroyed = true;
+                if(QtCamera.m_recorder != null)
+                {
+                        QtCamera.m_recorder.stop();
+                        QtCamera.m_recorder.reset();
+                        QtCamera.m_recorder.release();
+                        QtCamera.m_recorder = null;
+                        QtCamera.stopRecord();
+                }
+        }
+    }
+}
 //@ANDROID-8

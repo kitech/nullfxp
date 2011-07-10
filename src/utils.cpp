@@ -243,7 +243,7 @@ void fxp_local_do_ls( QString args , QVector<QMap<char, QString> > & fileinfos)
         if (strcmp(entry->d_name, "..") == 0) goto out_point;
 
         if (stat(GlobalOption::instance()->locale_codec->fromUnicode(the_path), &thestat) != 0) continue;
-        ltime = localtime(&thestat.st_mtime);
+        // ltime = localtime(&thestat.st_mtime);  // android compile faild
         
         sprintf(file_size,"%llu", (long long)thestat.st_size);
         strmode(thestat.st_mode, file_type);
