@@ -16,7 +16,7 @@ isEmpty( ISQT4 ) {
 }
 
 SUBDIRS +=  \
- src/libssh2 \
+# src/libssh2 \       # compile uncomment, run comment on android
  src #\
  #src/unitest
 
