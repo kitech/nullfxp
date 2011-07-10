@@ -10,7 +10,7 @@
 TEMPLATE = app
 CONFIG += qt thread console warn_on ordered
 TARGET = nullfxp
-DESTDIR = ../bin
+#DESTDIR = ../bin
 
 VERSION=2.1.1.89  # using in nullfxp-version.h
 
