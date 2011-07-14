@@ -13,6 +13,7 @@
 #include "tree234.h"
 #include "ssh.h"
 #ifndef NO_GSSAPI
+#include "sshgssc.h"
 #include "sshgss.h"
 #endif
 
@@ -194,6 +195,7 @@ static const char *const ssh2_disconnect_reasons[] = {
 #define BUG_SSH2_REKEY                           64
 #define BUG_SSH2_PK_SESSIONID                   128
 #define BUG_SSH2_MAXPKT				256
+#define BUG_CHOKES_ON_SSH2_IGNORE               512
 
 /*
  * Codes for terminal modes.
@@ -542,7 +544,7 @@ static int ssh_comp_none_disable(void *handle)
     return 0;
 }
 const static struct ssh_compress ssh_comp_none = {
-    "none",
+    "none", NULL,
     ssh_comp_none_init, ssh_comp_none_cleanup, ssh_comp_none_block,
     ssh_comp_none_init, ssh_comp_none_cleanup, ssh_comp_none_block,
     ssh_comp_none_disable, NULL
@@ -588,6 +590,17 @@ struct ssh_channel {
      * A channel is completely finished with when all four bits are set.
      */
     int closes;
+
+    /*
+     * This flag indicates that a close is pending on the outgoing
+     * side of the channel: that is, wherever we're getting the data
+     * for this channel has sent us some data followed by EOF. We
+     * can't actually close the channel until we've finished sending
+     * the data, so we set this flag instead to remind us to
+     * initiate the closing process once our buffer is clear.
+     */
+    int pending_close;
+
     /*
      * True if this channel is causing the underlying connection to be
      * throttled.
@@ -928,6 +941,13 @@ struct ssh_tag {
      * Fully qualified host name, which we need if doing GSSAPI.
      */
     char *fullhostname;
+
+#ifndef NO_GSSAPI
+    /*
+     * GSSAPI libraries for this session.
+     */
+    struct ssh_gss_liblist *gsslibs;
+#endif
 };
 
 #define logevent(s) logevent(ssh->frontend, s)
@@ -2011,7 +2031,8 @@ static void ssh2_pkt_defer_noqueue(Ssh ssh, struct Packet *pkt, int noignore)
 {
     int len;
     if (ssh->cscipher != NULL && (ssh->cscipher->flags & SSH_CIPHER_IS_CBC) &&
-	ssh->deferred_len == 0 && !noignore) {
+	ssh->deferred_len == 0 && !noignore &&
+	!(ssh->remote_bugs & BUG_CHOKES_ON_SSH2_IGNORE)) {
 	/*
 	 * Interpose an SSH_MSG_IGNORE to ensure that user data don't
 	 * get encrypted with a known IV.
@@ -2141,7 +2162,8 @@ static void ssh2_pkt_send_with_padding(Ssh ssh, struct Packet *pkt,
 	 * unavailable, we don't do this trick at all, because we
 	 * gain nothing by it.)
 	 */
-	if (ssh->cscipher) {
+	if (ssh->cscipher &&
+	    !(ssh->remote_bugs & BUG_CHOKES_ON_SSH2_IGNORE)) {
 	    int stringlen, i;
 
 	    stringlen = (256 - ssh->deferred_len);
@@ -2508,6 +2530,15 @@ static void ssh_detect_bugs(Ssh ssh, char *vstring)
 	ssh->remote_bugs |= BUG_SSH2_MAXPKT;
 	logevent("We believe remote version ignores SSH-2 maximum packet size");
     }
+
+    if (ssh->cfg.sshbug_ignore2 == FORCE_ON) {
+	/*
+	 * Servers that don't support SSH2_MSG_IGNORE. Currently,
+	 * none detected automatically.
+	 */
+	ssh->remote_bugs |= BUG_CHOKES_ON_SSH2_IGNORE;
+	logevent("We believe remote version has SSH-2 ignore bug");
+    }
 }
 
 /*
@@ -2831,6 +2862,7 @@ static int ssh_do_close(Ssh ssh, int notify_exit)
 		x11_close(c->u.x11.s);
 		break;
 	      case CHAN_SOCKDATA:
+	      case CHAN_SOCKDATA_DORMANT:
 		pfd_close(c->u.pfd.s);
 		break;
 	    }
@@ -3712,7 +3744,9 @@ static int do_ssh1_login(Ssh ssh, unsigned char *in, int inlen,
 		sfree(s->response);
 		if (s->publickey_blob && !s->tried_publickey)
 		    logevent("Configured key file not in Pageant");
-	    }
+	    } else {
+                logevent("Failed to get reply from Pageant");
+            }
 	    if (s->authed)
 		break;
 	}
@@ -4140,7 +4174,7 @@ void sshfwd_close(struct ssh_channel *c)
     if (ssh->state == SSH_STATE_CLOSED)
 	return;
 
-    if (c && !c->closes) {
+    if (!c->closes) {
 	/*
 	 * If halfopen is true, we have sent
 	 * CHANNEL_OPEN for this channel, but it hasn't even been
@@ -4152,14 +4186,42 @@ void sshfwd_close(struct ssh_channel *c)
 	    if (ssh->version == 1) {
 		send_packet(ssh, SSH1_MSG_CHANNEL_CLOSE, PKT_INT, c->remoteid,
 			    PKT_END);
+		c->closes = 1;		       /* sent MSG_CLOSE */
 	    } else {
-		struct Packet *pktout;
-		pktout = ssh2_pkt_init(SSH2_MSG_CHANNEL_CLOSE);
-		ssh2_pkt_adduint32(pktout, c->remoteid);
-		ssh2_pkt_send(ssh, pktout);
+		int bytes_to_send = bufchain_size(&c->v.v2.outbuffer);
+		if (bytes_to_send > 0) {
+		    /*
+		     * If we still have unsent data in our outgoing
+		     * buffer for this channel, we can't actually
+		     * initiate a close operation yet or that data
+		     * will be lost. Instead, set the pending_close
+		     * flag so that when we do clear the buffer
+		     * we'll start closing the channel.
+		     */
+		    char logmsg[160] = {'\0'};
+		    sprintf(
+			    logmsg,
+			    "Forwarded port pending to be closed : "
+			    "%d bytes remaining",
+			    bytes_to_send);
+		    logevent(logmsg);
+
+		    c->pending_close = TRUE;
+		} else {
+		    /*
+		     * No locally buffered data, so we can send the
+		     * close message immediately.
+		     */
+		    struct Packet *pktout;
+		    pktout = ssh2_pkt_init(SSH2_MSG_CHANNEL_CLOSE);
+		    ssh2_pkt_adduint32(pktout, c->remoteid);
+		    ssh2_pkt_send(ssh, pktout);
+		    c->closes = 1;		       /* sent MSG_CLOSE */
+		    logevent("Nothing left to send, closing channel");
+		}
 	    }
 	}
-	c->closes = 1;		       /* sent MSG_CLOSE */
+
 	if (c->type == CHAN_X11) {
 	    c->u.x11.s = NULL;
 	    logevent("Forwarded X11 connection terminated");
@@ -4298,6 +4360,7 @@ static void ssh_rportfwd_succfail(Ssh ssh, struct Packet *pktin, void *ctx)
 
 	rpf = del234(ssh->rportfwds, pf);
 	assert(rpf == pf);
+	pf->pfrec->remote = NULL;
 	free_rportfwd(pf);
     }
 }
@@ -4474,6 +4537,8 @@ static void ssh_setup_portfwd(Ssh ssh, const Config *cfg)
 	    logeventf(ssh, "Cancelling %s", message);
 	    sfree(message);
 
+	    /* epf->remote or epf->local may be NULL if setting up a
+	     * forwarding failed. */
 	    if (epf->remote) {
 		struct ssh_rportfwd *rpf = epf->remote;
 		struct Packet *pktout;
@@ -4683,6 +4748,7 @@ static void ssh1_smsg_x11_open(Ssh ssh, struct Packet *pktin)
 	    c->halfopen = FALSE;
 	    c->localid = alloc_channel_id(ssh);
 	    c->closes = 0;
+	    c->pending_close = FALSE;
 	    c->throttling_conn = 0;
 	    c->type = CHAN_X11;	/* identify channel type */
 	    add234(ssh->channels, c);
@@ -4712,6 +4778,7 @@ static void ssh1_smsg_agent_open(Ssh ssh, struct Packet *pktin)
 	c->halfopen = FALSE;
 	c->localid = alloc_channel_id(ssh);
 	c->closes = 0;
+	c->pending_close = FALSE;
 	c->throttling_conn = 0;
 	c->type = CHAN_AGENT;	/* identify channel type */
 	c->u.a.lensofar = 0;
@@ -4766,6 +4833,7 @@ static void ssh1_msg_port_open(Ssh ssh, struct Packet *pktin)
 	    c->halfopen = FALSE;
 	    c->localid = alloc_channel_id(ssh);
 	    c->closes = 0;
+	    c->pending_close = FALSE;
 	    c->throttling_conn = 0;
 	    c->type = CHAN_SOCKDATA;	/* identify channel type */
 	    add234(ssh->channels, c);
@@ -5356,6 +5424,8 @@ static int do_ssh2_transport(Ssh ssh, void *vin, int inlen,
 	int n_preferred_ciphers;
 	const struct ssh2_ciphers *preferred_ciphers[CIPHER_MAX];
 	const struct ssh_compress *preferred_comp;
+	int userauth_succeeded;	    /* for delayed compression */
+	int pending_compression;
 	int got_session_id, activated_authconn;
 	struct Packet *pktout;
         int dlgret;
@@ -5371,6 +5441,8 @@ static int do_ssh2_transport(Ssh ssh, void *vin, int inlen,
     s->cscomp_tobe = s->sccomp_tobe = NULL;
 
     s->got_session_id = s->activated_authconn = FALSE;
+    s->userauth_succeeded = FALSE;
+    s->pending_compression = FALSE;
 
     /*
      * Be prepared to work around the buggy MAC problem.
@@ -5535,26 +5607,32 @@ static int do_ssh2_transport(Ssh ssh, void *vin, int inlen,
 	    if (i < s->nmacs - 1)
 		ssh2_pkt_addstring_str(s->pktout, ",");
 	}
-	/* List client->server compression algorithms. */
-	ssh2_pkt_addstring_start(s->pktout);
-	assert(lenof(compressions) > 1);
-	ssh2_pkt_addstring_str(s->pktout, s->preferred_comp->name);
-	for (i = 0; i < lenof(compressions); i++) {
-	    const struct ssh_compress *c = compressions[i];
-	    if (c != s->preferred_comp) {
+	/* List client->server compression algorithms,
+	 * then server->client compression algorithms. (We use the
+	 * same set twice.) */
+	for (j = 0; j < 2; j++) {
+	    ssh2_pkt_addstring_start(s->pktout);
+	    assert(lenof(compressions) > 1);
+	    /* Prefer non-delayed versions */
+	    ssh2_pkt_addstring_str(s->pktout, s->preferred_comp->name);
+	    /* We don't even list delayed versions of algorithms until
+	     * they're allowed to be used, to avoid a race. See the end of
+	     * this function. */
+	    if (s->userauth_succeeded && s->preferred_comp->delayed_name) {
 		ssh2_pkt_addstring_str(s->pktout, ",");
-		ssh2_pkt_addstring_str(s->pktout, c->name);
+		ssh2_pkt_addstring_str(s->pktout,
+				       s->preferred_comp->delayed_name);
 	    }
-	}
-	/* List server->client compression algorithms. */
-	ssh2_pkt_addstring_start(s->pktout);
-	assert(lenof(compressions) > 1);
-	ssh2_pkt_addstring_str(s->pktout, s->preferred_comp->name);
-	for (i = 0; i < lenof(compressions); i++) {
-	    const struct ssh_compress *c = compressions[i];
-	    if (c != s->preferred_comp) {
-		ssh2_pkt_addstring_str(s->pktout, ",");
-		ssh2_pkt_addstring_str(s->pktout, c->name);
+	    for (i = 0; i < lenof(compressions); i++) {
+		const struct ssh_compress *c = compressions[i];
+		if (c != s->preferred_comp) {
+		    ssh2_pkt_addstring_str(s->pktout, ",");
+		    ssh2_pkt_addstring_str(s->pktout, c->name);
+		    if (s->userauth_succeeded && c->delayed_name) {
+			ssh2_pkt_addstring_str(s->pktout, ",");
+			ssh2_pkt_addstring_str(s->pktout, c->delayed_name);
+		    }
+		}
 	    }
 	}
 	/* List client->server languages. Empty list. */
@@ -5703,6 +5781,13 @@ static int do_ssh2_transport(Ssh ssh, void *vin, int inlen,
 	    if (in_commasep_string(c->name, str, len)) {
 		s->cscomp_tobe = c;
 		break;
+	    } else if (in_commasep_string(c->delayed_name, str, len)) {
+		if (s->userauth_succeeded) {
+		    s->cscomp_tobe = c;
+		    break;
+		} else {
+		    s->pending_compression = TRUE;  /* try this later */
+		}
 	    }
 	}
 	ssh_pkt_getstring(pktin, &str, &len);  /* server->client compression */
@@ -5712,7 +5797,18 @@ static int do_ssh2_transport(Ssh ssh, void *vin, int inlen,
 	    if (in_commasep_string(c->name, str, len)) {
 		s->sccomp_tobe = c;
 		break;
+	    } else if (in_commasep_string(c->delayed_name, str, len)) {
+		if (s->userauth_succeeded) {
+		    s->sccomp_tobe = c;
+		    break;
+		} else {
+		    s->pending_compression = TRUE;  /* try this later */
+		}
 	    }
+	}
+	if (s->pending_compression) {
+	    logevent("Server supports delayed compression; "
+		     "will try this later");
 	}
 	ssh_pkt_getstring(pktin, &str, &len);  /* client->server language */
 	ssh_pkt_getstring(pktin, &str, &len);  /* server->client language */
@@ -6249,19 +6345,52 @@ static int do_ssh2_transport(Ssh ssh, void *vin, int inlen,
      * start.
      * 
      * We _also_ go back to the start if we see pktin==NULL and
-     * inlen==-1, because this is a special signal meaning
+     * inlen negative, because this is a special signal meaning
      * `initiate client-driven rekey', and `in' contains a message
      * giving the reason for the rekey.
+     *
+     * inlen==-1 means always initiate a rekey;
+     * inlen==-2 means that userauth has completed successfully and
+     *   we should consider rekeying (for delayed compression).
      */
     while (!((pktin && pktin->type == SSH2_MSG_KEXINIT) ||
-	     (!pktin && inlen == -1))) {
+	     (!pktin && inlen < 0))) {
         wait_for_rekey:
 	crReturn(1);
     }
     if (pktin) {
 	logevent("Server initiated key re-exchange");
     } else {
+	if (inlen == -2) {
+	    /* 
+	     * authconn has seen a USERAUTH_SUCCEEDED. Time to enable
+	     * delayed compression, if it's available.
+	     *
+	     * draft-miller-secsh-compression-delayed-00 says that you
+	     * negotiate delayed compression in the first key exchange, and
+	     * both sides start compressing when the server has sent
+	     * USERAUTH_SUCCESS. This has a race condition -- the server
+	     * can't know when the client has seen it, and thus which incoming
+	     * packets it should treat as compressed.
+	     *
+	     * Instead, we do the initial key exchange without offering the
+	     * delayed methods, but note if the server offers them; when we
+	     * get here, if a delayed method was available that was higher
+	     * on our list than what we got, we initiate a rekey in which we
+	     * _do_ list the delayed methods (and hopefully get it as a
+	     * result). Subsequent rekeys will do the same.
+	     */
+	    assert(!s->userauth_succeeded); /* should only happen once */
+	    s->userauth_succeeded = TRUE;
+	    if (!s->pending_compression)
+		/* Can't see any point rekeying. */
+		goto wait_for_rekey;       /* this is utterly horrid */
+	    /* else fall through to rekey... */
+	    s->pending_compression = FALSE;
+	}
         /*
+	 * Now we've decided to rekey.
+	 *
          * Special case: if the server bug is set that doesn't
          * allow rekeying, we give a different log message and
          * continue waiting. (If such a server _initiates_ a rekey,
@@ -6279,7 +6408,7 @@ static int do_ssh2_transport(Ssh ssh, void *vin, int inlen,
                     schedule_timer(ssh->cfg.ssh_rekey_time*60*TICKSPERSEC,
                                    ssh2_timer, ssh);
             }
-            goto wait_for_rekey;       /* this is utterly horrid */
+            goto wait_for_rekey;       /* this is still utterly horrid */
         } else {
             logeventf(ssh, "Initiating key re-exchange (%s)", (char *)in);
         }
@@ -6332,7 +6461,7 @@ static int ssh2_try_send(struct ssh_channel *c)
     return bufchain_size(&c->v.v2.outbuffer);
 }
 
-static void ssh2_try_send_and_unthrottle(struct ssh_channel *c)
+static void ssh2_try_send_and_unthrottle(Ssh ssh, struct ssh_channel *c)
 {
     int bufsize;
     if (c->closes)
@@ -6356,6 +6485,19 @@ static void ssh2_try_send_and_unthrottle(struct ssh_channel *c)
 	    break;
 	}
     }
+
+    /*
+     * If we've emptied the channel's output buffer and there's a
+     * pending close event, start the channel-closing procedure.
+     */
+    if (c->pending_close && bufchain_size(&c->v.v2.outbuffer) == 0) {
+	struct Packet *pktout;
+	pktout = ssh2_pkt_init(SSH2_MSG_CHANNEL_CLOSE);
+	ssh2_pkt_adduint32(pktout, c->remoteid);
+	ssh2_pkt_send(ssh, pktout);
+	c->closes = 1;
+	c->pending_close = FALSE;
+    }
 }
 
 /*
@@ -6366,6 +6508,7 @@ static void ssh2_channel_init(struct ssh_channel *c)
     Ssh ssh = c->ssh;
     c->localid = alloc_channel_id(ssh);
     c->closes = 0;
+    c->pending_close = FALSE;
     c->throttling_conn = FALSE;
     c->v.v2.locwindow = c->v.v2.locmaxwin = c->v.v2.remlocwin =
 	ssh->cfg.ssh_simple ? OUR_V2_BIGWIN : OUR_V2_WINSIZE;
@@ -6484,25 +6627,44 @@ static struct ssh_channel *ssh2_channel_msg(Ssh ssh, struct Packet *pktin)
     return c;
 }
 
+static int ssh2_handle_winadj_response(struct ssh_channel *c)
+{
+    struct winadj *wa = c->v.v2.winadj_head;
+    if (!wa)
+	return FALSE;
+    c->v.v2.winadj_head = wa->next;
+    c->v.v2.remlocwin += wa->size;
+    sfree(wa);
+    /*
+     * winadj messages are only sent when the window is fully open, so
+     * if we get an ack of one, we know any pending unthrottle is
+     * complete.
+     */
+    if (c->v.v2.throttle_state == UNTHROTTLING)
+	c->v.v2.throttle_state = UNTHROTTLED;
+    return TRUE;
+}
+
 static void ssh2_msg_channel_success(Ssh ssh, struct Packet *pktin)
 {
     /*
      * This should never get called.  All channel requests are either
-     * sent with want_reply false or are sent before this handler gets
-     * installed.
+     * sent with want_reply false, are sent before this handler gets
+     * installed, or are "winadj@putty" requests, which servers should
+     * never respond to with success.
+     *
+     * However, at least one server ("boks_sshd") is known to return
+     * SUCCESS for channel requests it's never heard of, such as
+     * "winadj@putty". Raised with foxt.com as bug 090916-090424, but
+     * for the sake of a quiet life, we handle it just the same as the
+     * expected FAILURE.
      */
     struct ssh_channel *c;
-    struct winadj *wa;
 
     c = ssh2_channel_msg(ssh, pktin);
     if (!c)
 	return;
-    wa = c->v.v2.winadj_head;
-    if (wa)
-	ssh_disconnect(ssh, NULL, "Received SSH_MSG_CHANNEL_SUCCESS for "
-		       "\"winadj@putty.projects.tartarus.org\"",
-		       SSH2_DISCONNECT_PROTOCOL_ERROR, FALSE);
-    else
+    if (!ssh2_handle_winadj_response(c))
 	ssh_disconnect(ssh, NULL,
 		       "Received unsolicited SSH_MSG_CHANNEL_SUCCESS",
 		       SSH2_DISCONNECT_PROTOCOL_ERROR, FALSE);
@@ -6517,28 +6679,14 @@ static void ssh2_msg_channel_failure(Ssh ssh, struct Packet *pktin)
      * installed.
      */
     struct ssh_channel *c;
-    struct winadj *wa;
 
     c = ssh2_channel_msg(ssh, pktin);
     if (!c)
 	return;
-    wa = c->v.v2.winadj_head;
-    if (!wa) {
+    if (!ssh2_handle_winadj_response(c))
 	ssh_disconnect(ssh, NULL,
 		       "Received unsolicited SSH_MSG_CHANNEL_FAILURE",
 		       SSH2_DISCONNECT_PROTOCOL_ERROR, FALSE);
-	return;
-    }
-    c->v.v2.winadj_head = wa->next;
-    c->v.v2.remlocwin += wa->size;
-    sfree(wa);
-    /*
-     * winadj messages are only sent when the window is fully open, so
-     * if we get an ack of one, we know any pending unthrottle is
-     * complete.
-     */
-    if (c->v.v2.throttle_state == UNTHROTTLING)
-	c->v.v2.throttle_state = UNTHROTTLED;
 }
 
 static void ssh2_msg_channel_window_adjust(Ssh ssh, struct Packet *pktin)
@@ -6549,7 +6697,7 @@ static void ssh2_msg_channel_window_adjust(Ssh ssh, struct Packet *pktin)
 	return;
     if (!c->closes) {
 	c->v.v2.remwindow += ssh_pkt_getuint32(pktin);
-	ssh2_try_send_and_unthrottle(c);
+	ssh2_try_send_and_unthrottle(ssh, c);
     }
 }
 
@@ -6670,11 +6818,13 @@ static void ssh2_msg_channel_eof(Ssh ssh, struct Packet *pktin)
 	 * wrap up and close the channel ourselves.
 	 */
 	x11_close(c->u.x11.s);
+	c->u.x11.s = NULL;
 	sshfwd_close(c);
     } else if (c->type == CHAN_AGENT) {
 	sshfwd_close(c);
     } else if (c->type == CHAN_SOCKDATA) {
 	pfd_close(c->u.pfd.s);
+	c->u.pfd.s = NULL;
 	sshfwd_close(c);
     }
 }
@@ -7113,12 +7263,14 @@ static void ssh2_msg_channel_open(Ssh ssh, struct Packet *pktin)
 }
 
 /*
- * Buffer banner messages for later display at some convenient point.
+ * Buffer banner messages for later display at some convenient point,
+ * if we're going to display them.
  */
 static void ssh2_msg_userauth_banner(Ssh ssh, struct Packet *pktin)
 {
     /* Arbitrary limit to prevent unbounded inflation of buffer */
-    if (bufchain_size(&ssh->banner) <= 131072) {
+    if (ssh->cfg.ssh_show_banner &&
+	bufchain_size(&ssh->banner) <= 131072) {
 	char *banner = NULL;
 	int size = 0;
 	ssh_pkt_getstring(pktin, &banner, &size);
@@ -7172,7 +7324,7 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
 	int tried_gssapi;
 #endif
 	int kbd_inter_refused;
-	int we_are_in;
+	int we_are_in, userauth_success;
 	prompts_t *cur_prompt;
 	int num_prompts;
 	char username[100];
@@ -7195,6 +7347,7 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
 	int num_env, env_left, env_ok;
 	struct Packet *pktout;
 #ifndef NO_GSSAPI
+	struct ssh_gss_library *gsslib;
 	Ssh_gss_ctx gss_ctx;
 	Ssh_gss_buf gss_buf;
 	Ssh_gss_buf gss_rcvtok, gss_sndtok;
@@ -7207,7 +7360,7 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
     crBegin(ssh->do_ssh2_authconn_crstate);
 
     s->done_service_req = FALSE;
-    s->we_are_in = FALSE;
+    s->we_are_in = s->userauth_success = FALSE;
 #ifndef NO_GSSAPI
     s->tried_gssapi = FALSE;
 #endif
@@ -7354,6 +7507,8 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
 			s->nkeys = 0;
 		    }
 		}
+	    } else {
+                logevent("Failed to get reply from Pageant");
 	    }
 	}
 
@@ -7463,6 +7618,9 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
 	}
 
 	while (1) {
+	    char *methods = NULL;
+	    int methlen = 0;
+
 	    /*
 	     * Wait for the result of the last authentication request.
 	     */
@@ -7494,7 +7652,7 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
 	    }
 	    if (pktin->type == SSH2_MSG_USERAUTH_SUCCESS) {
 		logevent("Access granted");
-		s->we_are_in = TRUE;
+		s->we_are_in = s->userauth_success = TRUE;
 		break;
 	    }
 
@@ -7512,8 +7670,6 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
 	     * helpfully try next.
 	     */
 	    if (pktin->type == SSH2_MSG_USERAUTH_FAILURE) {
-		char *methods;
-		int methlen;
 		ssh_pkt_getstring(pktin, &methods, &methlen);
 		if (!ssh2_pkt_getbool(pktin)) {
 		    /*
@@ -7569,10 +7725,12 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
 		    in_commasep_string("password", methods, methlen);
 		s->can_keyb_inter = ssh->cfg.try_ki_auth &&
 		    in_commasep_string("keyboard-interactive", methods, methlen);
-#ifndef NO_GSSAPI		
+#ifndef NO_GSSAPI
+		if (!ssh->gsslibs)
+		    ssh->gsslibs = ssh_gss_setup(&ssh->cfg);
 		s->can_gssapi = ssh->cfg.try_gssapi_auth &&
-		  in_commasep_string("gssapi-with-mic", methods, methlen) &&
-		  ssh_gss_init();
+		    in_commasep_string("gssapi-with-mic", methods, methlen) &&
+		    ssh->gsslibs->nlibraries > 0;
 #endif
 	    }
 
@@ -7915,6 +8073,35 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
 		s->gotit = TRUE;
 		ssh->pkt_actx = SSH2_PKTCTX_GSSAPI;
 
+		/*
+		 * Pick the highest GSS library on the preference
+		 * list.
+		 */
+		{
+		    int i, j;
+		    s->gsslib = NULL;
+		    for (i = 0; i < ngsslibs; i++) {
+			int want_id = ssh->cfg.ssh_gsslist[i];
+			for (j = 0; j < ssh->gsslibs->nlibraries; j++)
+			    if (ssh->gsslibs->libraries[j].id == want_id) {
+				s->gsslib = &ssh->gsslibs->libraries[j];
+				goto got_gsslib;   /* double break */
+			    }
+		    }
+		    got_gsslib:
+		    /*
+		     * We always expect to have found something in
+		     * the above loop: we only came here if there
+		     * was at least one viable GSS library, and the
+		     * preference list should always mention
+		     * everything and only change the order.
+		     */
+		    assert(s->gsslib);
+		}
+
+		if (s->gsslib->gsslogmsg)
+		    logevent(s->gsslib->gsslogmsg);
+
 		/* Sending USERAUTH_REQUEST with "gssapi-with-mic" method */
 		s->pktout = ssh2_pkt_init(SSH2_MSG_USERAUTH_REQUEST);
 		ssh2_pkt_addstring(s->pktout, s->username);
@@ -7922,7 +8109,7 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
 		ssh2_pkt_addstring(s->pktout, "gssapi-with-mic");
 
 		/* add mechanism info */
-		ssh_gss_indicate_mech(&s->gss_buf);
+		s->gsslib->indicate_mech(s->gsslib, &s->gss_buf);
 
 		/* number of GSSAPI mechanisms */
 		ssh2_pkt_adduint32(s->pktout,1);
@@ -7958,8 +8145,9 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
 		}
 
 		/* now start running */
-		s->gss_stat = ssh_gss_import_name(ssh->fullhostname,
-						  &s->gss_srv_name);
+		s->gss_stat = s->gsslib->import_name(s->gsslib,
+						     ssh->fullhostname,
+						     &s->gss_srv_name);
 		if (s->gss_stat != SSH_GSS_OK) {
 		    if (s->gss_stat == SSH_GSS_BAD_HOST_NAME)
 			logevent("GSSAPI import name failed - Bad service name");
@@ -7969,11 +8157,11 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
 		}
 
 		/* fetch TGT into GSS engine */
-		s->gss_stat = ssh_gss_acquire_cred(&s->gss_ctx);
+		s->gss_stat = s->gsslib->acquire_cred(s->gsslib, &s->gss_ctx);
 
 		if (s->gss_stat != SSH_GSS_OK) {
 		    logevent("GSSAPI authentication failed to get credentials");
-		    ssh_gss_release_name(&s->gss_srv_name);
+		    s->gsslib->release_name(s->gsslib, &s->gss_srv_name);
 		    continue;
 		}
 
@@ -7983,17 +8171,20 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
 
 		/* now enter the loop */
 		do {
-		    s->gss_stat = ssh_gss_init_sec_context(&s->gss_ctx,
-							   s->gss_srv_name,
-							   ssh->cfg.gssapifwd,
-							   &s->gss_rcvtok,
-							   &s->gss_sndtok);
+		    s->gss_stat = s->gsslib->init_sec_context
+			(s->gsslib,
+			 &s->gss_ctx,
+			 s->gss_srv_name,
+			 ssh->cfg.gssapifwd,
+			 &s->gss_rcvtok,
+			 &s->gss_sndtok);
 
 		    if (s->gss_stat!=SSH_GSS_S_COMPLETE &&
 			s->gss_stat!=SSH_GSS_S_CONTINUE_NEEDED) {
 			logevent("GSSAPI authentication initialisation failed");
 
-			if (ssh_gss_display_status(s->gss_ctx,&s->gss_buf) == SSH_GSS_OK) {
+			if (s->gsslib->display_status(s->gsslib, s->gss_ctx,
+						      &s->gss_buf) == SSH_GSS_OK) {
 			    logevent(s->gss_buf.value);
 			    sfree(s->gss_buf.value);
 			}
@@ -8010,7 +8201,7 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
 			ssh_pkt_addstring_start(s->pktout);
 			ssh_pkt_addstring_data(s->pktout,s->gss_sndtok.value,s->gss_sndtok.length);
 			ssh2_pkt_send(ssh, s->pktout);
-			ssh_gss_free_tok(&s->gss_sndtok);
+			s->gsslib->free_tok(s->gsslib, &s->gss_sndtok);
 		    }
 
 		    if (s->gss_stat == SSH_GSS_S_CONTINUE_NEEDED) {
@@ -8027,8 +8218,8 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
 		} while (s-> gss_stat == SSH_GSS_S_CONTINUE_NEEDED);
 
 		if (s->gss_stat != SSH_GSS_OK) {
-		    ssh_gss_release_name(&s->gss_srv_name);
-		    ssh_gss_release_cred(&s->gss_ctx);
+		    s->gsslib->release_name(s->gsslib, &s->gss_srv_name);
+		    s->gsslib->release_cred(s->gsslib, &s->gss_ctx);
 		    continue;
 		}
 		logevent("GSSAPI authentication loop finished OK");
@@ -8047,17 +8238,17 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
 		s->gss_buf.value = (char *)s->pktout->data + micoffset;
 		s->gss_buf.length = s->pktout->length - micoffset;
 
-		ssh_gss_get_mic(s->gss_ctx, &s->gss_buf, &mic);
+		s->gsslib->get_mic(s->gsslib, s->gss_ctx, &s->gss_buf, &mic);
 		s->pktout = ssh2_pkt_init(SSH2_MSG_USERAUTH_GSSAPI_MIC);
 		ssh_pkt_addstring_start(s->pktout);
 		ssh_pkt_addstring_data(s->pktout, mic.value, mic.length);
 		ssh2_pkt_send(ssh, s->pktout);
-		ssh_gss_free_mic(&mic);
+		s->gsslib->free_mic(s->gsslib, &mic);
 
 		s->gotit = FALSE;
 
-		ssh_gss_release_name(&s->gss_srv_name);
-		ssh_gss_release_cred(&s->gss_ctx);
+		s->gsslib->release_name(s->gsslib, &s->gss_srv_name);
+		s->gsslib->release_cred(s->gsslib, &s->gss_ctx);
 		continue;
 #endif
 	    } else if (s->can_keyb_inter && !s->kbd_inter_refused) {
@@ -8443,11 +8634,16 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
 		sfree(s->password);
 
 	    } else {
+		char *str = dupprintf("No supported authentication methods available"
+				      " (server sent: %.*s)",
+				      methlen, methods);
 
-		ssh_disconnect(ssh, NULL,
+		ssh_disconnect(ssh, str,
 			       "No supported authentication methods available",
 			       SSH2_DISCONNECT_NO_MORE_AUTH_METHODS_AVAILABLE,
 			       FALSE);
+		sfree(str);
+
 		crStopV;
 
 	    }
@@ -8463,6 +8659,20 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
     }
     if (s->agent_response)
 	sfree(s->agent_response);
+
+    if (s->userauth_success) {
+	/*
+	 * We've just received USERAUTH_SUCCESS, and we haven't sent any
+	 * packets since. Signal the transport layer to consider enacting
+	 * delayed compression.
+	 *
+	 * (Relying on we_are_in is not sufficient, as
+	 * draft-miller-secsh-compression-delayed is quite clear that it
+	 * triggers on USERAUTH_SUCCESS specifically, and we_are_in can
+	 * become set for other reasons.)
+	 */
+	do_ssh2_transport(ssh, "enabling delayed compression", -2, NULL);
+    }
 
     /*
      * Now the connection protocol has started, one way or another.
@@ -8886,7 +9096,7 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
 	     * Try to send data on all channels if we can.
 	     */
 	    for (i = 0; NULL != (c = index234(ssh->channels, i)); i++)
-		ssh2_try_send_and_unthrottle(c);
+		ssh2_try_send_and_unthrottle(ssh, c);
 	}
     }
 
@@ -8930,10 +9140,9 @@ static void ssh2_msg_debug(Ssh ssh, struct Packet *pktin)
     /* log the debug message */
     char *msg;
     int msglen;
-    int always_display;
 
-    /* XXX maybe we should actually take notice of this */
-    always_display = ssh2_pkt_getbool(pktin);
+    /* XXX maybe we should actually take notice of the return value */
+    ssh2_pkt_getbool(pktin);
     ssh_pkt_getstring(pktin, &msg, &msglen);
 
     logeventf(ssh, "Remote debug message: %.*s", msglen, msg);
@@ -9168,6 +9377,10 @@ static const char *ssh_init(void *frontend_handle, void **backend_handle,
     ssh->max_data_size = parse_blocksize(ssh->cfg.ssh_rekey_data);
     ssh->kex_in_progress = FALSE;
 
+#ifndef NO_GSSAPI
+    ssh->gsslibs = NULL;
+#endif
+
     p = connect_to_host(ssh, host, port, realhost, nodelay, keepalive);
     if (p != NULL)
 	return p;
@@ -9228,6 +9441,7 @@ static void ssh_free(void *handle)
 		    x11_close(c->u.x11.s);
 		break;
 	      case CHAN_SOCKDATA:
+	      case CHAN_SOCKDATA_DORMANT:
 		if (c->u.pfd.s != NULL)
 		    pfd_close(c->u.pfd.s);
 		break;
@@ -9240,7 +9454,7 @@ static void ssh_free(void *handle)
 
     if (ssh->rportfwds) {
 	while ((pf = delpos234(ssh->rportfwds, 0)) != NULL)
-	    sfree(pf);
+	    free_rportfwd(pf);
 	freetree234(ssh->rportfwds);
 	ssh->rportfwds = NULL;
     }
@@ -9264,6 +9478,10 @@ static void ssh_free(void *handle)
     if (ssh->pinger)
 	pinger_free(ssh->pinger);
     bufchain_clear(&ssh->queued_incoming_data);
+#ifndef NO_GSSAPI
+    if (ssh->gsslibs)
+	ssh_gss_cleanup(ssh->gsslibs);
+#endif
     sfree(ssh);
 
     random_unref();
@@ -9424,8 +9642,10 @@ static const struct telnet_special *ssh_get_specials(void *handle)
     static const struct telnet_special ssh1_ignore_special[] = {
 	{"IGNORE message", TS_NOP}
     };
-    static const struct telnet_special ssh2_transport_specials[] = {
+    static const struct telnet_special ssh2_ignore_special[] = {
 	{"IGNORE message", TS_NOP},
+    };
+    static const struct telnet_special ssh2_rekey_special[] = {
 	{"Repeat key exchange", TS_REKEY},
     };
     static const struct telnet_special ssh2_session_specials[] = {
@@ -9450,7 +9670,8 @@ static const struct telnet_special *ssh_get_specials(void *handle)
 	{NULL, TS_EXITMENU}
     };
     /* XXX review this length for any changes: */
-    static struct telnet_special ssh_specials[lenof(ssh2_transport_specials) +
+    static struct telnet_special ssh_specials[lenof(ssh2_ignore_special) +
+					      lenof(ssh2_rekey_special) +
 					      lenof(ssh2_session_specials) +
 					      lenof(specials_end)];
     Ssh ssh = (Ssh) handle;
@@ -9469,7 +9690,10 @@ static const struct telnet_special *ssh_get_specials(void *handle)
 	if (!(ssh->remote_bugs & BUG_CHOKES_ON_SSH1_IGNORE))
 	    ADD_SPECIALS(ssh1_ignore_special);
     } else if (ssh->version == 2) {
-	ADD_SPECIALS(ssh2_transport_specials);
+	if (!(ssh->remote_bugs & BUG_CHOKES_ON_SSH2_IGNORE))
+	    ADD_SPECIALS(ssh2_ignore_special);
+	if (!(ssh->remote_bugs & BUG_SSH2_REKEY))
+	    ADD_SPECIALS(ssh2_rekey_special);
 	if (ssh->mainchan)
 	    ADD_SPECIALS(ssh2_session_specials);
     } /* else we're not ready yet */
@@ -9519,9 +9743,11 @@ static void ssh_special(void *handle, Telnet_Special code)
 	    if (!(ssh->remote_bugs & BUG_CHOKES_ON_SSH1_IGNORE))
 		send_packet(ssh, SSH1_MSG_IGNORE, PKT_STR, "", PKT_END);
 	} else {
-	    pktout = ssh2_pkt_init(SSH2_MSG_IGNORE);
-	    ssh2_pkt_addstring_start(pktout);
-	    ssh2_pkt_send_noqueue(ssh, pktout);
+	    if (!(ssh->remote_bugs & BUG_CHOKES_ON_SSH2_IGNORE)) {
+		pktout = ssh2_pkt_init(SSH2_MSG_IGNORE);
+		ssh2_pkt_addstring_start(pktout);
+		ssh2_pkt_send_noqueue(ssh, pktout);
+	    }
 	}
     } else if (code == TS_REKEY) {
 	if (!ssh->kex_in_progress && ssh->version == 2) {
