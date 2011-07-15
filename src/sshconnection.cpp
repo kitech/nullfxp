@@ -522,11 +522,23 @@ int SSHConnection::sshAuth()
                 return CONN_CANCEL;
             }
 
-            ret = libssh2_userauth_publickey_fromfile(this->sess, 
-                                                      this->userName.toAscii().data(),
-                                                      this->pubkey.toAscii().data(),
-                                                      this->pubkey.left(this->pubkey.length()-4).toAscii().data(),
-                                                      QUrl::fromPercentEncoding(this->password.toAscii()).toAscii().data());            //qDebug()<<this->user_name<<this->pubkey_path<<this->pubkey_path.left(this->pubkey_path.length()-4)
+            bool is_priv_key = false;
+            is_priv_key = libssh2_publickey_is_privatekey(this->pubkey.toAscii().data(), 
+                                                          QUrl::fromPercentEncoding(this->password.toAscii()).toAscii().data())
+                < 0 ? false : true;
+            if (is_priv_key == false) {
+                ret = libssh2_userauth_publickey_fromfile(this->sess, 
+                                                          this->userName.toAscii().data(),
+                                                          this->pubkey.toAscii().data(),
+                                                          this->pubkey.left(this->pubkey.length()-4).toAscii().data(),
+                                                          QUrl::fromPercentEncoding(this->password.toAscii()).toAscii().data());            } else {
+                ret = libssh2_userauth_publickey_fromfile(this->sess, 
+                                                          this->userName.toAscii().data(),
+                                                          NULL, 
+                                                          // this->pubkey.left(this->pubkey.length()-4).toAscii().data(),
+                                                          this->pubkey.toAscii().data(),
+                                                          QUrl::fromPercentEncoding(this->password.toAscii()).toAscii().data());            }
+            //qDebug()<<this->user_name<<this->pubkey_path<<this->pubkey_path.left(this->pubkey_path.length()-4)
             //      <<this->decoded_password;
         } else {
             ret = -1;

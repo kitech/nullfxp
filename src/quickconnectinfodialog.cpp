@@ -10,6 +10,7 @@
 #include  <QtGui>
 
 #include "utils.h"
+#include "ssh_info.h"
 
 #include "ui_quickconnectinfodialog.h"
 #include "quickconnectinfodialog.h"
@@ -188,24 +189,28 @@ void QuickConnectInfoDialog::slot_select_pubkey()
     init_dir = QDir::homePath();
 #endif
 
-    path = QFileDialog::getOpenFileName(this, tr("Publickey Select Dialog"),init_dir, tr("Public Key Files (*.pub);;All Files (*)"));
+    path = QFileDialog::getOpenFileName(this, tr("Publickey Select Dialog"), init_dir,
+                                        tr("Public Key Files (*.pub);;All Files (*)"));
     qDebug()<<path;    
-    if( path == QString::null) {
+    if (path == QString::null) {
         //cancel
     } else if(path.length() == 0) {
         qDebug()<<"select null";
     } else {
         //TODO 检查文件格式, 
+        bool is_priv_key = libssh2_publickey_is_privatekey(path.toAscii().data(), NULL) < 0 ? false : true;
         //TODO 简单检查是否是一个有效的public key 
         //TODO 检查key中的用户名及主机是否与上面输入的一致
         //检查对应的私钥文件;
-        QString privkey = path.left(path.length() - 4);
-        if (!QFile::exists(privkey)) {
-            QMessageBox::warning(this, tr("Warning"), tr("Can not find related private key file."));
+        if (is_priv_key == false) {
+            QString privkey = path.left(path.length() - 4);
+            if (!QFile::exists(privkey)) {
+                QMessageBox::warning(this, tr("Warning"), tr("Can not find related private key file."));
+            }
         }
         this->pubkey_path = path;
         this->uiw->toolButton->setToolTip(QString(tr("Current key: ")) 
-                                                               + this->pubkey_path);
+                                          + this->pubkey_path);
     }
 }
 

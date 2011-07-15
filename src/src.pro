@@ -12,7 +12,7 @@ CONFIG += qt thread console warn_on ordered
 TARGET = nullfxp
 DESTDIR = ../bin
 
-VERSION=2.1.1.89  # using in nullfxp-version.h
+VERSION=2.1.1.90  # using in nullfxp-version.h
 
 # install vars, unix xdg
 include(../install.pri)
@@ -247,6 +247,8 @@ macx-g++* {
     LIBS += -lcurl
 } else: freebsd-g++* {
     LIBS += -lcurl
+} else: android-g++* {
+    message("hoho,android exprimental support.")
 } else: linux-g++* {
     static_libcurl=$$system("pkg-config --static --libs libcurl")
     message($$static_libcurl)

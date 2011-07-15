@@ -101,3 +101,36 @@ LIBSSH2_API LIBSSH2_SESSION *libssh2_session_for_sftp(LIBSSH2_SFTP *sftp)
 
     return sess;
 }
+
+LIBSSH2_API int libssh2_publickey_is_privatekey(const char *keypath, const char *passphrase)
+{
+    int       st;
+    BIO*      bp;
+    EVP_PKEY* pk;
+
+    bp = BIO_new_file(keypath, "r");
+    if (bp == NULL) {
+        return -1;
+    }
+    if (!EVP_get_cipherbyname("des")) {
+        /* If this cipher isn't loaded it's a pretty good indication that none
+         * are.  I have *NO DOUBT* that there's a better way to deal with this
+         * ($#&%#$(%$#( Someone buy me an OpenSSL manual and I'll read up on
+         * it.
+         */
+        OpenSSL_add_all_ciphers();
+    }
+    BIO_reset(bp);
+    pk = PEM_read_bio_PrivateKey(bp, NULL, NULL, (void*)passphrase);
+    BIO_free(bp);
+
+    if (pk == NULL) {
+        /* _libssh2_error(session, */
+        /*                LIBSSH2_ERROR_FILE, */
+        /*                "Wrong passphrase or invalid/unrecognized " */
+        /*                "private key file format"); */
+        return -1;
+    }
+
+    return 1;
+}

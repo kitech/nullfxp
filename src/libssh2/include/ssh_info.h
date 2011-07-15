@@ -28,6 +28,8 @@ LIBSSH2_API int libssh2_sftp_get_version(LIBSSH2_SFTP * sftp);
 
 LIBSSH2_API LIBSSH2_SESSION *libssh2_session_for_sftp(LIBSSH2_SFTP *sftp);
 
+LIBSSH2_API int libssh2_publickey_is_privatekey(const char *keypath, const char *passphrase);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
