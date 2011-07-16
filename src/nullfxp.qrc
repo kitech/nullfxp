@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="/">
+    <file>icons/network-quick-connect.png</file>
     <file>icons/appointment-new.png</file>
     <file>icons/edit-undo.png</file>
     <file>icons/dialog-ok-apply.png</file>

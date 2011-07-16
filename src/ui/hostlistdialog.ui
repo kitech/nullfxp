@@ -46,7 +46,7 @@ p, li { white-space: pre-wrap; }
        </property>
        <property name="icon">
         <iconset resource="../nullfxp.qrc">
-         <normaloff>:/icons/quickopen.png</normaloff>:/icons/quickopen.png</iconset>
+         <normaloff>:/icons/network-quick-connect.png</normaloff>:/icons/network-quick-connect.png</iconset>
        </property>
       </widget>
      </item>
