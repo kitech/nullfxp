@@ -17,6 +17,7 @@ isEmpty( ISQT4 ) {
 
 SUBDIRS +=  \
  src/libssh2 \
+ src/libssh \
  src \
  src/unitest
 
