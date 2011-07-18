@@ -353,9 +353,13 @@ src/libftp/curlftp.cpp -text
 src/libftp/curlftp.h -text
 src/libftp/curlftp_callback.cpp -text
 src/libftp/curlftp_callback.h -text
+src/libssh/fixcfg.sh -text
 src/libssh/libssh.pro -text
 src/libssh/libssh/config.h -text
 src/libssh/libssh/libssh.pro -text
+src/libssh/libssh/mw_libssh_config.h -text
+src/libssh/libssh/un_libssh_config.h -text
+src/libssh/libssh/win32_libssh_config.h -text
 src/libssh2/AUTHORS -text
 src/libssh2/CMakeLists.txt -text
 src/libssh2/COPYING -text

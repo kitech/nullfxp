@@ -11,8 +11,8 @@ DESTDIR = .
 TEMPLATE = lib
 TARGET = ssh
 
-CONFIG += dll console #staticlib
-#CONFIG +=  console staticlib
+#CONFIG += dll console #staticlib
+CONFIG +=  console staticlib
 CONFIG -= qt 
 OBJECTS_DIR = obj
 
