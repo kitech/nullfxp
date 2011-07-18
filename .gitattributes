@@ -438,6 +438,8 @@ src/libssh/libssh/sftpserver.c -text
 src/libssh/libssh/socket.c -text
 src/libssh/libssh/string.c -text
 src/libssh/libssh/threads.c -text
+src/libssh/libssh/threads/CMakeLists.txt -text
+src/libssh/libssh/threads/pthread.c -text
 src/libssh/libssh/un_libssh_config.h -text
 src/libssh/libssh/win32_libssh_config.h -text
 src/libssh/libssh/wrapper.c -text
