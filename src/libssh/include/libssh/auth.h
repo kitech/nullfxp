@@ -21,7 +21,7 @@
 
 #ifndef AUTH_H_
 #define AUTH_H_
-#include "config.h"
+#include "libssh_config.h"
 #include "libssh/callbacks.h"
 
 SSH_PACKET_CALLBACK(ssh_packet_userauth_banner);

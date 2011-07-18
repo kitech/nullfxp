@@ -30,7 +30,7 @@
 #ifndef _LIBSSH_PRIV_H
 #define _LIBSSH_PRIV_H
 
-#include "config.h"
+#include "libssh_config.h"
 
 #ifdef _WIN32
 

@@ -1,7 +1,7 @@
 #ifndef PCAP_H_
 #define PCAP_H_
 
-#include "config.h"
+#include "libssh_config.h"
 #include "libssh/libssh.h"
 
 #ifdef WITH_PCAP

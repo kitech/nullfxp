@@ -22,7 +22,7 @@
 #ifndef WRAPPER_H_
 #define WRAPPER_H_
 
-#include "config.h"
+#include "libssh_config.h"
 #include "libssh/libcrypto.h"
 #include "libssh/libgcrypt.h"
 

@@ -22,7 +22,7 @@
 #ifndef LIBCRYPTO_H_
 #define LIBCRYPTO_H_
 
-#include "config.h"
+#include "libssh_config.h"
 
 #ifdef HAVE_LIBCRYPTO
 

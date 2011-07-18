@@ -21,7 +21,7 @@
 
 #ifndef DH_H_
 #define DH_H_
-#include "config.h"
+#include "libssh_config.h"
 
 /* DH key generation */
 #include "libssh/keys.h"

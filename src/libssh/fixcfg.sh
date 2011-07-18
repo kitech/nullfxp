@@ -18,7 +18,7 @@ do
     fi
 done
 
-exit;
+# exit;
 
 
 for f in `ls include/libssh/*.h`

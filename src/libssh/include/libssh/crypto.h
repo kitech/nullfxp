@@ -26,7 +26,7 @@
 #ifndef _CRYPTO_H_
 #define _CRYPTO_H_
 
-#include "config.h"
+#include "libssh_config.h"
 
 #ifdef HAVE_LIBGCRYPT
 #include <gcrypt.h>
