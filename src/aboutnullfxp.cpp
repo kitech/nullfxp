@@ -9,30 +9,10 @@
 
 #include <QtCore>
 
-#include "libssh/libssh.h"
-#include "libssh/libsshpp.hpp"
-
 #include "nullfxp-version.h"
 
 #include "ui_aboutnullfxp.h"
 #include "aboutnullfxp.h"
-
-
-#define MYTEST_LIBSSH 1
-#ifdef MYTEST_LIBSSH
- 
-void mytest_libssh()
-{
-    ssh_session ssh_sess = ssh_new();
-    if (ssh_sess == NULL) {
-        
-    }
-    qDebug()<<ssh_sess;
-    ssh_free(ssh_sess);
-}
-
-#endif
-
 
 AboutNullFXP::AboutNullFXP(QWidget *parent, Qt::WindowFlags f)
   : QDialog(parent, f)
@@ -63,8 +43,6 @@ AboutNullFXP::AboutNullFXP(QWidget *parent, Qt::WindowFlags f)
     this->uiw->label->setPixmap(QPixmap(":/icons/nullget-1.png").scaledToHeight(50));
     this->uiw->textBrowser_2->setHtml(about_info);
     this->uiw->textBrowser->setHtml(about_author);
-
-    mytest_libssh();
 }
 
 AboutNullFXP::~AboutNullFXP()

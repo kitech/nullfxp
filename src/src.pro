@@ -12,7 +12,7 @@ CONFIG += qt thread console warn_on ordered
 TARGET = nullfxp
 DESTDIR = ../bin
 
-VERSION=2.1.1.90  # using in nullfxp-version.h
+VERSION=2.1.91  # using in nullfxp-version.h
 
 # install vars, unix xdg
 include(../install.pri)
@@ -111,6 +111,7 @@ SOURCES += main.cpp \
  connection.cpp \
  mimetypeshash.cpp \
  sshconnection.cpp \
+ yasshconnection.cpp \
  ftpconnection.cpp \
  connector.cpp \
  ftpview.cpp \
@@ -173,6 +174,7 @@ HEADERS += nullfxp.h \
  synctransferthread.h \
  sftpfile.h \
  sshconnection.h \
+ yasshconnection.h \
  connection.h \
  ftpconnection.h \
  connector.h \

@@ -65,13 +65,13 @@ SOURCES +=   agent.c \
   poll.c \
   session.c \
   scp.c \
-  socket.c \
-  string.c \
+  sftp.c \
   server.c \
   sftpserver.c \
+  socket.c \
+  string.c \
   threads.c \
   wrapper.c
-
 
 HEADERS += 
 
