@@ -9,7 +9,7 @@
 
 DESTDIR = .
 TEMPLATE = lib
-TARGET = ssh
+TARGET = kssh
 
 #CONFIG += dll console #staticlib
 CONFIG +=  console staticlib
@@ -28,10 +28,13 @@ DEFINES += HAVE_CONFIG_H
 
 SOURCES +=   agent.c \
   auth.c \
+  auth1.c \
   base64.c \
+  bind.c \
   buffer.c \
   callbacks.c \
   channels.c \
+  channels1.c \
   client.c \
   config.c \
   connect.c \
@@ -56,6 +59,7 @@ SOURCES +=   agent.c \
   misc.c \
   options.c \
   packet.c \
+  packet1.c \
   pcap.c \
   pki.c \
   poll.c \
@@ -64,6 +68,7 @@ SOURCES +=   agent.c \
   socket.c \
   string.c \
   server.c \
+  sftpserver.c \
   threads.c \
   wrapper.c
 
@@ -85,7 +90,7 @@ win32 {
 
 win32 {
     !win32-g++ {
-        DEFINES += LIBSSH2_WIN32 _CRT_SECURE_NO_DEPRECATE
+        DEFINES += LIBSSH2_WIN32 LIBSSH_STATIC _CRT_SECURE_NO_DEPRECATE
         ## check cl.exe, x64 or x86
         CLARCH=$$system(path)
         VAMD64=$$find(CLARCH,amd64)

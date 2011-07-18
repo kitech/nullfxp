@@ -226,27 +226,30 @@ win32 {
              INCLUDEPATH += Z:/librarys/vc-ssl-x64/include Z:/librarys/vc-zlib/include
              LIBS += -llibcurl_imp
         }
-        LIBPATH += ./libssh2/src/release             # depcreated
-        QMAKE_LIBDIR += ./libssh2/src/release 
+        LIBPATH += ./libssh2/src/release   ./libssh/libssh/release          # depcreated
+        QMAKE_LIBDIR += ./libssh2/src/release ./libssh/libssh/release 
         QMAKE_LIBDIR += Z:/librarys/libcurl/lib/release
         INCLUDEPATH += Z:/librarys/libcurl/include
 
         LIBS += -lqtmain -lzlibstat -llibeay32 -lssleay32 -ladvapi32 -luser32 -lws2_32
         # LIBS += -lcurllib
     }
-    LIBS += -lssh2 -lws2_32  -lgdi32 
+    LIBS += -lssh2 -lkssh -lws2_32  -lgdi32 -lshell32
+    message("aaaaaaaaaaaaaaaa"$$LIBS)
     #-lgcrypt -lgpg-error 
 } else {
-    LIBS += libssh2/src/libssh2.a -lssl -lcrypto -lz
+    LIBS += ./libssh2/src/libssh2.a -lssl -lcrypto -lz ./libssh/libssh/libkssh.a
 #    LIBS += -lcurl
 #    TARGETDEPS += libssh2/src/libssh2.a            # depcreated
-    POST_TARGETDEPS += libssh2/src/libssh2.a
-# WARNING: /home/gzleo/nullfxp-svn/src/src.pro:204: Variable TARGETDEPS is deprecated; use POST_TARGETDEPS instead.
+    POST_TARGETDEPS += libssh2/src/libssh2.a ./libssh/libssh/libkssh.a
+    # WARNING: /home/gzleo/nullfxp-svn/src/src.pro:204: Variable TARGETDEPS is deprecated; use POST_TARGETDEPS instead.
+}
+
 macx-g++* {
-    # for mac os x
-    LIBS += -lcurl
+# for mac os x
+  LIBS += -lcurl
 } else: freebsd-g++* {
-    LIBS += -lcurl
+  LIBS += -lcurl
 } else: android-g++* {
     message("hoho,android exprimental support.")
 } else: linux-g++* {
@@ -271,12 +274,13 @@ macx-g++* {
     HAS_LDAP=$$find(static_libcurl,ldap)
     isEmpty(HAS_LDAP) {
     } else {
-        LIBS += -lldap
+       LIBS += -lldap
     }
 } else: win32 {
 } else {
     message("Unsupported compile platform detected.")
 }
+
 
 # fix static compiled version cjk problem.
 exists($$[QT_INSTALL_PLUGINS]/codecs/libqcncodecs.a) {
@@ -291,8 +295,6 @@ exists($$[QT_INSTALL_PLUGINS]/imageformats/libqjpeg.a) {
     QTPLUGIN += qgif qjpeg qico qmng qsvg qtiff
 }
 
-}
-
 CONFIG(release, debug|release) {
     DEFINES += NDEBUG QT_NO_DEBUG_OUTPUT
 }
@@ -304,7 +306,7 @@ DEFINES -= NDEBUG QT_NO_DEBUG_OUTPUT         # ???
 
 win32-g++ {     
 } else:win32 {
-     DEFINES += LIBSSH2_WIN32 _CRT_SECURE_NO_DEPRECATE GCC_MV=\"\\\"MSVC-2010-Express-Edition\\\"\"
+     DEFINES += LIBSSH2_WIN32 LIBSSH_STATIC _CRT_SECURE_NO_DEPRECATE GCC_MV=\"\\\"MSVC-2010-Express-Edition\\\"\"
      RC_FILE = nullfxp.rc 
 } else {
 #     QMAKE_CXXFLAGS += -std=c++0x
@@ -320,7 +322,7 @@ DEFINES += NXDATADIR=\"\\\"$$DATADIR\\\"\"
 DEFINES += NXPKGDATADIR=\"\\\"$$PKGDATADIR\\\"\"
 DEFINES += THREADSAFE=1   # for sqlite thread-safe feature
 
-INCLUDEPATH += . ./libssh2/include
+INCLUDEPATH += . ./libssh2/include ./libssh/include 
 
 RESOURCES = nullfxp.qrc
 
