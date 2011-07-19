@@ -12,7 +12,7 @@ CONFIG += qt thread console warn_on ordered
 TARGET = nullfxp
 DESTDIR = ../bin
 
-VERSION=2.1.91  # using in nullfxp-version.h
+VERSION=2.1.92  # using in nullfxp-version.h
 
 # install vars, unix xdg
 include(../install.pri)
@@ -59,7 +59,8 @@ FORMS += nullfxp.ui \
  ui/systeminfodialog.ui \
  ui/ftphostinfodialog.ui \
  ui/taskqueueview.ui \
- ui/dirnavbar.ui
+ ui/dirnavbar.ui \
+ ui/sshproxy.ui
 
 SOURCES += main.cpp \
  nullfxp.cpp \
@@ -129,6 +130,7 @@ SOURCES += main.cpp \
  taskqueuemodel.cpp \
  taskqueueview.cpp \
  dirnavbar.cpp \
+ sshproxy.cpp \
  security.cpp \
  sqlite/sqlite3.c
 
@@ -191,7 +193,8 @@ HEADERS += nullfxp.h \
 # taskqueue.h \
  taskqueuemodel.h \
  taskqueueview.h \
- dirnavbar.h
+ dirnavbar.h \
+ sshproxy.h
 
 DISTFILES += ../CMakeLists.txt \
           CMakeLists.txt \

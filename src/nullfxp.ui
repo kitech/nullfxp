@@ -67,6 +67,7 @@
     </property>
     <addaction name="action_Forward_connect"/>
     <addaction name="action_Synchronize_file"/>
+    <addaction name="actionSSH_Proxy"/>
    </widget>
    <widget class="QMenu" name="menu_Options">
     <property name="title">
@@ -291,6 +292,11 @@
    </property>
    <property name="text">
     <string>Console(tty)</string>
+   </property>
+  </action>
+  <action name="actionSSH_Proxy">
+   <property name="text">
+    <string>SSH &amp;Proxy</string>
    </property>
   </action>
  </widget>

@@ -26,6 +26,7 @@
 
 #include "nullfxp.h"
 
+#include "simplelog.h"
 #include "utils.h"
 #include "localview.h"
 #include "remoteview.h"
@@ -38,6 +39,8 @@
 
 #include "synchronizeoptiondialog.h"
 #include "synchronizewindow.h"
+
+#include "sshproxy.h"
 
 void NullFXP::slot_forward_connect(bool show)
 {
@@ -97,4 +100,12 @@ void NullFXP::slot_set_mdi_area_background()
     this->mdiArea->setBackground(brush);
 
     // i dont want to set entie background, but only a little rect
+}
+
+void NullFXP::slot_ssh_proxy()
+{
+    qLogx()<<"";
+    SSHProxy *proxy = new SSHProxy(this);
+    
+    proxy->show();
 }

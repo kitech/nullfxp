@@ -66,6 +66,8 @@ public slots:
 private slots:
     void slot_forward_connect(bool show);
     void slot_synchronize_file();
+    void slot_ssh_proxy();
+
 	void slot_show_session_dialog();
     void slot_check_for_updates();
     void slot_show_option_dialog();

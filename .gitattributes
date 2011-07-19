@@ -704,6 +704,8 @@ src/sshdirretriver.cpp -text
 src/sshdirretriver.h -text
 src/sshfileinfo.cpp -text
 src/sshfileinfo.h -text
+src/sshproxy.cpp -text
+src/sshproxy.h -text
 src/syncdiffermodel.cpp -text
 src/syncdiffermodel.h -text
 src/synchronizeoptiondialog.cpp -text
@@ -731,6 +733,7 @@ src/ui/fileexistaskdialog.ui -text
 src/ui/forwardmanager.ui -text
 src/ui/ftphostinfodialog.ui -text
 src/ui/hostlistdialog.ui -text
+src/ui/sshproxy.ui -text
 src/ui/systeminfodialog.ui -text
 src/ui/taskqueueview.ui -text
 src/ui/updatedialog.ui -text

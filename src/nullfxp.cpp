@@ -119,6 +119,8 @@ NullFXP::NullFXP(QWidget *parent, Qt::WindowFlags flags)
                      this, SLOT(slot_forward_connect(bool)));
     QObject::connect(this->mUIMain->action_Synchronize_file, SIGNAL(triggered()),
                      this, SLOT(slot_synchronize_file()));
+    QObject::connect(this->mUIMain->actionSSH_Proxy, SIGNAL(triggered()),
+                     this, SLOT(slot_ssh_proxy()));
     
     this->central_splitter_widget->setStretchFactor(0, 3);
     this->central_splitter_widget->setStretchFactor(1, 1);
