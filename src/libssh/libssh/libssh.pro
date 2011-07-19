@@ -108,10 +108,11 @@ win32 {
 }
 
 macx-g++ {
-    QMAKE_CFLAGS_DEBUG += -arch i386
-    QMAKE_CFLAGS_RELEASE += -arch i386
-    QMAKE_CXXFLAGS_DEBUG += -arch i386
-    QMAKE_CXXFLAGS_RELEASE += -arch i386
+    #QMAKE_CFLAGS_DEBUG += -arch i386
+    #QMAKE_CFLAGS_RELEASE += -arch i386
+    #QMAKE_CXXFLAGS_DEBUG += -arch i386
+    #QMAKE_CXXFLAGS_RELEASE += -arch i386
+    DEFINES += __DARWIN__ __APPLE__
 }
 
 QMAKE_CFLAGS_DEBUG += -g

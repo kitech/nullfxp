@@ -420,6 +420,7 @@ src/libssh/libssh/libgcrypt.c -text
 src/libssh/libssh/libssh.pro -text
 src/libssh/libssh/libssh_config.h -text
 src/libssh/libssh/log.c -text
+src/libssh/libssh/mac_libssh_config.h -text
 src/libssh/libssh/match.c -text
 src/libssh/libssh/messages.c -text
 src/libssh/libssh/misc.c -text

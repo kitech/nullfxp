@@ -21,7 +21,12 @@
 #include "win32_libssh_config.h"
 #endif
 #else
+#ifdef __DARWIN__
+#include "mac_libssh_config.h"
+#else
 #include "un_libssh_config.h"
+#endif
+
 #endif
 
 #endif
