@@ -25,6 +25,12 @@ SSHProxy::SSHProxy(QWidget *parent)
     this->uiw->setupUi(this);
 
     QObject::connect(this->uiw->pushButton_2, SIGNAL(clicked()), this, SLOT(slot_start()));
+
+    this->timer = new QTimer();
+    this->timer->setInterval(50);
+    QObject::connect(this->timer, SIGNAL(timeout()), this, SLOT(slot_check_chan_timeout()));
+    // timer->start();
+
 }
 
 SSHProxy::~SSHProxy()
@@ -66,10 +72,10 @@ void SSHProxy::slot_start()
     // this->slot_set_ui_state(S_STARTING);
 
     connector->start();
-    
+    this->connector = connector;
 }
 
-SSHConnection *gconn = NULL;
+// SSHConnection *gconn = NULL;
 void SSHProxy::slot_connect_remote_host_finished (int eno, Connection *conn)
 {
 
@@ -109,7 +115,8 @@ void SSHProxy::slot_connect_remote_host_finished (int eno, Connection *conn)
     bool bok = serv->listen(QHostAddress::Any, lsn_port);
     qLogx()<<bok;
 
-    gconn = (SSHConnection*)conn;
+    // gconn = (SSHConnection*)conn;
+    this->conn = conn;
 
     //Q_ASSERT(!fsess_name.isEmpty());
     // this->mfwdstate[fsess_name].connector = NULL;
@@ -191,19 +198,21 @@ void SSHProxy::slot_connect_remote_host_finished (int eno, Connection *conn)
     // }
 }
 
-bool has_conn = false;
-QTcpSocket *gsock = NULL;
+// bool has_conn = false;
+// QTcpSocket *gsock = NULL;
 void SSHProxy::slot_newconnection()
 {
     qLogx()<<sender();
     QTcpServer *serv = static_cast<QTcpServer*>(sender());
     QTcpSocket *sock = serv->nextPendingConnection();
 
-    if (has_conn) {
-        sock->close();
-        delete sock;
-        return;
-    }
+    // if (has_conn) {
+    //     sock->close();
+    //     delete sock;
+    //     return;
+    // }
+
+    this->mconns.insert(sock, NULL);
 
     QObject::connect(sock, SIGNAL(connected()), this, SLOT(slot_forward_dest_connected()));
     QObject::connect(sock, SIGNAL(disconnected()), this, SLOT(slot_forward_dest_disconnected()));
@@ -211,8 +220,8 @@ void SSHProxy::slot_newconnection()
     QObject::connect(sock, SIGNAL(error(QAbstractSocket::SocketError)), 
                      this, SLOT(slot_forward_dest_socket_error(QAbstractSocket::SocketError)));     
     
-    gsock = sock;
-    has_conn = true;
+    // gsock = sock;
+    // has_conn = true;
 }
 
 /////////////
@@ -228,6 +237,23 @@ void SSHProxy::slot_forward_dest_disconnected()
     int rn = 0;
     LIBSSH2_CHANNEL *chan = NULL;
     QTcpSocket *sock = NULL;
+
+    sock = static_cast<QTcpSocket*>(sender());
+    if (this->mconns.contains(sock)) {
+        chan = this->mconns[sock];
+
+        this->mconns.remove(sock);
+        
+        if (chan != NULL) {
+            libssh2_channel_close(chan);
+            libssh2_channel_free(chan);
+            chan = NULL;
+        }
+
+        sock->deleteLater();
+    } else {
+        sock->deleteLater();
+    }
 
     // QVector<QPair<QTcpSocket*, LIBSSH2_CHANNEL*> >::iterator it;
     // for (it = this->mfwds.begin(); it != this->mfwds.end(); it++) {
@@ -252,7 +278,7 @@ void SSHProxy::slot_forward_dest_disconnected()
     // }
 }
 
-LIBSSH2_CHANNEL *gchan = NULL;
+// LIBSSH2_CHANNEL *gchan = NULL;
 void SSHProxy::slot_forward_dest_socket_ready_read()
 {
     qLogx()<<"";
@@ -278,20 +304,55 @@ void SSHProxy::slot_forward_dest_socket_ready_read()
     QByteArray ba = sock->readAll();
     qLogx()<<ba;
     QHttpRequestHeader reqhdr(ba);
-    if (reqhdr.method() == "GET" || reqhdr.method() == "POST") {
+    if (reqhdr.method() == "GET" || reqhdr.method() == "POST"
+        || reqhdr.method() == "CONNECT") {
         QString upath = reqhdr.path();
-        qLogx()<<upath;
+        QString real_upath = upath;
+        QString hdr_host;
+        QString hdr_port;
+        if (!real_upath.contains("://")) {
+            hdr_host = reqhdr.value("Host");
+            if (hdr_host.contains(":")) {
+                hdr_port = hdr_host.split(":").at(1);
+            } else {
+
+            }
+        }
+        qLogx()<<"reqpath:"<<upath;
         QUrl pu = QUrl(upath);
         // gchan = chan = libssh2_channel_direct_tcpip(gconn->sess, "news.163.com", 80);
-        gchan = chan = libssh2_channel_direct_tcpip(gconn->sess, pu.host().toAscii().data(), pu.port(80));
-        qLogx()<<"dest channel:"<<chan;
-        libssh2_channel_set_blocking(chan, 0);
+        // gchan = 
+        unsigned short dest_port = pu.scheme() == "http" ? 80 :
+            (pu.scheme() == "https" ? 443 : 8000);
+        chan = libssh2_channel_direct_tcpip(this->conn->sess, pu.host().toAscii().data(), pu.port(dest_port));
+        qLogx()<<"create dest channel:"<<pu.host()<<dest_port<<chan;
+        if (chan == NULL) {
+            chan = libssh2_channel_direct_tcpip(this->conn->sess, pu.host().toAscii().data(), pu.port(dest_port));
+            qLogx()<<"create dest channel:"<<pu.host()<<dest_port<<chan
+                   <<libssh2_session_last_errno(this->conn->sess);
+        }
+        if (chan == NULL) {
+            sock->deleteLater();
+            return;
+        } else {
+            libssh2_channel_set_blocking(chan, 0);
+        
+            Q_ASSERT(this->mconns.contains(sock));
+            Q_ASSERT(this->mconns.value(sock) == NULL);
+            this->mconns[sock] = chan;
 
-        QTimer *timer = new QTimer();
-        timer->setInterval(50);
-        QObject::connect(timer, SIGNAL(timeout()), this, SLOT(slot_check_chan_timeout()));
-        timer->start();
+            // QTimer *timer = new QTimer();
+            // timer->setInterval(50);
+            // QObject::connect(timer, SIGNAL(timeout()), this, SLOT(slot_check_chan_timeout()));
+            this->timer->start();
+        }
+    } else {
+        
+        Q_ASSERT(this->mconns.contains(sock));
+        Q_ASSERT(this->mconns.value(sock) != NULL);
+        chan = this->mconns.value(sock);
 
+        
     }
     // if ((ba.startsWith("GET ") || ba.startsWith("POST "))
     //     && (ba.contains("HTTP/1.") || ba.contains("HTTPS/1."))) {
@@ -308,7 +369,7 @@ void SSHProxy::slot_forward_dest_socket_ready_read()
         
     // }
 
-    wlen = libssh2_channel_write(gchan, ba.data(), ba.length());
+    wlen = libssh2_channel_write(chan, ba.data(), ba.length());
     qLogx()<<"src -> dest:"<<wlen;
 
     // wlen = libssh2_channel_write(chan, ba.data(), ba.length());
@@ -343,14 +404,31 @@ void SSHProxy::slot_check_chan_timeout()
     // qLogx()<<"";
     char rbuf[1000] = {0};
     int rlen = 0;
+    QTcpSocket *sock = NULL;
+    LIBSSH2_CHANNEL *chan = NULL;
 
-    if (gchan != NULL) {
-        rlen = libssh2_channel_read(gchan, rbuf, sizeof(rbuf)-1);
-        qLogx()<<""<<rlen<<rbuf;
-        if (rlen > 0) {
-            rlen = gsock->write(rbuf, rlen);
-            qLogx()<<"dest -> src:"<<rlen;
+    QHash<QTcpSocket*, LIBSSH2_CHANNEL*>::iterator it;
+    for (it = this->mconns.begin(); it != this->mconns.end(); it ++) {
+        sock = it.key();
+        chan = it.value();
+        
+        if (chan != NULL) {
+            rlen = libssh2_channel_read(chan, rbuf, sizeof(rbuf)-1);
+            qLogx()<<""<<rlen<<rbuf;
+            if (rlen > 0) {
+                rlen = sock->write(rbuf, rlen);
+                qLogx()<<"dest -> src:"<<rlen;
+            }
         }
     }
+
+    // if (gchan != NULL) {
+    //     rlen = libssh2_channel_read(gchan, rbuf, sizeof(rbuf)-1);
+    //     qLogx()<<""<<rlen<<rbuf;
+    //     if (rlen > 0) {
+    //         rlen = gsock->write(rbuf, rlen);
+    //         qLogx()<<"dest -> src:"<<rlen;
+    //     }
+    // }
 }
 
