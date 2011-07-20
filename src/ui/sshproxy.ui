@@ -83,7 +83,7 @@
        <item row="0" column="1">
         <widget class="QLineEdit" name="lineEdit">
          <property name="text">
-          <string>3128</string>
+          <string>3228</string>
          </property>
         </widget>
        </item>
@@ -102,7 +102,11 @@
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QLineEdit" name="lineEdit_2"/>
+        <widget class="QLineEdit" name="lineEdit_2">
+         <property name="text">
+          <string>localhost_sftp_gzleo</string>
+         </property>
+        </widget>
        </item>
        <item row="1" column="2">
         <widget class="QToolButton" name="toolButton">
