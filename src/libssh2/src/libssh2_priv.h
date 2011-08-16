@@ -1,5 +1,5 @@
 /* Copyright (c) 2004-2008, 2010, Sara Golemon <sarag@libssh2.org>
- * Copyright (c) 2009 by Daniel Stenberg
+ * Copyright (c) 2009-2011 by Daniel Stenberg
  * Copyright (c) 2010 Simon Josefsson
  * All rights reserved.
  *
@@ -558,6 +558,9 @@ struct _LIBSSH2_SESSION
 
     /* this is set to TRUE if a blocking API behavior is requested */
     int api_block_mode;
+
+    /* Timeout used when blocking API behavior is active */
+    long api_timeout;
 
     /* Server's public key */
     const LIBSSH2_HOSTKEY_METHOD *hostkey;

@@ -12,7 +12,7 @@ CONFIG += qt thread console warn_on ordered
 TARGET = nullfxp
 DESTDIR = ../bin
 
-VERSION=2.1.92  # using in nullfxp-version.h
+VERSION=2.1.93  # using in nullfxp-version.h
 
 # install vars, unix xdg
 include(../install.pri)

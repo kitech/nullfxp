@@ -1,5 +1,238 @@
    Changelog for the libssh2 project. Generated with git2news.pl
 
+Version 1.2.9 (16 Aug 2011)
+
+Daniel Stenberg (16 Aug 2011)
+- RELEASE-NOTES: synced with 95d69d3a81261
+
+- [Henrik Nordstrom brought this change]
+
+  Document prototypes for macro defined functions
+
+- [Henrik Nordstrom brought this change]
+
+  Avoid reuse after free when closing X11 channels
+
+- _libssh2_channel_write: handle window_size == 0 better
+  
+  When about to send data on the channel and the window size is 0, we must
+  not just return 0 if the transport_read() function returned EAGAIN as it
+  then causes a busy-loop.
+  
+  Bug: http://libssh2.org/mail/libssh2-devel-archive-2011-08/0011.shtml
+
+- gettimeofday: fix name space pollution
+  
+  For systems without its own gettimeofday() implementation, we still must
+  not provide one outside our namespace.
+  
+  Reported by: Bill Segall
+
+Dan Fandrich (5 Aug 2011)
+- libssh2.pc.in: Fixed spelling in pkgconfig file
+
+Peter Stuge (17 Jul 2011)
+- example/subsystem_netconf.c: Add missing #include <string.h>
+
+- example/subsystem_netconf.c: Discard ]]>]]> and return only XML response
+
+- example/subsystem_netconf.c: Fix uninitialized variable bug
+
+- example: Add subsystem_netconf.c
+  
+  This example demonstrates how to use libssh2 to send a request to
+  the NETCONF subsystem available e.g. in JunOS.
+  
+  See also http://tools.ietf.org/html/draft-ietf-netconf-ssh-06
+
+Daniel Stenberg (16 Jul 2011)
+- man page cleanups: non-existing functions need no man pages
+
+- libssh2_new_host_entry.3: removed
+  
+  This is just junk leftovers.
+
+- userauth_keyboard_interactive: fix buffer overflow
+  
+  Partly reverse 566894494b4972ae12 which was simplifying the code far too
+  much and ended up overflowing a buffer within the LIBSSH2_SESSION
+  struct. Back to allocating the buffer properly like it used to do.
+  
+  Bug: http://www.libssh2.org/mail/libssh2-devel-archive-2011-06/0032.shtml
+  Reported by: Alfred Gebert
+
+- keyboard-interactive man page: cleaned up
+
+- [Alfred Gebert brought this change]
+
+  _libssh2_recv(): handle ENOENT error as EAGAIN
+  
+  A sftp session failed with error "failure establishing ssh session" on
+  Solaris and HP-UX. Sometimes the first recv() function call sets errno
+  to ENOENT. In the man pages for recv of Solaris and HP-UX the error
+  ENOENT is not documented.
+  
+  I tested Solaris SPARC and x86, HP-UX i64, AIX, Windows and Linux.
+
+- agent_list_identities: fix out of scope access
+  
+  An auto variable out of scope was being referenced and used.
+  
+  fixes #220
+
+- _libssh2_wait_socket: fix timeouts for poll() uses
+
+- windows: inclusion fix
+  
+  include winsock2.h for all windows compilers
+
+- keyb-interactive: add the fixed buffer
+  
+  Belongs to commit 5668944
+
+- code cleanup: don't use C99/c++ comments
+  
+  We aim for C89 compliance
+
+- keyb-interactive: allow zero length fields
+  
+  Allow zero length fields so they don't cause malloc(0) calls
+  
+  Avoid free()ing NULL pointers
+  
+  Avoid a malloc of a fixed 5 byte buffer.
+
+- libssh2_channel_process_startup.3: clean up
+  
+  Remove the references to the macro-fied shortcuts as they have their own
+  individual man pages.
+  
+  Made the prototype different and more readable.
+
+- man page: fix .BR lines
+  
+  We don't use \fI etc on .BR lines
+
+- userauth_keyboard_interactive: skip code on zero length auth
+
+- libssh2_channel_forward_accept.3: mention how to get error
+  
+  Since this returns a pointer, libssh2_session_last_errno() must be used
+  to get the actual error code and it wasn't that clear before.
+
+- timeout docs: mention they're added in 1.2.9
+
+- sftp_write_sliding.c: indent fix
+  
+  Use the standard indenting and removed CVS leftover comment
+
+- [zl liu brought this change]
+
+  sftp_write_sliding: send the complete file
+  
+  When reaching the end of file there can still be data left not sent.
+
+- [Douglas Masterson brought this change]
+
+  session_startup: init state properly
+  
+  libssh2_session_startup() didn't set the state correctly so it could get
+  confused.
+  
+  Fixes #218
+
+- timeout: added man pages
+
+- BLOCK_ADJUST_ERRNO: move rc to right level
+  
+  We can't declare the variable within the block and use it in the final
+  do-while() expression to be properly portable C89.
+
+- [Matt Lilley brought this change]
+
+  adds a timeout to blocking calls
+  
+  Fixes bug #160 as per Daniel's suggestion
+  
+  Adds libssh2_session_set_timeout() and libssh2_session_get_timeout()
+
+- SCP: fix incorrect error code
+  
+  After an error occurs in libssh2_scp_recv() or libssh2_scp_send(), the
+  function libssh2_session_last_error() would return
+  LIBSSH2_ERROR_SOCKET_NONE on error.
+  
+  Bug: http://trac.libssh2.org/ticket/216
+  Patch by: "littlesavage"
+  
+  Fixes #216
+
+Guenter Knauf (19 Apr 2011)
+- Updated default (recommended) dependency versions.
+
+Daniel Stenberg (17 Apr 2011)
+- libssh2_session_block_directions: fix mistake
+  
+  The last LIBSSH2_SESSION_BLOCK_INBOUND should be
+  LIBSSH2_SESSION_BLOCK_OUTBOUND
+  
+  And I shortened the short description
+  
+  Reported by: "drswinghead"
+
+- msvcproj: added libs and debug stuff
+  
+  Added libraries needed to link whether using openssl dynamically or
+  statically
+  
+  Added LIBSSH2DEBUG define to debug versions to enable tracing
+  
+  URL: http://trac.libssh2.org/ticket/215
+  Patch by: Mark Smith
+
+- sftp_write: clean offsets on error
+  
+  When an error has occurred on FXP_WRITE, we must make sure that the
+  offset, sent offset and acked counter are reset properly.
+
+- example/.gitignore: ignore built binaries
+
+- sftp_write: flush the packetlist on error
+  
+  When an error occurs during write, flush the entire list of pending
+  outgoing SFTP packets.
+
+- keepalive: add first basic man pages
+  
+  Someone on IRC pointed out that we don't have these documented so I
+  wrote up a first set based on the information in the wiki:
+  http://trac.libssh2.org/wiki/KeepAlive
+
+- scp_write_nonblock.c: remove pointless check
+  
+  libssh2_channel_write() cannot return a value that is larger than the
+  input length value
+
+Mikhail Gusarov (9 Apr 2011)
+- s/\.NF/.nf/ to fix wrong macro name caught by man --warnings
+
+Daniel Stenberg (6 Apr 2011)
+- version: bump to 1.2.9_dev
+  
+  Also update the copyright year range to include 2011
+
+- configure: fix $VERSION
+  
+  Stop using the $VERSION variable as it seems to be magically used by
+  autoconfig itself and thus gets set to the value set in AC_INIT()
+  without us wanting that. $LIBSSH2VER is now the libssh2 version as
+  detected.
+  
+  Reported by: Paul Howarth
+  Bug: http://www.libssh2.org/mail/libssh2-devel-archive-2011-04/0008.shtml
+
+- maketgz: use git2news.pl by the correct name
+
 Version 1.2.8 (4 Apr 2011)
 
 Daniel Stenberg (4 Apr 2011)
@@ -3958,136 +4191,3 @@ Guenter Knauf (26 Apr 2007)
 - include libssh_config.h to get the configure vars in.
 
 - changed to configure defines to control inclusion of headers from libssh2_config.h.
-
-James Housley (22 Apr 2007)
-- Add more of the new programs to be ignored
-
-- Test programs for libssh2_sftp_mkdir_ex() and libssh2_sftp_mkdirnb_ex()
-
-- Document libssh2_sftp_mkdir_ex() and libssh2_sftp_mkdirnb_ex()
-
-- Make _libssh2_sftp_mkdir_ex() fully non-blocking safe.  This makes
-  libssh2_sftp_mkdirnb_ex() non-blocking safe and libssh2_sftp_mkdir_ex()
-  blocking safe
-
-- libssh2_sftp.h is needed for all of these functions
-
-- Fix a couple of locations where read should have been readdir
-
-- libssh2_sftp_seek() and libssh2_sftp_tell() are NB-SAFE, since they
-  only set variables
-
-- Create two sample programs, similar to sftp.c and sftp_nonblock.c, that
-  will test blocking and non-blocking write SFTP transfers
-
-- Make _libssh2_sftp_write() fully non-blocking safe.  This makes
-  libssh2_sftp_writenb() non-blocking safe and libssh2_sftp_write() blocking
-  safe
-
-- Commit the version that actually uses the non-blocking code
-
-- Commit the version that actually uses the non-blocking read
-
-- Update comment
-
-- Make sftp_nonblock.c a non-blocking version of sftp.c, just like sftpdir.c
-
-- Move sftp_nonblock.c to sftp_RW_nonblock.c, since it isn't just a
-  non-blocking version of sftp.c.  It has different command line parameters
-  and tries to do more
-
-- Make _libssh2_sftp_read() fully non-blocking safe.  This makes
-  libssh2_sftp_readnb() non-blocking safe and libssh2_sftp_read() blocking
-  safe
-
-- * Explicity set blocking
-
-- Unless we tell libssh2 that we are blocking, which we are because didn't
-  set the socket to non-blocking it will think we are in non-blocking mode
-  in a lot of places
-
-- Add comment about setting non-blocking
-
-Guenter Knauf (21 Apr 2007)
-- fixed ARFLAGS for CodeWarrior build.
-
-- some more makefile fixes.
-
-- fixed debug option.
-
-- fixed ARFLAGS for CodeWarrior build;
-  added libssh2_sftp_writenb to export list.
-
-James Housley (21 Apr 2007)
-- Non-blocking work
-  
-  * The following low level packet routines now fully support non-blocking:
-      libssh2_sftp_packet_read()
-      libssh2_sftp_packet_ask()
-      libssh2_sftp_packet_require()
-      libssh2_sftp_packet_requirev()
-  
-  * libssh2_sftp_readdirnb() functions completely in non-blocking mode
-  
-  * The rest of the routines which call the libssh2_sftp_packet_* routine
-    loop on a return code of PACKET_EAGAIN.  This maintains the current
-    functionality until they fully support non-blocking
-  
-  * The state of all function are labeled with either NB-SAFE or NB-UNSAFE,
-    for those that are know.  NB-UNSAFE?? for those that haven't been
-    examined.
-
-- Create a simple test for sftp readdir with non-blocking
-
-- Document libssh2_sftp_readdir() and libssh2_sftp_readdirnb()
-
-Dan Fandrich (19 Apr 2007)
-- Added some consts to struct members
-
-- Fixed some compiler warnings and made some more tables 'const'.
-
-- Made some function parameters in the API const.  This is an API change,
-  but correctly-written applications should see no source or binary
-  compatibility issues.  Also fixed a few compiler warnings.
-
-- Bail out on a short kex packet.
-
-- Made most internal tables 'static const'.
-
-Guenter Knauf (16 Apr 2007)
-- added ranlib when library is created with ar.
-
-- added sftpdir target; fixed linking.
-
-Dan Fandrich (13 Apr 2007)
-- Properly propagate out of memory errors.
-
-Simon Josefsson (13 Apr 2007)
-- Add.
-
-- Add.
-
-- Make ChangeLog a phony target.
-
-Guenter Knauf (12 Apr 2007)
-- changed to configure defines to control inclusion of headers from libssh2_config.h.
-
-- Win32 has no ENOTCONN - checked MSVC6, MingW32, Borland C++ 5.5, OpenWatcom 1.6; all have this define in winsock2.h but blocked with '#if 0';
-  changed to configure defines to control inclusion of headers from libssh2_config.h
-
-- updated Makefile.netware to add more exports; fixed linking;
-  updated OpenSSL version to have users use latest.
-
-- removed HAVE_IOCTLSOCKET define;
-  updated OpenSSL version to have users use latest.
-
-- blocked unistd.h inclusion for Win32 builds.
-
-- added two more typedefs but blocked them so they are only used with MSVC6 or lower (dont know if later MSVC versions still need them).
-
-- fixed wrong type and sync with usage.
-
-- check for sys/time.h
-
-Dan Fandrich (12 Apr 2007)
-- Better handle out of memory situations.
