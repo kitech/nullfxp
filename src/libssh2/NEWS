@@ -1,5 +1,87 @@
    Changelog for the libssh2 project. Generated with git2news.pl
 
+Version 1.3.0 (6 Sep 2011)
+
+Daniel Stenberg (6 Sep 2011)
+- Makefile.am: the Makefile.win32 files are gone
+
+- RELEASE-NOTES: updated for 1.3.0
+
+- sftp_read: a short read is not end of file
+  
+  A returned READ packet that is short will now only reduce the
+  offset.
+  
+  This is a temporary fix as it is slightly better than the previous
+  approach but still not very good.
+
+- [liuzl brought this change]
+
+  _libssh2_packet_add: adjust window size when truncating
+  
+  When receiving more data than what the window size allows on a
+  particular channel, make sure that the window size is adjusted in that
+  case too. Previously it would only adjust the window in the non-error
+  case.
+
+Guenter Knauf (29 Aug 2011)
+- Silent compiler warning with MinGW64.
+
+- Fixed link to native Win32 awk tool.
+
+- Renamed MinGW makefiles.
+
+- Some MinGW makefile tweaks.
+  
+  Enable build without GNU tools and with MinGW64 compiler.
+
+- Fixed aes_ctr_do_cipher() signature.
+
+Daniel Stenberg (26 Aug 2011)
+- [liuzl brought this change]
+
+  libssh2_sftp_seek64: flush packetlist and buffered data
+  
+  When seeking to a new position, flush the packetlist and buffered data
+  to prevent already received or pending data to wrongly get used when
+  sftp-reading from the new offset within the file.
+
+- sftp_read: advance offset correctly for buffered copies
+  
+  In the case where a read packet has been received from the server, but
+  the entire contents couldn't be copied to the user-buffer, the data is
+  instead buffered and copied to the user's buffer in the next invocation
+  of sftp_read(). When that "extra" copy is made, the 'offset' pointer was
+  not advanced accordingly.
+  
+  The biggest impact of this flaw was that the 'already' variable at the
+  top of the function that figures out how much data "ahead" that has
+  already been asked for would slowly go more and more out of sync, which
+  could lead to the file not being read all the way to the end.
+  
+  This problem was most noticable in cases where the application would
+  only try to read the exact file size amount, like curl does. In the
+  examples libssh2 provides the sftp read function is most often called
+  with a fixed size large buffer and then the bug would not appear as
+  easily.
+  
+  This bug was introduced in the SFTP rewrite in 1.2.8.
+  
+  Bug: http://curl.haxx.se/mail/lib-2011-08/0305.html
+       http://www.libssh2.org/mail/libssh2-devel-archive-2011-08/0085.shtml
+
+- wrap some long lines < 80 columns
+
+- LIBSSH2_RECV: fix typo, use the RECV_FD macro
+
+- subsystem_netconf.c: fix compiler warnings
+
+- [Henrik Nordstrom brought this change]
+
+  Custom callbacks for performing low level socket I/O
+
+- version bump: start working towards 1.3.0
+
 Version 1.2.9 (16 Aug 2011)
 
 Daniel Stenberg (16 Aug 2011)
@@ -4110,84 +4192,3 @@ James Housley (10 Jun 2007)
   Bug:	1703464
 
 - Since uint32_t is used, inttypes.h should be included.
-
-- * Convert all the code to properly work with a socket in
-  non-blocking mode.  All functions either return
-  LIBSSH2_ERROR_EAGAIN or return NULL and set the error code
-  to be LIBSSH2_ERROR_EAGAIN instead of blocking, when in
-  non-blocking mode.
-
-- In the code rewrite
-  libssh2_kex_method_diffie_hellman_group14_sha1_key_exchange() lost two
-  initializer routines, restore them.
-
-- To simplify the user's error interface always use LIBSSH2_ERROR_EAGAIN.
-  LIBSSH2CHANNEL_EAGAIN and LIBSSH2SFTP_EAGAIN are still valid, but are
-  defined as LIBSSH2_ERROR_EAGAIN.
-
-- libssh2_session_disconnect_ex() should be returning PACKET_EAGAIN instead
-  of LIBSSH2_ERROR_EAGAIN, so it matches the other functions return values.
-
-- When shutting down sub-systems and closing the channel try our best
-  to free any memory still allocated in the state variables
-
-- Remove 2 last files
-
-- Remove the removed files
-
-- Finish making SFTP fully non-blocking capable.
-  
-  Functions that return an "int", and friends, return LIBSSH2SFTP_EAGAIN.
-  Functions that return a structure return NULL and set the error to
-  LIBSSH2_ERROR_EAGAIN
-
-- Make libssh2_sftp_write() be fully non-blocking.  The state of the socket
-  is fully honored.  LIBSSH2SFTP_EAGAIN is returned when the call would
-  block.
-
-- Modify the code to truely support non-blocking.  Propogate the EAGAIN error
-  all the way up to the user interface.  All code modules bug sftp.c have
-  been completed.
-  
-  Functions that return an "int", or similar return LIBSSH2CHANNEL_EAGAIN to
-  indicate some part of the call would block, in non-blocking mode.
-  
-  Functions that return a structure, like "LIBSSH2_CHANNEL *", return NULL
-  and set the libssh2 error.  The error can be obtained with either
-  libssh2_session_last_error() or libssh2_session_last_errno().  Either of
-  these will return the error code of LIBSSH2_ERROR_EAGAIN if the
-  call would block, in non-blocking mode.
-  
-  The current state of a function and some variable are keep in the
-  structures so that on the next call the operation that would block can
-  be retried again with the same data.
-
-- libssh2_packet_read() was checking the "errno" even when recv() didn't
-  return an error.  "errno" should have been zero by the recv() call but
-  doesn't seem to be on all systems.  Only check when recv() says there
-  is an error.
-  
-  Bug:		1703467
-  Patch:		1703468
-
-- Initially the libssh2 code was indented with tabs of 4 spaces.  Some of
-  the recent commits converted the tabs to 4 spaces, which matched the
-  initial indent size.  Other commits converted the tabs to 8 spaces, this
-  didn't match.
-  
-  All the code has been converted to 4 space indents.  No changes to line
-  lengths or actual code was performed.  This is in preperation to my up
-  coming non-blocking work so my commits should only be code changes and
-  line lengths in the code I am working on.
-
-Daniel Stenberg (8 May 2007)
-- Eberhard Mattes' fix for libssh2_packet_read() for when reading very small
-  chunks at a time.
-
-Dan Fandrich (1 May 2007)
-- Fix building out of the source tree.
-
-Guenter Knauf (26 Apr 2007)
-- include libssh_config.h to get the configure vars in.
-
-- changed to configure defines to control inclusion of headers from libssh2_config.h.
