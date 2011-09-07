@@ -16,7 +16,7 @@ CONFIG +=  console staticlib
 CONFIG -= qt 
 OBJECTS_DIR = obj
 
-VERSION = 0.5.0
+VERSION = 0.5.1
 
 win32 {
 	CONFIG += release
@@ -86,11 +86,11 @@ win32 {
 
 # controll if show libssh debug message, using this line
 # DEFINES += LIBSSH2DEBUG=1 
-
+DEFINES += WITH_SSH1 
 
 win32 {
     !win32-g++ {
-        DEFINES += LIBSSH2_WIN32 LIBSSH_STATIC _CRT_SECURE_NO_DEPRECATE
+        DEFINES += LIBSSH_WIN32 LIBSSH_STATIC _CRT_SECURE_NO_DEPRECATE 
         ## check cl.exe, x64 or x86
         CLARCH=$$system(path)
         VAMD64=$$find(CLARCH,amd64)
