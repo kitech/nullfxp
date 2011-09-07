@@ -53,13 +53,10 @@
 # define _WIN32_IE 0x0501 // SHGetSpecialFolderPath
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <winsock2.h> // Must be the first to include
 #include <ws2tcpip.h>
 #include <shlobj.h>
 #include <direct.h>
-#define _snprintf snprintf
 
 #if _MSC_VER >= 1400
 # include <io.h>
@@ -128,7 +125,7 @@ int ssh_file_readaccess_ok(const char *file) {
 #define SSH_USEC_IN_SEC         1000000LL
 #define SSH_SECONDS_SINCE_1601  11644473600LL
 
-static int gettimeofday(struct timeval *__p, void *__t) {
+int gettimeofday(struct timeval *__p, void *__t) {
   union {
     unsigned long long ns100; /* time since 1 Jan 1601 in 100ns units */
     FILETIME ft;
@@ -218,7 +215,8 @@ char *ssh_get_user_home_dir(void) {
 
   rc = getpwuid_r(getuid(), &pwd, buf, NSS_BUFLEN_PASSWD, &pwdbuf);
   if (rc != 0) {
-    return NULL;
+    szPath=getenv("HOME");
+    return szPath ? strdup(szPath) : NULL;
   }
 
   szPath = strdup(pwd.pw_dir);
@@ -289,18 +287,20 @@ int ssh_is_ipaddr(const char *str) {
 
 #endif /* _WIN32 */
 
+#ifndef HAVE_NTOHLL
 uint64_t ntohll(uint64_t a) {
 #ifdef WORDS_BIGENDIAN
   return a;
-#else
+#else /* WORDS_BIGENDIAN */
   uint32_t low = (uint32_t)(a & 0xffffffff);
   uint32_t high = (uint32_t)(a >> 32);
   low = ntohl(low);
   high = ntohl(high);
 
   return ((((uint64_t) low) << 32) | ( high));
-#endif
+#endif /* WORDS_BIGENDIAN */
 }
+#endif /* HAVE_NTOHLL */
 
 char *ssh_lowercase(const char* str) {
   char *new, *p;
@@ -940,15 +940,15 @@ int ssh_timeout_elapsed(struct ssh_timestamp *ts, int timeout) {
  * @param[in] ts pointer to an existing timestamp
  * @param[in] timeout timeout in milliseconds. Negative values mean infinite
  *             timeout
- * @returns   remaining time in milliseconds, 0 if elapsed, -1 if never.
+ * @returns   remaining time in milliseconds, 0 if elapsed, -1 if never,
+ *            -2 if option-set-timeout.
  */
 int ssh_timeout_update(struct ssh_timestamp *ts, int timeout){
   struct ssh_timestamp now;
   int ms, ret;
-  if(timeout == 0)
-    return 0;
-  if(timeout==-1)
-    return -1;
+  if (timeout <= 0) {
+      return timeout;
+  }
   ssh_timestamp_init(&now);
   ms = ssh_timestamp_difference(ts,&now);
   if(ms < 0)

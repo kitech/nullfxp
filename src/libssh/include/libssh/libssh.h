@@ -48,14 +48,6 @@
   #endif
 #endif
 
-// #ifdef WIN32
-// #ifdef LIBSSH_API
-// #undef LIBSSH_API
-// #define LIBSSH_API 
-// #endif
-// #endif
-
-
 #ifdef _MSC_VER
   /* Visual Studio hasn't inttypes.h so it doesn't know uint32_t */
   typedef int int32_t;
@@ -87,7 +79,7 @@
 /* libssh version */
 #define LIBSSH_VERSION_MAJOR  0
 #define LIBSSH_VERSION_MINOR  5
-#define LIBSSH_VERSION_MICRO  0
+#define LIBSSH_VERSION_MICRO  1
 
 #define LIBSSH_VERSION_INT SSH_VERSION_INT(LIBSSH_VERSION_MAJOR, \
                                            LIBSSH_VERSION_MINOR, \

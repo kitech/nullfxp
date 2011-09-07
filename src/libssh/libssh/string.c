@@ -21,6 +21,7 @@
  * MA 02111-1307, USA.
  */
 
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -91,8 +92,15 @@ int ssh_string_fill(struct ssh_string_struct *s, const void *data, size_t len) {
  * @note The nul byte is not copied nor counted in the ouput string.
  */
 struct ssh_string_struct *ssh_string_from_char(const char *what) {
-  struct ssh_string_struct *ptr = NULL;
-  size_t len = strlen(what);
+  struct ssh_string_struct *ptr;
+  size_t len;
+
+  if(what == NULL) {
+      errno = EINVAL;
+      return NULL;
+  }
+
+  len = strlen(what);
 
   ptr = malloc(4 + len);
   if (ptr == NULL) {
@@ -133,7 +141,7 @@ size_t ssh_string_len(struct ssh_string_struct *s) {
 char *ssh_string_to_char(struct ssh_string_struct *s) {
 	size_t len;
 	char *new;
-	if(s==NULL)
+	if(s==NULL || s->string == NULL)
 		return NULL;
   len = ntohl(s->size) + 1;
   new = malloc(len);
@@ -164,7 +172,12 @@ void ssh_string_free_char(char *s) {
  * @return              Newly allocated copy of the string, NULL on error.
  */
 struct ssh_string_struct *ssh_string_copy(struct ssh_string_struct *s) {
-  struct ssh_string_struct *new = malloc(ntohl(s->size) + 4);
+  struct ssh_string_struct *new;
+  
+  if(s == NULL || s->string == NULL) {
+      return NULL;
+  }
+  new = malloc(ntohl(s->size) + 4);
 
   if (new == NULL) {
     return NULL;

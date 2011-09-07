@@ -30,7 +30,6 @@
 #include <unistd.h>
 #endif
 
-#include "libssh_config.h"
 #include "libssh/priv.h"
 #include "libssh/ssh1.h"
 #include "libssh/buffer.h"

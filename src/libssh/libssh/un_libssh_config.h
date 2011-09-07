@@ -2,15 +2,15 @@
 #define PACKAGE "libssh"
 
 /* Version number of package */
-#define VERSION "0.5.0"
+#define VERSION "0.5.1"
 
 /* #undef LOCALEDIR */
 #define DATADIR "/usr/local/share/libssh"
 #define LIBDIR "/usr/local/lib"
 #define PLUGINDIR "/usr/local/lib/libssh-4"
 #define SYSCONFDIR "/usr/local/etc"
-#define BINARYDIR "/home/gzleo/nullfxp-svn/libssh-0.5.0/build"
-#define SOURCEDIR "/home/gzleo/nullfxp-svn/libssh-0.5.0"
+#define BINARYDIR "/home/gzleo/nullfxp-svn/src/libssh-0.5.1/b"
+#define SOURCEDIR "/home/gzleo/nullfxp-svn/src/libssh-0.5.1"
 
 /************************** HEADER FILES *************************/
 
@@ -79,6 +79,9 @@
 
 /* Define to 1 if you have the `clock_gettime' function. */
 #define HAVE_CLOCK_GETTIME 1
+
+/* Define to 1 if you have the `ntohll' function. */
+/* #undef HAVE_NTOHLL */
 
 /*************************** LIBRARIES ***************************/
 
