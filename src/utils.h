@@ -89,12 +89,14 @@
  #define S_IXUSR _S_IEXEC
 #endif
 
+ QString digit_mode(int mode);
+
 #ifdef __cplusplus
 extern "C"{
 #endif
     
     void strmode(int mode, char *p);
-    QString digit_mode(int mode);
+  // xsQString digit_mode(int mode);
 
     int is_reg(char *path);
 
