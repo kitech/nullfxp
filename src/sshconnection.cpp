@@ -108,14 +108,14 @@ SSHConnection::~SSHConnection()
 
     if (this->gLibssh2UseCount.deref() == false) {
         libssh2_exit();
-        qDebug()<<"libssh2 exited because no one using this..";
+        q_debug()<<"libssh2 exited because no one using this..";
         fflush(stdout);
     }
 }
 
 int SSHConnection::connect()
 {
-    qDebug()<<__FUNCTION__<<": "<<__LINE__<<":"<<__FILE__;
+    q_debug()<<__FUNCTION__<<": "<<__LINE__<<":"<<__FILE__;
     int ret = 0;
     
     ret = this->initSocket();
@@ -236,12 +236,14 @@ int SSHConnection::alivePing()
             // 
             q_debug()<<"maybe socket closed.";
             emit this->disconnected();
+        } else if (iret == LIBSSH2_ERROR_EAGAIN) {
+            q_debug()<<"Error again.";
         } else {
             // OK
         }
     } else {
         q_debug()<<"ssh session has not been initilized.";
-        Q_ASSERT(1==2);
+        // Q_ASSERT(1==2);
     }
     
     return 0;
@@ -260,7 +262,7 @@ QTextCodec *SSHConnection::codecForEnv(const QString &env)
             if (kvline.split(".").count() == 2) {
                 ecodec = QTextCodec::codecForName(kvline.split(".").at(1).toAscii());
                 if (ecodec != NULL) {
-                    qDebug()<<"Got env encoding:"<<kvline;
+                    q_debug()<<"Got env encoding:"<<kvline;
                     break;
                 }
             }
@@ -353,21 +355,21 @@ int SSHConnection::initSocket()
                                .arg(codec->toUnicode(QByteArray(strerror(errno)))));
         this->mErrorString = emsg;
         emit connect_state_changed(emsg);
-        qDebug()<<__FILE__<<__LINE__<<emsg;
+        q_debug()<<__FILE__<<__LINE__<<emsg;
         //assert( ret == 0 );
         return CONN_REFUSE;
     } else {
 #ifndef WIN32
         if (!FD_ISSET(this->sock, &rdset) && !FD_ISSET(this->sock, &set)) {
-            qDebug()<<this->sock<<ret<<errno<<codec->toUnicode(QByteArray(strerror(errno)));
+            q_debug()<<this->sock<<ret<<errno<<codec->toUnicode(QByteArray(strerror(errno)));
         }
         int myerrno = 888;
         socklen_t mylen = 889;
         if (::getsockopt(this->sock, SOL_SOCKET, SO_ERROR, &myerrno, &mylen) < 0) {
-            qDebug()<<"getsockopt error:";            
+            q_debug()<<"getsockopt error:";            
         }
         if (myerrno != 0) {
-            qDebug()<<"Connect faild: "<<codec->toUnicode(QByteArray(strerror(myerrno)));
+            q_debug()<<"Connect faild: "<<codec->toUnicode(QByteArray(strerror(myerrno)));
             this->mErrorString = codec->toUnicode(QByteArray(strerror(myerrno)));
             emit connect_state_changed(QString("%1%2").arg(tr("Connect error: "))
                                        .arg(codec->toUnicode(QByteArray(strerror(myerrno)))));
@@ -381,7 +383,7 @@ int SSHConnection::initSocket()
     sock_flag = 0;
     ret = ::ioctlsocket(this->sock, FIONBIO, &sock_flag);
     if (ret == SOCKET_ERROR) {
-        qDebug()<<__FILE__<<__LINE__<<"win connect error";
+        q_debug()<<__FILE__<<__LINE__<<"win connect error";
         QString emsg = QString("%1%2").arg(tr("Connect error: "))
             .arg(codec->toUnicode(QByteArray(strerror(ret))));
         this->mErrorString = emsg;
@@ -413,6 +415,7 @@ int SSHConnection::initSSHSession()
     assert(this->sess != NULL);
     libssh2_session_set_blocking(this->sess, 1);
     // libssh2_session_set_blocking(this->sess, 0);
+    q_debug()<<"block mode:"<<libssh2_session_get_blocking(this->sess);
     
     // libssh2_trace(this->sess, 64);
     libssh2_trace(this->sess, LIBSSH2_TRACE_SOCKET | LIBSSH2_TRACE_TRANS
@@ -422,18 +425,19 @@ int SSHConnection::initSSHSession()
 
     libssh2_trace(this->sess, 0);
 
-    switch (libssh2_session_block_directions(this->sess)) {
+    ret = libssh2_session_block_directions(this->sess);
+    switch (ret) {
     case LIBSSH2_SESSION_BLOCK_INBOUND:
-        qDebug()<<__FILE__<<__LINE__<<"in bound block";
+        q_debug()<<"in bound block";
         break;
     case LIBSSH2_SESSION_BLOCK_OUTBOUND:
-        qDebug()<<__FILE__<<__LINE__<<"out bound block";
+        q_debug()<<"out bound block";
         break;
     case LIBSSH2_SESSION_BLOCK_INBOUND | LIBSSH2_SESSION_BLOCK_OUTBOUND:
-        qDebug()<<__FILE__<<__LINE__<<"all in and out bound block";
+        q_debug()<<"all in and out bound block";
         break;
     default:
-        qDebug()<<__FILE__<<__LINE__<<"unknown block direction";
+        q_debug()<<"unknown block direction"<<ret;
         break;
     }
 
@@ -451,7 +455,7 @@ int SSHConnection::initSSHSession()
             char *emsg = 0;
             int  emsg_len = 0;
             libssh2_session_last_error(this->sess, &emsg, &emsg_len, 1);
-            qDebug()<<"Start ssh session error: "<<libssh2_session_last_errno(this->sess)
+            q_debug()<<"Start ssh session error: "<<ret<<libssh2_session_last_errno(this->sess)
                     <<emsg;
             this->mErrorString = QString(emsg);
             emit connect_state_changed(QString("%1%2").arg(tr("Start ssh session error: ")).arg(emsg));
@@ -470,7 +474,8 @@ int SSHConnection::initSSHSession()
         //assert( ret == 0 );
         return CONN_OK;
     }
-    printf("Received Banner: %s\n", libssh2_session_get_remote_version(this->sess));
+    // printf("Received Banner: %s\n", libssh2_session_get_remote_version(this->sess));
+    q_debug()<<"Received Banner: "<<libssh2_session_get_remote_version(this->sess)<<"\n";
     emit connect_state_changed(tr("SSH session started ..."));
 
     /////////// new 
@@ -486,7 +491,7 @@ int SSHConnection::sshAuth()
     char *auth_list = libssh2_userauth_list(this->sess,
                                             this->userName.toAscii().data(), 
                                             strlen(this->userName.toAscii().data()));
-    qDebug()<<"User auth list: "<<auth_list;
+    q_debug()<<"User auth list: "<<auth_list;
 
     ret = libssh2_userauth_hostbased_fromfile(this->sess, 
                                               this->userName.toAscii().data(),
@@ -503,11 +508,11 @@ int SSHConnection::sshAuth()
         char *emsg = 0;
         int  emsg_len = 0;
         libssh2_session_last_error(this->sess, &emsg, &emsg_len, 1);
-        qDebug()<<"Host based public key auth error: "<<emsg;
+        q_debug()<<"Host based public key auth error: "<<emsg;
         emit connect_state_changed( QString("%1%2").arg(tr("Host based public key auth error: ")).arg(emsg));
         if (emsg != 0) free(emsg);
     } else {
-        qDebug()<<"Host based public key auth successful";
+        q_debug()<<"Host based public key auth successful";
         emit connect_state_changed(QString("%1").arg(tr("Host based public key auth successful")));
     }
 
@@ -526,18 +531,21 @@ int SSHConnection::sshAuth()
             is_priv_key = libssh2_publickey_is_privatekey(this->pubkey.toAscii().data(), 
                                                           QUrl::fromPercentEncoding(this->password.toAscii()).toAscii().data())
                 < 0 ? false : true;
+            q_debug()<<"is priv key:"<<is_priv_key;
             if (is_priv_key == false) {
                 ret = libssh2_userauth_publickey_fromfile(this->sess, 
                                                           this->userName.toAscii().data(),
                                                           this->pubkey.toAscii().data(),
                                                           this->pubkey.left(this->pubkey.length()-4).toAscii().data(),
-                                                          QUrl::fromPercentEncoding(this->password.toAscii()).toAscii().data());            } else {
+                                                          QUrl::fromPercentEncoding(this->password.toAscii()).toAscii().data());     
+            } else {
                 ret = libssh2_userauth_publickey_fromfile(this->sess, 
                                                           this->userName.toAscii().data(),
                                                           NULL, 
                                                           // this->pubkey.left(this->pubkey.length()-4).toAscii().data(),
                                                           this->pubkey.toAscii().data(),
-                                                          QUrl::fromPercentEncoding(this->password.toAscii()).toAscii().data());            }
+                                                          QUrl::fromPercentEncoding(this->password.toAscii()).toAscii().data());     
+            }
             //qDebug()<<this->user_name<<this->pubkey_path<<this->pubkey_path.left(this->pubkey_path.length()-4)
             //      <<this->decoded_password;
         } else {
@@ -545,17 +553,19 @@ int SSHConnection::sshAuth()
         }
     }
     if (ret == 0) {
-        qDebug()<<"PublicKey auth successfully";
+        q_debug()<<"PublicKey auth successfully";
     }
     if (ret < 0) {
         //password auth
         if (this->pubkey == QString::null || this->pubkey.length() == 0) {
             emit connect_state_changed(tr("User authing (Password)..."));
+        } else if (ret == LIBSSH2_ERROR_EAGAIN) {
+            q_debug()<<"retry pubkey auth.";
         } else {
             char *emsg = 0;
             int  emsg_len = 0;
             libssh2_session_last_error(this->sess, &emsg, &emsg_len, 1);
-            qDebug()<<"PublicKey auth error: "<<emsg;
+            q_debug()<<"PublicKey auth error: "<<emsg;
             if (emsg != 0) free(emsg);
             
             emit connect_state_changed(tr( "User auth faild(PublicKey). Trying (Password)..."));
@@ -570,10 +580,10 @@ int SSHConnection::sshAuth()
 
         ret = libssh2_userauth_password(this->sess, this->userName.toAscii().data(),
                                         QUrl::fromPercentEncoding(this->password.toAscii()).toAscii().data());
-        qDebug()<<"userauth_password :"<<ret;
+        q_debug()<<"userauth_password :"<<ret;
 
         if (ret < 0) {
-            qDebug()<<"userauth_password faild:";
+            q_debug()<<"userauth_password faild:";
             emit connect_state_changed(tr("User auth faild (Password). Trying (Keyboard Interactive) ..."));
             ssh2_kbd_cb_mutex.lock();
             strncpy(ssh2_password, 
@@ -583,7 +593,7 @@ int SSHConnection::sshAuth()
                                                         this->userName.toAscii().data(), &kbd_callback) ;
             memset(ssh2_password, 0, sizeof(ssh2_password));
             ssh2_kbd_cb_mutex.unlock();
-            qDebug()<<"Keyboard interactive :"<<ret<<this->password;
+            q_debug()<<"Keyboard interactive :"<<ret<<this->password;
         }
         if (this->user_canceled == true) {
             // this->connect_status = 2 ;
@@ -596,7 +606,7 @@ int SSHConnection::sshAuth()
     ret = libssh2_userauth_authenticated(this->sess);
     if (ret == 0 ) {
         // this->connect_status = CONN_AUTH_ERROR ;
-        qDebug()<<"User auth faild";
+        q_debug()<<"User auth faild";
         QString emsg = tr("User faild (Keyboard Interactive)(Password ).");
         this->mErrorString = emsg;
         emit connect_state_changed(emsg);
@@ -636,7 +646,7 @@ int SSHConnection::sshHomePath()
         char *emsg = 0;
         int  emsg_len = 0;
         libssh2_session_last_error(this->sess, &emsg, &emsg_len, 1);
-        qDebug()<<"Init sftp error: "<<emsg;
+        q_debug()<<"Init sftp error: "<<emsg;
         if (emsg != 0) {
             msg = QString(emsg);
             free(emsg);
@@ -668,7 +678,7 @@ int SSHConnection::sshHomePath()
     } else if (ret < 0) {
         QString msg;
         msg = this->libssh2SessionLastErrorString();
-        qDebug()<<"Realpath : "<<ret
+        q_debug()<<"Realpath : "<<ret
                 <<"Error code: "<<libssh2_sftp_last_error((LIBSSH2_SFTP*)ssh2_sftp)
                 <<"Error msg: "<<msg
                 <<home_path;
@@ -677,6 +687,7 @@ int SSHConnection::sshHomePath()
 
     this->homePath = QString(home_path);
     libssh2_sftp_shutdown(ssh2_sftp);
+    q_debug()<<this->homePath;
     
     if (this->user_canceled == true) {
         libssh2_session_disconnect(this->sess, "");
@@ -699,12 +710,12 @@ QString SSHConnection::get_server_env_vars(const char *cmd)
     //libssh2_channel_set_blocking(ssh2_channel, 1);
     // rv = libssh2_channel_exec(ssh2_channel, cmd);
     rv = libssh2_channel_shell(ssh2_channel);
-    qDebug()<<"SSH2 exec: "<<rv;
+    q_debug()<<"SSH2 exec: "<<rv;
 
     rv = libssh2_channel_write(ssh2_channel, cmd, strlen(cmd));
-    qDebug()<<"SSH2 write: "<<rv;
+    q_debug()<<"SSH2 write: "<<rv;
     rv = libssh2_channel_write(ssh2_channel, "\n", 1);
-    qDebug()<<"SSH2 write2: "<<rv;
+    q_debug()<<"SSH2 write2: "<<rv;
     rv = libssh2_channel_send_eof(ssh2_channel);
   
     memset(buff, 0, sizeof(buff));
@@ -753,7 +764,7 @@ QString SSHConnection::libssh2SessionLastErrorString()
     char *emsg = 0;
     int  emsg_len = 0;
     int rv = libssh2_session_last_error(this->sess, &emsg, &emsg_len, 1);
-    qDebug()<<__FUNCTION__<<rv<<"Get realpath error: "<<emsg;
+    q_debug()<<__FUNCTION__<<rv<<"Get realpath error: "<<emsg;
     if (emsg != 0) {
         errorString = QString(emsg);
         free(emsg);
