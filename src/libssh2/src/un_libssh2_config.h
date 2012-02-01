@@ -180,7 +180,7 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "-"
+#define PACKAGE_VERSION "1.4.0"
 
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
@@ -194,7 +194,7 @@
 #define STDC_HEADERS 1
 
 /* Version number of package */
-#define VERSION "1.2.6"
+#define VERSION "-"
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */
@@ -222,3 +222,6 @@
 #ifndef __cplusplus
 /* #undef inline */
 #endif
+
+/* Define to `unsigned int' if <sys/types.h> does not define. */
+/* #undef size_t */

@@ -12,7 +12,7 @@ CONFIG += qt thread console warn_on ordered
 TARGET = nullfxp
 DESTDIR = ../bin
 
-VERSION=2.1.93  # using in nullfxp-version.h
+VERSION=2.1.94  # using in nullfxp-version.h
 
 # install vars, unix xdg
 include(../install.pri)
@@ -273,7 +273,7 @@ macx-g++* {
 
     #LIBS += -lssh2 # ARCH Linux's curl already contains ssh2, and should explict it here 
     # LIBS += -Wl,-Bstatic -lcurl -lexpat 
-    # LIBS += -Wl,-Bdynamic -lssl -lcrypto -lfontconfig
+    # LIBS += -Wl,-Bdynamic -lrt -ldl -lssl -lcrypto -lfontconfig
     # LIBS += -lgnutls -lidn -ltasn1 -lgcrypt -lgpg-error
     LIBS += -Wl,-Bdynamic -lgnutls -lidn -lgcrypt
     HAS_GSSAPI=$$find(static_libcurl,gssapi)
