@@ -1,0 +1,13 @@
+程序名：npssh
+功能，native parrall ssh program
+参数：
+    -h host_list_file.txt
+    command
+
+
+HOST_file文件格式： 
+user[:password]@host[:port]
+user[:keyfile]@host[:port]
+user[:keyfile[:password]]@host[:port]
+
+

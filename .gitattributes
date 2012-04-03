@@ -16,6 +16,7 @@ docs/doxy_footer.html -text
 docs/ftps.txt -text
 docs/fxp.txt -text
 docs/links.txt -text
+docs/pssh.txt -text
 /install.pri -text
 /nullfxp.kdevelop -text
 /nullfxp.pro -text
@@ -554,6 +555,8 @@ src/localviewdirtableview.h -text
 src/main.cpp -text
 src/netdirsortfiltermodel.cpp -text
 src/netdirsortfiltermodel.h -text
+src/npssh/npssh.cpp -text
+src/npssh/npssh.pro -text
 src/nscp/nscp.c -text
 src/nscp/nscp.pro -text
 src/nscp/nscp_o.c -text
