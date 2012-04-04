@@ -15,7 +15,8 @@ QMAKE_LIBDIR += ../libssh2/src/release ../libssh/libssh/release
 LIBS += ../libssh2/src/libssh2.a ../libssh/libssh/libkssh.a -lssl -lcrypto -lz -lrt
 POST_TARGETDEPS += ../libssh2/src/libssh2.a ../libssh/libssh/libkssh.a
 
-SOURCES = npssh.cpp
+QMAKE_CXXFLAGS += -g -std=c++11
+SOURCES = npssh.cpp hostlist.cpp
 
 
         

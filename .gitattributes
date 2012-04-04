@@ -555,6 +555,8 @@ src/localviewdirtableview.h -text
 src/main.cpp -text
 src/netdirsortfiltermodel.cpp -text
 src/netdirsortfiltermodel.h -text
+src/npssh/hostlist.cpp -text
+src/npssh/hostlist.h -text
 src/npssh/npssh.cpp -text
 src/npssh/npssh.pro -text
 src/nscp/nscp.c -text
