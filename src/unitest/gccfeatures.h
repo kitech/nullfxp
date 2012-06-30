@@ -13,4 +13,6 @@
 // 6.1 Statements and Declarations in Expressions
 void gcc_feature_statements_and_declarations_in_expressions();
 
+void gcc_feature___atomic_rather_than___sync();
+
 #endif /* _GCCFEATURES_H_ */

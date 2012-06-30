@@ -56,3 +56,54 @@ void gcc_feature_statements_and_declarations_in_expressions()
 #endif
 }
 
+
+void gcc_feature___atomic_rather_than___sync()
+{
+
+    //   __atomic();
+
+}
+
+namespace gcc_ext_friend {
+    template<class W>
+    class TQ {
+        static const int I = 2;
+    public:
+        friend W;
+    };
+
+    struct TB {
+        int ar[TQ<TB>::I];
+    };
+
+    void gcc_ext_friend()
+    {
+
+    }
+};
+
+namespace gcc_ext_delegate_construct {
+    struct A {
+        A(int);
+        A() : A(30) {}
+    };
+};
+
+#include <atomic>
+#include <iostream>
+namespace gcc_ext_atomic_class {
+    struct A {
+        int a;
+        // std::string astr;
+        FILE *fp;
+    };
+    class POD {
+        int a;
+        int b;
+        // std::string str; // compile error
+        char *rstr;
+        char fstr[100];
+        A a2;
+    };
+    std::atomic<POD> my_atomic_POD;
+};

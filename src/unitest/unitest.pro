@@ -67,7 +67,7 @@ win32 {
 } else {
     GCC_VERSION = $$system(gcc -dumpversion)
     ## TODO gcc > 4.4.0 has -std=c++0x arguments
-    QMAKE_CXXFLAGS += -std=c++0x
+    QMAKE_CXXFLAGS += -std=c++0x -std=c++11 -std=gnu++11 -fno-exceptions  # -fno-rtti
     QMAKE_CXXFLAGS += -g
 }
 
