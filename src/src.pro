@@ -12,7 +12,7 @@ CONFIG += qt thread console warn_on ordered
 TARGET = nullfxp
 DESTDIR = ../bin
 
-VERSION=2.1.94  # using in nullfxp-version.h
+VERSION=2.1.95  # using in nullfxp-version.h
 
 # install vars, unix xdg
 include(../install.pri)
@@ -258,18 +258,31 @@ macx-g++* {
 } else: android-g++* {
     message("hoho,android exprimental support.")
 } else: linux-g++* {
+    tmp_libdir=$$system("pkg-config --libs-only-L libcurl")
     static_libcurl=$$system("pkg-config --static --libs libcurl")
     message($$static_libcurl)
-    LIBS += -Wl,-Bstatic -lcurl #-lexpat #-lssh2
-    contains(static_libcurl, "-lexpat") {
-        LIBS += -lexpat
-    } else {
+
+    isEmpty(tmp_libdir) {
+        tmp_libdir=/usr/lib
     }
-    contains(static_libcurl, "-lssh2") {
-        LIBS += -lssh2
+
+    exists($$tmp_libdir/libssh2.a) {
+        message("enable static link curl")
+
+        LIBS += -Wl,-Bstatic -lcurl #-lexpat #-lssh2
+        contains(static_libcurl, "-lexpat") {
+            LIBS += -lexpat
+        } else {
+        }
+        contains(static_libcurl, "-lssh2") {
+            LIBS += -lssh2
+        } else {
+        }
     } else {
+        message("enable dynamic link curl")
+        LIBS += -lcurl    # dynamic
     }
-    
+
 
     #LIBS += -lssh2 # ARCH Linux's curl already contains ssh2, and should explict it here 
     # LIBS += -Wl,-Bstatic -lcurl -lexpat 
